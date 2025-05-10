@@ -1,57 +1,104 @@
 // models/Player.js
 
+import { rank } from '../utils/cardUtils.js';
+
+/**
+ * PLAYER
+ * Manages a single player’s hand, up‑cards, down‑cards, and pick‑up logic.
+ */
 export default class Player {
-  constructor(id, name, isComputer = false, sock = null) {
+  /**
+   * @param {string} id Unique player identifier
+   */
+  constructor(id) {
+    /** @type {string} */
     this.id = id;
-    this.name = name;
+    /** @type {object[]} Cards in hand (visible) */
     this.hand = [];
-    this.up = [];
-    this.down = [];
-    this.isComputer = isComputer;
-    this.disconnected = false;
-    this.sock = sock;
+    /** @type {object[]} Face‑up cards (visible after hand is empty) */
+    this.upCards = [];
+    /** @type {object[]} Face‑down cards (hidden until both hand & up are empty) */
+    this.downCards = [];
   }
 
-  markDisconnected() {
-    this.disconnected = true;
-    this.sock = null;
-  }
-
-  drawCard(card) {
-    if (card) this.hand.push(card);
-  }
-
-  refillHand(drawFn, maxHandSize = 3) {
-    while (this.hand.length < maxHandSize) {
-      const card = drawFn();
-      if (!card) break;
-      this.hand.push(card);
-    }
+  /**
+   * Replace this.hand with new cards and sort.
+   * @param {object[]} cards
+   */
+  setHand(cards) {
+    this.hand = [...cards];
     this.sortHand();
   }
 
-  sortHand(rankFn) {
-    if (!rankFn) return;
-    this.hand.sort((a, b) => rankFn(a) - rankFn(b));
+  /**
+   * Replace this.upCards.
+   * @param {object[]} cards
+   */
+  setUpCards(cards) {
+    this.upCards = [...cards];
   }
 
-  hasPlayableCard(validFn) {
-    return (
-      this.hand.some(card => validFn([card])) ||
-      this.up.some(card => validFn([card])) ||
-      this.down.length > 0
-    );
+  /**
+   * Replace this.downCards.
+   * @param {object[]} cards
+   */
+  setDownCards(cards) {
+    this.downCards = [...cards];
   }
 
-  removeFromHand(indexes) {
-    this.hand = this.hand.filter((_, i) => !indexes.includes(i));
+  /**
+   * Play a card from hand at index.
+   * @param {number} index
+   * @returns {object} the played card
+   */
+  playFromHand(index) {
+    return this.hand.splice(index, 1)[0];
   }
 
-  removeFromUp(indexes) {
-    this.up = this.up.filter((_, i) => !indexes.includes(i));
+  /**
+   * Play a face‑up card at index.
+   * @param {number} index
+   * @returns {object}
+   */
+  playUpCard(index) {
+    return this.upCards.splice(index, 1)[0];
   }
 
-  removeFromDown() {
-    return this.down.shift();
+  /**
+   * Play a random face‑down card.
+   * @returns {object}
+   */
+  playDownCard() {
+    const idx = Math.floor(Math.random() * this.downCards.length);
+    return this.downCards.splice(idx, 1)[0];
+  }
+
+  /**
+   * When picking up the pile, add those cards into hand and re‑sort.
+   * @param {object[]} pile
+   */
+  pickUpPile(pile) {
+    this.hand.push(...pile);
+    this.sortHand();
+  }
+
+  /** Sort hand lowest→highest by rank */
+  sortHand() {
+    this.hand.sort((a, b) => rank(a) - rank(b));
+  }
+
+  /** @returns {boolean} true if hand is empty */
+  hasEmptyHand() {
+    return this.hand.length === 0;
+  }
+
+  /** @returns {boolean} true if upCards is empty */
+  hasEmptyUp() {
+    return this.upCards.length === 0;
+  }
+
+  /** @returns {boolean} true if downCards is empty */
+  hasEmptyDown() {
+    return this.downCards.length === 0;
   }
 }
