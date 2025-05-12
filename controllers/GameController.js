@@ -1,56 +1,167 @@
-// controllers/GameController.js (ESM)
+// controllers/GameController.js
 
+/**
+ * GAME CONTROLLER
+ * - Isolate game logic from Socket.IO networking.
+ * - Normalize all card values via cardUtils.normalizeCardValue().
+ * - Emit 'card-played' → optionally emit 'special-card' for ['two','five','ten'].
+ * - Next turn only starts after client emits 'start-next-turn'.
+ */
 import GameState from '../models/GameState.js';
+import Player from '../models/Player.js';
+import { normalizeCardValue, isSpecialCard } from '../utils/cardUtils.js';
 import {
-  isTwoCard,
-  isFiveCard,
-  isTenCard,
-  isSpecialCard
-} from '../utils/cardUtils.js';
+  JOIN_GAME,
+  JOINED,
+  PLAYER_JOINED,
+  LOBBY,
+  STATE_UPDATE,
+  SPECIAL_CARD,
+  REJOIN,
+  START_GAME,
+  NEXT_TURN
+} from '../src/shared/events.js';
 
 export default class GameController {
+  /**
+   * @param {import('socket.io').Server} io
+   */
   constructor(io) {
-    console.log('typeof GameState:', typeof GameState);
-    console.log('GameState content:', GameState);
-
     this.io = io;
-    this.game = new GameState(); // Will throw if GameState fails
-    this.roomId = null;
+    this.gameState = new GameState();
+    this.players = new Map(); // Map<playerId, Player>
+
+    // Wire up per‑socket listeners
+    this.io.on('connection', socket => this.setupListeners(socket));
   }
 
-  setupRoom(roomId) {
-    this.roomId = roomId;
+  /**
+   * Register socket event handlers
+   * @param {import('socket.io').Socket} socket
+   */
+  setupListeners(socket) {
+    socket.on(JOIN_GAME, playerId => this.handleJoin(socket, playerId));
+    socket.on(START_GAME, () => this.handleStartGame());
+    socket.on('play-card', data => this.handlePlay(socket, data));
+    socket.on(NEXT_TURN, () => this.handleNextTurn());
+    socket.on(REJOIN, ({ roomId, playerId }) => {
+      // Validate the room exists (for now, only 'game-room' is valid)
+      if (roomId !== 'game-room' || !this.players.has(playerId)) {
+        socket.emit('err', 'Invalid room or player for rejoin');
+        return;
+      }
+      socket.join(roomId);
+      // Resend the latest game snapshot
+      const state = {
+        players: this.gameState.players.map(id => ({
+          id,
+          handCount: this.players.get(id).hand.length,
+          upCount: this.players.get(id).upCards.length,
+          downCount: this.players.get(id).downCards.length,
+        })),
+        pile: this.gameState.pile,
+        discardCount: this.gameState.discard.length,
+        currentPlayer: this.gameState.players[this.gameState.currentPlayerIndex],
+      };
+      socket.emit(STATE_UPDATE, state);
+    });
   }
 
-  handleJoin(sock, name) {
-    const { success, player, reason } = this.game.addPlayer(sock, name);
-    if (!success) {
-      sock.emit('err', reason);
+  /** Add a new player to the game */
+  handleJoin(socket, playerId) {
+    if (this.players.has(playerId)) {
+      socket.emit('err', 'Player already joined');
       return;
     }
-    sock.emit('joined', { id: player.id });
+    this.gameState.addPlayer(playerId);
+    const player = new Player(playerId);
+    this.players.set(playerId, player);
+
+    socket.join('game-room');
+    // One-off ACK to the joining socket
+    socket.emit(JOINED, { id: playerId, roomId: 'game-room' });
+    // Notify all clients of the updated player list
+    const playerList = [...this.players.keys()];
+    this.io.to('game-room').emit(PLAYER_JOINED, playerList);
+    this.io.to('game-room').emit(LOBBY, {
+      roomId: 'game-room',
+      players: playerList,
+      maxPlayers: 4
+    });
     this.pushState();
   }
 
-  startGame() {
-    if (this.game.players.length < 2) return;
-    this.game.started = true;
-    this.game.buildDeck();
-    this.game.dealCards();
-    this.game.turn = this.game.players[0].id;
+  /** Initialize deck, deal cards, assign them to players, and emit first turn */
+  handleStartGame() {
+    if (this.players.size < 2) return;
+    this.gameState.buildDeck();
+    // Deal cards to all players
+    const numPlayers = this.gameState.players.length;
+    const { hands, upCards, downCards } = this.gameState.dealCards(numPlayers);
+    // Assign cards to each player
+    this.gameState.players.forEach((id, idx) => {
+      const player = this.players.get(id);
+      player.setHand(hands[idx]);
+      player.setUpCards(upCards[idx]);
+      player.setDownCards(downCards[idx]);
+    });
+    this.pushState();
+    const first = this.gameState.players[0];
+    this.io.to('game-room').emit(NEXT_TURN, first);
+  }
+
+  /**
+   * Player plays a card from hand/up/down
+   * @param {import('socket.io').Socket} socket
+   * @param {{playerId:string,cardIndex:number,zone:'hand'|'up'|'down'}} data
+   */
+  handlePlay(socket, { playerId, cardIndex, zone }) {
+    const player = this.players.get(playerId);
+    if (!player) return;
+
+    let card;
+    switch (zone) {
+      case 'hand': card = player.playFromHand(cardIndex); break;
+      case 'up':   card = player.playUpCard(cardIndex);     break;
+      case 'down': card = player.playDownCard();            break;
+      default:     return;
+    }
+
+    const normalized = normalizeCardValue(card.value);
+    this.gameState.addToPile({ ...card, value: normalized });
+    this.io.to('game-room').emit('card-played', { playerId, card: { ...card, value: normalized } });
+
+    if (isSpecialCard(normalized)) {
+      socket.emit(SPECIAL_CARD, normalized);
+    }
+  }
+
+  /** Advance to next player's turn */
+  handleNextTurn() {
+    this.gameState.advancePlayer();
+    const next = this.gameState.players[this.gameState.currentPlayerIndex];
+    this.io.to('game-room').emit(NEXT_TURN, next);
+  }
+
+  /** Cleanup on disconnect (optional) */
+  handleDisconnect(socket) {
+    // TO DO: remove or mark offline
     this.pushState();
   }
 
-  handleDisconnect(sock) {
-    this.game.markPlayerDisconnected(sock.id);
-    this.pushState();
-  }
-
-  handlePlay(sock, indexes) {
-    // Leave stubbed for now — add full logic once you're stable
-  }
-
+  /** Broadcast full game state to all clients */
   pushState() {
-    // Leave stubbed for now — add full logic once you're stable
+    const state = {
+      players: this.gameState.players.map(id => ({
+        id,
+        handCount: this.players.get(id).hand.length,
+        upCount: this.players.get(id).upCards.length,
+        downCount: this.players.get(id).downCards.length,
+      })),
+      pile: this.gameState.pile,
+      discardCount: this.gameState.discard.length,
+      currentPlayer: this.gameState.players[this.gameState.currentPlayerIndex],
+    };
+    this.io.to('game-room').emit(STATE_UPDATE, state);
   }
 }

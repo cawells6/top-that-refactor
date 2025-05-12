@@ -1,0 +1,356 @@
+/* filepath: c:\Users\chris\OneDrive\Documents\GitHub\Top-That-Refactor\public\style.css */
+
+/* ========== Color Variables & Root Styles ========== */
+:root {
+  --bg: #0b5137; /* Main background dark green */
+  --header-bg: #1b2e3c; /* Blue for header */
+  --accent: #FFC300; /* Bright gold */
+  --accent2: #4a90e2; /* Second Blue */
+  --name: #FFC300; /* Bright gold for name */
+  --text: #f5f5f5;
+  --mute: #b0bec5; /* Muted Gray */
+  --panelBorder: #ffffff22;
+  --active-border: #00CCCC; /* Brighter teal */
+
+  /* Card & UI colors */
+  --card-bg: #ffffff;
+  --card-text: #333333;
+  --input-border: #cfd8dc; /* Light Gray */
+  --placeholder-text: #78909c; /* Darkened for AA contrast */
+  --error-color: #e53935; /* For validation */
+  --btn-primary-bg: var(--accent);
+  --btn-primary-text: #000000;
+  --btn-secondary-bg: var(--accent); /* Match the gold color */
+  --btn-secondary-text: #ffffff;
+  --btn-tertiary-bg: #78909c; /* For Copy Link */
+  --btn-tertiary-text: #ffffff;
+  --body-bg-start: #367347; /* Gradient start to match main bg */
+  --body-bg-mid: #2e5e3c;  /* Slightly darker for middle */
+  --body-bg-end: #264c32;  /* Even darker for end */
+  --overlay-bg: rgba(0, 0, 0, 0.6); /* Overlay background */
+
+  /* Sizing */
+  --header-height: 70px; /* Approximate height */
+  --gutter: 24px;
+
+  /* Card dimensions */
+  --card-w: 67.2px;
+  --card-h: 92.4px;
+  --card-peek: calc(var(--card-h) * 0.2);
+
+  /* Z-index layers for predictable stacking */
+  --z-base: 1;
+  --z-card: 10;
+  --z-card-hover: 20;
+  --z-card-selected: 30;
+  --z-card-icon: 100;
+  --z-ui-elements: 200;
+  --z-tutorial: 500;
+  --z-modal: 1000;
+  --z-toast: 2000;
+  --z-game-over: 3000;
+}
+
+/* ========== Base Styles ========== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%;
+  font-family: sans-serif;
+  color: var(--text);
+}
+body {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: var(--header-height);
+  margin: 0;
+  overflow-y: auto;
+}
+
+/* ========== Header ========== */
+#main-header {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: var(--header-height);
+  background: var(--header-bg);
+  border-bottom: 2px solid var(--panelBorder);
+  display: flex; align-items: center; justify-content: center;
+  z-index: var(--z-ui-elements);
+}
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%; max-width: 1200px;
+  padding: 0 1.5rem;
+}
+
+/* ========== Buttons ========== */
+.btn {
+  padding: 8px 16px;
+  border: none; border-radius: 4px;
+  cursor: pointer; font-weight: bold;
+  margin: 0 4px; z-index: var(--z-ui-elements);
+}
+.btn-primary {
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+.btn-secondary {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+}
+.btn-tertiary {
+  background-color: var(--btn-tertiary-bg);
+  color: var(--btn-tertiary-text);
+}
+
+/* ========== Lobby/Data UI ========== */
+#lobby-container {
+  max-width: 500px;
+  margin: 80px auto;
+  padding: 20px;
+  background: var(--card-bg);
+  color: var(--card-text);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 4px; font-weight: bold; }
+.form-group input {
+  width: 100%; padding: 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  color: var(--card-text);
+  background-color: var(--card-bg);
+}
+.form-group input::placeholder {
+  color: var(--placeholder-text);
+}
+.form-group input.input-error {
+  border-color: var(--error-color);
+}
+.error-message { color: var(--error-color); font-size: 0.9em; margin-top: 4px; }
+
+#waiting-state {
+  text-align: center;
+  border-top: 1px solid var(--input-border);
+}
+.spinner { margin: 16px auto; }
+.spinner > div {
+  background-color: var(--accent2);
+}
+
+/* ========== Table/Game Board ========== */
+#table {
+  display: grid; place-items: center;
+  background-color: #27ae60;
+  border-radius: 50%;
+  width: 100%;
+  height: calc(100vh - var(--header-height));
+  z-index: var(--z-base);
+}
+
+/* ========== Card Imagery ========== */
+.card-img {
+  width: var(--card-w);
+  height: var(--card-h);
+  object-fit: contain;
+  border-radius: 5px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.special-card-pulse {
+  animation: specialCardPulse 0.8s ease-in-out;
+  position: relative;
+  z-index: var(--z-base);
+}
+.regular-card-glow {
+  animation: regularCardGlow 1.5s ease-in-out;
+  position: relative;
+  z-index: var(--z-base);
+}
+@keyframes specialCardPulse {
+  0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.8); transform: scale(1); }
+  25% { box-shadow: 0 0 0 10px rgba(255,255,255,0.4); transform: scale(1.05); }
+  50% { box-shadow: 0 0 0 15px rgba(255,255,255,0.2); transform: scale(1.08); }
+  75% { box-shadow: 0 0 0 10px rgba(255,255,255,0.1); transform: scale(1.05); }
+ 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); transform: scale(1); }
+}
+@keyframes regularCardGlow {
+  0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+ 50% { box-shadow: 0 0 15px 5px rgba(255,255,255,0.6); }
+ 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+}
+
+/* ========== Modals & Toasts ========== */
+#modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.3); /* More transparent overlay */
+  z-index: var(--z-modal);
+  pointer-events: auto;
+}
+.modal-nonblocking {
+  pointer-events: none; /* Allow clicks through overlay */
+}
+.modal-nonblocking .modal-content {
+  pointer-events: auto; /* Modal itself is still interactive */
+}
+.modal-content {
+  position: fixed;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: var(--card-bg);
+  color: var(--card-text);
+  padding: 20px;
+  border-radius: 8px;
+  z-index: calc(var(--z-modal) + 1);
+  max-width: 400px;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.25), 0 1.5px 6px 0 var(--accent2);
+  border: 2px solid var(--accent2);
+}
+.modal-close-button {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: none; border: none;
+  font-size: 24px; cursor: pointer;
+  color: var(--accent);
+}
+.modal-close-button:hover {
+  color: var(--text);
+}
+
+#toast-container {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  z-index: var(--z-toast);
+}
+.toast {
+  background: rgba(0,0,0,0.85);
+  color: #ffffff;
+}
+
+#rules-modal {
+  background-color: #0c3d2a;
+  color: var(--text);
+  border: 2px solid var(--accent);
+}
+#rules-modal-title {
+  color: var(--accent);
+  border-bottom: 1px solid rgba(255, 195, 0, 0.3);
+}
+#rules-modal .modal-close-button {
+  color: var(--accent);
+}
+#rules-modal .modal-close-button:hover {
+  color: var(--text);
+}
+#rules-modal > .modal-content > ul > li {
+  color: var(--accent);
+}
+#rules-modal .sublist {
+  color: var(--card-bg);
+}
+
+.banner {
+  background: var(--accent2);
+  color: #fff;
+}
+.error-banner {
+  background: linear-gradient(90deg, var(--body-bg-mid) 80%, var(--body-bg-start) 100%);
+  color: #fffbe7;
+  border: 2.5px solid var(--accent);
+  box-shadow: 0 4px 18px 0 #0005, 0 0 0 2px #FFC30055;
+}
+.took-pile-banner {
+  background: #ffd36b;
+  color: #222;
+}
+
+.pile {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#event-banner {
+  color: var(--text);
+}
+.event-banner-visible.burn {
+  background-color: #ff4500;
+}
+.event-banner-visible.reset {
+  background-color: #4caf50;
+}
+.event-banner-visible.copy {
+  background-color: #2196f3;
+}
+
+.button-container {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+#play, #take {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+#join-computer {
+  background: var(--accent2);
+  color: #fff;
+}
+
+.special-icon {
+  z-index: var(--z-card-icon);
+}
+
+#game-log {
+  background: var(--card-bg);
+  border: 1px solid var(--input-border);
+}
+
+/* ========== BEM Modal Styles ========== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  font-size: 1rem;
+}
+.modal--open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+.modal__content {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  max-width: 90%;
+  width: 400px;
+  text-align: left;
+}
+.modal__title {
+  margin-top: 0;
+  color: var(--bg);
+}
+.modal__list {
+  margin: 1rem 0;
+  padding-left: 1.2rem;
+}
+.modal__close-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--accent);
+}

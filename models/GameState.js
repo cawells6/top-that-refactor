@@ -51,4 +51,40 @@ export default class GameState {
     this.discard.push(...this.pile);
     this.pile = [];
   }
+
+  /**
+   * Build a standard 52-card deck and shuffle it (Fisher–Yates).
+   */
+  buildDeck() {
+    const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+    const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
+    this.deck = [];
+    for (const suit of suits) {
+      for (const value of values) {
+        this.deck.push({ value, suit });
+      }
+    }
+    for (let i = this.deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
+    }
+  }
+
+  /**
+   * Deal cards to players: hand, upCards, downCards for each.
+   * @param {number} numPlayers
+   * @param {number} handSize
+   * @returns {{ hands: object[][], upCards: object[][], downCards: object[][] }}
+   */
+  dealCards(numPlayers, handSize = 3) {
+    const hands = [];
+    const upCards = [];
+    const downCards = [];
+    for (let p = 0; p < numPlayers; p++) {
+      hands.push(this.deck.splice(0, handSize));
+      upCards.push(this.deck.splice(0, handSize));
+      downCards.push(this.deck.splice(0, handSize));
+    }
+    return { hands, upCards, downCards };
+  }
 }

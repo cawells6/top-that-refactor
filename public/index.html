@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Top That! – Card Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="/style.css" />
+
+  <!-- Socket.IO client -->
+  <script defer src="/socket.io/socket.io.js"></script>
+
+  <!-- Entry‑point for your client modules -->
+  <script defer type="module" src="/scripts/events.js"></script>
+</head>
+<body>
+  <header id="main-header">
+    <div class="header-content">
+      <div class="brand">
+        <h1 class="logo">
+          <span class="logo-icon">👑</span> Top That!
+        </h1>
+        <p class="tagline">One Pile. One Winner. No Mercy.</p>
+      </div>
+      <nav>
+        <button id="rules-button" class="btn btn-secondary" aria-haspopup="dialog">
+          How to Play
+        </button>
+        <button id="back-to-lobby-button" class="btn btn-secondary">
+          Lobby
+        </button>
+        <button id="rewind-btn" class="btn btn-secondary hidden">◀ Prev</button>
+        <button id="forward-btn" class="btn btn-secondary hidden">Next ▶</button>
+      </nav>
+    </div>
+  </header>
+
+  <div id="notice-banner" class="notice hidden"></div>
+  <div id="error-banner" class="notice hidden"></div>
+  <div id="modal-overlay" class="hidden"></div>
+
+  <main id="main-content">
+    <!-- Lobby Screen -->
+    <div id="lobby-container" class="hidden">
+      <div id="lobby-form-card">
+        <h2 id="lobby-heading">Join a Game</h2>
+        <div id="lobby-form-content">
+          <div class="form-group">
+            <label for="name">Your Name</label>
+            <input type="text" id="name" placeholder="Enter your name" required />
+            <div id="name-error" class="error-message hidden">
+              Please enter your name.
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="total-players">Total Players <small>(max 4)</small></label>
+            <input type="number" id="total-players" min="2" max="4" value="2" />
+          </div>
+          <div class="form-group">
+            <label for="computer-count">Computer Opponents</label>
+            <input type="number" id="computer-count" min="0" max="3" value="0" />
+          </div>
+          <div class="form-group button-group">
+            <button id="create-join" class="btn btn-primary">
+              Create / Join Game
+            </button>
+          </div>
+        </div>
+        <div id="waiting-state" class="hidden">
+          <h3 id="waiting-heading">Waiting for players…</h3>
+          <div class="spinner">
+            <div class="dot1"></div><div class="dot2"></div>
+          </div>
+          <p id="share-link-message">
+            Share the link to invite others!
+          </p>
+          <button id="copy-link-button" class="btn btn-tertiary">
+            Copy Invite Link
+          </button>
+          <button id="start-game-button" class="btn btn-primary hidden">
+            Start Game
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table / Game Board -->
+    <div id="table" class="hidden">
+      <div class="table-board">
+        <div class="table-slot-top"></div>
+        <div class="table-slot-left"></div>
+        <div class="table-slot-center">
+          <div id="center" class="center-area"></div>
+        </div>
+        <div class="table-slot-right"></div>
+        <div class="table-slot-bottom"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Game Log -->
+  <section id="game-log" class="game-log hidden">
+    <h3>Game Log</h3>
+    <div id="game-log-entries"></div>
+  </section>
+
+  <!-- Rules Modal (BEM style) -->
+  <div id="rules-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content" role="document">
+      <button class="modal__close-button" aria-label="Close">&times;</button>
+      <h2 id="rules-modal-title" class="modal__title">How to Play Top That!</h2>
+      <ul class="modal__list">
+        <li>- Each player plays a card higher than the last.</li>
+        <li>- Special cards (2, 5, 10) trigger unique effects.</li>
+        <li>- If you can’t play, you pick up the pile.</li>
+        <li>- First to empty all cards wins.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+</body>
+</html>

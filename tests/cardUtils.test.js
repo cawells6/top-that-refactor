@@ -1,6 +1,6 @@
 // tests/cardUtils.test.js
 
-const {
+import {
   normalizeCardValue,
   rank,
   isTwoCard,
@@ -8,7 +8,7 @@ const {
   isTenCard,
   isSpecialCard,
   isFourOfAKind
-} = require('../utils/cardUtils');
+} from '../utils/cardUtils.js';
 
 describe('cardUtils', () => {
   describe('normalizeCardValue', () => {
