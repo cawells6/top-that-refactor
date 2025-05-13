@@ -1,3 +1,5 @@
+import { normalizeCardValue, isSpecialCard, rank } from '../utils/cardUtils.js';
+
 // models/GameState.js
 
 /**
@@ -14,6 +16,14 @@ export default class GameState {
     this.pile = [];
     /** @type {object[]} All cards that have been cleared from the pile */
     this.discard = [];
+    /** @type {object|null} Last real (non-special) card played */
+    this.lastRealCard = null;
+    /** @type {number} Max players for this game room */
+    this.maxPlayers = 4;
+    /** @type {string[]} Player order for this room */
+    this.playerOrder = [];
+    /** @type {number} Number of players in this room */
+    this.playersCount = 0;
   }
 
   /**
@@ -35,11 +45,67 @@ export default class GameState {
   }
 
   /**
-   * Add a card to the current pile.
+   * Add a card to the current pile and update lastRealCard if not special.
    * @param {object} card
    */
   addToPile(card) {
     this.pile.push(card);
+    if (!isSpecialCard(card.value)) {
+      this.lastRealCard = card;
+    }
+  }
+
+  /**
+   * Get the value that must be beaten (null if pile empty or reset).
+   */
+  getTopValue() {
+    if (this.pile.length === 0) return null;
+    const top = this.pile[this.pile.length - 1].value;
+    if (top === 'two') return null;
+    if (top === 'five') {
+      for (let i = this.pile.length - 2; i >= 0; i--) {
+        const val = this.pile[i].value;
+        if (val !== 'five' && val !== 'two') return val;
+      }
+      return null;
+    }
+    return top;
+  }
+
+  /**
+   * Validate if a card can be played on the current pile.
+   * @param {object} card
+   * @returns {boolean}
+   */
+  isValidPlay(card) {
+    const topVal = this.getTopValue();
+    const val = normalizeCardValue(card.value);
+    if (isSpecialCard(val)) return true;
+    if (topVal === null) return true;
+    return rank({ value: val }) >= rank({ value: normalizeCardValue(topVal) });
+  }
+
+  /**
+   * Check if the top 4 cards of the pile are four of a kind (not special).
+   * @returns {boolean}
+   */
+  checkFourOfKind() {
+    if (this.pile.length < 4) return false;
+    const len = this.pile.length;
+    const v1 = normalizeCardValue(this.pile[len - 1].value);
+    return (
+      v1 !== 'two' && v1 !== 'five' &&
+      normalizeCardValue(this.pile[len - 2].value) === v1 &&
+      normalizeCardValue(this.pile[len - 3].value) === v1 &&
+      normalizeCardValue(this.pile[len - 4].value) === v1
+    );
+  }
+
+  /**
+   * Get the last real (non-special) card played.
+   */
+  getLastRealCard() {
+    return this.lastRealCard || null;
   }
 
   /**

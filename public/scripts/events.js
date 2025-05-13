@@ -82,6 +82,20 @@ document.addEventListener('DOMContentLoaded', () => {
       overlay.classList.add('modal__overlay--hidden');
     };
   }
+
+  // Auto-join if ?room= is present in URL
+  const params = new URLSearchParams(window.location.search);
+  const roomParam = params.get('room') || '';
+  if (roomParam && createJoinBtn) {
+    // Hide setup fields if joining by link
+    document.getElementById('lobby-form-content')?.classList.add('hidden');
+    // Auto-fill join on load
+    setTimeout(() => {
+      const nameInput = document.getElementById('name-input');
+      if (nameInput && nameInput instanceof HTMLInputElement && !nameInput.value) nameInput.value = 'Guest';
+      createJoinBtn.click();
+    }, 100);
+  }
 });
 
 // —– UI helper functions —–

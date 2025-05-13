@@ -46,4 +46,35 @@ export function initializeSocketHandlers() {
   state.socket.on('err', msg => {
     showError(msg);
   });
+
+  // Handle special card animations
+  state.socket.on('special-card', type => {
+    const img = new Image();
+    // Map type to icon file (support both new and legacy names)
+    let iconFile = '';
+    switch (type) {
+      case 'burn': iconFile = '/Burn-icon.png'; break;
+      case 'reset': iconFile = '/Reset-icon.png'; break;
+      case 'copy': iconFile = '/Copy-icon.png'; break;
+      case 'take': iconFile = '/Take pile-icon.png'; break;
+      case 'invalid': iconFile = '/Invalid play-icon.png'; break;
+      default: iconFile = '/Invalid play-icon.png'; break;
+    }
+    img.src = iconFile;
+    img.classList.add('special-animation');
+    img.style.position = 'fixed';
+    img.style.left = '50%';
+    img.style.top = '50%';
+    img.style.transform = 'translate(-50%, -50%) scale(1.2)';
+    img.style.zIndex = 9999;
+    document.body.appendChild(img);
+    setTimeout(() => img.remove(), 1200);
+  });
+
+  // Handle game over
+  state.socket.on('gameOver', ({ winnerName }) => {
+    import('./uiHelpers.js').then(({ showGameOverMessage }) => {
+      showGameOverMessage(false, winnerName);
+    });
+  });
 }

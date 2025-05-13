@@ -9,10 +9,15 @@ import { rank } from '../utils/cardUtils.js';
 export default class Player {
   /**
    * @param {string} id Unique player identifier
+   * @param {string} name Player name
    */
-  constructor(id) {
+  constructor(id, name = '') {
     /** @type {string} */
     this.id = id;
+    /** @type {string} */
+    this.name = name;
+    /** @type {boolean} */
+    this.isComputer = false;
     /** @type {object[]} Cards in hand (visible) */
     this.hand = [];
     /** @type {object[]} Face‑up cards (visible after hand is empty) */
