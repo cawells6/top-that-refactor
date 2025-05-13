@@ -1,5 +1,6 @@
 // public/scripts/render.js
 import { stateHistory, stateIndex, pileTransition } from './state.js';
+import { createCardElement } from './card.js';
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 function code(card) {
@@ -40,7 +41,10 @@ export function cardImg(card, selectable, onLoad) {
   return container;
 }
 
-// Draw the deck + discard piles in the center
+/**
+ * Renders the center piles (deck and discard)
+ * @param {object} state - Current game state
+ */
 export function createCenterPiles(state) {
   const center = document.getElementById('center');
   center.innerHTML = '';
@@ -48,41 +52,160 @@ export function createCenterPiles(state) {
   const wrapper = document.createElement('div');
   wrapper.className = 'center-piles-wrapper';
 
-  // Deck
-  const deckC = document.createElement('div');
-  deckC.className = 'center-pile-container';
-  deckC.innerHTML = `<div class="pile-label">Deck (${state.deckCount})</div>`;
-  const deckP = document.createElement('div');
-  deckP.className = 'deck pile';
-  if (state.deckCount > 0) deckP.appendChild(cardImg({ back:true }, false));
-  deckC.appendChild(deckP);
+  // Create deck pile with label
+  const deckContainer = createPileContainer('Deck', state.deckCount);
+  const deckPile = createPile('deck');
+  if (state.deckCount > 0) {
+    deckPile.appendChild(createCardElement({ back: true }, false));
+  }
+  deckContainer.appendChild(deckPile);
 
-  // Discard
-  const discC = document.createElement('div');
-  discC.className = 'center-pile-container';
-  discC.innerHTML = `<div class="pile-label">Discard (${state.discardCount})</div>`;
-  const discP = document.createElement('div');
-  discP.className = 'discard pile';
-  if (state.playPile.length)
-    discP.appendChild(cardImg(state.playPile[state.playPile.length-1], false));
-  discC.appendChild(discP);
+  // Create discard pile with label
+  const discardContainer = createPileContainer('Discard', state.discardCount);
+  const discardPile = createPile('discard');
+  if (state.pile && state.pile.length) {
+    discardPile.appendChild(createCardElement(state.pile[state.pile.length - 1], false));
+  }
+  discardContainer.appendChild(discardPile);
 
-  wrapper.append(deckC, discC);
+  wrapper.append(deckContainer, discardContainer);
   center.appendChild(wrapper);
 }
 
-// Main render entry: clear everything, seat players, then center piles.
-export function renderGameState(s) {
-  // 1) clear all four slots
-  ['.table-slot-top','.table-slot-left','.table-slot-right','.table-slot-bottom']
-    .forEach(sel => {
-      const slot = document.querySelector(sel);
-      if (slot) slot.innerHTML = '';
-    });
+/**
+ * Creates a container for a pile with label
+ */
+function createPileContainer(label, count) {
+  const container = document.createElement('div');
+  container.className = 'center-pile-container';
+  container.innerHTML = `<div class="pile-label">${label} (${count})</div>`;
+  return container;
+}
 
-  // 2) seat assignment, create each player panel, render hand/up/down, buttons
-  //    … you can copy your existing code exactly here …
+/**
+ * Creates an empty pile element
+ */
+function createPile(className) {
+  const pile = document.createElement('div');
+  pile.className = `${className} pile`;
+  return pile;
+}
 
-  // 3) finally draw center piles
-  createCenterPiles(s);
+/**
+ * Main render function to update the entire game view
+ * @param {object} state - Full game state
+ */
+export function renderGameState(state) {
+  // Clear all player slots
+  const slots = ['.table-slot-top', '.table-slot-left', '.table-slot-right', '.table-slot-bottom'];
+  slots.forEach(selector => {
+    const slot = document.querySelector(selector);
+    if (slot) slot.innerHTML = '';
+  });
+
+  // Render players in their positions
+  if (state.players && state.players.length) {
+    renderPlayers(state.players, state.currentPlayer);
+  }
+
+  // Draw center piles
+  createCenterPiles(state);
+}
+
+/**
+ * Renders players in appropriate positions
+ * @param {Array} players - Array of player objects
+ * @param {string} currentPlayerId - ID of the current player
+ */
+function renderPlayers(players, currentPlayerId) {
+  const positions = ['bottom', 'left', 'top', 'right'];
+  const currentPlayerIndex = players.findIndex(p => p.id === currentPlayerId);
+
+  players.forEach((player, index) => {
+    // Calculate position relative to current player
+    const relativePos = (index - currentPlayerIndex + players.length) % players.length;
+    const position = positions[relativePos];
+
+    renderPlayerInSlot(player, position, player.id === currentPlayerId);
+  });
+}
+
+/**
+ * Renders a player in a specific table slot
+ * @param {object} player - Player data
+ * @param {string} position - Position ('bottom', 'left', 'top', 'right')
+ * @param {boolean} isCurrentPlayer - Whether this is the current player
+ */
+function renderPlayerInSlot(player, position, isCurrentPlayer) {
+  const slot = document.querySelector(`.table-slot-${position}`);
+  if (!slot) return;
+
+  const container = document.createElement('div');
+  container.className = `player-area ${player.id === stateIndex ? 'active' : ''}`;
+
+  // Add player info section
+  const info = document.createElement('div');
+  info.className = 'player-info';
+  info.innerHTML = `<span class="player-name">${player.name || player.id}</span>`;
+  container.appendChild(info);
+
+  // Render either current player cards or opponent cards
+  if (isCurrentPlayer) {
+    renderPlayerCards(container, player);
+  } else {
+    renderOpponentCards(container, player);
+  }
+
+  slot.appendChild(container);
+}
+
+/**
+ * Renders the cards for the current player
+ * @param {HTMLElement} container - The container to render into
+ * @param {object} player - The player data
+ */
+function renderPlayerCards(container, player) {
+  const handSection = document.createElement('div');
+  handSection.className = 'player-section';
+
+  const handLabel = document.createElement('div');
+  handLabel.className = 'row-label';
+  handLabel.textContent = 'Hand';
+
+  const handContainer = document.createElement('div');
+  handContainer.className = 'hand';
+
+  player.hand.forEach(card => {
+    const cardElement = createCardElement(card, true);
+    handContainer.appendChild(cardElement);
+  });
+
+  handSection.appendChild(handLabel);
+  handSection.appendChild(handContainer);
+  container.appendChild(handSection);
+}
+
+/**
+ * Renders the cards for an opponent
+ * @param {HTMLElement} container - The container to render into
+ * @param {object} player - The player data
+ */
+function renderOpponentCards(container, player) {
+  const handSection = document.createElement('div');
+  handSection.className = 'player-section';
+
+  const handLabel = document.createElement('div');
+  handLabel.className = 'row-label';
+  handLabel.textContent = 'Hand';
+
+  const handContainer = document.createElement('div');
+  handContainer.className = 'opp-hand';
+
+  for (let i = 0; i < player.handCount; i++) {
+    handContainer.appendChild(createCardElement({ back: true }, false));
+  }
+
+  handSection.appendChild(handLabel);
+  handSection.appendChild(handContainer);
+  container.appendChild(handSection);
 }

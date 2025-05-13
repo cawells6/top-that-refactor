@@ -15,112 +15,66 @@
   <script defer type="module" src="/scripts/events.js"></script>
 </head>
 <body>
-  <header id="main-header">
-    <div class="header-content">
-      <div class="brand">
-        <h1 class="logo">
-          <span class="logo-icon">👑</span> Top That!
-        </h1>
-        <p class="tagline">One Pile. One Winner. No Mercy.</p>
+  <header class="header" id="main-header">
+    <div class="header__content" style="display: flex; align-items: center; justify-content: space-between; padding: 0 2.5rem; background: #1b2e3c; min-height: 54px;">
+      <div class="header__brand" style="display: flex; flex-direction: column; align-items: flex-start;">
+        <span style="color: #FFC300; font-weight: bold; font-size: 1.4rem; letter-spacing: 0.01em;">&#x1F451; Top That!</span>
+        <span style="color: #FFC300; font-size: 0.95rem; font-weight: 400; margin-top: -2px;">One Pile. One Winner. No Mercy.</span>
       </div>
-      <nav>
-        <button id="rules-button" class="btn btn-secondary" aria-haspopup="dialog">
-          How to Play
-        </button>
-        <button id="back-to-lobby-button" class="btn btn-secondary">
-          Lobby
-        </button>
-        <button id="rewind-btn" class="btn btn-secondary hidden">◀ Prev</button>
-        <button id="forward-btn" class="btn btn-secondary hidden">Next ▶</button>
-      </nav>
+      <button id="rules-button" class="btn btn-primary" style="font-size: 1rem; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 6px; background: #FFC300; color: #222;">How to Play</button>
     </div>
   </header>
 
-  <div id="notice-banner" class="notice hidden"></div>
-  <div id="error-banner" class="notice hidden"></div>
-  <div id="modal-overlay" class="hidden"></div>
+  <div class="notice notice--hidden" id="notice-banner"></div>
+  <div class="notice notice--hidden" id="error-banner"></div>
+  <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
 
-  <main id="main-content">
+  <main class="main-content" id="main-content">
     <!-- Lobby Screen -->
-    <div id="lobby-container" class="hidden">
-      <div id="lobby-form-card">
-        <h2 id="lobby-heading">Join a Game</h2>
-        <div id="lobby-form-content">
+    <div class="lobby lobby--hidden" id="lobby-container">
+      <div class="lobby-card" id="lobby-form-card">
+        <h2 class="lobby-title">Join a Game</h2>
+        <div class="lobby-form-content" id="lobby-form-content">
           <div class="form-group">
-            <label for="name">Your Name</label>
-            <input type="text" id="name" placeholder="Enter your name" required />
-            <div id="name-error" class="error-message hidden">
-              Please enter your name.
-            </div>
+            <label for="name-input">Your Name</label>
+            <input id="name-input" type="text" placeholder="Enter your name" />
           </div>
           <div class="form-group">
-            <label for="total-players">Total Players <small>(max 4)</small></label>
-            <input type="number" id="total-players" min="2" max="4" value="2" />
+            <label id="name-input-error" style="display:none;color:#c00;font-size:0.95em;">Name is required</label>
+          </div>
+          <div class="lobby-buttons">
+            <button id="create-join" class="btn btn-primary">Join Game</button>
+            <button id="play-vs-computer" class="btn btn-secondary">Play vs Computer</button>
           </div>
           <div class="form-group">
-            <label for="computer-count">Computer Opponents</label>
-            <input type="number" id="computer-count" min="0" max="3" value="0" />
+            <label for="computer-count">Opponents:</label>
+            <input id="computer-count" type="number" min="1" max="3" value="1" style="width: 40px;" />
           </div>
-          <div class="form-group button-group">
-            <button id="create-join" class="btn btn-primary">
-              Create / Join Game
-            </button>
-          </div>
-        </div>
-        <div id="waiting-state" class="hidden">
-          <h3 id="waiting-heading">Waiting for players…</h3>
-          <div class="spinner">
-            <div class="dot1"></div><div class="dot2"></div>
-          </div>
-          <p id="share-link-message">
-            Share the link to invite others!
-          </p>
-          <button id="copy-link-button" class="btn btn-tertiary">
-            Copy Invite Link
-          </button>
-          <button id="start-game-button" class="btn btn-primary hidden">
-            Start Game
-          </button>
         </div>
       </div>
     </div>
 
-    <!-- Table / Game Board -->
-    <div id="table" class="hidden">
-      <div class="table-board">
-        <div class="table-slot-top"></div>
-        <div class="table-slot-left"></div>
-        <div class="table-slot-center">
-          <div id="center" class="center-area"></div>
-        </div>
-        <div class="table-slot-right"></div>
-        <div class="table-slot-bottom"></div>
-      </div>
+    <!-- Game Table -->
+    <div class="table table--hidden" id="table">
+      <div class="table-slot table-slot-top"></div>
+      <div class="table-slot table-slot-left"></div>
+      <div class="table-center" id="center"></div>
+      <div class="table-slot table-slot-right"></div>
+      <div class="table-slot table-slot-bottom"></div>
     </div>
   </main>
 
-  <!-- Game Log -->
-  <section id="game-log" class="game-log hidden">
-    <h3>Game Log</h3>
-    <div id="game-log-entries"></div>
-  </section>
+  <footer class="footer" style="position: fixed; bottom: 0; width: 100%; background: #789; color: #fff; text-align: center; padding: 4px 0; font-size: 0.95em;">Restart Game (Dev)</footer>
 
-  <!-- Rules Modal (BEM style) -->
-  <div id="rules-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
-    <div class="modal__backdrop"></div>
-    <div class="modal__content" role="document">
+  <section class="game-log game-log--hidden" id="game-log"></section>
+
+  <div class="modal modal--hidden" id="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
+    <div class="modal__content">
+      <h2 class="modal__title" id="rules-modal-title">Game Rules</h2>
       <button class="modal__close-button" aria-label="Close">&times;</button>
-      <h2 id="rules-modal-title" class="modal__title">How to Play Top That!</h2>
-      <ul class="modal__list">
-        <li>- Each player plays a card higher than the last.</li>
-        <li>- Special cards (2, 5, 10) trigger unique effects.</li>
-        <li>- If you can’t play, you pick up the pile.</li>
-        <li>- First to empty all cards wins.</li>
-      </ul>
     </div>
   </div>
 
-  <!-- Toast container -->
-  <div id="toast-container"></div>
+  <div class="toast-container" id="toast-container"></div>
 </body>
 </html>

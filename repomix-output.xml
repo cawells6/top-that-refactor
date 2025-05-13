@@ -92,6 +92,10 @@ module.exports = {
 };
 </file>
 
+<file path=".gitignore">
+node_modules/
+</file>
+
 <file path="babel.config.cjs">
 // babel.config.cjs
 module.exports = {
@@ -442,6 +446,136 @@ describe('GameState deck and dealCards', () => {
 });
 </file>
 
+<file path="tests/gameState.test.js">
+// tests/gameState.test.js
+
+import GameState from '../models/GameState.js';
+
+describe('GameState', () => {
+  let gs;
+  beforeEach(() => {
+    gs = new GameState();
+  });
+
+  test('initializes with empty players, pile, discard and index 0', () => {
+    expect(gs.players).toEqual([]);
+    expect(gs.currentPlayerIndex).toBe(0);
+    expect(gs.pile).toEqual([]);
+    expect(gs.discard).toEqual([]);
+  });
+
+  test('addPlayer adds to players array', () => {
+    gs.addPlayer('alice');
+    gs.addPlayer('bob');
+    expect(gs.players).toEqual(['alice', 'bob']);
+  });
+
+  test('advancePlayer cycles through players', () => {
+    gs.addPlayer('p1');
+    gs.addPlayer('p2');
+    expect(gs.currentPlayerIndex).toBe(0);
+
+    gs.advancePlayer();
+    expect(gs.currentPlayerIndex).toBe(1);
+
+    gs.advancePlayer();
+    expect(gs.currentPlayerIndex).toBe(0);
+  });
+
+  test('addToPile pushes cards onto pile', () => {
+    const cardA = { value: '3' };
+    const cardB = { value: '5' };
+    gs.addToPile(cardA);
+    gs.addToPile(cardB);
+    expect(gs.pile).toEqual([cardA, cardB]);
+  });
+
+  test('clearPile moves pile into discard and empties pile', () => {
+    const c1 = { value: '7' };
+    const c2 = { value: '8' };
+    gs.addToPile(c1);
+    gs.addToPile(c2);
+
+    gs.clearPile();
+    expect(gs.pile).toEqual([]);
+    expect(gs.discard).toEqual([c1, c2]);
+  });
+});
+</file>
+
+<file path="tests/player.test.js">
+// tests/player.test.js
+
+import Player from '../models/Player.js';
+
+describe('Player model', () => {
+  let p;
+  beforeEach(() => {
+    p = new Player('p1');
+  });
+
+  test('initial state', () => {
+    expect(p.id).toBe('p1');
+    expect(p.hand).toEqual([]);
+    expect(p.upCards).toEqual([]);
+    expect(p.downCards).toEqual([]);
+  });
+
+  test('setHand & sortHand', () => {
+    const c3 = { value: '3' };
+    const c2 = { value: '2' };
+    const c5 = { value: '5' };
+    p.setHand([c3, c5, c2]);
+    expect(p.hand).toEqual([c2, c3, c5]);
+  });
+
+  test('playFromHand removes and returns the card', () => {
+    const card = { value: '7' };
+    p.setHand([card]);
+    const played = p.playFromHand(0);
+    expect(played).toBe(card);
+    expect(p.hand).toEqual([]);
+  });
+
+  test('setUpCards & playUpCard', () => {
+    const u = [{ value: '4' }, { value: 'J' }];
+    p.setUpCards(u);
+    const played = p.playUpCard(1);
+    expect(played).toEqual(u[1]);
+    expect(p.upCards).toEqual([u[0]]);
+  });
+
+  test('setDownCards & playDownCard', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.7);
+    const d = [{ value: '8' }, { value: '9' }, { value: '10' }];
+    p.setDownCards(d);
+    const played = p.playDownCard();
+    expect(played).toEqual(d[2]);
+    expect(p.downCards).toEqual([d[0], d[1]]);
+    Math.random.mockRestore();
+  });
+
+  test('pickUpPile adds and sorts', () => {
+    const pile = [{ value: 'K' }, { value: '2' }];
+    p.pickUpPile(pile);
+    expect(p.hand[0].value).toBe('2');
+    expect(p.hand[1].value).toBe('K');
+  });
+
+  test('hasEmpty... helpers', () => {
+    expect(p.hasEmptyHand()).toBe(true);
+    expect(p.hasEmptyUp()).toBe(true);
+    expect(p.hasEmptyDown()).toBe(true);
+    p.setHand([{ value: '3' }]);
+    p.setUpCards([{ value: '4' }]);
+    p.setDownCards([{ value: '5' }]);
+    expect(p.hasEmptyHand()).toBe(false);
+    expect(p.hasEmptyUp()).toBe(false);
+    expect(p.hasEmptyDown()).toBe(false);
+  });
+});
+</file>
+
 <file path="tsconfig.json">
 {
   "compilerOptions": {
@@ -460,10 +594,6 @@ describe('GameState deck and dealCards', () => {
   "include": ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
-</file>
-
-<file path=".gitignore">
-node_modules/
 </file>
 
 <file path="jest.config.cjs">
@@ -514,26 +644,25 @@ module.exports = {
         <button id="back-to-lobby-button" class="btn btn-secondary">
           Lobby
         </button>
-        <button id="rewind-btn" class="btn btn-secondary hidden">◀ Prev</button>
-        <button id="forward-btn" class="btn btn-secondary hidden">Next ▶</button>
+        <button id="rewind-btn" class="btn btn-secondary">◀ Prev</button>
+        <button id="forward-btn" class="btn btn-secondary">Next ▶</button>
       </nav>
     </div>
   </header>
 
-  <div id="notice-banner" class="notice hidden"></div>
-  <div id="error-banner" class="notice hidden"></div>
-  <div id="modal-overlay" class="hidden"></div>
+  <div id="notice-banner" class="notice"></div>
+  <div id="error-banner" class="notice"></div>
 
   <main id="main-content">
     <!-- Lobby Screen -->
-    <div id="lobby-container" class="hidden">
+    <div id="lobby-container">
       <div id="lobby-form-card">
         <h2 id="lobby-heading">Join a Game</h2>
         <div id="lobby-form-content">
           <div class="form-group">
-            <label for="name">Your Name</label>
-            <input type="text" id="name" placeholder="Enter your name" required />
-            <div id="name-error" class="error-message hidden">
+            <label for="name-input">Your Name</label>
+            <input type="text" id="name-input" placeholder="Enter your name" required />
+            <div id="name-input-error" class="error-message">
               Please enter your name.
             </div>
           </div>
@@ -543,7 +672,7 @@ module.exports = {
           </div>
           <div class="form-group">
             <label for="computer-count">Computer Opponents</label>
-            <input type="number" id="computer-count" min="0" max="3" value="0" />
+            <input type="number" id="computer-count" min="1" max="3" value="1" />
           </div>
           <div class="form-group button-group">
             <button id="create-join" class="btn btn-primary">
@@ -551,7 +680,7 @@ module.exports = {
             </button>
           </div>
         </div>
-        <div id="waiting-state" class="hidden">
+        <div id="waiting-state">
           <h3 id="waiting-heading">Waiting for players…</h3>
           <div class="spinner">
             <div class="dot1"></div><div class="dot2"></div>
@@ -562,7 +691,7 @@ module.exports = {
           <button id="copy-link-button" class="btn btn-tertiary">
             Copy Invite Link
           </button>
-          <button id="start-game-button" class="btn btn-primary hidden">
+          <button id="start-game-button" class="btn btn-primary">
             Start Game
           </button>
         </div>
@@ -570,7 +699,7 @@ module.exports = {
     </div>
 
     <!-- Table / Game Board -->
-    <div id="table" class="hidden">
+    <div id="table">
       <div class="table-board">
         <div class="table-slot-top"></div>
         <div class="table-slot-left"></div>
@@ -584,17 +713,23 @@ module.exports = {
   </main>
 
   <!-- Game Log -->
-  <section id="game-log" class="game-log hidden">
+  <section id="game-log" class="game-log">
     <h3>Game Log</h3>
     <div id="game-log-entries"></div>
   </section>
 
-  <!-- Rules Modal -->
-  <div id="rules-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
-    <div class="modal-content">
-      <h2 id="rules-modal-title">How to Play Top That!</h2>
-      <button class="modal-close-button" aria-label="Close rules">&times;</button>
-      <!-- … your rules list … -->
+  <!-- Rules Modal (BEM style) -->
+  <div id="rules-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
+    <div class="modal__backdrop"></div>
+    <div class="modal__content" role="document">
+      <button class="modal__close-button" aria-label="Close">&times;</button>
+      <h2 id="rules-modal-title" class="modal__title">How to Play Top That!</h2>
+      <ul class="modal__list">
+        <li>- Each player plays a card higher than the last.</li>
+        <li>- Special cards (2, 5, 10) trigger unique effects.</li>
+        <li>- If you can’t play, you pick up the pile.</li>
+        <li>- First to empty all cards wins.</li>
+      </ul>
     </div>
   </div>
 
@@ -672,17 +807,33 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   state.getRulesButton() && (state.getRulesButton().onclick = () => openModal(state.getRulesModal()));
   document.querySelector('.modal-close-button')?.addEventListener('click', closeModal);
-  state.getModalOverlay() && (state.getModalOverlay().onclick = closeModal);
+  // state.getModalOverlay() && (state.getModalOverlay().onclick = closeModal);
 
   state.getBackToLobbyButton() && (state.getBackToLobbyButton().onclick = () => {
     sessionStorage.clear();
     showLobbyForm();
   });
   // Start Game button wiring
+  function canStartGame() {
+    // Count human player (always 1 if you're in the lobby)
+    let humanCount = 1;
+    // Get computer player count from input
+    const computerInput = document.getElementById('computer-count');
+    const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
+    return (humanCount + computerCount) >= 2;
+  }
+
   const startGameBtn = document.getElementById('start-game-button');
   if (startGameBtn) {
     startGameBtn.onclick = () => {
-      state.socket.emit(START_GAME);
+      if (!canStartGame()) {
+        console.error('At least 2 players required');
+        return;
+      }
+      // Get computer player count
+      const computerInput = document.getElementById('computer-count');
+      const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
+      state.socket.emit(START_GAME, { computerCount });
       // Add TypeScript-friendly way to set disabled property
       if (startGameBtn instanceof HTMLButtonElement) {
         startGameBtn.disabled = true;
@@ -690,56 +841,78 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // Always hide modal and overlay on load
-  state.getRulesModal().classList.add('hidden');
-  state.getModalOverlay().classList.add('hidden');
-
+  // Remove legacy modal overlay logic
+  // state.getRulesModal().classList.add('hidden');
+  // state.getModalOverlay().classList.add('hidden');
   // Show rules modal only when button is clicked
-  const rulesBtn = state.getRulesButton();
-  if (rulesBtn) {
-    rulesBtn.onclick = () => {
-      state.getRulesModal().classList.remove('hidden');
-      state.getModalOverlay().classList.remove('hidden');
-    };
-  }
+  // const rulesBtn = state.getRulesButton();
+  // if (rulesBtn) {
+  //   rulesBtn.onclick = () => {
+  //     state.getRulesModal().classList.remove('hidden');
+  //     state.getModalOverlay().classList.remove('hidden');
+  //   };
+  // }
   // Close modal on close button or overlay click
-  const closeBtn = document.querySelector('#rules-modal .modal-close-button');
-  if (closeBtn && closeBtn instanceof HTMLButtonElement) {
-    closeBtn.onclick = () => {
-      state.getRulesModal().classList.add('hidden');
-      state.getModalOverlay().classList.add('hidden');
-    };
-  } else if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      state.getRulesModal().classList.add('hidden');
-      state.getModalOverlay().classList.add('hidden');
+  // const closeBtn = document.querySelector('#rules-modal .modal-close-button');
+  // if (closeBtn && closeBtn instanceof HTMLButtonElement) {
+  //   closeBtn.onclick = () => {
+  //     state.getRulesModal().classList.add('hidden');
+  //     state.getModalOverlay().classList.add('hidden');
+  //   };
+  // } else if (closeBtn) {
+  //   closeBtn.addEventListener('click', () => {
+  //     state.getRulesModal().classList.add('hidden');
+  //     state.getModalOverlay().classList.add('hidden');
+  //   });
+  // }
+  // const overlay = state.getModalOverlay();
+  // if (overlay) {
+  //   overlay.onclick = () => {
+  //     state.getRulesModal().classList.add('hidden');
+  //     state.getModalOverlay().classList.add('hidden');
+  //   };
+  // }
+
+  // BEM modal logic for How to Play
+  const modal    = document.getElementById('rules-modal');
+  const openBtn  = document.getElementById('rules-button');
+  const closeBtnBem = modal.querySelector('.modal__close-button');
+  const backdrop = modal.querySelector('.modal__backdrop');
+
+  if (openBtn && modal && closeBtnBem && backdrop) {
+    openBtn.addEventListener('click', () => {
+      modal.classList.add('modal--open');
     });
-  }
-  const overlay = state.getModalOverlay();
-  if (overlay) {
-    overlay.onclick = () => {
-      state.getRulesModal().classList.add('hidden');
-      state.getModalOverlay().classList.add('hidden');
-    };
+    [closeBtnBem, backdrop].forEach(el =>
+      el.addEventListener('click', () => {
+        modal.classList.remove('modal--open');
+      })
+    );
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && modal.classList.contains('modal--open')) {
+        modal.classList.remove('modal--open');
+      }
+    });
   }
 });
 
 // —– UI helper functions —–
 
 function validateName() {
-  const nameIn    = state.$('name');
-  const nameError = state.$('name-error');
-  
-  // TypeScript-friendly way to access input value
-  const n = nameIn instanceof HTMLInputElement ? nameIn.value.trim() : '';
-  
-  if (!n) {
-    nameIn.classList.add('input-error');
-    nameError.classList.remove('hidden');
-    return null;
+  const nameInput = document.getElementById('name-input');
+  const nameError = document.getElementById('name-input-error');
+  if (nameInput instanceof HTMLInputElement) {
+    console.log('Raw name input value:', nameInput.value);
+    if (!nameInput.value.trim()) {
+      nameInput.classList.add('input-error');
+      nameError.style.display = '';
+      return null;
+    }
+    nameInput.classList.remove('input-error');
+    nameError.style.display = 'none';
+    return nameInput.value.trim();
   }
-  nameError.classList.add('hidden');
-  return n;
+  return null;
 }
 
 function showLobbyForm() {
@@ -859,8 +1032,8 @@ export function createCenterPiles(state) {
   discC.innerHTML = `<div class="pile-label">Discard (${state.discardCount})</div>`;
   const discP = document.createElement('div');
   discP.className = 'discard pile';
-  if (state.playPile.length)
-    discP.appendChild(cardImg(state.playPile[state.playPile.length-1], false));
+  if (state.pile && state.pile.length)
+    discP.appendChild(cardImg(state.pile[state.pile.length-1], false));
   discC.appendChild(discP);
 
   wrapper.append(deckC, discC);
@@ -916,9 +1089,10 @@ export const getTable = () => $('table');
 export const getCopyLinkBtn = () => $('copy-link-button');
 export const getRulesButton = () => $('rules-button');
 export const getRulesModal = () => $('rules-modal');
-export const getModalOverlay = () => $('modal-overlay');
+export const getModalOverlay = () => document.querySelector('.modal__backdrop');
 export const getBackToLobbyButton = () => $('back-to-lobby-button');
 export const getGameLogEntries = () => $('game-log-entries');
+export const getNameInput = () => $('name-input');
 
 export function loadSession() {
   setMyId(sessionStorage.getItem('myId'));
@@ -1126,13 +1300,6 @@ body {
 }
 
 /* ========== Modals & Toasts ========== */
-#modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.3); /* More transparent overlay */
-  z-index: var(--z-modal);
-  pointer-events: auto;
-}
 .modal-nonblocking {
   pointer-events: none; /* Allow clicks through overlay */
 }
@@ -1249,6 +1416,60 @@ body {
   background: var(--card-bg);
   border: 1px solid var(--input-border);
 }
+
+/* ========== BEM Modal Styles ========== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  font-size: 1rem;
+}
+.modal--open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+.modal__content {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  max-width: 90%;
+  width: 400px;
+  text-align: left;
+}
+.modal__title {
+  margin-top: 0;
+  color: var(--bg);
+}
+.modal__list {
+  margin: 1rem 0;
+  padding-left: 1.2rem;
+}
+.modal__close-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--accent);
+}
+
+/* LEGACY: Overlay/hidden rules (commented for smoke test, remove after validation) */
+/* #modal-overlay, .hidden {
+  display: unset !important;
+  pointer-events: unset !important;
+  background: unset !important;
+} */
 </file>
 
 <file path="server.js">
@@ -1271,6 +1492,11 @@ app.use(express.static('public'));
 // Also serve the src directory for shared modules
 app.use('/src', express.static('src'));
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 // Rooms are auto‑created by socket.join(roomId) in GameController
 // No explicit setupRoom call required.
 
@@ -1278,14 +1504,19 @@ app.use('/src', express.static('src'));
 new GameController(io);
 
 // Start listening
-const PORT = 3002; // Hard-code port to avoid conflicts
+const PORT = 3000; // Changed port from 3002 to 3000
 server.listen(PORT, () => {
   console.log(`🃏 Top That! server running at http://localhost:${PORT}`);
 });
 
 // Optional HTTP error handling
 server.on('error', err => {
-  console.error('Server failed to start:', err);
+  if (err && err['code'] === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Waiting for it to be released before restarting...`);
+    setTimeout(() => process.exit(1), 1500); // Wait 1.5s before exit so nodemon can restart
+  } else {
+    console.error('Server failed to start:', err);
+  }
 });
 </file>
 
@@ -1377,136 +1608,6 @@ describe('cardUtils', () => {
       expect(isFourOfAKind([{ value: '5' }, { value: '5' }, { value: '5' }])).toBe(false);
       expect(isFourOfAKind([{ value: '5' },{ value: '5' },{ value: 'two' },{ value: '5' }])).toBe(false);
     });
-  });
-});
-</file>
-
-<file path="tests/gameState.test.js">
-// tests/gameState.test.js
-
-import GameState from '../models/GameState.js';
-
-describe('GameState', () => {
-  let gs;
-  beforeEach(() => {
-    gs = new GameState();
-  });
-
-  test('initializes with empty players, pile, discard and index 0', () => {
-    expect(gs.players).toEqual([]);
-    expect(gs.currentPlayerIndex).toBe(0);
-    expect(gs.pile).toEqual([]);
-    expect(gs.discard).toEqual([]);
-  });
-
-  test('addPlayer adds to players array', () => {
-    gs.addPlayer('alice');
-    gs.addPlayer('bob');
-    expect(gs.players).toEqual(['alice', 'bob']);
-  });
-
-  test('advancePlayer cycles through players', () => {
-    gs.addPlayer('p1');
-    gs.addPlayer('p2');
-    expect(gs.currentPlayerIndex).toBe(0);
-
-    gs.advancePlayer();
-    expect(gs.currentPlayerIndex).toBe(1);
-
-    gs.advancePlayer();
-    expect(gs.currentPlayerIndex).toBe(0);
-  });
-
-  test('addToPile pushes cards onto pile', () => {
-    const cardA = { value: '3' };
-    const cardB = { value: '5' };
-    gs.addToPile(cardA);
-    gs.addToPile(cardB);
-    expect(gs.pile).toEqual([cardA, cardB]);
-  });
-
-  test('clearPile moves pile into discard and empties pile', () => {
-    const c1 = { value: '7' };
-    const c2 = { value: '8' };
-    gs.addToPile(c1);
-    gs.addToPile(c2);
-
-    gs.clearPile();
-    expect(gs.pile).toEqual([]);
-    expect(gs.discard).toEqual([c1, c2]);
-  });
-});
-</file>
-
-<file path="tests/player.test.js">
-// tests/player.test.js
-
-import Player from '../models/Player.js';
-
-describe('Player model', () => {
-  let p;
-  beforeEach(() => {
-    p = new Player('p1');
-  });
-
-  test('initial state', () => {
-    expect(p.id).toBe('p1');
-    expect(p.hand).toEqual([]);
-    expect(p.upCards).toEqual([]);
-    expect(p.downCards).toEqual([]);
-  });
-
-  test('setHand & sortHand', () => {
-    const c3 = { value: '3' };
-    const c2 = { value: '2' };
-    const c5 = { value: '5' };
-    p.setHand([c3, c5, c2]);
-    expect(p.hand).toEqual([c2, c3, c5]);
-  });
-
-  test('playFromHand removes and returns the card', () => {
-    const card = { value: '7' };
-    p.setHand([card]);
-    const played = p.playFromHand(0);
-    expect(played).toBe(card);
-    expect(p.hand).toEqual([]);
-  });
-
-  test('setUpCards & playUpCard', () => {
-    const u = [{ value: '4' }, { value: 'J' }];
-    p.setUpCards(u);
-    const played = p.playUpCard(1);
-    expect(played).toEqual(u[1]);
-    expect(p.upCards).toEqual([u[0]]);
-  });
-
-  test('setDownCards & playDownCard', () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0.7);
-    const d = [{ value: '8' }, { value: '9' }, { value: '10' }];
-    p.setDownCards(d);
-    const played = p.playDownCard();
-    expect(played).toEqual(d[2]);
-    expect(p.downCards).toEqual([d[0], d[1]]);
-    Math.random.mockRestore();
-  });
-
-  test('pickUpPile adds and sorts', () => {
-    const pile = [{ value: 'K' }, { value: '2' }];
-    p.pickUpPile(pile);
-    expect(p.hand[0].value).toBe('2');
-    expect(p.hand[1].value).toBe('K');
-  });
-
-  test('hasEmpty... helpers', () => {
-    expect(p.hasEmptyHand()).toBe(true);
-    expect(p.hasEmptyUp()).toBe(true);
-    expect(p.hasEmptyDown()).toBe(true);
-    p.setHand([{ value: '3' }]);
-    p.setUpCards([{ value: '4' }]);
-    p.setDownCards([{ value: '5' }]);
-    expect(p.hasEmptyHand()).toBe(false);
-    expect(p.hasEmptyUp()).toBe(false);
-    expect(p.hasEmptyDown()).toBe(false);
   });
 });
 </file>
@@ -1658,7 +1759,7 @@ export default class GameController {
    */
   setupListeners(socket) {
     socket.on(JOIN_GAME, playerId => this.handleJoin(socket, playerId));
-    socket.on(START_GAME, () => this.handleStartGame());
+    socket.on(START_GAME, (opts) => this.handleStartGame(opts));
     socket.on('play-card', data => this.handlePlay(socket, data));
     socket.on(NEXT_TURN, () => this.handleNextTurn());
     socket.on(REJOIN, ({ roomId, playerId }) => {
@@ -1709,8 +1810,21 @@ export default class GameController {
   }
 
   /** Initialize deck, deal cards, assign them to players, and emit first turn */
-  handleStartGame() {
-    if (this.players.size < 2) return;
+  handleStartGame(opts = {}) {
+    // Support both legacy (no opts) and new (opts.computerCount) calls
+    const computerCount = opts.computerCount || 0;
+    if (this.players.size + computerCount < 2) {
+      console.error('Cannot start game: need at least 2 players.');
+      return;
+    }
+    // Add computer players if needed
+    for (let i = 0; i < computerCount; i++) {
+      const id = `COMPUTER_${i+1}`;
+      if (!this.players.has(id)) {
+        this.gameState.addPlayer(id);
+        this.players.set(id, new Player(id));
+      }
+    }
     this.gameState.buildDeck();
     // Deal cards to all players
     const numPlayers = this.gameState.players.length;
@@ -1780,127 +1894,6 @@ export default class GameController {
       currentPlayer: this.gameState.players[this.gameState.currentPlayerIndex],
     };
     this.io.to('game-room').emit(STATE_UPDATE, state);
-  }
-}
-</file>
-
-<file path="package.json">
-{
-  "name": "top-that-refactor",
-  "version": "1.0.0",
-  "description": "Refactored Top That! card game server and utilities",
-  "main": "server.js",
-  "type": "module",
-  "scripts": {
-    "start": "node server.js",
-    "test": "jest"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.27.1",
-    "@babel/preset-env": "^7.27.2",
-    "@types/jest": "^29.5.14",
-    "babel-jest": "^29.7.0",
-    "jest": "^29.6.1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
-}
-</file>
-
-<file path="models/GameState.js">
-// models/GameState.js
-
-/**
- * GAME STATE
- * Manages the core game data: players, turn order, pile, and discard.
- */
-export default class GameState {
-  constructor() {
-    /** @type {string[]} List of player IDs in turn order */
-    this.players = [];
-    /** @type {number} Index of the current player in `players` */
-    this.currentPlayerIndex = 0;
-    /** @type {object[]} Cards played into the current pile */
-    this.pile = [];
-    /** @type {object[]} All cards that have been cleared from the pile */
-    this.discard = [];
-  }
-
-  /**
-   * Add a player to the game.
-   * @param {string} playerId
-   */
-  addPlayer(playerId) {
-    this.players.push(playerId);
-  }
-
-  /**
-   * Advance currentPlayerIndex to the next player in the queue,
-   * wrapping back to 0 at the end.
-   */
-  advancePlayer() {
-    if (this.players.length === 0) return;
-    this.currentPlayerIndex =
-      (this.currentPlayerIndex + 1) % this.players.length;
-  }
-
-  /**
-   * Add a card to the current pile.
-   * @param {object} card
-   */
-  addToPile(card) {
-    this.pile.push(card);
-  }
-
-  /**
-   * Clear the current pile:
-   * - Move all pile cards into `discard`
-   * - Reset `pile` to an empty array
-   */
-  clearPile() {
-    this.discard.push(...this.pile);
-    this.pile = [];
-  }
-
-  /**
-   * Build a standard 52-card deck and shuffle it (Fisher–Yates).
-   */
-  buildDeck() {
-    const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
-    const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
-    this.deck = [];
-    for (const suit of suits) {
-      for (const value of values) {
-        this.deck.push({ value, suit });
-      }
-    }
-    for (let i = this.deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
-    }
-  }
-
-  /**
-   * Deal cards to players: hand, upCards, downCards for each.
-   * @param {number} numPlayers
-   * @param {number} handSize
-   * @returns {{ hands: object[][], upCards: object[][], downCards: object[][] }}
-   */
-  dealCards(numPlayers, handSize = 3) {
-    const hands = [];
-    const upCards = [];
-    const downCards = [];
-    for (let p = 0; p < numPlayers; p++) {
-      hands.push(this.deck.splice(0, handSize));
-      upCards.push(this.deck.splice(0, handSize));
-      downCards.push(this.deck.splice(0, handSize));
-    }
-    return { hands, upCards, downCards };
   }
 }
 </file>
@@ -2008,6 +2001,129 @@ export default class Player {
   /** @returns {boolean} true if downCards is empty */
   hasEmptyDown() {
     return this.downCards.length === 0;
+  }
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "top-that-refactor",
+  "version": "1.0.0",
+  "description": "Refactored Top That! card game server and utilities",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon --delay 1.5 server.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
+    "@types/jest": "^29.5.14",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.6.1",
+    "nodemon": "^3.1.10"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+</file>
+
+<file path="models/GameState.js">
+// models/GameState.js
+
+/**
+ * GAME STATE
+ * Manages the core game data: players, turn order, pile, and discard.
+ */
+export default class GameState {
+  constructor() {
+    /** @type {string[]} List of player IDs in turn order */
+    this.players = [];
+    /** @type {number} Index of the current player in `players` */
+    this.currentPlayerIndex = 0;
+    /** @type {object[]} Cards played into the current pile */
+    this.pile = [];
+    /** @type {object[]} All cards that have been cleared from the pile */
+    this.discard = [];
+  }
+
+  /**
+   * Add a player to the game.
+   * @param {string} playerId
+   */
+  addPlayer(playerId) {
+    this.players.push(playerId);
+  }
+
+  /**
+   * Advance currentPlayerIndex to the next player in the queue,
+   * wrapping back to 0 at the end.
+   */
+  advancePlayer() {
+    if (this.players.length === 0) return;
+    this.currentPlayerIndex =
+      (this.currentPlayerIndex + 1) % this.players.length;
+  }
+
+  /**
+   * Add a card to the current pile.
+   * @param {object} card
+   */
+  addToPile(card) {
+    this.pile.push(card);
+  }
+
+  /**
+   * Clear the current pile:
+   * - Move all pile cards into `discard`
+   * - Reset `pile` to an empty array
+   */
+  clearPile() {
+    this.discard.push(...this.pile);
+    this.pile = [];
+  }
+
+  /**
+   * Build a standard 52-card deck and shuffle it (Fisher–Yates).
+   */
+  buildDeck() {
+    const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+    const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
+    this.deck = [];
+    for (const suit of suits) {
+      for (const value of values) {
+        this.deck.push({ value, suit });
+      }
+    }
+    for (let i = this.deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
+    }
+  }
+
+  /**
+   * Deal cards to players: hand, upCards, downCards for each.
+   * @param {number} numPlayers
+   * @param {number} handSize
+   * @returns {{ hands: object[][], upCards: object[][], downCards: object[][] }}
+   */
+  dealCards(numPlayers, handSize = 3) {
+    const hands = [];
+    const upCards = [];
+    const downCards = [];
+    for (let p = 0; p < numPlayers; p++) {
+      hands.push(this.deck.splice(0, handSize));
+      upCards.push(this.deck.splice(0, handSize));
+      downCards.push(this.deck.splice(0, handSize));
+    }
+    return { hands, upCards, downCards };
   }
 }
 </file>

@@ -41,7 +41,7 @@ export default class GameController {
    */
   setupListeners(socket) {
     socket.on(JOIN_GAME, playerId => this.handleJoin(socket, playerId));
-    socket.on(START_GAME, () => this.handleStartGame());
+    socket.on(START_GAME, (opts) => this.handleStartGame(opts));
     socket.on('play-card', data => this.handlePlay(socket, data));
     socket.on(NEXT_TURN, () => this.handleNextTurn());
     socket.on(REJOIN, ({ roomId, playerId }) => {
@@ -92,8 +92,21 @@ export default class GameController {
   }
 
   /** Initialize deck, deal cards, assign them to players, and emit first turn */
-  handleStartGame() {
-    if (this.players.size < 2) return;
+  handleStartGame(opts = {}) {
+    // Support both legacy (no opts) and new (opts.computerCount) calls
+    const computerCount = opts.computerCount || 0;
+    if (this.players.size + computerCount < 2) {
+      console.error('Cannot start game: need at least 2 players.');
+      return;
+    }
+    // Add computer players if needed
+    for (let i = 0; i < computerCount; i++) {
+      const id = `COMPUTER_${i+1}`;
+      if (!this.players.has(id)) {
+        this.gameState.addPlayer(id);
+        this.players.set(id, new Player(id));
+      }
+    }
     this.gameState.buildDeck();
     // Deal cards to all players
     const numPlayers = this.gameState.players.length;
@@ -151,16 +164,34 @@ export default class GameController {
 
   /** Broadcast full game state to all clients */
   pushState() {
+    const currentPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
     const state = {
-      players: this.gameState.players.map(id => ({
-        id,
-        handCount: this.players.get(id).hand.length,
-        upCount: this.players.get(id).upCards.length,
-        downCount: this.players.get(id).downCards.length,
-      })),
+      players: this.gameState.players.map(id => {
+        const player = this.players.get(id);
+        if (id === currentPlayerId) {
+          // Send full hand/upCards/downCards for current player
+          return {
+            id,
+            hand: player.hand,
+            upCards: player.upCards,
+            downCards: player.downCards,
+            name: player.name // if you have a name property
+          };
+        } else {
+          // Only send counts for opponents
+          return {
+            id,
+            handCount: player.hand.length,
+            upCount: player.upCards.length,
+            downCount: player.downCards.length,
+            name: player.name // if you have a name property
+          };
+        }
+      }),
       pile: this.gameState.pile,
       discardCount: this.gameState.discard.length,
-      currentPlayer: this.gameState.players[this.gameState.currentPlayerIndex],
+      currentPlayer: currentPlayerId,
+      started: true // or set appropriately
     };
     this.io.to('game-room').emit(STATE_UPDATE, state);
   }

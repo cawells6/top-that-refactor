@@ -29,9 +29,10 @@ export const getTable = () => $('table');
 export const getCopyLinkBtn = () => $('copy-link-button');
 export const getRulesButton = () => $('rules-button');
 export const getRulesModal = () => $('rules-modal');
-export const getModalOverlay = () => $('modal-overlay');
+export const getModalOverlay = () => document.querySelector('.modal__backdrop');
 export const getBackToLobbyButton = () => $('back-to-lobby-button');
 export const getGameLogEntries = () => $('game-log-entries');
+export const getNameInput = () => $('name-input');
 
 export function loadSession() {
   setMyId(sessionStorage.getItem('myId'));

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "dev": "nodemon --delay 1.5 server.js",
     "test": "jest"
   },
   "dependencies": {
@@ -17,7 +18,8 @@
     "@babel/preset-env": "^7.27.2",
     "@types/jest": "^29.5.14",
     "babel-jest": "^29.7.0",
-    "jest": "^29.6.1"
+    "jest": "^29.6.1",
+    "nodemon": "^3.1.10"
   },
   "keywords": [],
   "author": "",
