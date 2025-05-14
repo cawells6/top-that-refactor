@@ -19,6 +19,12 @@ export default class Player {
     this.upCards = [];
     /** @type {object[]} Face‑down cards (hidden until both hand & up are empty) */
     this.downCards = [];
+    /** @type {string} Player name */
+    this.name = '';
+    /** @type {boolean} True if this player is a computer */
+    this.isComputer = false;
+    /** @type {boolean} True if this player is disconnected */
+    this.disconnected = false;
   }
 
   /**

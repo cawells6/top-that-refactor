@@ -14,6 +14,10 @@ export default class GameState {
     this.pile = [];
     /** @type {object[]} All cards that have been cleared from the pile */
     this.discard = [];
+    /** @type {number} Maximum number of players allowed in the game */
+    this.maxPlayers = 4;
+    /** @type {number} Cached count of players (for legacy code compatibility) */
+    this.playersCount = 0;
   }
 
   /**
