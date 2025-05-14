@@ -21,3 +21,19 @@
 .card-img.selected {
   border: 2px solid var(--accent);
 }
+
+.rules-icon {
+  width: 48px;
+  height: 48px;
+  vertical-align: middle;
+  margin-right: 0.4em;
+  margin-bottom: 0.1em;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  display: inline-block;
+  /* Remove any default image background or border from PNG transparency */
+  image-rendering: auto;
+}

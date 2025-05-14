@@ -35,10 +35,19 @@ server.listen(PORT, () => {
 });
 
 // Optional HTTP error handling
-server.on('error', err => {
+server.on('error', async err => {
   if (err && err['code'] === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use. Waiting for it to be released before restarting...`);
-    setTimeout(() => process.exit(1), 1500); // Wait 1.5s before exit so nodemon can restart
+    console.error(`Port ${PORT} is already in use. Attempting to kill process on port ${PORT}...`);
+    // Try to kill the process using the port (Windows-specific)
+    const { exec } = await import('child_process');
+    exec(`for /f "tokens=5" %a in ('netstat -aon ^| findstr :${PORT}') do taskkill /F /PID %a`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Failed to kill process on port ${PORT}:`, error);
+      } else {
+        console.log(`Killed process on port ${PORT}. Restarting server...`);
+        setTimeout(() => process.exit(1), 1000); // Let nodemon restart
+      }
+    });
   } else {
     console.error('Server failed to start:', err);
   }

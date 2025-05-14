@@ -209,3 +209,80 @@ function renderOpponentCards(container, player) {
   handSection.appendChild(handContainer);
   container.appendChild(handSection);
 }
+
+/**
+ * Overlay special card symbol on top of discard pile card
+ */
+export function showCardEvent(cardValue, type) {
+  let discardImg = document.querySelector('.discard .card-img');
+  let retries = 0;
+  function tryRunEffect() {
+    discardImg = document.querySelector('.discard .card-img');
+    if (!discardImg && retries < 5) {
+      retries++;
+      setTimeout(tryRunEffect, 100);
+      return;
+    }
+    if (!discardImg) return;
+    function runEffect() {
+      // Remove any existing icon
+      const prev = discardImg.parentElement.querySelector('.special-icon');
+      if (prev) prev.remove();
+      // Create an image for the special effect
+      const icon = document.createElement('img');
+      icon.className = 'special-icon';
+      // Use updated PNGs for each effect
+      let src = '';
+      if (type === 'two' || cardValue == 2) src = '/src/shared/Reset-icon.png';
+      else if (type === 'five' || cardValue == 5) src = '/src/shared/Copy-icon.png';
+      else if (type === 'ten' || cardValue == 10) src = '/src/shared/Burn-icon.png';
+      else if (type === 'four') src = '/src/shared/4ofakind-icon.png';
+      else if (type === 'invalid') src = '/src/shared/invalid play-icon.png';
+      else if (type === 'take') src = '/src/shared/take pile-icon.png';
+      else if (type === 'regular') return;
+      icon.src = src;
+      icon.onerror = () => {
+        icon.style.background = 'rgba(255,255,255,0.7)';
+        icon.style.borderRadius = '50%';
+        icon.style.display = 'flex';
+        icon.style.justifyContent = 'center';
+        icon.style.alignItems = 'center';
+        const fallbackText = document.createElement('div');
+        fallbackText.textContent = type === 'take' ? 'TAKE' : 
+                                  type === 'two' ? 'RESET' :
+                                  type === 'five' ? 'COPY' :
+                                  type === 'ten' ? 'BURN' :
+                                  type === 'four' ? '4X' : 'X';
+        fallbackText.style.color = '#000';
+        fallbackText.style.fontWeight = 'bold';
+        icon.appendChild(fallbackText);
+      };
+      icon.style.position = 'absolute';
+      icon.style.top = '50%';
+      icon.style.left = '50%';
+      icon.style.transform = 'translate(-50%, -50%)';
+      icon.style.width = '90px';
+      icon.style.height = '90px';
+      icon.style.zIndex = '100';
+      icon.style.background = 'none';
+      icon.style.backgroundColor = 'transparent';
+      icon.style.pointerEvents = 'none';
+      icon.style.filter = 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))';
+      icon.style.animation = 'iconPulse 1.5s ease-in-out';
+      discardImg.parentElement.style.position = 'relative';
+      discardImg.parentElement.appendChild(icon);
+      setTimeout(() => {
+        icon.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        icon.style.opacity = '0';
+        icon.style.transform = 'translate(-50%, -50%) scale(0.8)';
+        setTimeout(() => icon.remove(), 500);
+      }, 1800);
+    }
+    if (discardImg instanceof HTMLImageElement && !discardImg.complete) {
+      discardImg.addEventListener('load', runEffect, { once: true });
+    } else {
+      runEffect();
+    }
+  }
+  tryRunEffect();
+}
