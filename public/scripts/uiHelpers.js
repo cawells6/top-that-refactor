@@ -8,12 +8,18 @@ export function showLobbyForm() {
   const waitingStateDiv = state.getWaitingStateDiv();
   const table = state.getTable();
   const lobbyFormContent = state.getLobbyFormContent();
+  const backBtn = document.getElementById('back-to-lobby-button');
+  const rulesModal = document.getElementById('rules-modal');
+  const overlay = document.getElementById('modal-overlay');
 
   // Use class names that match index.html and CSS
   if (lobbyContainer) lobbyContainer.classList.remove('lobby--hidden', 'hidden');
   if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
   if (table) table.classList.add('table--hidden', 'hidden');
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
+  if (backBtn) backBtn.classList.add('hidden');
+  if (rulesModal) rulesModal.classList.add('modal--hidden');
+  if (overlay) overlay.classList.add('modal__overlay--hidden');
 }
 
 export function showWaitingState(roomId, current, max) {
@@ -21,18 +27,41 @@ export function showWaitingState(roomId, current, max) {
   const waitingStateDiv = state.getWaitingStateDiv();
   const lobbyFormContent = state.getLobbyFormContent();
   const waitingHeading = state.$('waiting-heading');
+  const backBtn = document.getElementById('back-to-lobby-button');
+  if (backBtn) backBtn.classList.add('hidden');
 
   if (lobbyContainer) lobbyContainer.classList.remove('lobby--hidden', 'hidden');
   if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
   if (waitingHeading) waitingHeading.textContent = `Room ${roomId} (${current}/${max})`;
+  // Update URL with room code
+  const url = new URL(window.location.href);
+  url.searchParams.set('room', roomId);
+  window.history.pushState({}, '', url);
+  // Toggle start game button
+  const startBtn = document.getElementById('start-game-button');
+  if (startBtn instanceof HTMLButtonElement) {
+    if (current >= 2) {
+      startBtn.classList.remove('hidden');
+      startBtn.disabled = false;
+    } else {
+      startBtn.classList.add('hidden');
+      startBtn.disabled = true;
+    }
+  }
+  // Show copy link button
+  const copyLinkBtn = document.getElementById('copy-link-button');
+  if (copyLinkBtn) copyLinkBtn.classList.remove('hidden');
 }
 
 export function showGameTable() {
   const lobbyContainer = state.getLobbyContainer();
   const table = state.getTable();
+  const backBtn = document.getElementById('back-to-lobby-button');
+
   if (lobbyContainer) lobbyContainer.classList.add('hidden');
   if (table) table.classList.remove('table--hidden', 'hidden');
+  if (backBtn) backBtn.classList.remove('hidden');
 }
 
 export function openModal(modalEl) {
@@ -67,17 +96,16 @@ export function showGameOverMessage(didWin, winnerName) {
 }
 
 export function validateName() {
-  const nameInput = document.getElementById('name-input');
-  const nameError = document.getElementById('name-input-error');
+  const nameInput = document.getElementById('name');
+  const nameError = document.getElementById('name-error');
   if (nameInput instanceof HTMLInputElement) {
-    console.log('Raw name input value:', nameInput.value);
     if (!nameInput.value.trim()) {
       nameInput.classList.add('input-error');
-      nameError.style.display = '';
+      nameError.classList.remove('hidden');
       return null;
     }
     nameInput.classList.remove('input-error');
-    nameError.style.display = 'none';
+    nameError.classList.add('hidden');
     return nameInput.value.trim();
   }
   return null;

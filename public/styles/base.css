@@ -35,3 +35,11 @@ html, body {
 .notice.hidden {
   display: none;
 }
+
+.table--hidden {
+  display: none !important;
+}
+
+.lobby--hidden {
+  display: none !important;
+}

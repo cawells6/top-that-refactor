@@ -5965,58 +5965,6 @@ function formatCardValue(value) {
 }
 </file>
 
-<file path="public/scripts/socketHandlers.js">
-// @ts-nocheck
-// socketHandlers.js
-// Handles socket events and communication
-
-import * as state from './state.js';
-import { renderGameState } from './render.js';
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiHelpers.js';
-
-import {
-  JOINED,
-  PLAYER_JOINED,
-  LOBBY,
-  STATE_UPDATE,
-  REJOIN,
-} from '../src/shared/events.js';
-
-export function initializeSocketHandlers() {
-  state.socket.on('connect', () => {
-    if (state.myId && state.currentRoom) {
-      state.socket.emit(REJOIN, state.myId, state.currentRoom);
-    } else {
-      showLobbyForm();
-    }
-  });
-
-  state.socket.on(JOINED, ({ id, roomId }) => {
-    state.setMyId(id);
-    state.setCurrentRoom(roomId);
-    state.saveSession();
-  });
-
-  state.socket.on(PLAYER_JOINED, () => {
-    // Handle player joined logic
-  });
-
-  state.socket.on(LOBBY, data => {
-    const { roomId, players, maxPlayers } = data;
-    showWaitingState(roomId, players.length, maxPlayers);
-  });
-
-  state.socket.on(STATE_UPDATE, s => {
-    renderGameState(s);
-    if (s.started) showGameTable();
-  });
-
-  state.socket.on('err', msg => {
-    showError(msg);
-  });
-}
-</file>
-
 <file path="public/scripts/uiHelpers.js">
 // uiHelpers.js
 // Contains UI-related helper functions
@@ -6874,6 +6822,89 @@ module.exports = {
 };
 </file>
 
+<file path="public/scripts/socketHandlers.js">
+// @ts-nocheck
+// socketHandlers.js
+// Handles socket events and communication
+
+import * as state from './state.js';
+import { renderGameState } from './render.js';
+import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiHelpers.js';
+
+import {
+  JOINED,
+  PLAYER_JOINED,
+  LOBBY,
+  STATE_UPDATE,
+  REJOIN,
+} from '../src/shared/events.js';
+
+export function initializeSocketHandlers() {
+  state.socket.on('connect', () => {
+    if (state.myId && state.currentRoom) {
+      state.socket.emit(REJOIN, state.myId, state.currentRoom);
+    } else {
+      showLobbyForm();
+    }
+  });
+
+  state.socket.on(JOINED, ({ id, roomId }) => {
+    state.setMyId(id);
+    state.setCurrentRoom(roomId);
+    state.saveSession();
+  });
+
+  state.socket.on(PLAYER_JOINED, () => {
+    // Handle player joined logic
+  });
+
+  state.socket.on(LOBBY, data => {
+    const { roomId, players, maxPlayers } = data;
+    showWaitingState(roomId, players.length, maxPlayers);
+  });
+
+  state.socket.on(STATE_UPDATE, s => {
+    renderGameState(s);
+    if (s.started) showGameTable();
+  });
+
+  state.socket.on('err', msg => {
+    showError(msg);
+  });
+
+  // Handle special card animations
+  state.socket.on('special-card', type => {
+    const img = new Image();
+    // Map type to icon file (support both new and legacy names)
+    let iconFile = '';
+    switch (type) {
+      case 'burn': iconFile = '/Burn-icon.png'; break;
+      case 'reset': iconFile = '/Reset-icon.png'; break;
+      case 'copy': iconFile = '/Copy-icon.png'; break;
+      case 'take': iconFile = '/Take pile-icon.png'; break;
+      case 'invalid': iconFile = '/Invalid play-icon.png'; break;
+      default: iconFile = '/Invalid play-icon.png'; break;
+    }
+    img.src = iconFile;
+    img.classList.add('special-animation');
+    img.style.position = 'fixed';
+    img.style.left = '50%';
+    img.style.top = '50%';
+    img.style.transform = 'translate(-50%, -50%) scale(1.2)';
+    img.style.zIndex = 9999;
+    document.body.appendChild(img);
+    setTimeout(() => img.remove(), 1200);
+  });
+
+  // Handle game over
+  state.socket.on('gameOver', ({ winnerName }) => {
+    import('./uiHelpers.js').then(({ showGameOverMessage }) => {
+      showGameOverMessage(false, winnerName);
+    });
+  });
+}
+</file>
+
 <file path="tests/cardUtils.test.js">
 // tests/cardUtils.test.js
 
@@ -7069,113 +7100,6 @@ export function isFourOfAKind(hand) {
 export default { normalizeCardValue, rank };
 </file>
 
-<file path="models/Player.js">
-// models/Player.js
-
-import { rank } from '../utils/cardUtils.js';
-
-/**
- * PLAYER
- * Manages a single player’s hand, up‑cards, down‑cards, and pick‑up logic.
- */
-export default class Player {
-  /**
-   * @param {string} id Unique player identifier
-   */
-  constructor(id) {
-    /** @type {string} */
-    this.id = id;
-    /** @type {object[]} Cards in hand (visible) */
-    this.hand = [];
-    /** @type {object[]} Face‑up cards (visible after hand is empty) */
-    this.upCards = [];
-    /** @type {object[]} Face‑down cards (hidden until both hand & up are empty) */
-    this.downCards = [];
-  }
-
-  /**
-   * Replace this.hand with new cards and sort.
-   * @param {object[]} cards
-   */
-  setHand(cards) {
-    this.hand = [...cards];
-    this.sortHand();
-  }
-
-  /**
-   * Replace this.upCards.
-   * @param {object[]} cards
-   */
-  setUpCards(cards) {
-    this.upCards = [...cards];
-  }
-
-  /**
-   * Replace this.downCards.
-   * @param {object[]} cards
-   */
-  setDownCards(cards) {
-    this.downCards = [...cards];
-  }
-
-  /**
-   * Play a card from hand at index.
-   * @param {number} index
-   * @returns {object} the played card
-   */
-  playFromHand(index) {
-    return this.hand.splice(index, 1)[0];
-  }
-
-  /**
-   * Play a face‑up card at index.
-   * @param {number} index
-   * @returns {object}
-   */
-  playUpCard(index) {
-    return this.upCards.splice(index, 1)[0];
-  }
-
-  /**
-   * Play a random face‑down card.
-   * @returns {object}
-   */
-  playDownCard() {
-    const idx = Math.floor(Math.random() * this.downCards.length);
-    return this.downCards.splice(idx, 1)[0];
-  }
-
-  /**
-   * When picking up the pile, add those cards into hand and re‑sort.
-   * @param {object[]} pile
-   */
-  pickUpPile(pile) {
-    this.hand.push(...pile);
-    this.sortHand();
-  }
-
-  /** Sort hand lowest→highest by rank */
-  sortHand() {
-    this.hand.sort((a, b) => rank(a) - rank(b));
-  }
-
-  /** @returns {boolean} true if hand is empty */
-  hasEmptyHand() {
-    return this.hand.length === 0;
-  }
-
-  /** @returns {boolean} true if upCards is empty */
-  hasEmptyUp() {
-    return this.upCards.length === 0;
-  }
-
-  /** @returns {boolean} true if downCards is empty */
-  hasEmptyDown() {
-    return this.downCards.length === 0;
-  }
-}
-</file>
-
 <file path="public/index.html">
 <!DOCTYPE html>
 <html lang="en">
@@ -7257,103 +7181,6 @@ export default class Player {
   <div class="toast-container" id="toast-container"></div>
 </body>
 </html>
-</file>
-
-<file path="public/scripts/events.js">
-// public/scripts/events.js
-import * as state from './state.js';
-
-import { initializeSocketHandlers } from './socketHandlers.js';
-import { showLobbyForm, openModal, closeModal, validateName } from './uiHelpers.js';
-
-import {
-  JOIN_GAME,
-  START_GAME
-} from '../src/shared/events.js';
-
-document.addEventListener('DOMContentLoaded', () => {
-  state.loadSession();
-
-  // Initialize socket handlers
-  initializeSocketHandlers();
-
-  // UI hooks
-  const createJoinBtn = state.$('create-join');
-  if (createJoinBtn) {
-    createJoinBtn.onclick = () => {
-      const name = validateName();
-      if (!name) return;
-      state.socket.emit(JOIN_GAME, name);
-      if (createJoinBtn instanceof HTMLButtonElement) {
-        createJoinBtn.disabled = true;
-      }
-    };
-  }
-
-  state.getCopyLinkBtn() && (state.getCopyLinkBtn().onclick = () => {
-    navigator.clipboard.writeText(window.location.href);
-  });
-
-  state.getRulesButton() && (state.getRulesButton().onclick = () => openModal(state.getRulesModal()));
-  document.querySelector('.modal-close-button')?.addEventListener('click', closeModal);
-
-  state.getBackToLobbyButton() && (state.getBackToLobbyButton().onclick = () => {
-    sessionStorage.clear();
-    showLobbyForm();
-  });
-
-  const startGameBtn = document.getElementById('start-game-button');
-  if (startGameBtn) {
-    startGameBtn.onclick = () => {
-      if (!canStartGame()) {
-        console.error('At least 2 players required');
-        return;
-      }
-      const computerInput = document.getElementById('computer-count');
-      const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
-      state.socket.emit(START_GAME, { computerCount });
-      if (startGameBtn instanceof HTMLButtonElement) {
-        startGameBtn.disabled = true;
-      }
-    };
-  }
-
-  const rulesBtn = document.getElementById('rules-button');
-  const rulesModal = document.getElementById('rules-modal');
-  const closeBtn = rulesModal?.querySelector('.modal__close-button');
-  const overlay = document.getElementById('modal-overlay');
-
-  if (rulesBtn && rulesModal && closeBtn && overlay) {
-    rulesBtn.onclick = () => {
-      rulesModal.classList.remove('modal--hidden');
-      overlay.classList.remove('modal__overlay--hidden');
-    };
-    if (closeBtn instanceof HTMLButtonElement) {
-      closeBtn.onclick = () => {
-        rulesModal.classList.add('modal--hidden');
-        overlay.classList.add('modal__overlay--hidden');
-      };
-    } else {
-      closeBtn.addEventListener('click', () => {
-        rulesModal.classList.add('modal--hidden');
-        overlay.classList.add('modal__overlay--hidden');
-      });
-    }
-    overlay.onclick = () => {
-      rulesModal.classList.add('modal--hidden');
-      overlay.classList.add('modal__overlay--hidden');
-    };
-  }
-});
-
-// —– UI helper functions —–
-
-function canStartGame() {
-  let humanCount = 1;
-  const computerInput = document.getElementById('computer-count');
-  const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
-  return (humanCount + computerCount) >= 2;
-}
 </file>
 
 <file path="public/scripts/render.js">
@@ -7683,6 +7510,229 @@ server.on('error', err => {
 });
 </file>
 
+<file path="models/Player.js">
+// models/Player.js
+
+import { rank } from '../utils/cardUtils.js';
+
+/**
+ * PLAYER
+ * Manages a single player’s hand, up‑cards, down‑cards, and pick‑up logic.
+ */
+export default class Player {
+  /**
+   * @param {string} id Unique player identifier
+   * @param {string} name Player name
+   */
+  constructor(id, name = '') {
+    /** @type {string} */
+    this.id = id;
+    /** @type {string} */
+    this.name = name;
+    /** @type {boolean} */
+    this.isComputer = false;
+    /** @type {object[]} Cards in hand (visible) */
+    this.hand = [];
+    /** @type {object[]} Face‑up cards (visible after hand is empty) */
+    this.upCards = [];
+    /** @type {object[]} Face‑down cards (hidden until both hand & up are empty) */
+    this.downCards = [];
+  }
+
+  /**
+   * Replace this.hand with new cards and sort.
+   * @param {object[]} cards
+   */
+  setHand(cards) {
+    this.hand = [...cards];
+    this.sortHand();
+  }
+
+  /**
+   * Replace this.upCards.
+   * @param {object[]} cards
+   */
+  setUpCards(cards) {
+    this.upCards = [...cards];
+  }
+
+  /**
+   * Replace this.downCards.
+   * @param {object[]} cards
+   */
+  setDownCards(cards) {
+    this.downCards = [...cards];
+  }
+
+  /**
+   * Play a card from hand at index.
+   * @param {number} index
+   * @returns {object} the played card
+   */
+  playFromHand(index) {
+    return this.hand.splice(index, 1)[0];
+  }
+
+  /**
+   * Play a face‑up card at index.
+   * @param {number} index
+   * @returns {object}
+   */
+  playUpCard(index) {
+    return this.upCards.splice(index, 1)[0];
+  }
+
+  /**
+   * Play a random face‑down card.
+   * @returns {object}
+   */
+  playDownCard() {
+    const idx = Math.floor(Math.random() * this.downCards.length);
+    return this.downCards.splice(idx, 1)[0];
+  }
+
+  /**
+   * When picking up the pile, add those cards into hand and re‑sort.
+   * @param {object[]} pile
+   */
+  pickUpPile(pile) {
+    this.hand.push(...pile);
+    this.sortHand();
+  }
+
+  /** Sort hand lowest→highest by rank */
+  sortHand() {
+    this.hand.sort((a, b) => rank(a) - rank(b));
+  }
+
+  /** @returns {boolean} true if hand is empty */
+  hasEmptyHand() {
+    return this.hand.length === 0;
+  }
+
+  /** @returns {boolean} true if upCards is empty */
+  hasEmptyUp() {
+    return this.upCards.length === 0;
+  }
+
+  /** @returns {boolean} true if downCards is empty */
+  hasEmptyDown() {
+    return this.downCards.length === 0;
+  }
+}
+</file>
+
+<file path="public/scripts/events.js">
+// public/scripts/events.js
+import * as state from './state.js';
+
+import { initializeSocketHandlers } from './socketHandlers.js';
+import { showLobbyForm, openModal, closeModal, validateName } from './uiHelpers.js';
+
+import {
+  JOIN_GAME,
+  START_GAME
+} from '../src/shared/events.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  state.loadSession();
+
+  // Initialize socket handlers
+  initializeSocketHandlers();
+
+  // UI hooks
+  const createJoinBtn = state.$('create-join');
+  if (createJoinBtn) {
+    createJoinBtn.onclick = () => {
+      const name = validateName();
+      if (!name) return;
+      state.socket.emit(JOIN_GAME, name);
+      if (createJoinBtn instanceof HTMLButtonElement) {
+        createJoinBtn.disabled = true;
+      }
+    };
+  }
+
+  state.getCopyLinkBtn() && (state.getCopyLinkBtn().onclick = () => {
+    navigator.clipboard.writeText(window.location.href);
+  });
+
+  state.getRulesButton() && (state.getRulesButton().onclick = () => openModal(state.getRulesModal()));
+  document.querySelector('.modal-close-button')?.addEventListener('click', closeModal);
+
+  state.getBackToLobbyButton() && (state.getBackToLobbyButton().onclick = () => {
+    sessionStorage.clear();
+    showLobbyForm();
+  });
+
+  const startGameBtn = document.getElementById('start-game-button');
+  if (startGameBtn) {
+    startGameBtn.onclick = () => {
+      if (!canStartGame()) {
+        console.error('At least 2 players required');
+        return;
+      }
+      const computerInput = document.getElementById('computer-count');
+      const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
+      state.socket.emit(START_GAME, { computerCount });
+      if (startGameBtn instanceof HTMLButtonElement) {
+        startGameBtn.disabled = true;
+      }
+    };
+  }
+
+  const rulesBtn = document.getElementById('rules-button');
+  const rulesModal = document.getElementById('rules-modal');
+  const closeBtn = rulesModal?.querySelector('.modal__close-button');
+  const overlay = document.getElementById('modal-overlay');
+
+  if (rulesBtn && rulesModal && closeBtn && overlay) {
+    rulesBtn.onclick = () => {
+      rulesModal.classList.remove('modal--hidden');
+      overlay.classList.remove('modal__overlay--hidden');
+    };
+    if (closeBtn instanceof HTMLButtonElement) {
+      closeBtn.onclick = () => {
+        rulesModal.classList.add('modal--hidden');
+        overlay.classList.add('modal__overlay--hidden');
+      };
+    } else {
+      closeBtn.addEventListener('click', () => {
+        rulesModal.classList.add('modal--hidden');
+        overlay.classList.add('modal__overlay--hidden');
+      });
+    }
+    overlay.onclick = () => {
+      rulesModal.classList.add('modal--hidden');
+      overlay.classList.add('modal__overlay--hidden');
+    };
+  }
+
+  // Auto-join if ?room= is present in URL
+  const params = new URLSearchParams(window.location.search);
+  const roomParam = params.get('room') || '';
+  if (roomParam && createJoinBtn) {
+    // Hide setup fields if joining by link
+    document.getElementById('lobby-form-content')?.classList.add('hidden');
+    // Auto-fill join on load
+    setTimeout(() => {
+      const nameInput = document.getElementById('name-input');
+      if (nameInput && nameInput instanceof HTMLInputElement && !nameInput.value) nameInput.value = 'Guest';
+      createJoinBtn.click();
+    }, 100);
+  }
+});
+
+// —– UI helper functions —–
+
+function canStartGame() {
+  let humanCount = 1;
+  const computerInput = document.getElementById('computer-count');
+  const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
+  return (humanCount + computerCount) >= 2;
+}
+</file>
+
 <file path="controllers/GameController.js">
 // controllers/GameController.js
 
@@ -7695,7 +7745,7 @@ server.on('error', err => {
  */
 import GameState from '../models/GameState.js';
 import Player from '../models/Player.js';
-import { normalizeCardValue, isSpecialCard } from '../utils/cardUtils.js';
+import { normalizeCardValue, isSpecialCard, rank } from '../utils/cardUtils.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -7707,6 +7757,7 @@ import {
   START_GAME,
   NEXT_TURN
 } from '../src/shared/events.js';
+import { v4 as uuidv4 } from 'uuid';
 
 export default class GameController {
   /**
@@ -7714,10 +7765,8 @@ export default class GameController {
    */
   constructor(io) {
     this.io = io;
-    this.gameState = new GameState();
-    this.players = new Map(); // Map<playerId, Player>
-
-    // Wire up per‑socket listeners
+    this.games = new Map(); // Map<roomId, { state: GameState, players: Map<id,Player> }>
+    // Wire up per-socket listeners
     this.io.on('connection', socket => this.setupListeners(socket));
   }
 
@@ -7726,165 +7775,304 @@ export default class GameController {
    * @param {import('socket.io').Socket} socket
    */
   setupListeners(socket) {
-    socket.on(JOIN_GAME, playerId => this.handleJoin(socket, playerId));
-    socket.on(START_GAME, (opts) => this.handleStartGame(opts));
-    socket.on('play-card', data => this.handlePlay(socket, data));
-    socket.on(NEXT_TURN, () => this.handleNextTurn());
-    socket.on(REJOIN, ({ roomId, playerId }) => {
-      // Validate the room exists (for now, only 'game-room' is valid)
-      if (roomId !== 'game-room' || !this.players.has(playerId)) {
-        socket.emit('err', 'Invalid room or player for rejoin');
+    socket.on('join', (name, totalPlayers = 2, numComputers = 0, roomParam = '') => {
+      totalPlayers = Math.min(Math.max(parseInt(totalPlayers, 10) || 2, 2), 4);
+      numComputers = Math.min(Math.max(parseInt(numComputers, 10) || 0, 0), totalPlayers - 1);
+      const roomId = roomParam && this.games.has(roomParam)
+        ? roomParam
+        : uuidv4().slice(0, 6).toUpperCase();
+      if (!this.games.has(roomId)) {
+        const state = new GameState();
+        state.maxPlayers = totalPlayers;
+        state.playerOrder = [];
+        state.playersCount = 0;
+        this.games.set(roomId, {
+          state,
+          players: new Map()
+        });
+      }
+      const { state, players } = this.games.get(roomId);
+      socket.join(roomId);
+      // Create player object and store
+      const p = new Player(socket.id, name);
+      p.isComputer = false;
+      players.set(socket.id, p);
+      // Add to player order if not present
+      if (!state.playerOrder) state.playerOrder = [];
+      if (!state.playerOrder.includes(socket.id)) state.playerOrder.push(socket.id);
+      state.playersCount = state.playerOrder.length;
+      // Add computers if requested
+      for (let i = 0; i < numComputers; i++) {
+        const cpuId = `CPU_${Math.random().toString(36).slice(2, 5)}`;
+        if (!players.has(cpuId)) {
+          const cpu = new Player(cpuId, `CPU ${i + 1}`);
+          cpu.isComputer = true;
+          players.set(cpuId, cpu);
+          if (!state.playerOrder.includes(cpuId)) state.playerOrder.push(cpuId);
+        }
+      }
+      state.playersCount = state.playerOrder.length;
+      this._emitLobby(roomId);
+    });
+
+    socket.on(START_GAME, (opts) => {
+      const roomId = Array.from(socket.rooms).find(r => r !== socket.id);
+      if (roomId) this.handleStartGame(roomId, opts || {});
+    });
+
+    socket.on('play-card', data => {
+      const roomId = Array.from(socket.rooms).find(r => r !== socket.id);
+      if (roomId) this.handlePlay(roomId, socket, data);
+    });
+
+    socket.on(NEXT_TURN, () => {
+      const roomId = Array.from(socket.rooms).find(r => r !== socket.id);
+      if (roomId) this.handleNextTurn(roomId);
+    });
+
+    socket.on('takePile', () => {
+      const roomId = Array.from(socket.rooms).find(r => r !== socket.id);
+      if (roomId) this.handleTakePile(roomId, socket.id);
+    });
+
+    socket.on(REJOIN, ({ playerId, roomId }) => {
+      if (!this.games.has(roomId)) {
+        socket.emit('err', 'Invalid room for rejoin');
         return;
       }
-      socket.join(roomId);
-      // Resend the latest game snapshot
-      const state = {
-        players: this.gameState.players.map(id => ({
-          id,
-          handCount: this.players.get(id).hand.length,
-          upCount: this.players.get(id).upCards.length,
-          downCount: this.players.get(id).downCards.length,
-        })),
-        pile: this.gameState.pile,
-        discardCount: this.gameState.discard.length,
-        currentPlayer: this.gameState.players[this.gameState.currentPlayerIndex],
-      };
-      socket.emit(STATE_UPDATE, state);
+      const { players } = this.games.get(roomId);
+      if (!players.has(playerId)) {
+        socket.emit('err', 'Invalid player for rejoin');
+        return;
+      }
+      const player = players.get(playerId);
+      if (player && player.disconnected) {
+        player.disconnected = false;
+        player.sock = socket;
+        socket.join(roomId);
+        socket.emit(JOINED, { id: playerId, roomId });
+        this.pushState(roomId);
+        this.io.to(roomId).emit(PLAYER_JOINED, [...players.values()].map(pl => pl.name));
+      } else {
+        socket.emit('err', 'Rejoin failed');
+      }
+    });
+
+    socket.on('disconnect', () => {
+      const roomId = Array.from(socket.rooms).find(r => r !== socket.id);
+      if (!this.games.has(roomId)) return;
+      const { players } = this.games.get(roomId);
+      const playerId = socket.id;
+      const player = players.get(playerId);
+      if (player) {
+        player.disconnected = true;
+        this.io.to(roomId).emit(PLAYER_JOINED, [...players.values()].map(pl => ({ id: pl.id, disconnected: pl.disconnected })));
+      }
     });
   }
 
-  /** Add a new player to the game */
-  handleJoin(socket, playerId) {
-    if (this.players.has(playerId)) {
-      socket.emit('err', 'Player already joined');
-      return;
-    }
-    this.gameState.addPlayer(playerId);
-    const player = new Player(playerId);
-    this.players.set(playerId, player);
-
-    socket.join('game-room');
-    // One-off ACK to the joining socket
-    socket.emit(JOINED, { id: playerId, roomId: 'game-room' });
-    // Notify all clients of the updated player list
-    const playerList = [...this.players.keys()];
-    this.io.to('game-room').emit(PLAYER_JOINED, playerList);
-    this.io.to('game-room').emit(LOBBY, {
-      roomId: 'game-room',
-      players: playerList,
-      maxPlayers: 4
+  _emitLobby(roomId) {
+    const { state, players } = this.games.get(roomId);
+    const list = Array.from(players.values()).map(pl => ({
+      id: pl.id, name: pl.name, isComputer: pl.isComputer
+    }));
+    this.io.to(roomId).emit('lobby', {
+      roomId,
+      players: list,
+      maxPlayers: state.maxPlayers
     });
-    this.pushState();
   }
 
   /** Initialize deck, deal cards, assign them to players, and emit first turn */
-  handleStartGame(opts = {}) {
-    // Support both legacy (no opts) and new (opts.computerCount) calls
+  handleStartGame(roomId, opts = {}) {
+    const game = this.games.get(roomId);
+    const { state, players } = game;
     const computerCount = opts.computerCount || 0;
-    if (this.players.size + computerCount < 2) {
+    if (players.size + computerCount < 2) {
       console.error('Cannot start game: need at least 2 players.');
       return;
     }
-    // Add computer players if needed
     for (let i = 0; i < computerCount; i++) {
       const id = `COMPUTER_${i+1}`;
-      if (!this.players.has(id)) {
-        this.gameState.addPlayer(id);
-        this.players.set(id, new Player(id));
+      if (!players.has(id)) {
+        state.addPlayer(id);
+        players.set(id, new Player(id));
       }
     }
-    this.gameState.buildDeck();
-    // Deal cards to all players
-    const numPlayers = this.gameState.players.length;
-    const { hands, upCards, downCards } = this.gameState.dealCards(numPlayers);
-    // Assign cards to each player
-    this.gameState.players.forEach((id, idx) => {
-      const player = this.players.get(id);
+    state.buildDeck();
+    const numPlayers = state.players.length;
+    const { hands, upCards, downCards } = state.dealCards(numPlayers);
+    state.players.forEach((id, idx) => {
+      const player = players.get(id);
       player.setHand(hands[idx]);
       player.setUpCards(upCards[idx]);
       player.setDownCards(downCards[idx]);
     });
-    this.pushState();
-    const first = this.gameState.players[0];
-    this.io.to('game-room').emit(NEXT_TURN, first);
+    this.pushState(roomId);
+    const first = state.players[0];
+    this.io.to(roomId).emit(NEXT_TURN, first);
   }
 
   /**
    * Player plays a card from hand/up/down
-   * @param {import('socket.io').Socket} socket
+   * @param {string} roomId
+   * @param {import('socket.io').Socket|null} socket
    * @param {{playerId:string,cardIndex:number,zone:'hand'|'up'|'down'}} data
    */
-  handlePlay(socket, { playerId, cardIndex, zone }) {
-    const player = this.players.get(playerId);
-    if (!player) return;
-
+  handlePlay(roomId, socket, { playerId, cardIndex, zone }) {
+    const game = this.games.get(roomId);
+    if (!game) return;
+    const { state, players } = game;
+    const player = players.get(playerId);
+    if (!player || playerId !== state.playerOrder[state.currentPlayerIndex]) {
+      return; // invalid player or not player's turn
+    }
+    // Determine card without removing yet
     let card;
-    switch (zone) {
-      case 'hand': card = player.playFromHand(cardIndex); break;
-      case 'up':   card = player.playUpCard(cardIndex);     break;
-      case 'down': card = player.playDownCard();            break;
-      default:     return;
+    if (zone === 'hand') card = player.hand[cardIndex];
+    else if (zone === 'up') card = player.upCards[cardIndex];
+    else if (zone === 'down') card = player.downCards[0];
+    if (!card) return; // no card found
+    // Validate move
+    if (!state.isValidPlay(card)) {
+      if (zone === 'down') {
+        // face-down invalid: player picks up pile
+        player.hand.push(player.downCards.shift()); // move the down card to hand
+        player.sortHand();
+        this.io.to(roomId).emit('special-card', 'invalid');
+        this.handleTakePile(roomId, playerId);
+      } else {
+        // hand/up invalid: restore card if needed
+        if (socket) socket.emit('err', 'Invalid play: card must be higher than top card');
+      }
+      return;
     }
+    // Remove the card from player's hand/up/down now that it's confirmed valid
+    if (zone === 'hand') card = player.playFromHand(cardIndex);
+    else if (zone === 'up') card = player.playUpCard(cardIndex);
+    else if (zone === 'down') card = player.playDownCard();
+    // broadcast
+    const normVal = normalizeCardValue(card.value);
+    state.addToPile({ ...card, value: normVal });
+    this.io.to(roomId).emit('card-played', { playerId, card: { ...card, value: normVal } });
+    // special card handling
+    if (normVal === 'ten' || state.checkFourOfKind()) {
+      this.io.to(roomId).emit('special-card', 'burn');
+      state.clearPile();
+      this.handleNextTurn(roomId);
+      return;
+    }
+    if (normVal === 'five') {
+      this.io.to(roomId).emit('special-card', 'copy');
+      const lastReal = state.getLastRealCard();
+      if (lastReal) {
+        state.addToPile({ ...lastReal });
+      }
+    }
+    if (normVal === 'two') {
+      this.io.to(roomId).emit('special-card', 'reset');
+      // Optionally set a reset flag if needed
+    }
+    // End turn after any single card play
+    this.handleNextTurn(roomId);
+  }
 
-    const normalized = normalizeCardValue(card.value);
-    this.gameState.addToPile({ ...card, value: normalized });
-    this.io.to('game-room').emit('card-played', { playerId, card: { ...card, value: normalized } });
-
-    if (isSpecialCard(normalized)) {
-      socket.emit(SPECIAL_CARD, normalized);
+  async handleNextTurn(roomId) {
+    const game = this.games.get(roomId);
+    const { state, players } = game;
+    const prevIdx = (state.currentPlayerIndex + state.playersCount - 1) % state.playersCount;
+    const prevId = state.playerOrder[prevIdx];
+    const prev = players.get(prevId);
+    while (prev.hand.length < 3 && state.deck.length > 0) {
+      prev.hand.push(state.deck.pop());
+    }
+    if (
+      prev.hand.length === 0 &&
+      prev.upCards.length === 0 &&
+      prev.downCards.length === 0
+    ) {
+      this.io.to(roomId).emit('gameOver', { winnerId: prev.id, winnerName: prev.name });
+      return;
+    }
+    state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.playersCount;
+    const nextId = state.playerOrder[state.currentPlayerIndex];
+    this.io.to(roomId).emit('nextTurn', nextId);
+    this.pushState(roomId);
+    const next = players.get(nextId);
+    if (next.isComputer) {
+      setTimeout(() => this._doCpuTurn(roomId, nextId), 700);
     }
   }
 
-  /** Advance to next player's turn */
-  handleNextTurn() {
-    this.gameState.advancePlayer();
-    const next = this.gameState.players[this.gameState.currentPlayerIndex];
-    this.io.to('game-room').emit(NEXT_TURN, next);
+  _doCpuTurn(roomId, cpuId) {
+    const game = this.games.get(roomId);
+    const { state, players } = game;
+    const cpu = players.get(cpuId);
+    // valid hand indexes
+    const valid = cpu.hand
+      .map((c, i) => ({ card: c, idx: i }))
+      .filter(ci => state.isValidPlay(ci.card));
+    if (valid.length > 0) {
+      // play lowest-value valid
+      valid.sort((a, b) => rank(a.card.value) - rank(b.card.value));
+      const choice = valid[0].idx;
+      this.handlePlay(roomId, null, { playerId: cpuId, cardIndex: choice, zone: 'hand' });
+    } else {
+      this.handleTakePile(roomId, cpuId);
+    }
   }
 
-  /** Cleanup on disconnect (optional) */
-  handleDisconnect(socket) {
-    // TO DO: remove or mark offline
-    this.pushState();
+  handleTakePile(roomId, playerId) {
+    const game = this.games.get(roomId);
+    const { state, players } = game;
+    const pl = players.get(playerId);
+    pl.hand.push(...state.pile);
+    state.pile = [];
+    pl.hand.sort((a, b) => rank(a.value) - rank(b.value));
+    this.io.to(roomId).emit('special-card', 'take');
+    this.pushState(roomId);
+    this.handleNextTurn(roomId);
   }
 
   /** Broadcast full game state to all clients */
-  pushState() {
-    const currentPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
-    const state = {
-      players: this.gameState.players.map(id => {
-        const player = this.players.get(id);
+  pushState(roomId) {
+    const game = this.games.get(roomId);
+    const { state, players } = game;
+    const currentPlayerId = state.players[state.currentPlayerIndex];
+    const stateData = {
+      players: state.players.map(id => {
+        const player = players.get(id);
         if (id === currentPlayerId) {
-          // Send full hand/upCards/downCards for current player
           return {
             id,
             hand: player.hand,
             upCards: player.upCards,
             downCards: player.downCards,
-            name: player.name // if you have a name property
+            name: player.name
           };
         } else {
-          // Only send counts for opponents
           return {
             id,
             handCount: player.hand.length,
             upCount: player.upCards.length,
             downCount: player.downCards.length,
-            name: player.name // if you have a name property
+            name: player.name
           };
         }
       }),
-      pile: this.gameState.pile,
-      discardCount: this.gameState.discard.length,
+      pile: state.pile,
+      discardCount: state.discard.length,
       currentPlayer: currentPlayerId,
-      started: true // or set appropriately
+      started: true
     };
-    this.io.to('game-room').emit(STATE_UPDATE, state);
+    this.io.to(roomId).emit(STATE_UPDATE, stateData);
   }
 }
 </file>
 
 <file path="models/GameState.js">
+import { normalizeCardValue, isSpecialCard, rank } from '../utils/cardUtils.js';
+
 // models/GameState.js
 
 /**
@@ -7901,6 +8089,14 @@ export default class GameState {
     this.pile = [];
     /** @type {object[]} All cards that have been cleared from the pile */
     this.discard = [];
+    /** @type {object|null} Last real (non-special) card played */
+    this.lastRealCard = null;
+    /** @type {number} Max players for this game room */
+    this.maxPlayers = 4;
+    /** @type {string[]} Player order for this room */
+    this.playerOrder = [];
+    /** @type {number} Number of players in this room */
+    this.playersCount = 0;
   }
 
   /**
@@ -7922,11 +8118,67 @@ export default class GameState {
   }
 
   /**
-   * Add a card to the current pile.
+   * Add a card to the current pile and update lastRealCard if not special.
    * @param {object} card
    */
   addToPile(card) {
     this.pile.push(card);
+    if (!isSpecialCard(card.value)) {
+      this.lastRealCard = card;
+    }
+  }
+
+  /**
+   * Get the value that must be beaten (null if pile empty or reset).
+   */
+  getTopValue() {
+    if (this.pile.length === 0) return null;
+    const top = this.pile[this.pile.length - 1].value;
+    if (top === 'two') return null;
+    if (top === 'five') {
+      for (let i = this.pile.length - 2; i >= 0; i--) {
+        const val = this.pile[i].value;
+        if (val !== 'five' && val !== 'two') return val;
+      }
+      return null;
+    }
+    return top;
+  }
+
+  /**
+   * Validate if a card can be played on the current pile.
+   * @param {object} card
+   * @returns {boolean}
+   */
+  isValidPlay(card) {
+    const topVal = this.getTopValue();
+    const val = normalizeCardValue(card.value);
+    if (isSpecialCard(val)) return true;
+    if (topVal === null) return true;
+    return rank({ value: val }) >= rank({ value: normalizeCardValue(topVal) });
+  }
+
+  /**
+   * Check if the top 4 cards of the pile are four of a kind (not special).
+   * @returns {boolean}
+   */
+  checkFourOfKind() {
+    if (this.pile.length < 4) return false;
+    const len = this.pile.length;
+    const v1 = normalizeCardValue(this.pile[len - 1].value);
+    return (
+      v1 !== 'two' && v1 !== 'five' &&
+      normalizeCardValue(this.pile[len - 2].value) === v1 &&
+      normalizeCardValue(this.pile[len - 3].value) === v1 &&
+      normalizeCardValue(this.pile[len - 4].value) === v1
+    );
+  }
+
+  /**
+   * Get the last real (non-special) card played.
+   */
+  getLastRealCard() {
+    return this.lastRealCard || null;
   }
 
   /**
@@ -7991,7 +8243,8 @@ export default class GameState {
   },
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.27.1",

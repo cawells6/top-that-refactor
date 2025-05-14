@@ -16,14 +16,15 @@ export function createCardElement(card, selectable = false, onSelect = null) {
 
   // Handle back of card vs face
   if (card.back) {
-    img.src = '/assets/cards/back.png';
+    img.src = 'https://deckofcardsapi.com/static/img/back.png';
     img.alt = 'Card Back';
   } else {
-    // Format card values for image src
-    const value = formatCardValue(card.value);
-    const suit = card.suit.toLowerCase();
-    img.src = `/assets/cards/${value}_of_${suit}.png`;
-    img.alt = `${value} of ${suit}`;
+    // Use deckofcardsapi.com image codes ({value}{suitLetter})
+    const val = String(card.value).toUpperCase() === '10' ? '0' : String(card.value).toUpperCase();
+    const suitLetter = { hearts: 'H', diamonds: 'D', clubs: 'C', spades: 'S' }[card.suit];
+    const code = `${val}${suitLetter}`;
+    img.src = `https://deckofcardsapi.com/static/img/${code}.png`;
+    img.alt = `${card.value} of ${card.suit}`;
 
     // Handle copied cards (e.g., 5s effect)
     if (card.copied) {

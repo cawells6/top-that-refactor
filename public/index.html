@@ -21,26 +21,77 @@
         <span style="color: #FFC300; font-weight: bold; font-size: 1.4rem; letter-spacing: 0.01em;">&#x1F451; Top That!</span>
         <span style="color: #FFC300; font-size: 0.95rem; font-weight: 400; margin-top: -2px;">One Pile. One Winner. No Mercy.</span>
       </div>
+      <button id="back-to-lobby-button" class="btn btn-warning hidden">Back to Lobby</button>
       <button id="rules-button" class="btn btn-primary" style="font-size: 1rem; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 6px; background: #FFC300; color: #222;">How to Play</button>
     </div>
   </header>
 
   <div class="notice notice--hidden" id="notice-banner"></div>
-  <div class="notice notice--hidden" id="error-banner"></div>
   <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
+  <div id="rules-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
+    <div class="modal-content">
+      <h2 id="rules-modal-title">How to Play Top That!</h2>
+      <button class="modal-close-button" aria-label="Close rules">&times;</button>
+      <ul>
+        <li>Game Setup
+          <ul class="sublist">
+            <li>- Use 1 deck for 1–3 players; 2 decks for 4–8 players.</li>
+            <li>- Deal each player, in order:
+              <ul style="margin-left: 2em;">
+                <li>3 cards face-down</li>
+                <li>3 cards face-up</li>
+                <li>3 cards in their hand</li>
+              </ul>
+            </li>
+            <li>- Place the rest face-down as the draw pile.</li>
+            <li>- Turn the top card face-up to start the discard pile.</li>
+          </ul>
+        </li>
+        <li>On Your Turn
+          <ul class="sublist">
+            <li>- Play one or more hand cards higher than the top discard.</li>
+            <li>- After playing, draw back up to 3 cards (if the draw pile isn’t empty).</li>
+            <li>- If you can’t play, pick up the entire discard pile into your hand.</li>
+            <li>- End by passing play to the next player.</li>
+          </ul>
+        </li>
+        <li>Special Cards
+          <ul class="sublist">
+            <li>- 2: Reset the pile. Next player may play any card.</li>
+            <li>- 5: Copy the last card’s value. If it’s the first in a new pile, treat as normal.</li>
+            <li>- 10: Clear the discard pile—those cards are removed.</li>
+            <li>- Four-of-a-kind: Also clears the pile, regardless of value.</li>
+          </ul>
+        </li>
+        <li>Playing Up & Down Cards
+          <ul class="sublist">
+            <li>- Finish hand cards before playing face-up.</li>
+            <li>- Finish face-up before playing face-down.</li>
+            <li>- Only one face-up or face-down card may be played per turn, even if you have multiples of the same value.</li>
+            <li>- If you can’t play an up/down card, pick up the discard pile and resume with hand cards.</li>
+          </ul>
+        </li>
+        <li>Winning
+          <ul class="sublist">
+            <li>- First to empty hand, face-up, and face-down cards wins.</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
 
   <main class="main-content" id="main-content">
     <!-- Lobby Screen -->
-    <div class="lobby lobby--hidden" id="lobby-container">
+    <div class="lobby" id="lobby-container">
       <div class="lobby-card" id="lobby-form-card">
         <h2 class="lobby-title">Join a Game</h2>
         <div class="lobby-form-content" id="lobby-form-content">
           <div class="form-group">
-            <label for="name-input">Your Name</label>
-            <input id="name-input" type="text" placeholder="Enter your name" />
+            <label for="name">Your Name</label>
+            <input id="name" type="text" placeholder="Enter your name" />
           </div>
           <div class="form-group">
-            <label id="name-input-error" style="display:none;color:#c00;font-size:0.95em;">Name is required</label>
+            <label id="name-error" class="hidden" style="color:#c00;font-size:0.95em;">Name is required</label>
           </div>
           <div class="lobby-buttons">
             <button id="create-join" class="btn btn-primary">Join Game</button>
@@ -49,6 +100,14 @@
           <div class="form-group">
             <label for="computer-count">Opponents:</label>
             <input id="computer-count" type="number" min="1" max="3" value="1" style="width: 40px;" />
+          </div>
+        </div>
+        <!-- Waiting for players state -->
+        <div id="waiting-state" class="hidden">
+          <h2 id="waiting-heading">Waiting for players...</h2>
+          <div class="lobby-buttons">
+            <button id="copy-link-button" class="btn btn-secondary hidden">Copy Invite Link</button>
+            <button id="start-game-button" class="btn btn-primary hidden" disabled>Start Game</button>
           </div>
         </div>
       </div>
@@ -67,13 +126,6 @@
   <footer class="footer" style="position: fixed; bottom: 0; width: 100%; background: #789; color: #fff; text-align: center; padding: 4px 0; font-size: 0.95em;">Restart Game (Dev)</footer>
 
   <section class="game-log game-log--hidden" id="game-log"></section>
-
-  <div class="modal modal--hidden" id="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
-    <div class="modal__content">
-      <h2 class="modal__title" id="rules-modal-title">Game Rules</h2>
-      <button class="modal__close-button" aria-label="Close">&times;</button>
-    </div>
-  </div>
 
   <div class="toast-container" id="toast-container"></div>
 </body>

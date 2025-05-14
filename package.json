@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
+    "start": "npx kill-port 3000 && node server.js",
     "dev": "nodemon --delay 1.5 server.js",
     "test": "jest"
   },
