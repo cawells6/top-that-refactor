@@ -35,7 +35,7 @@ export function initializeSocketHandlers() {
 
   state.socket.on(LOBBY, data => {
     const { roomId, players, maxPlayers } = data;
-    showWaitingState(roomId, players.length, maxPlayers);
+    showWaitingState(roomId, players.length, maxPlayers, players);
   });
 
   state.socket.on(STATE_UPDATE, s => {

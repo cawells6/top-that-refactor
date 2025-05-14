@@ -16,7 +16,7 @@ export function showLobbyForm() {
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
 }
 
-export function showWaitingState(roomId, current, max) {
+export function showWaitingState(roomId, current, max, players = []) {
   const lobbyContainer = state.getLobbyContainer();
   const waitingStateDiv = state.getWaitingStateDiv();
   const lobbyFormContent = state.getLobbyFormContent();
@@ -26,6 +26,25 @@ export function showWaitingState(roomId, current, max) {
   if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
   if (waitingHeading) waitingHeading.textContent = `Room ${roomId} (${current}/${max})`;
+
+  // Render player list
+  let playerList = document.getElementById('player-list');
+  if (!playerList) {
+    playerList = document.createElement('ul');
+    playerList.id = 'player-list';
+    playerList.style.marginTop = '1rem';
+    playerList.style.marginBottom = '1rem';
+    playerList.style.listStyle = 'none';
+    playerList.style.padding = '0';
+    if (waitingStateDiv) waitingStateDiv.appendChild(playerList);
+  }
+  playerList.innerHTML = '';
+  players.forEach(player => {
+    const li = document.createElement('li');
+    li.textContent = player.name || player.id || player;
+    li.style.padding = '0.25rem 0';
+    playerList.appendChild(li);
+  });
 }
 
 export function showGameTable() {
