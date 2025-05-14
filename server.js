@@ -30,8 +30,8 @@ new GameController(io);
 
 // Start listening
 const PORT = 3000; // Changed port from 3002 to 3000
-server.listen(PORT, () => {
-  console.log(`🃏 Top That! server running at http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🃏 Top That! server running at http://localhost:${PORT} and on your network at http://192.168.68.66:${PORT}`);
 });
 
 // Optional HTTP error handling

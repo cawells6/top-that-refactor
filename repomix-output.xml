@@ -5899,159 +5899,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </files>
 </file>
 
-<file path="public/scripts/card.js">
-// card.js - Handles card rendering logic
-
-/**
- * Creates a card element with appropriate styling and behavior
- * @param {object} card - Card data (value, suit, or {back: true})
- * @param {boolean} selectable - Whether the card can be selected
- * @param {Function} onSelect - Optional callback when card is selected
- * @returns {HTMLElement} The card container element
- */
-export function createCardElement(card, selectable = false, onSelect = null) {
-  const container = document.createElement('div');
-  container.className = 'card-container';
-
-  const img = document.createElement('img');
-  img.className = 'card-img';
-
-  // Handle back of card vs face
-  if (card.back) {
-    img.src = '/assets/cards/back.png';
-    img.alt = 'Card Back';
-  } else {
-    // Format card values for image src
-    const value = formatCardValue(card.value);
-    const suit = card.suit.toLowerCase();
-    img.src = `/assets/cards/${value}_of_${suit}.png`;
-    img.alt = `${value} of ${suit}`;
-
-    // Handle copied cards (e.g., 5s effect)
-    if (card.copied) {
-      img.classList.add('copied-card');
-    }
-  }
-
-  // Make card selectable if needed
-  if (selectable) {
-    img.classList.add('selectable');
-    img.style.touchAction = 'manipulation';
-
-    container.addEventListener('click', () => {
-      img.classList.toggle('selected');
-      container.classList.toggle('selected-container', img.classList.contains('selected'));
-
-      if (onSelect) onSelect(card, img.classList.contains('selected'));
-    });
-  }
-
-  container.appendChild(img);
-  return container;
-}
-
-/**
- * Formats card value for file naming
- * @param {string|number} value - Card value (e.g., 2, 10, J, Q, K, A)
- * @returns {string} Formatted card value
- */
-function formatCardValue(value) {
-  const v = String(value).toLowerCase();
-  if (v === 'j' || v === 'jack') return 'jack';
-  if (v === 'q' || v === 'queen') return 'queen';
-  if (v === 'k' || v === 'king') return 'king';
-  if (v === 'a' || v === 'ace') return 'ace';
-  return v;
-}
-</file>
-
-<file path="public/scripts/uiHelpers.js">
-// uiHelpers.js
-// Contains UI-related helper functions
-
-import * as state from './state.js';
-
-export function showLobbyForm() {
-  const lobbyContainer = state.getLobbyContainer();
-  const waitingStateDiv = state.getWaitingStateDiv();
-  const table = state.getTable();
-  const lobbyFormContent = state.getLobbyFormContent();
-
-  // Use class names that match index.html and CSS
-  if (lobbyContainer) lobbyContainer.classList.remove('lobby--hidden', 'hidden');
-  if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
-  if (table) table.classList.add('table--hidden', 'hidden');
-  if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
-}
-
-export function showWaitingState(roomId, current, max) {
-  const lobbyContainer = state.getLobbyContainer();
-  const waitingStateDiv = state.getWaitingStateDiv();
-  const lobbyFormContent = state.getLobbyFormContent();
-  const waitingHeading = state.$('waiting-heading');
-
-  if (lobbyContainer) lobbyContainer.classList.remove('lobby--hidden', 'hidden');
-  if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
-  if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
-  if (waitingHeading) waitingHeading.textContent = `Room ${roomId} (${current}/${max})`;
-}
-
-export function showGameTable() {
-  const lobbyContainer = state.getLobbyContainer();
-  const table = state.getTable();
-  if (lobbyContainer) lobbyContainer.classList.add('hidden');
-  if (table) table.classList.remove('table--hidden', 'hidden');
-}
-
-export function openModal(modalEl) {
-  modalEl.classList.remove('hidden');
-  state.getModalOverlay().classList.remove('hidden');
-}
-
-export function closeModal() {
-  state.getRulesModal().classList.add('hidden');
-  state.getModalOverlay().classList.add('hidden');
-}
-
-export function showError(msg) {
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.textContent = msg;
-  state.$('toast-container')?.appendChild(toast);
-  setTimeout(() => toast.remove(), 2000);
-}
-
-export function showGameOverMessage(didWin, winnerName) {
-  const over = document.createElement('div');
-  over.id = 'game-over-container';
-  over.innerHTML = `
-    <div class="modal-content">
-      <h1>Game Over!</h1>
-      <p>${didWin ? '🎉 You win!' : `${winnerName} wins!`}</p>
-      <button id="play-again-btn" class="btn btn-primary">Play Again</button>
-    </div>`;
-  document.body.appendChild(over);
-  state.$('play-again-btn')?.addEventListener('click', () => location.reload());
-}
-
-export function validateName() {
-  const nameInput = document.getElementById('name-input');
-  const nameError = document.getElementById('name-input-error');
-  if (nameInput instanceof HTMLInputElement) {
-    console.log('Raw name input value:', nameInput.value);
-    if (!nameInput.value.trim()) {
-      nameInput.classList.add('input-error');
-      nameError.style.display = '';
-      return null;
-    }
-    nameInput.classList.remove('input-error');
-    nameError.style.display = 'none';
-    return nameInput.value.trim();
-  }
-  return null;
-}
-</file>
-
 <file path="public/shared/events.js">
 // public/shared/events.js
 // Shared Socket.IO event constants (served to browser)
@@ -6175,46 +6022,6 @@ export const NEXT_TURN = 'next-turn';
 
 .regular-card__glow {
   animation: regularCardGlow 1.5s infinite;
-}
-</file>
-
-<file path="public/styles/base.css">
-/* base.css - Root variables and base styles */
-:root {
-  --bg: #0b5137;
-  --header-bg: #1b2e3c;
-  --accent: #FFC300;
-  --text: #ffffff;
-  --error: #ff4d4d;
-  --success: #4caf50;
-  --warning: #ff9800;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  height: 100%;
-  font-family: sans-serif;
-  color: var(--text);
-  background-color: var(--bg);
-}
-
-.hidden {
-  display: none !important;
-}
-
-.notice {
-  padding: 10px;
-  border-radius: 5px;
-  margin: 10px 0;
-}
-
-.notice.hidden {
-  display: none;
 }
 </file>
 
@@ -6391,43 +6198,6 @@ html, body {
 
 body, html {
   background: #137a4b !important;
-}
-</file>
-
-<file path="public/styles/modals.css">
-/* modals.css - Modal styles */
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: var(--header-bg);
-  color: var(--text);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-}
-
-.modal__backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
-
-.modal__close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  color: var(--text);
-  font-size: 1.5rem;
-  cursor: pointer;
 }
 </file>
 
@@ -6822,6 +6592,73 @@ module.exports = {
 };
 </file>
 
+<file path="public/scripts/card.js">
+// card.js - Handles card rendering logic
+
+/**
+ * Creates a card element with appropriate styling and behavior
+ * @param {object} card - Card data (value, suit, or {back: true})
+ * @param {boolean} selectable - Whether the card can be selected
+ * @param {Function} onSelect - Optional callback when card is selected
+ * @returns {HTMLElement} The card container element
+ */
+export function createCardElement(card, selectable = false, onSelect = null) {
+  const container = document.createElement('div');
+  container.className = 'card-container';
+
+  const img = document.createElement('img');
+  img.className = 'card-img';
+
+  // Handle back of card vs face
+  if (card.back) {
+    img.src = 'https://deckofcardsapi.com/static/img/back.png';
+    img.alt = 'Card Back';
+  } else {
+    // Use deckofcardsapi.com image codes ({value}{suitLetter})
+    const val = String(card.value).toUpperCase() === '10' ? '0' : String(card.value).toUpperCase();
+    const suitLetter = { hearts: 'H', diamonds: 'D', clubs: 'C', spades: 'S' }[card.suit];
+    const code = `${val}${suitLetter}`;
+    img.src = `https://deckofcardsapi.com/static/img/${code}.png`;
+    img.alt = `${card.value} of ${card.suit}`;
+
+    // Handle copied cards (e.g., 5s effect)
+    if (card.copied) {
+      img.classList.add('copied-card');
+    }
+  }
+
+  // Make card selectable if needed
+  if (selectable) {
+    img.classList.add('selectable');
+    img.style.touchAction = 'manipulation';
+
+    container.addEventListener('click', () => {
+      img.classList.toggle('selected');
+      container.classList.toggle('selected-container', img.classList.contains('selected'));
+
+      if (onSelect) onSelect(card, img.classList.contains('selected'));
+    });
+  }
+
+  container.appendChild(img);
+  return container;
+}
+
+/**
+ * Formats card value for file naming
+ * @param {string|number} value - Card value (e.g., 2, 10, J, Q, K, A)
+ * @returns {string} Formatted card value
+ */
+function formatCardValue(value) {
+  const v = String(value).toLowerCase();
+  if (v === 'j' || v === 'jack') return 'jack';
+  if (v === 'q' || v === 'queen') return 'queen';
+  if (v === 'k' || v === 'king') return 'king';
+  if (v === 'a' || v === 'ace') return 'ace';
+  return v;
+}
+</file>
+
 <file path="public/scripts/socketHandlers.js">
 // @ts-nocheck
 // socketHandlers.js
@@ -6902,6 +6739,258 @@ export function initializeSocketHandlers() {
       showGameOverMessage(false, winnerName);
     });
   });
+}
+</file>
+
+<file path="public/scripts/uiHelpers.js">
+// uiHelpers.js
+// Contains UI-related helper functions
+
+import * as state from './state.js';
+
+export function showLobbyForm() {
+  const lobbyContainer = state.getLobbyContainer();
+  const waitingStateDiv = state.getWaitingStateDiv();
+  const table = state.getTable();
+  const lobbyFormContent = state.getLobbyFormContent();
+  const backBtn = document.getElementById('back-to-lobby-button');
+  const rulesModal = document.getElementById('rules-modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  // Use class names that match index.html and CSS
+  if (lobbyContainer) lobbyContainer.classList.remove('lobby--hidden', 'hidden');
+  if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
+  if (table) table.classList.add('table--hidden', 'hidden');
+  if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
+  if (backBtn) backBtn.classList.add('hidden');
+  if (rulesModal) rulesModal.classList.add('modal--hidden');
+  if (overlay) overlay.classList.add('modal__overlay--hidden');
+}
+
+export function showWaitingState(roomId, current, max) {
+  const lobbyContainer = state.getLobbyContainer();
+  const waitingStateDiv = state.getWaitingStateDiv();
+  const lobbyFormContent = state.getLobbyFormContent();
+  const waitingHeading = state.$('waiting-heading');
+  const backBtn = document.getElementById('back-to-lobby-button');
+  if (backBtn) backBtn.classList.add('hidden');
+
+  if (lobbyContainer) lobbyContainer.classList.remove('lobby--hidden', 'hidden');
+  if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
+  if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
+  if (waitingHeading) waitingHeading.textContent = `Room ${roomId} (${current}/${max})`;
+  // Update URL with room code
+  const url = new URL(window.location.href);
+  url.searchParams.set('room', roomId);
+  window.history.pushState({}, '', url);
+  // Toggle start game button
+  const startBtn = document.getElementById('start-game-button');
+  if (startBtn instanceof HTMLButtonElement) {
+    if (current >= 2) {
+      startBtn.classList.remove('hidden');
+      startBtn.disabled = false;
+    } else {
+      startBtn.classList.add('hidden');
+      startBtn.disabled = true;
+    }
+  }
+  // Show copy link button
+  const copyLinkBtn = document.getElementById('copy-link-button');
+  if (copyLinkBtn) copyLinkBtn.classList.remove('hidden');
+}
+
+export function showGameTable() {
+  const lobbyContainer = state.getLobbyContainer();
+  const table = state.getTable();
+  const backBtn = document.getElementById('back-to-lobby-button');
+
+  if (lobbyContainer) lobbyContainer.classList.add('hidden');
+  if (table) table.classList.remove('table--hidden', 'hidden');
+  if (backBtn) backBtn.classList.remove('hidden');
+}
+
+export function openModal(modalEl) {
+  modalEl.classList.remove('hidden');
+  state.getModalOverlay().classList.remove('hidden');
+}
+
+export function closeModal() {
+  state.getRulesModal().classList.add('hidden');
+  state.getModalOverlay().classList.add('hidden');
+}
+
+export function showError(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  state.$('toast-container')?.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+export function showGameOverMessage(didWin, winnerName) {
+  const over = document.createElement('div');
+  over.id = 'game-over-container';
+  over.innerHTML = `
+    <div class="modal-content">
+      <h1>Game Over!</h1>
+      <p>${didWin ? '🎉 You win!' : `${winnerName} wins!`}</p>
+      <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+    </div>`;
+  document.body.appendChild(over);
+  state.$('play-again-btn')?.addEventListener('click', () => location.reload());
+}
+
+export function validateName() {
+  const nameInput = document.getElementById('name');
+  const nameError = document.getElementById('name-error');
+  if (nameInput instanceof HTMLInputElement) {
+    if (!nameInput.value.trim()) {
+      nameInput.classList.add('input-error');
+      nameError.classList.remove('hidden');
+      return null;
+    }
+    nameInput.classList.remove('input-error');
+    nameError.classList.add('hidden');
+    return nameInput.value.trim();
+  }
+  return null;
+}
+</file>
+
+<file path="public/styles/base.css">
+/* base.css - Root variables and base styles */
+:root {
+  --bg: #0b5137;
+  --header-bg: #1b2e3c;
+  --accent: #FFC300;
+  --text: #ffffff;
+  --error: #ff4d4d;
+  --success: #4caf50;
+  --warning: #ff9800;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: sans-serif;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.notice {
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+}
+
+.notice.hidden {
+  display: none;
+}
+
+.table--hidden {
+  display: none !important;
+}
+
+.lobby--hidden {
+  display: none !important;
+}
+</file>
+
+<file path="public/styles/modals.css">
+/* modals.css - Modal styles */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--header-bg);
+  color: var(--text);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.modal--hidden {
+  display: none !important;
+}
+
+.modal__backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.modal__overlay--hidden {
+  display: none !important;
+}
+
+.modal__close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-content {
+  background: #1b2e3c;
+  color: #fff;
+  border-radius: 12px;
+  padding: 2rem 2.5rem 2rem 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  max-width: 540px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.sublist {
+  margin-top: 0.5rem;
+  margin-left: 1.4rem;
+  font-weight: 400;
+  color: #fff;
+  font-size: 1.1rem;
+  list-style-type: disc;
+  padding-left: 1.2rem;
+}
+
+.modal-content h2 {
+  color: #FFC300;
+  font-size: 1.7rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid rgba(255,195,0,0.3);
+  padding-bottom: 0.5rem;
+}
+
+.modal-close-button {
+  color: #FFC300;
+  font-size: 2.2rem;
+  position: absolute;
+  top: 10px;
+  right: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 2;
+}
+.modal-close-button:hover {
+  color: #fff;
 }
 </file>
 
@@ -7098,89 +7187,6 @@ export function isFourOfAKind(hand) {
 
 // Default export with named exports
 export default { normalizeCardValue, rank };
-</file>
-
-<file path="public/index.html">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Top That! – Card Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Your CSS -->
-  <link rel="stylesheet" href="/style.css" />
-
-  <!-- Socket.IO client -->
-  <script defer src="/socket.io/socket.io.js"></script>
-
-  <!-- Entry‑point for your client modules -->
-  <script defer type="module" src="/scripts/events.js"></script>
-</head>
-<body>
-  <header class="header" id="main-header">
-    <div class="header__content" style="display: flex; align-items: center; justify-content: space-between; padding: 0 2.5rem; background: #1b2e3c; min-height: 54px;">
-      <div class="header__brand" style="display: flex; flex-direction: column; align-items: flex-start;">
-        <span style="color: #FFC300; font-weight: bold; font-size: 1.4rem; letter-spacing: 0.01em;">&#x1F451; Top That!</span>
-        <span style="color: #FFC300; font-size: 0.95rem; font-weight: 400; margin-top: -2px;">One Pile. One Winner. No Mercy.</span>
-      </div>
-      <button id="rules-button" class="btn btn-primary" style="font-size: 1rem; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 6px; background: #FFC300; color: #222;">How to Play</button>
-    </div>
-  </header>
-
-  <div class="notice notice--hidden" id="notice-banner"></div>
-  <div class="notice notice--hidden" id="error-banner"></div>
-  <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
-
-  <main class="main-content" id="main-content">
-    <!-- Lobby Screen -->
-    <div class="lobby lobby--hidden" id="lobby-container">
-      <div class="lobby-card" id="lobby-form-card">
-        <h2 class="lobby-title">Join a Game</h2>
-        <div class="lobby-form-content" id="lobby-form-content">
-          <div class="form-group">
-            <label for="name-input">Your Name</label>
-            <input id="name-input" type="text" placeholder="Enter your name" />
-          </div>
-          <div class="form-group">
-            <label id="name-input-error" style="display:none;color:#c00;font-size:0.95em;">Name is required</label>
-          </div>
-          <div class="lobby-buttons">
-            <button id="create-join" class="btn btn-primary">Join Game</button>
-            <button id="play-vs-computer" class="btn btn-secondary">Play vs Computer</button>
-          </div>
-          <div class="form-group">
-            <label for="computer-count">Opponents:</label>
-            <input id="computer-count" type="number" min="1" max="3" value="1" style="width: 40px;" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Game Table -->
-    <div class="table table--hidden" id="table">
-      <div class="table-slot table-slot-top"></div>
-      <div class="table-slot table-slot-left"></div>
-      <div class="table-center" id="center"></div>
-      <div class="table-slot table-slot-right"></div>
-      <div class="table-slot table-slot-bottom"></div>
-    </div>
-  </main>
-
-  <footer class="footer" style="position: fixed; bottom: 0; width: 100%; background: #789; color: #fff; text-align: center; padding: 4px 0; font-size: 0.95em;">Restart Game (Dev)</footer>
-
-  <section class="game-log game-log--hidden" id="game-log"></section>
-
-  <div class="modal modal--hidden" id="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
-    <div class="modal__content">
-      <h2 class="modal__title" id="rules-modal-title">Game Rules</h2>
-      <button class="modal__close-button" aria-label="Close">&times;</button>
-    </div>
-  </div>
-
-  <div class="toast-container" id="toast-container"></div>
-</body>
-</html>
 </file>
 
 <file path="public/scripts/render.js">
@@ -7622,115 +7628,139 @@ export default class Player {
 }
 </file>
 
-<file path="public/scripts/events.js">
-// public/scripts/events.js
-import * as state from './state.js';
+<file path="public/index.html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Top That! – Card Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-import { initializeSocketHandlers } from './socketHandlers.js';
-import { showLobbyForm, openModal, closeModal, validateName } from './uiHelpers.js';
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="/style.css" />
 
-import {
-  JOIN_GAME,
-  START_GAME
-} from '../src/shared/events.js';
+  <!-- Socket.IO client -->
+  <script defer src="/socket.io/socket.io.js"></script>
 
-document.addEventListener('DOMContentLoaded', () => {
-  state.loadSession();
+  <!-- Entry‑point for your client modules -->
+  <script defer type="module" src="/scripts/events.js"></script>
+</head>
+<body>
+  <header class="header" id="main-header">
+    <div class="header__content" style="display: flex; align-items: center; justify-content: space-between; padding: 0 2.5rem; background: #1b2e3c; min-height: 54px;">
+      <div class="header__brand" style="display: flex; flex-direction: column; align-items: flex-start;">
+        <span style="color: #FFC300; font-weight: bold; font-size: 1.4rem; letter-spacing: 0.01em;">&#x1F451; Top That!</span>
+        <span style="color: #FFC300; font-size: 0.95rem; font-weight: 400; margin-top: -2px;">One Pile. One Winner. No Mercy.</span>
+      </div>
+      <button id="back-to-lobby-button" class="btn btn-warning hidden">Back to Lobby</button>
+      <button id="rules-button" class="btn btn-primary" style="font-size: 1rem; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 6px; background: #FFC300; color: #222;">How to Play</button>
+    </div>
+  </header>
 
-  // Initialize socket handlers
-  initializeSocketHandlers();
+  <div class="notice notice--hidden" id="notice-banner"></div>
+  <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
+  <div id="rules-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
+    <div class="modal-content">
+      <h2 id="rules-modal-title">How to Play Top That!</h2>
+      <button class="modal-close-button" aria-label="Close rules">&times;</button>
+      <ul>
+        <li>Game Setup
+          <ul class="sublist">
+            <li>- Use 1 deck for 1–3 players; 2 decks for 4–8 players.</li>
+            <li>- Deal each player, in order:
+              <ul style="margin-left: 2em;">
+                <li>3 cards face-down</li>
+                <li>3 cards face-up</li>
+                <li>3 cards in their hand</li>
+              </ul>
+            </li>
+            <li>- Place the rest face-down as the draw pile.</li>
+            <li>- Turn the top card face-up to start the discard pile.</li>
+          </ul>
+        </li>
+        <li>On Your Turn
+          <ul class="sublist">
+            <li>- Play one or more hand cards higher than the top discard.</li>
+            <li>- After playing, draw back up to 3 cards (if the draw pile isn’t empty).</li>
+            <li>- If you can’t play, pick up the entire discard pile into your hand.</li>
+            <li>- End by passing play to the next player.</li>
+          </ul>
+        </li>
+        <li>Special Cards
+          <ul class="sublist">
+            <li>- 2: Reset the pile. Next player may play any card.</li>
+            <li>- 5: Copy the last card’s value. If it’s the first in a new pile, treat as normal.</li>
+            <li>- 10: Clear the discard pile—those cards are removed.</li>
+            <li>- Four-of-a-kind: Also clears the pile, regardless of value.</li>
+          </ul>
+        </li>
+        <li>Playing Up & Down Cards
+          <ul class="sublist">
+            <li>- Finish hand cards before playing face-up.</li>
+            <li>- Finish face-up before playing face-down.</li>
+            <li>- Only one face-up or face-down card may be played per turn, even if you have multiples of the same value.</li>
+            <li>- If you can’t play an up/down card, pick up the discard pile and resume with hand cards.</li>
+          </ul>
+        </li>
+        <li>Winning
+          <ul class="sublist">
+            <li>- First to empty hand, face-up, and face-down cards wins.</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
 
-  // UI hooks
-  const createJoinBtn = state.$('create-join');
-  if (createJoinBtn) {
-    createJoinBtn.onclick = () => {
-      const name = validateName();
-      if (!name) return;
-      state.socket.emit(JOIN_GAME, name);
-      if (createJoinBtn instanceof HTMLButtonElement) {
-        createJoinBtn.disabled = true;
-      }
-    };
-  }
+  <main class="main-content" id="main-content">
+    <!-- Lobby Screen -->
+    <div class="lobby" id="lobby-container">
+      <div class="lobby-card" id="lobby-form-card">
+        <h2 class="lobby-title">Join a Game</h2>
+        <div class="lobby-form-content" id="lobby-form-content">
+          <div class="form-group">
+            <label for="name">Your Name</label>
+            <input id="name" type="text" placeholder="Enter your name" />
+          </div>
+          <div class="form-group">
+            <label id="name-error" class="hidden" style="color:#c00;font-size:0.95em;">Name is required</label>
+          </div>
+          <div class="lobby-buttons">
+            <button id="create-join" class="btn btn-primary">Join Game</button>
+            <button id="play-vs-computer" class="btn btn-secondary">Play vs Computer</button>
+          </div>
+          <div class="form-group">
+            <label for="computer-count">Opponents:</label>
+            <input id="computer-count" type="number" min="1" max="3" value="1" style="width: 40px;" />
+          </div>
+        </div>
+        <!-- Waiting for players state -->
+        <div id="waiting-state" class="hidden">
+          <h2 id="waiting-heading">Waiting for players...</h2>
+          <div class="lobby-buttons">
+            <button id="copy-link-button" class="btn btn-secondary hidden">Copy Invite Link</button>
+            <button id="start-game-button" class="btn btn-primary hidden" disabled>Start Game</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  state.getCopyLinkBtn() && (state.getCopyLinkBtn().onclick = () => {
-    navigator.clipboard.writeText(window.location.href);
-  });
+    <!-- Game Table -->
+    <div class="table table--hidden" id="table">
+      <div class="table-slot table-slot-top"></div>
+      <div class="table-slot table-slot-left"></div>
+      <div class="table-center" id="center"></div>
+      <div class="table-slot table-slot-right"></div>
+      <div class="table-slot table-slot-bottom"></div>
+    </div>
+  </main>
 
-  state.getRulesButton() && (state.getRulesButton().onclick = () => openModal(state.getRulesModal()));
-  document.querySelector('.modal-close-button')?.addEventListener('click', closeModal);
+  <footer class="footer" style="position: fixed; bottom: 0; width: 100%; background: #789; color: #fff; text-align: center; padding: 4px 0; font-size: 0.95em;">Restart Game (Dev)</footer>
 
-  state.getBackToLobbyButton() && (state.getBackToLobbyButton().onclick = () => {
-    sessionStorage.clear();
-    showLobbyForm();
-  });
+  <section class="game-log game-log--hidden" id="game-log"></section>
 
-  const startGameBtn = document.getElementById('start-game-button');
-  if (startGameBtn) {
-    startGameBtn.onclick = () => {
-      if (!canStartGame()) {
-        console.error('At least 2 players required');
-        return;
-      }
-      const computerInput = document.getElementById('computer-count');
-      const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
-      state.socket.emit(START_GAME, { computerCount });
-      if (startGameBtn instanceof HTMLButtonElement) {
-        startGameBtn.disabled = true;
-      }
-    };
-  }
-
-  const rulesBtn = document.getElementById('rules-button');
-  const rulesModal = document.getElementById('rules-modal');
-  const closeBtn = rulesModal?.querySelector('.modal__close-button');
-  const overlay = document.getElementById('modal-overlay');
-
-  if (rulesBtn && rulesModal && closeBtn && overlay) {
-    rulesBtn.onclick = () => {
-      rulesModal.classList.remove('modal--hidden');
-      overlay.classList.remove('modal__overlay--hidden');
-    };
-    if (closeBtn instanceof HTMLButtonElement) {
-      closeBtn.onclick = () => {
-        rulesModal.classList.add('modal--hidden');
-        overlay.classList.add('modal__overlay--hidden');
-      };
-    } else {
-      closeBtn.addEventListener('click', () => {
-        rulesModal.classList.add('modal--hidden');
-        overlay.classList.add('modal__overlay--hidden');
-      });
-    }
-    overlay.onclick = () => {
-      rulesModal.classList.add('modal--hidden');
-      overlay.classList.add('modal__overlay--hidden');
-    };
-  }
-
-  // Auto-join if ?room= is present in URL
-  const params = new URLSearchParams(window.location.search);
-  const roomParam = params.get('room') || '';
-  if (roomParam && createJoinBtn) {
-    // Hide setup fields if joining by link
-    document.getElementById('lobby-form-content')?.classList.add('hidden');
-    // Auto-fill join on load
-    setTimeout(() => {
-      const nameInput = document.getElementById('name-input');
-      if (nameInput && nameInput instanceof HTMLInputElement && !nameInput.value) nameInput.value = 'Guest';
-      createJoinBtn.click();
-    }, 100);
-  }
-});
-
-// —– UI helper functions —–
-
-function canStartGame() {
-  let humanCount = 1;
-  const computerInput = document.getElementById('computer-count');
-  const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
-  return (humanCount + computerCount) >= 2;
-}
+  <div class="toast-container" id="toast-container"></div>
+</body>
+</html>
 </file>
 
 <file path="controllers/GameController.js">
@@ -8229,6 +8259,120 @@ export default class GameState {
 }
 </file>
 
+<file path="public/scripts/events.js">
+// public/scripts/events.js
+import * as state from './state.js';
+
+import { initializeSocketHandlers } from './socketHandlers.js';
+import { showLobbyForm, openModal, closeModal, validateName } from './uiHelpers.js';
+
+import {
+  JOIN_GAME,
+  START_GAME
+} from '../src/shared/events.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  state.loadSession();
+
+  // Initialize socket handlers
+  initializeSocketHandlers();
+
+  // UI hooks
+  const createJoinBtn = state.$('create-join');
+  if (createJoinBtn) {
+    createJoinBtn.onclick = () => {
+      const name = validateName();
+      if (!name) return;
+      state.socket.emit(JOIN_GAME, name);
+      if (createJoinBtn instanceof HTMLButtonElement) {
+        createJoinBtn.disabled = true;
+      }
+    };
+  }
+
+  state.getCopyLinkBtn() && (state.getCopyLinkBtn().onclick = () => {
+    navigator.clipboard.writeText(window.location.href);
+  });
+
+  // Restore rules modal event listeners
+  const rulesBtn = document.getElementById('rules-button');
+  const rulesModal = document.getElementById('rules-modal');
+  const closeBtn = rulesModal?.querySelector('.modal__close-button');
+  const overlay = document.getElementById('modal-overlay');
+
+  if (rulesModal) rulesModal.classList.add('modal--hidden');
+  if (overlay) overlay.classList.add('modal__overlay--hidden');
+
+  if (rulesBtn && rulesModal && closeBtn && overlay) {
+    rulesBtn.onclick = () => {
+      rulesModal.classList.remove('modal--hidden');
+      overlay.classList.remove('modal__overlay--hidden');
+    };
+    // Use addEventListener for close button to avoid type errors
+    closeBtn.addEventListener('click', () => {
+      rulesModal.classList.add('modal--hidden');
+      overlay.classList.add('modal__overlay--hidden');
+    });
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        rulesModal.classList.add('modal--hidden');
+        overlay.classList.add('modal__overlay--hidden');
+      }
+    };
+  }
+
+  state.getBackToLobbyButton() && (state.getBackToLobbyButton().onclick = () => {
+    sessionStorage.clear();
+    showLobbyForm();
+  });
+
+  const startGameBtn = document.getElementById('start-game-button');
+  if (startGameBtn) {
+    startGameBtn.onclick = () => {
+      if (!canStartGame()) {
+        console.error('At least 2 players required');
+        return;
+      }
+      const computerInput = document.getElementById('computer-count');
+      const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
+      state.socket.emit(START_GAME, { computerCount });
+      if (startGameBtn instanceof HTMLButtonElement) {
+        startGameBtn.disabled = true;
+      }
+    };
+  }
+
+  // Auto-join if ?room= is present in URL
+  const params = new URLSearchParams(window.location.search);
+  const roomParam = params.get('room') || '';
+  if (roomParam && createJoinBtn) {
+    // Hide setup fields if joining by link
+    document.getElementById('lobby-form-content')?.classList.add('hidden');
+    // Auto-fill join on load
+    setTimeout(() => {
+      const nameInput = document.getElementById('name');
+      if (nameInput && nameInput instanceof HTMLInputElement && !nameInput.value) nameInput.value = 'Guest';
+      createJoinBtn.click();
+    }, 100);
+  }
+});
+
+// —– UI helper functions —–
+
+function canStartGame() {
+  const playerList = document.getElementById('player-list');
+  // Count <li> elements within the player-list div as human players
+  const humanCount = playerList ? playerList.getElementsByTagName('li').length : 0;
+
+  const computerInput = document.getElementById('computer-count');
+  const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
+
+  // Ensure that the total number of players (humans + computers) is at least 2
+  // and that there is at least one human player.
+  return humanCount > 0 && (humanCount + computerCount) >= 2;
+}
+</file>
+
 <file path="package.json">
 {
   "name": "top-that-refactor",
@@ -8237,7 +8381,7 @@ export default class GameState {
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
+    "start": "npx kill-port 3000 && node server.js",
     "dev": "nodemon --delay 1.5 server.js",
     "test": "jest"
   },
