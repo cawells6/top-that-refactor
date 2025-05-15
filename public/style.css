@@ -4,3 +4,33 @@
 @import 'styles/layout.css';
 @import 'styles/modals.css';
 @import 'styles/animations.css';
+
+body {
+  background: var(--bg);
+}
+
+#lobby-container {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#lobby-form-card {
+  background: var(--header-bg);
+  color: var(--text);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#lobby-form-card h2,
+#lobby-form-card label {
+  color: var(--text);
+}
+
+#lobby-form-card input[type="text"],
+#lobby-form-card input[type="number"] {
+  background-color: #fff;
+  color: #333;
+}
