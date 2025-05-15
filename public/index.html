@@ -39,10 +39,19 @@
             <input id="name-input" type="text" placeholder="Enter your name" />
           </div>
           <div class="form-group">
+            <label for="human-players" style="font-family: inherit; font-weight: 600; font-size: 1.05rem; color: #222;">Player</label>
+            <input type="number" id="human-players" min="1" max="4" value="1" />
+          </div>
+          <div class="form-group">
+            <label for="cpu-players" style="font-family: inherit; font-weight: 600; font-size: 1.05rem; color: #222;">CPU</label>
+            <input type="number" id="cpu-players" min="0" max="3" value="0" />
+          </div>
+          <div id="player-count-error" class="error-message hidden" style="margin-bottom: 15px;">Total players cannot exceed 4.</div>
+          <div class="form-group">
             <label id="name-input-error" style="display:none;color:#c00;font-size:0.95em;">Name is required</label>
           </div>
           <div class="lobby-buttons">
-            <button id="create-join" class="btn btn-primary">Join Game</button>
+            <button id="create-join" class="btn btn-primary">Play Game</button>
             <button id="play-vs-computer" class="btn btn-secondary">Play vs Computer</button>
           </div>
         </div>
