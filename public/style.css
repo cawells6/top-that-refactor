@@ -19,7 +19,7 @@ body {
 #lobby-form-card {
   background: var(--header-bg);
   color: var(--text);
-  padding: 20px;
+  padding: 2.2rem 2.2rem 2.2rem 2.2rem;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
@@ -33,4 +33,43 @@ body {
 #lobby-form-card input[type="number"] {
   background-color: #fff;
   color: #333;
+}
+
+/* --- Participant Inputs Horizontal Layout --- */
+.participant-inputs-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+.participant-inputs-container .form-group {
+  flex: 1 1 calc(50% - 10px);
+  min-width: 120px;
+}
+
+/* Center placeholder text in name input */
+#name-input::placeholder {
+  text-align: center;
+}
+#name-input {
+  text-align: center;
+}
+
+/* Center the Play Game button */
+.lobby-buttons {
+  text-align: center;
+  margin-top: 18px;
+}
+#create-join {
+  display: inline-block;
+  margin: 0 auto;
+}
+
+/* Fine-tune spacing and alignment */
+.lobby-form-content .form-group {
+  margin-bottom: 16px;
+}
+.participant-inputs-container .form-group:last-child {
+  margin-bottom: 0;
 }
