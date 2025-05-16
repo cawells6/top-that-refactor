@@ -158,53 +158,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (lobbyForm && nameInput instanceof HTMLInputElement && nameInputError) {
     lobbyForm.addEventListener('submit', (e) => {
-      // --- Player count validation ---
-      const totalPlayersInput = document.getElementById('total-players-input');
-      const cpuPlayersInput = document.getElementById('cpu-players-input');
-      const playerCountError = document.getElementById('player-count-error');
-      const numTotalPlayers = (totalPlayersInput instanceof HTMLInputElement) ? parseInt(totalPlayersInput.value, 10) : 1;
-      const numCpuPlayers = (cpuPlayersInput instanceof HTMLInputElement) ? parseInt(cpuPlayersInput.value, 10) : 0;
-      if (playerCountError) playerCountError.classList.add('hidden');
-      if (numTotalPlayers + numCpuPlayers > 4) {
-        e.preventDefault();
-        if (playerCountError) playerCountError.classList.remove('hidden');
-        return;
-      } else if (playerCountError) {
-        playerCountError.classList.add('hidden');
-      }
-      // --- Name validation ---
+      e.preventDefault();
       const name = nameInput.value.trim();
+
+      // --- Name validation ---
       if (!name) {
         nameInputError.textContent = 'Name is required';
         nameInputError.classList.remove('hidden');
         nameInput.focus();
-        e.preventDefault();
         return;
       }
       if (name.length < 2) {
         nameInputError.textContent = 'Name must be at least 2 characters';
         nameInputError.classList.remove('hidden');
         nameInput.focus();
-        e.preventDefault();
         return;
       }
       nameInputError.classList.add('hidden');
-      // --- Emit JOIN_GAME event ---
-      const joinGameButton = document.getElementById('join-game-button');
-      if (joinGameButton instanceof HTMLButtonElement) joinGameButton.disabled = true;
-      // Get room param from URL if present
-      let roomParam = null;
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        roomParam = urlParams.get('room') || null;
-      } catch (err) {}
+
+      // --- Retrieve Player and CPU Counts ---
+      const numHumansInput = document.getElementById('total-players-input');
+      let numHumans = 1;
+      if (numHumansInput instanceof HTMLInputElement) {
+        numHumans = parseInt(numHumansInput.value, 10);
+        if (isNaN(numHumans) || numHumans < 1) {
+          numHumans = 1;
+        }
+      }
+
+      const numCPUsInput = document.getElementById('cpu-players-input');
+      let numCPUs = 0;
+      if (numCPUsInput instanceof HTMLInputElement) {
+        numCPUs = parseInt(numCPUsInput.value, 10);
+        if (isNaN(numCPUs) || numCPUs < 0) {
+          numCPUs = 0;
+        }
+      }
+
+      // --- Client-side validation for player/CPU counts ---
+      const playerCountErrorDiv = document.getElementById('player-count-error');
+      if (numHumans < 1) {
+        if(playerCountErrorDiv) {
+          playerCountErrorDiv.textContent = 'At least one human player is required.';
+          playerCountErrorDiv.classList.remove('hidden');
+        }
+        return;
+      }
+      if ((numHumans + numCPUs) < 2) {
+        if(playerCountErrorDiv) {
+          playerCountErrorDiv.textContent = 'A minimum of 2 total players is required.';
+          playerCountErrorDiv.classList.remove('hidden');
+        }
+        return;
+      }
+      if ((numHumans + numCPUs) > 4) {
+        if(playerCountErrorDiv) {
+          playerCountErrorDiv.textContent = 'Total players cannot exceed 4.';
+          playerCountErrorDiv.classList.remove('hidden');
+        }
+        return;
+      }
+      if(playerCountErrorDiv) playerCountErrorDiv.classList.add('hidden');
+
+      // --- Emit the JOIN_GAME Event ---
+      console.log(`Emitting JOIN_GAME with name: ${name}, numHumans: ${numHumans}, numCPUs: ${numCPUs}`);
       state.socket.emit(JOIN_GAME, {
-        name,
-        totalPlayers: numTotalPlayers,
-        numComputers: numCpuPlayers,
-        roomParam
+        name: name,
+        numHumans: numHumans,
+        numCPUs: numCPUs
       });
-      e.preventDefault();
+
+      // --- Disable the Submit Button ---
+      const submitButton = lobbyForm.querySelector('#join-game-button');
+      if (submitButton instanceof HTMLButtonElement) {
+        submitButton.disabled = true;
+      }
     });
     nameInput.addEventListener('input', () => {
       nameInputError.classList.add('hidden');

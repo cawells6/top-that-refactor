@@ -1,6 +1,6 @@
 // jest.config.cjs
 module.exports = {
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
   transform: {
     '^.+\\.js$': ['babel-jest', { configFile: './babel.config.cjs' }]
   },
