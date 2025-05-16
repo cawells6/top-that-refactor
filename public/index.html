@@ -14,11 +14,11 @@
   <!-- Entry‑point for your client modules -->
   <script defer type="module" src="/scripts/events.js"></script>
 </head>
-<body>
+<body style="min-height: 100vh; display: flex; flex-direction: column;">
   <header class="header" id="main-header">
     <div class="header__content" style="display: flex; align-items: center; justify-content: space-between; padding: 0 2.5rem; background: #1b2e3c; min-height: 54px;">
       <div class="header__brand" style="display: flex; flex-direction: column; align-items: flex-start;">
-        <span style="color: #FFC300; font-weight: bold; font-size: 1.4rem; letter-spacing: 0.01em;">&#x1F451; Top That!</span>
+        <h1 style="color: #FFC300; font-weight: bold; font-size: 1.4rem; letter-spacing: 0.01em; margin: 0;">&#x1F451; Top That!</h1>
         <span style="color: #FFC300; font-size: 0.95rem; font-weight: 400; margin-top: -2px;">One Pile. One Winner. No Mercy.</span>
       </div>
       <button id="rules-button" class="btn btn-primary" style="font-size: 1rem; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 6px; background: #FFC300; color: #222;">How to Play</button>
@@ -29,31 +29,33 @@
   <div class="notice notice--hidden" id="error-banner"></div>
   <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
 
-  <main class="main-content" id="main-content">
+  <main class="main-content" id="main-content" style="flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; min-height: 0; justify-content: flex-start; padding-top: 5vh;">
     <!-- Lobby Screen -->
     <div class="lobby lobby--hidden" id="lobby-container">
-      <div class="lobby-card" id="lobby-form-card">
-        <h2 class="lobby-title" style="color: #FFC300;">Game Setup</h2>
-        <div class="lobby-form-content" id="lobby-form-content">
-          <form id="lobby-form" autocomplete="off">
-            <div class="form-group">
-              <input type="text" id="name-input" name="playerName" placeholder="Name">
+      <div class="lobby-card" id="lobby-form-card" style="margin-top: 0; padding-top: 1.2rem;">
+        <h2 class="lobby-title" style="color: #FFC300; margin-bottom: 0.7rem; font-size: 1.3rem;">Game Setup</h2>
+        <div class="lobby-form-content" id="lobby-form-content" style="padding-top: 0;">
+          <form id="lobby-form" autocomplete="off" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div class="form-group" style="margin-bottom: 0.3rem;">
+              <label for="name-input" style="display:none;">Name</label>
+              <input type="text" id="name-input" name="playerName" placeholder="Name" style="width: 8.5rem;" />
             </div>
-            <div id="name-input-error" class="error-message hidden">Name is required</div>
-            <div class="participant-inputs-container">
-              <div class="form-group">
-                <label for="human-players">Players</label>
-                <input type="number" id="human-players" min="1" max="4" value="1" />
+            <div id="name-input-error" class="error-message hidden" style="margin-bottom: 0.2rem;">Name is required</div>
+            <div class="participant-inputs-container" style="display: flex; gap: 0.7rem; margin-bottom: 0.2rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="total-players-input">Players</label>
+                <input type="number" id="total-players-input" min="1" max="4" value="1" style="width: 3.5rem;" />
               </div>
-              <div class="form-group">
-                <label for="cpu-players">CPUs</label>
-                <input type="number" id="cpu-players" min="0" max="3" value="0" />
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="cpu-players-input">CPUs</label>
+                <input type="number" id="cpu-players-input" min="0" max="3" value="0" style="width: 3.5rem;" />
               </div>
             </div>
-            <div id="player-count-error" class="error-message hidden" style="margin-bottom: 15px;">Total players cannot exceed 4.</div>
-            <div class="lobby-buttons">
-              <button id="create-join" class="btn btn-primary play-button" type="submit">Play Game</button>
+            <div class="lobby-buttons" style="margin: 0 0 0.3rem 0; align-self: center; width: 100%; display: flex; justify-content: center;">
+              <button id="join-game-button" class="btn btn-primary play-button" type="submit" style="margin: 0; min-width: 7.5rem;">Play Game</button>
             </div>
+            <div id="player-count-error" class="error-message hidden" style="margin-bottom: 0.2rem;">Total players cannot exceed 4.</div>
+            <div id="lobby-player-list-container" class="lobby-player-list-container" style="margin-bottom: 0.2rem;"></div>
           </form>
         </div>
       </div>
@@ -221,5 +223,14 @@
   </div>
 
   <div class="toast-container" id="toast-container"></div>
+  <script>
+    // Ensure lobby is visible on load if it starts hidden
+    document.addEventListener('DOMContentLoaded', function() {
+      var lobby = document.getElementById('lobby-container');
+      if (lobby && lobby.classList.contains('lobby--hidden')) {
+        lobby.classList.remove('lobby--hidden');
+      }
+    });
+  </script>
 </body>
 </html>
