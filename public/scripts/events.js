@@ -179,6 +179,45 @@ document.addEventListener('DOMContentLoaded', () => {
       nameInputError.classList.add('hidden');
     });
   }
+
+  const totalPlayersInput = document.getElementById('total-players');
+  const cpuPlayersInput = document.getElementById('cpu-players');
+  const playerCountErrorDisplay = document.getElementById('player-count-error');
+
+  function validatePlayerCounts() {
+    if (!totalPlayersInput || !cpuPlayersInput || !playerCountErrorDisplay) {
+      console.error('Lobby input elements not found for validation.');
+      return false;
+    }
+    // Ensure we are working with HTMLInputElement
+    const numTotalPlayers = parseInt((totalPlayersInput instanceof HTMLInputElement ? totalPlayersInput.value : '1'), 10);
+    const numCpuPlayers = parseInt((cpuPlayersInput instanceof HTMLInputElement ? cpuPlayersInput.value : '0'), 10);
+    playerCountErrorDisplay.classList.add('hidden');
+    playerCountErrorDisplay.textContent = '';
+    if (isNaN(numTotalPlayers) || isNaN(numCpuPlayers)) {
+      playerCountErrorDisplay.textContent = 'Player and CPU counts must be numbers.';
+      playerCountErrorDisplay.classList.remove('hidden');
+      return false;
+    }
+    if (numTotalPlayers < 1) {
+      playerCountErrorDisplay.textContent = 'At least 1 human player is required.';
+      playerCountErrorDisplay.classList.remove('hidden');
+      return false;
+    }
+    const totalParticipants = numTotalPlayers + numCpuPlayers;
+    if (totalParticipants > 4) {
+      playerCountErrorDisplay.textContent = 'Total participants cannot exceed 4.';
+      playerCountErrorDisplay.classList.remove('hidden');
+      return false;
+    }
+    return true;
+  }
+  if (totalPlayersInput) {
+    totalPlayersInput.addEventListener('input', validatePlayerCounts);
+  }
+  if (cpuPlayersInput) {
+    cpuPlayersInput.addEventListener('input', validatePlayerCounts);
+  }
 });
 
 // —– UI helper functions —–

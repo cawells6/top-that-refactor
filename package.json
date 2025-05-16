@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon --delay 1.5 server.js",
+    "dev": "nodemon --watch '*.js' --ignore 'public/*.js' --ignore 'test-*.js' --ext js,css,html --delay 2.5 --exec \"node wait.js && node server.js\"",
     "test": "jest"
   },
   "dependencies": {
