@@ -9,7 +9,7 @@
  */
 import GameState from '../models/GameState.js';
 import Player from '../models/Player.js';
-import { normalizeCardValue, isSpecialCard } from '../utils/cardUtils.js';
+import { normalizeCardValue, isSpecialCard, isTwoCard, isFiveCard, isTenCard, isFourOfAKind } from '../utils/cardUtils.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -68,31 +68,77 @@ export default class GameController {
   }
 
   /** Add a new player to the game */
-  handleJoin(socket, playerId) {
-    if (this.players.has(playerId)) {
-      socket.emit('err', 'Player already joined');
+  handleJoin(socket, playerData) { // Renamed param for clarity
+    let id;
+    let name;
+
+    if (typeof playerData === 'object' && playerData !== null) {
+      id = playerData.id || playerData.name; // Prioritize .id, fallback to .name
+      name = playerData.name || playerData.id; // Prioritize .name, fallback to .id
+    } else if (typeof playerData === 'string') {
+      id = playerData;
+      name = playerData; // Default name to the id string
+    }
+
+    // Validate id
+    if (typeof id !== 'string' || id.trim() === '') {
+      socket.emit('err', 'Invalid player identifier provided.');
+      console.error('[GameController] Join attempt with invalid identifier:', playerData);
       return;
     }
-    this.gameState.addPlayer(playerId);
-    const player = new Player(playerId);
-    this.players.set(playerId, player);
+    id = id.trim();
+    // Ensure name is a non-empty string, defaulting to id if necessary
+    name = (typeof name === 'string' && name.trim() !== '') ? name.trim() : id;
+
+    if (this.players.has(id)) {
+      socket.emit('err', `Player ID '${id}' already joined.`);
+      return;
+    }
+
+    this.gameState.addPlayer(id);
+    const player = new Player(id);
+    player.name = name;
+    this.players.set(id, player);
 
     socket.join('game-room');
     // One-off ACK to the joining socket
-    socket.emit(JOINED, { id: playerId, roomId: 'game-room' });
-    // Notify all clients of the updated player list
-    const playerList = [...this.players.keys()];
-    this.io.to('game-room').emit(PLAYER_JOINED, playerList);
+    socket.emit(JOINED, { id: id, roomId: 'game-room' });
+    
+    // Notify all clients of the updated player list for the lobby
+    const lobbyPlayerList = this.gameState.players.map(pId => {
+      const p = this.players.get(pId);
+      return { id: pId, name: p ? p.name : pId }; // Send objects with id and name
+    });
+
+    this.io.to('game-room').emit(PLAYER_JOINED, lobbyPlayerList); // Consider sending the richer list here too
     this.io.to('game-room').emit(LOBBY, {
       roomId: 'game-room',
-      players: playerList,
-      maxPlayers: 4
+      players: lobbyPlayerList,
+      maxPlayers: this.gameState.maxPlayers
     });
-    this.pushState();
+
+    // Auto-start logic if this is the first player (host) setting up the game
+    const numCPUs = typeof playerData.numCPUs === 'number' ? playerData.numCPUs : 0;
+
+    // Check if the game deck hasn't been built (implies game not started by handleStartGame)
+    // and if the current joining player is the first one in the game state.
+    if (!this.gameState.deck && this.gameState.players.length === 1) {
+      console.log(`[GameController] Player ${id} is host. Auto-starting game with ${numCPUs} CPU players.`);
+      // The host (current player) is already in this.gameState.players via addPlayer earlier.
+      // handleStartGame will add CPU players based on computerCount, build deck, deal cards, and then call pushState.
+      this.handleStartGame({ computerCount: numCPUs, socket: socket }); 
+      // Note: handleStartGame is async and calls pushState internally.
+    } else {
+      // If not auto-starting (e.g., game already started, or this is a subsequent player joining a non-started lobby),
+      // just push the current state.
+      console.log(`[GameController] Not auto-starting. Deck exists: ${!!this.gameState.deck}, Player count: ${this.gameState.players.length}`);
+      this.pushState();
+    }
   }
 
   /** Initialize deck, deal cards, assign them to players, and emit first turn */
   async handleStartGame(opts = {}) {
+    console.log('--- GameController: handleStartGame --- ENTERED ---'); // New log
     // Support both legacy (no opts) and new (opts.computerCount) calls
     const computerCount = typeof opts.computerCount === 'number' ? opts.computerCount : 0;
     // Validation: prevent exceeding max players
@@ -119,23 +165,50 @@ export default class GameController {
       const id = `COMPUTER_${i+1}`;
       if (!this.players.has(id)) {
         this.gameState.addPlayer(id);
-        this.players.set(id, new Player(id));
+        this.players.set(id, new Player(id)); // Ensure computer players are in this.players map
       }
     }
+
+    console.log('[GameController] About to build deck. Number of players in gameState:', this.gameState.players.length); // New log
     this.gameState.buildDeck();
     // Deal cards to all players
     const numPlayers = this.gameState.players.length;
+    if (numPlayers === 0) {
+        console.error('[GameController] No players to deal cards to in handleStartGame.');
+        return;
+    }
     const { hands, upCards, downCards } = this.gameState.dealCards(numPlayers);
     // Assign cards to each player
     this.gameState.players.forEach((id, idx) => {
       const player = this.players.get(id);
-      player.setHand(hands[idx]);
-      player.setUpCards(upCards[idx]);
-      player.setDownCards(downCards[idx]);
+      if (!player) {
+          console.error(`[GameController] Player not found in this.players map for id: ${id} during card assignment.`);
+          return; 
+      }
+      player.setHand(hands[idx] || []);
+      player.setUpCards(upCards[idx] || []);
+      player.setDownCards(downCards[idx] || []);
     });
+
+    // <<< START MODIFIED LOGGING >>>
+    console.log('--- GameController: handleStartGame --- CARDS ASSIGNED ---');
+    this.players.forEach((player, id) => {
+      console.log(`Player ${id} (${player.name}):`);
+      console.log('  Hand:', player.hand ? player.hand.length : 'undefined');
+      console.log('  UpCards:', player.upCards ? player.upCards.length : 'undefined');
+      console.log('  DownCards:', player.downCards ? player.downCards.length : 'undefined');
+    });
+    console.log('------------------------------------');
+    // <<< END MODIFIED LOGGING >>>
+
     this.pushState();
-    const first = this.gameState.players[0];
-    this.io.to('game-room').emit(NEXT_TURN, first);
+    const firstPlayerId = this.gameState.players[0];
+    if (!firstPlayerId) {
+        console.error('[GameController] No first player to start the turn.');
+        return;
+    }
+    console.log(`[GameController] Emitting NEXT_TURN for player: ${firstPlayerId}`); // New log
+    this.io.to('game-room').emit(NEXT_TURN, firstPlayerId);
   }
 
   /**
@@ -156,12 +229,60 @@ export default class GameController {
     }
 
     const normalized = normalizeCardValue(card.value);
+    // Add card to pile
     this.gameState.addToPile({ ...card, value: normalized });
     this.io.to('game-room').emit('card-played', { playerId, card: { ...card, value: normalized } });
 
-    if (isSpecialCard(normalized)) {
-      socket.emit(SPECIAL_CARD, normalized);
-    }
+    // --- Special Card Logic ---
+    const pile = this.gameState.pile;
+    const isFour = this.gameState.isFourOfAKindOnPile();
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+    const DELAY_SPECIAL = 1200; // ms
+
+    (async () => {
+      if (isTwoCard(normalized)) {
+        this.io.to('game-room').emit('special-card', { type: 'two' });
+        await delay(DELAY_SPECIAL);
+        this.gameState.clearPile();
+        this.pushState();
+        // Next player can play any card
+        this.handleNextTurn();
+        return;
+      }
+      if (isTenCard(normalized) || isFour) {
+        this.io.to('game-room').emit('special-card', { type: isFour ? 'four' : 'ten' });
+        await delay(DELAY_SPECIAL);
+        this.gameState.clearPile();
+        // Draw a new card to start the pile if deck is not empty
+        if (this.gameState.deck && this.gameState.deck.length > 0) {
+          const newCard = this.gameState.deck.pop();
+          this.gameState.addToPile(newCard);
+          if (!isSpecialCard(normalizeCardValue(newCard.value))) {
+            this.gameState.lastRealCard = newCard;
+          } else {
+            this.gameState.lastRealCard = null;
+          }
+        }
+        this.pushState();
+        this.handleNextTurn();
+        return;
+      }
+      if (isFiveCard(normalized)) {
+        this.io.to('game-room').emit('special-card', { type: 'five' });
+        await delay(DELAY_SPECIAL);
+        // Copy lastRealCard if it exists
+        if (this.gameState.lastRealCard) {
+          this.gameState.addToPile({ ...this.gameState.lastRealCard }, { isCopy: true });
+        }
+        this.pushState();
+        this.handleNextTurn();
+        return;
+      }
+      // Regular card: update lastRealCard
+      this.gameState.lastRealCard = { ...card, value: normalized };
+      this.pushState();
+      this.handleNextTurn();
+    })();
   }
 
   /** Advance to next player's turn */
@@ -179,35 +300,58 @@ export default class GameController {
 
   /** Broadcast full game state to all clients */
   pushState() {
+    if (this.gameState.players.length === 0 && this.gameState.currentPlayerIndex === 0) {
+        console.log('[pushState] Attempting to push state with no players, currentPlayerId will be undefined.');
+    }
     const currentPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
-    const state = {
+    
+    // Log the value of currentPlayerId immediately
+    console.log(`[pushState] Determined currentPlayerId: ${currentPlayerId} (type: ${typeof currentPlayerId})`);
+    console.log(`[pushState] gameState.players: ${JSON.stringify(this.gameState.players)}, currentPlayerIndex: ${this.gameState.currentPlayerIndex}`);
+
+    if (currentPlayerId === undefined) {
+        console.warn(`[pushState] currentPlayerId is undefined. gameState.players: ${JSON.stringify(this.gameState.players)}, currentPlayerIndex: ${this.gameState.currentPlayerIndex}`);
+    }
+
+    const stateForEmit = {
       players: this.gameState.players.map(id => {
         const player = this.players.get(id);
+        if (!player) {
+            console.error(`[pushState] Player object not found for id: ${id} in this.players map. gameState.players: ${JSON.stringify(this.gameState.players)}. this.players keys: ${JSON.stringify(Array.from(this.players.keys()))}`);
+            return { id, name: String(id), handCount: 0, upCount: 0, downCount: 0, error: 'Player data missing server-side' };
+        }
+        // Determine if this is the current player to decide whether to send full hand or counts
         if (id === currentPlayerId) {
-          // Send full hand/upCards/downCards for current player
           return {
             id,
-            hand: player.hand,
-            upCards: player.upCards,
-            downCards: player.downCards,
-            name: player.name // if you have a name property
+            hand: player.hand || [],
+            upCards: player.upCards || [],
+            downCards: player.downCards || [],
+            name: String(player.name || id)
           };
         } else {
-          // Only send counts for opponents
           return {
             id,
-            handCount: player.hand.length,
-            upCount: player.upCards.length,
-            downCount: player.downCards.length,
-            name: player.name // if you have a name property
+            handCount: player.hand ? player.hand.length : 0,
+            upCount: player.upCards ? player.upCards.length : 0,
+            downCount: player.downCards ? player.downCards.length : 0,
+            name: String(player.name || id)
           };
         }
       }),
-      pile: this.gameState.pile,
-      discardCount: this.gameState.discard.length,
+      pile: this.gameState.pile || [],
+      discardCount: this.gameState.discard ? this.gameState.discard.length : 0,
+      deckCount: this.gameState.deck ? this.gameState.deck.length : 0,
       currentPlayer: currentPlayerId,
-      started: true // or set appropriately
+      started: !!(this.gameState.deck && this.gameState.deck.length > 0 && this.gameState.players.length > 0)
     };
-    this.io.to('game-room').emit(STATE_UPDATE, state);
+    
+    console.log('--- GameController: pushState ---');
+    console.log(`[pushState] Value of stateForEmit.currentPlayer before stringify: ${stateForEmit.currentPlayer}`);
+    console.log('Broadcasting STATE_UPDATE (raw object):', stateForEmit); 
+    console.log('Broadcasting STATE_UPDATE (JSON):', JSON.stringify(stateForEmit, null, 2));
+    console.log('---------------------------------');
+    
+    this.io.to('game-room').emit(STATE_UPDATE, stateForEmit);
   }
 }

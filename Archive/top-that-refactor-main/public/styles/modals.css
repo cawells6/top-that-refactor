@@ -1,0 +1,201 @@
+/* modals.css - Modal styles */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--header-bg);
+  color: var(--text);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.modal--hidden {
+  display: none !important;
+}
+
+.modal__backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.modal__overlay--hidden {
+  display: none !important;
+}
+
+.modal__close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* --- Make rules modal and content larger and more readable --- */
+.rules-modal-content {
+  font-size: 1.22rem !important;
+  line-height: 1.75;
+  padding: 2rem 1.5rem 1.5rem 1.5rem !important;
+  max-width: 500px !important;
+  min-width: 0 !important;
+  width: 99vw !important;
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+  box-sizing: border-box;
+  background: #1b2e3c;
+  color: #fff;
+  border-radius: 14px;
+  border: 2px solid #FFC300;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.25), 0 1.5px 6px 0 #FFC30044;
+  position: relative;
+}
+
+.rules-modal-title {
+  color: #FFC300;
+  font-size: 2.4rem !important;
+  margin-bottom: 1.7rem;
+  text-align: center;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid #FFC30044;
+  padding-bottom: 0.5rem;
+}
+
+.rules-section {
+  margin-bottom: 1.3rem;
+}
+
+.rules-section-title {
+  color: #FFC300;
+  font-size: 1.32rem !important;
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.rules-list {
+  list-style: disc outside;
+  padding-left: 1.5em;
+  margin-bottom: 0;
+  font-size: 1.18rem !important;
+}
+
+.rules-list > li:not(:last-child) {
+  border-bottom: none;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0;
+  box-shadow: none;
+}
+
+.rules-list > li {
+  position: relative;
+  text-indent: 0;
+  padding-left: 0.2em;
+}
+
+.rules-list > li > ul {
+  margin-top: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+.rules-list li, .rules-sublist li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  text-indent: 0;
+}
+
+.rules-sublist {
+  list-style: circle outside;
+  margin-left: 2em;
+  color: #fff;
+  font-size: 1.18rem !important;
+  margin-top: 0.2rem;
+  padding-left: 0.5em;
+}
+
+.rules-special {
+  color: #FFC300;
+  font-weight: bold;
+  font-size: 1.08em;
+}
+
+/* --- Emoji and label styling for rules modal --- */
+.rules-emoji {
+  font-size: 1.25em;
+  vertical-align: middle;
+  margin-right: 0.25em;
+  display: inline-block;
+  width: 1.3em;
+  text-align: center;
+}
+
+.rules-label {
+  color: #FFC300;
+  font-size: 0.98em;
+  font-weight: 600;
+  margin-right: 0.3em;
+  margin-left: 0.1em;
+  letter-spacing: 0.01em;
+}
+
+.rules-modal-content img.rules-icon {
+  width: 2.2em !important;
+  height: 2.2em !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 2.2em !important;
+  max-height: 2.2em !important;
+  vertical-align: middle;
+  margin-right: 0.5em;
+  border: 2px solid #FFC300;
+  border-radius: 7px;
+  padding: 3px;
+  background: #fff;
+  box-shadow: 0 0 8px #FFC30055;
+}
+
+#expand-collapse-all-btn {
+  margin-bottom: 1.1rem;
+  font-size: 1.08rem;
+  font-weight: 600;
+  background: #FFC300;
+  color: #222;
+  border: none;
+  border-radius: 7px;
+  box-shadow: 0 2px 8px #FFC30033;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+#expand-collapse-all-btn:hover {
+  background: #ffb000;
+}
+
+@media (max-width: 600px) {
+  .rules-modal-content {
+    max-width: 99vw !important;
+    max-height: 94vh !important;
+    padding: 1.2rem 0.5rem 1.2rem 0.5rem !important;
+    font-size: 1.09rem !important;
+  }
+
+  .rules-modal-title {
+    font-size: 1.6rem !important;
+  }
+
+  .rules-modal-content img.rules-icon {
+    width: 1.5em !important;
+    height: 1.5em !important;
+    max-width: 1.5em !important;
+    max-height: 1.5em !important;
+  }
+}

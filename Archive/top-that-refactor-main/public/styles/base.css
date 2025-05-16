@@ -1,0 +1,37 @@
+/* base.css - Root variables and base styles */
+:root {
+  --bg: #0b5137;
+  --header-bg: #1b2e3c;
+  --accent: #FFC300;
+  --text: #ffffff;
+  --error: #ff4d4d;
+  --success: #4caf50;
+  --warning: #ff9800;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: sans-serif;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.notice {
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
+}
+
+.notice.hidden {
+  display: none;
+}

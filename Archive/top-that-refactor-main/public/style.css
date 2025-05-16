@@ -1,0 +1,388 @@
+/* style.css - Main entry point for styles */
+@import 'styles/base.css';
+@import 'styles/cards.css';
+@import 'styles/layout.css';
+@import 'styles/modals.css';
+@import 'styles/animations.css';
+
+:root {
+  --bg: #0b5137;
+  --header-bg: #1b2e3c;
+  --accent: #FFC300;
+  --text: #ffffff;
+  --error: #ff4d4d;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --card-bg: #fff;
+  --card-text: #222;
+  --input-border: #bbb;
+  --mute: #888;
+}
+
+body {
+  background: var(--bg);
+}
+
+#lobby-container {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+#lobby-form-card {
+  background: var(--header-bg);
+  color: var(--text);
+  padding: 2.2rem 2.2rem 2.2rem 2.2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#lobby-form-card h2,
+#lobby-form-card label {
+  color: var(--text);
+}
+
+#lobby-form-card input[type="text"],
+#lobby-form-card input[type="number"] {
+  background-color: #fff;
+  color: #333;
+}
+
+/* --- Participant Inputs Horizontal Layout --- */
+.participant-inputs-container {
+  display: flex;
+  gap: 0.7rem !important;
+  margin-bottom: 0.2rem !important;
+}
+.participant-inputs-container .form-group {
+  flex: 1 1 0;
+  margin-bottom: 0;
+}
+.participant-inputs-container > .form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.participant-inputs-container .form-group input[type="number"] {
+  width: 70px;
+  text-align: center;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+input#total-players,
+input#cpu-players {
+  width: 70px;
+  text-align: center;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+input#total-players-input,
+input#cpu-players-input {
+  width: 48px;
+  text-align: center;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+/* Center placeholder text in name input */
+#name-input::placeholder {
+  text-align: center;
+}
+#name-input {
+  text-align: center;
+}
+
+/* Center the Play Game button */
+.lobby-buttons {
+  text-align: center;
+  margin: 0 0 0.3rem 0 !important;
+  align-self: flex-start !important;
+}
+#create-join {
+  display: inline-block;
+  margin: 0 auto;
+}
+
+/* Fine-tune spacing and alignment */
+.lobby-form-content .form-group {
+  margin-bottom: 16px;
+}
+.participant-inputs-container .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.lobby-form-content {
+  padding: 0 1.2rem 0.7rem 1.2rem !important;
+}
+
+.main-content {
+  /* Remove vertical centering, add top padding for higher placement */
+  justify-content: flex-start !important;
+  padding-top: 5vh !important;
+  min-height: 0;
+}
+
+.lobby-card {
+  background: var(--card-bg);
+  color: var(--card-text);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  padding: 1.2rem 1.2rem 0.7rem 1.2rem !important;
+  max-width: 340px;
+  margin-top: 0 !important;
+  margin-bottom: 0.5rem !important;
+  padding-top: 1.2rem !important;
+  min-height: unset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.lobby-card h2, .lobby-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.7rem !important;
+  color: #FFC300;
+  text-align: center;
+}
+.form-group {
+  margin-bottom: 0.3rem !important;
+  width: 100%;
+  text-align: left;
+}
+.form-group label {
+  font-size: 0.95rem;
+  color: #444;
+  margin-bottom: 0.2rem;
+  display: block;
+  font-weight: 600;
+}
+.form-group input[type="text"],
+.form-group input[type="number"] {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--input-border);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--card-text);
+  background: #fff;
+}
+.error-message {
+  color: var(--error-text-color, #FFC300);
+  background-color: var(--error-bg-color, rgba(255, 195, 0, 0.1));
+  border: 1px solid var(--error-border-color, #FFC300);
+  font-weight: 500;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-top: 5px;
+  margin-bottom: 0.2rem !important;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  font-size: 0.9em;
+}
+#error-message, #player-count-error {
+  margin-bottom: 0.2rem !important;
+}
+.error-message::before {
+  content: '\26A0';
+  font-size: 1.2em;
+  margin-right: 8px;
+  color: var(--error-text-color, #FFC300);
+}
+.hidden {
+  display: none !important;
+}
+.play-button {
+  width: 100%;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.7rem 0;
+  background: #FFC300;
+  color: #222;
+  border-radius: 8px;
+  border: none;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+.play-button:hover {
+  background: #ffb000;
+}
+.rules-list li {
+  margin-bottom: 0.7em;
+  line-height: 1.45;
+}
+.rules-sublist li {
+  margin-bottom: 0.5em;
+}
+@media (max-width: 600px) {
+  .lobby-card {
+    max-width: 98vw;
+    padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+    margin-top: 0;
+  }
+  .participant-inputs-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .form-group input[type="text"],
+  .form-group input[type="number"] {
+    font-size: 1.05rem;
+    padding: 0.7rem 0.5rem;
+  }
+  .play-button {
+    font-size: 1rem;
+    padding: 0.7rem 0;
+  }
+}
+
+/* Collapsible Rules Styles */
+.rules-container {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    padding: 10px;
+    color: #333;
+}
+.rules-container h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 15px;
+}
+.rules-container h3 {
+    margin: 0;
+    font-size: 1.1em;
+    display: inline;
+}
+.quick-tips {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    font-size: 0.95em;
+    margin-top: 0;
+    box-shadow: none;
+    color: #333;
+}
+.quick-tips[open] {
+    box-shadow: 0 2px 8px #2196F322;
+}
+.quick-tips > .rules-summary {
+    background: #eee;
+    color: #222;
+    font-size: 1.08em;
+    font-weight: 700;
+    border: none;
+    padding: 12px 15px;
+    border-radius: 4px 4px 0 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+.quick-tips > .rules-summary:hover {
+    background: #e0e0e0;
+}
+.quick-tips ul {
+    padding: 10px 22px 10px 22px;
+    margin-bottom: 0;
+}
+.quick-tips li {
+    margin-bottom: 5px;
+}
+.quick-tips[open] > .rules-summary::after {
+    transform: rotate(90deg);
+}
+.quick-tips > .rules-summary::after {
+    content: '\25B6';
+    font-size: 0.8em;
+    float: right;
+    margin-left: 8px;
+    transition: transform 0.2s;
+    color: #222;
+}
+.rules-section {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+.rules-summary {
+    padding: 12px 15px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #eee;
+    outline: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.rules-summary:hover {
+    background-color: #e0e0e0;
+}
+.rules-section[open] .rules-summary {
+    background-color: #d6d6d6;
+    border-bottom: 1px solid #ccc;
+}
+.rules-summary::after {
+    content: '\25B6';
+    font-size: 0.8em;
+    transition: transform 0.2s ease-in-out;
+}
+.rules-section[open] .rules-summary::after {
+    transform: rotate(90deg);
+}
+.rules-details-content {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    font-size: 0.95em;
+}
+.rules-details-content ul, .rules-details-content ol {
+    padding-left: 20px;
+    margin-top: 5px;
+}
+.rules-details-content li {
+    margin-bottom: 8px;
+}
+.rules-details-content strong {
+    color: #444;
+}
+.rules-details-content em {
+    color: #555;
+}
+.rules-hr {
+    border: 0;
+    height: 1px;
+    background: #ccc;
+    margin: 15px 0;
+}
+.rules-icon {
+    vertical-align: middle;
+    width: 2.2em;
+    height: 2.2em;
+    margin-left: 8px;
+}
+
+#rules-modal-title {
+    color: #fff !important;
+    font-size: 2.1rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.01em;
+    border-bottom: 1px solid #FFC30044;
+    padding-bottom: 0.5rem;
+}
+
+#rules-gotit-btn {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-top: 1.2rem;
+    font-size: 1.1rem;
+    display: block;
+}

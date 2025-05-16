@@ -49,9 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const computerInput = document.getElementById('computer-count');
       const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
-      
-      console.log('!!!!!!!!!! CLIENT (events.js): CLICKED start-game-button, ATTEMPTING TO EMIT START_GAME !!!!!!!!!!!', { computerCount }); // <--- ADDED THIS LOG
-      
       state.socket.emit(START_GAME, { computerCount });
       if (startGameBtn instanceof HTMLButtonElement) {
         startGameBtn.disabled = true;

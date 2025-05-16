@@ -18,8 +18,6 @@ export default class GameState {
     this.maxPlayers = 4;
     /** @type {number} Cached count of players (for legacy code compatibility) */
     this.playersCount = 0;
-    /** @type {object|null} The last non-special, non-four-of-a-kind card played */
-    this.lastRealCard = null;
   }
 
   /**
@@ -41,39 +39,21 @@ export default class GameState {
   }
 
   /**
-   * Add a card to the current pile. Handles special logic for '5' (copy card).
+   * Add a card to the current pile.
    * @param {object} card
-   * @param {object} [options]
-   *   options.isCopy: true if this is a copy (for '5')
    */
-  addToPile(card, options = {}) {
-    if (options.isCopy) {
-      this.pile.push({ ...card, copied: true });
-    } else {
-      this.pile.push(card);
-    }
+  addToPile(card) {
+    this.pile.push(card);
   }
 
   /**
    * Clear the current pile:
    * - Move all pile cards into `discard`
    * - Reset `pile` to an empty array
-   * - Reset lastRealCard
    */
   clearPile() {
     this.discard.push(...this.pile);
     this.pile = [];
-    this.lastRealCard = null;
-  }
-
-  /**
-   * Helper to check if the top 4 cards of the pile are four-of-a-kind
-   * @returns {boolean}
-   */
-  isFourOfAKindOnPile() {
-    if (this.pile.length < 4) return false;
-    const vals = this.pile.slice(-4).map(c => c.value);
-    return vals.every(v => v === vals[0]);
   }
 
   /**

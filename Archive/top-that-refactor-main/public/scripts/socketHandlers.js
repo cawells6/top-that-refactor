@@ -39,7 +39,6 @@ export function initializeSocketHandlers() {
   });
 
   state.socket.on(STATE_UPDATE, s => {
-    console.log('Received STATE_UPDATE:', s); // Added for debugging
     renderGameState(s);
     if (s.started) showGameTable();
   });

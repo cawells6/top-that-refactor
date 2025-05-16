@@ -2,7 +2,6 @@
 // Contains UI-related helper functions
 
 import * as state from './state.js';
-import { START_GAME } from '../src/shared/events.js'; // Import START_GAME
 
 export function showLobbyForm() {
   const lobbyContainer = state.getLobbyContainer();
@@ -41,12 +40,10 @@ export function showWaitingState(roomId, current, max, players = []) {
   }
   playerList.innerHTML = '';
   players.forEach(player => {
-    if (player) {
-      const li = document.createElement('li');
-      li.textContent = player.name || player.id;
-      li.style.padding = '0.25rem 0';
-      playerList.appendChild(li);
-    }
+    const li = document.createElement('li');
+    li.textContent = player.name || player.id || player;
+    li.style.padding = '0.25rem 0';
+    playerList.appendChild(li);
   });
 }
 
