@@ -59,6 +59,12 @@ body {
   flex: 1 1 0;
   margin-bottom: 0;
 }
+.participant-inputs-container .form-group input[type="number"] {
+  width: 70px;
+  text-align: center;
+  padding-left: 5px;
+  padding-right: 5px;
+}
 
 /* Center placeholder text in name input */
 #name-input::placeholder {
@@ -129,24 +135,24 @@ body {
   background: #fff;
 }
 .error-message {
-  color: #FFC300;
-  background: rgba(34, 34, 34, 0.85);
-  border-left: 4px solid #FFC300;
-  font-weight: bold;
-  padding: 8px 12px;
+  color: var(--error-text-color, #FFC300);
+  background-color: var(--error-bg-color, rgba(255, 195, 0, 0.1));
+  border: 1px solid var(--error-border-color, #FFC300);
+  font-weight: 500;
+  padding: 10px 12px;
   border-radius: 6px;
-  margin: 8px 0 0 0;
+  margin-top: 5px;
+  margin-bottom: 15px;
   display: flex;
   align-items: center;
-  gap: 0.5em;
-  font-size: 1em;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  text-align: left;
+  font-size: 0.9em;
 }
 .error-message::before {
-  content: '\26A0'; /* warning icon */
+  content: '\26A0';
   font-size: 1.2em;
-  color: #FFC300;
-  margin-right: 0.5em;
+  margin-right: 8px;
+  color: var(--error-text-color, #FFC300);
 }
 .hidden {
   display: none !important;
@@ -165,6 +171,13 @@ body {
 }
 .play-button:hover {
   background: #ffb000;
+}
+.rules-list li {
+  margin-bottom: 0.7em;
+  line-height: 1.45;
+}
+.rules-sublist li {
+  margin-bottom: 0.5em;
 }
 @media (max-width: 600px) {
   .lobby-card {

@@ -90,6 +90,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  // --- Rules Modal: Close on Outside Click ---
+  const rulesModalOverlay = document.getElementById('modal-overlay');
+  if (rulesModalOverlay && rulesModal) {
+    rulesModalOverlay.addEventListener('click', function(event) {
+      const target = event.target;
+      if (target instanceof Node && !rulesModal.contains(target) && target === rulesModalOverlay) {
+        rulesModal.classList.add('modal--hidden');
+        rulesModalOverlay.classList.add('modal__overlay--hidden');
+      }
+    });
+  }
+
   // Add event handler for the "Got it!" button in the rules modal
   const gotItBtn = document.getElementById('rules-gotit-btn');
   if (gotItBtn && rulesModal && overlay) {
