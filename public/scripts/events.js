@@ -158,22 +158,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (lobbyForm && nameInput instanceof HTMLInputElement && nameInputError) {
     lobbyForm.addEventListener('submit', (e) => {
-      e.preventDefault();
+      // --- Player count validation ---
+      const totalPlayersInput = document.getElementById('total-players-input');
+      const cpuPlayersInput = document.getElementById('cpu-players-input');
+      const playerCountError = document.getElementById('player-count-error');
+      const numTotalPlayers = (totalPlayersInput instanceof HTMLInputElement) ? parseInt(totalPlayersInput.value, 10) : 1;
+      const numCpuPlayers = (cpuPlayersInput instanceof HTMLInputElement) ? parseInt(cpuPlayersInput.value, 10) : 0;
+      if (playerCountError) playerCountError.classList.add('hidden');
+      if (numTotalPlayers + numCpuPlayers > 4) {
+        e.preventDefault();
+        if (playerCountError) playerCountError.classList.remove('hidden');
+        return;
+      } else if (playerCountError) {
+        playerCountError.classList.add('hidden');
+      }
+      // --- Name validation ---
       const name = nameInput.value.trim();
       if (!name) {
         nameInputError.textContent = 'Name is required';
         nameInputError.classList.remove('hidden');
         nameInput.focus();
+        e.preventDefault();
         return;
       }
       if (name.length < 2) {
         nameInputError.textContent = 'Name must be at least 2 characters';
         nameInputError.classList.remove('hidden');
         nameInput.focus();
+        e.preventDefault();
         return;
       }
       nameInputError.classList.add('hidden');
-      // ...continue with form submission/game join logic...
+      // --- Emit JOIN_GAME event ---
+      const joinGameButton = document.getElementById('join-game-button');
+      if (joinGameButton instanceof HTMLButtonElement) joinGameButton.disabled = true;
+      // Get room param from URL if present
+      let roomParam = null;
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        roomParam = urlParams.get('room') || null;
+      } catch (err) {}
+      state.socket.emit(JOIN_GAME, {
+        name,
+        totalPlayers: numTotalPlayers,
+        numComputers: numCpuPlayers,
+        roomParam
+      });
+      e.preventDefault();
     });
     nameInput.addEventListener('input', () => {
       nameInputError.classList.add('hidden');

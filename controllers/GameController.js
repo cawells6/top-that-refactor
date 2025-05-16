@@ -92,11 +92,26 @@ export default class GameController {
   }
 
   /** Initialize deck, deal cards, assign them to players, and emit first turn */
-  handleStartGame(opts = {}) {
+  async handleStartGame(opts = {}) {
     // Support both legacy (no opts) and new (opts.computerCount) calls
-    const computerCount = opts.computerCount || 0;
-    if (this.players.size + computerCount < 2) {
-      console.error('Cannot start game: need at least 2 players.');
+    const computerCount = typeof opts.computerCount === 'number' ? opts.computerCount : 0;
+    // Validation: prevent exceeding max players
+    if (this.players.size + computerCount > this.gameState.maxPlayers) {
+      // Try to find the initiator socket (if available)
+      let initiatorSocketId = null;
+      if (opts.socket && opts.socket.id) {
+        initiatorSocketId = opts.socket.id;
+      } else {
+        // Fallback: emit to the room
+        initiatorSocketId = null;
+      }
+      const errorMsg = 'Cannot start game: Total players would exceed the maximum of ' + this.gameState.maxPlayers;
+      if (initiatorSocketId && this.io.sockets.sockets[initiatorSocketId]) {
+        this.io.sockets.sockets[initiatorSocketId].emit('err', errorMsg);
+      } else {
+        // Fallback: emit to all sockets in the default room
+        this.io.emit('err', errorMsg);
+      }
       return;
     }
     // Add computer players if needed
