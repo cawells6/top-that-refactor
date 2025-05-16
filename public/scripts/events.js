@@ -102,12 +102,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Rules Modal: Close on Green Background (main-content) ---
+  const mainContent = document.getElementById('main-content');
+  if (mainContent && rulesModal && rulesModalOverlay) {
+    mainContent.addEventListener('click', function() {
+      if (!rulesModal.classList.contains('modal--hidden')) {
+        rulesModal.classList.add('modal--hidden');
+        rulesModalOverlay.classList.add('modal__overlay--hidden');
+      }
+    });
+  }
+
   // Add event handler for the "Got it!" button in the rules modal
   const gotItBtn = document.getElementById('rules-gotit-btn');
   if (gotItBtn && rulesModal && overlay) {
     gotItBtn.addEventListener('click', () => {
       rulesModal.classList.add('modal--hidden');
       overlay.classList.add('modal__overlay--hidden');
+    });
+  }
+
+  // --- Expand/Collapse All Rules Sections (including quick tips) ---
+  const expandCollapseBtn = document.getElementById('expand-collapse-all-btn');
+  if (expandCollapseBtn && rulesModal) {
+    expandCollapseBtn.addEventListener('click', function () {
+      const detailsList = Array.from(rulesModal.querySelectorAll('.rules-section'));
+      // Only operate on <details> elements
+      const allOpen = detailsList.every(d => d instanceof HTMLDetailsElement && d.open);
+      detailsList.forEach(d => {
+        if (d instanceof HTMLDetailsElement) d.open = !allOpen;
+      });
+      expandCollapseBtn.textContent = allOpen ? 'Expand All' : 'Collapse All';
+    });
+    // Update button label on modal open
+    rulesBtn && rulesBtn.addEventListener('click', function () {
+      setTimeout(() => {
+        const detailsList = Array.from(rulesModal.querySelectorAll('.rules-section'));
+        const allOpen = detailsList.every(d => d instanceof HTMLDetailsElement && d.open);
+        expandCollapseBtn.textContent = allOpen ? 'Collapse All' : 'Expand All';
+      }, 0);
     });
   }
 
