@@ -105,6 +105,35 @@ document.addEventListener('DOMContentLoaded', () => {
   if (playerList) {
     observer.observe(playerList, { childList: true, subtree: false });
   }
+
+  // Lobby form validation and error handling (from reference Canvas)
+  const lobbyForm = document.getElementById('lobby-form');
+  const nameInput = document.getElementById('name-input');
+  const nameInputError = document.getElementById('name-input-error');
+
+  if (lobbyForm && nameInput instanceof HTMLInputElement && nameInputError) {
+    lobbyForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameInputError.textContent = 'Name is required';
+        nameInputError.classList.remove('hidden');
+        nameInput.focus();
+        return;
+      }
+      if (name.length < 2) {
+        nameInputError.textContent = 'Name must be at least 2 characters';
+        nameInputError.classList.remove('hidden');
+        nameInput.focus();
+        return;
+      }
+      nameInputError.classList.add('hidden');
+      // ...continue with form submission/game join logic...
+    });
+    nameInput.addEventListener('input', () => {
+      nameInputError.classList.add('hidden');
+    });
+  }
 });
 
 // —– UI helper functions —–
