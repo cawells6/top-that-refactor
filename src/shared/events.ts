@@ -1,65 +1,36 @@
-/**
- * @constant {string} JOIN
- * @description Client requests to join a game (short form, legacy).
- */
-export const JOIN = 'join';
+// src/shared/events.ts
 
-/**
- * @constant {string} JOIN_GAME
- * @description Client requests to join a game (preferred long form).
- */
-export const JOIN_GAME = 'join-game';
+// Game setup and flow
+export const JOIN_GAME: string = 'join-game';
+export const JOINED: string = 'joined';
+export const PLAYER_JOINED: string = 'player-joined'; // Sent to all clients when a new player joins the lobby
+export const LOBBY: string = 'lobby'; // Sent when lobby details change (e.g. new player, game starting)
+export const START_GAME: string = 'start-game';
+export const GAME_STARTED: string = 'game-started'; // Confirms game has started, includes initial full state
+export const NEXT_TURN: string = 'next-turn';
+export const GAME_OVER: string = 'game-over';
+export const REJOIN: string = 'rejoin'; // Player attempts to rejoin a game in progress
 
-/**
- * @constant {string} JOINED
- * @description Server confirms a client has joined and provides their ID/room.
- */
-export const JOINED = 'joined';
+// Player actions
+export const PLAY_CARD: string = 'play-card';
+export const PICK_UP_PILE: string = 'pick-up-pile'; // Player chooses to pick up the pile
+export const CARD_PLAYED: string = 'card-played'; // A card was successfully played
+export const PILE_PICKED_UP: string = 'pile-picked-up'; // The pile was picked up by a player
 
-/**
- * @constant {string} PLAYER_JOINED
- * @description Server notifies all clients that a player has joined.
- */
-export const PLAYER_JOINED = 'player-joined';
+// Game state and updates
+export const STATE_UPDATE: string = 'state-update'; // Generic state update from server
+export const SPECIAL_CARD: string = 'special-card'; // Indicates a special card effect (e.g., 2, 5, 10 played)
 
-/**
- * @constant {string} LOBBY
- * @description Server emits lobby state (room, players, maxPlayers).
- */
-export const LOBBY = 'lobby';
+// Errors and generic messages
+export const ERROR: string = 'err'; // Generic error message from server
+export const MESSAGE: string = 'message'; // Generic message from server
 
-/**
- * @constant {string} STATE
- * @description Server emits the current game state (short form, legacy).
- */
-export const STATE = 'state';
-
-/**
- * @constant {string} STATE_UPDATE
- * @description Server emits the current game state (preferred long form).
- */
-export const STATE_UPDATE = 'state-update';
-
-/**
- * @constant {string} SPECIAL_CARD
- * @description Server notifies client of a special card played (e.g., two, five, ten).
- */
-export const SPECIAL_CARD = 'special-card';
-
-/**
- * @constant {string} REJOIN
- * @description Client requests to rejoin a game after disconnect.
- */
-export const REJOIN = 'rejoin';
-
-/**
- * @constant {string} START_GAME
- * @description Client requests to start the game.
- */
-export const START_GAME = 'start-game';
-
-/**
- * @constant {string} NEXT_TURN
- * @description Server notifies clients of the next player's turn.
- */
-export const NEXT_TURN = 'next-turn';
+// Optional: You could also define these as an enum if you prefer,
+// though string constants are very common for event names.
+/*
+export enum GameEvents {
+  JoinGame = 'join-game',
+  Joined = 'joined',
+  // ... etc.
+}
+*/

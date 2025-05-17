@@ -12,6 +12,6 @@
     "strict": false,
     "types": ["jest"]
   },
-  "include": ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.d.ts"],
+  "include": ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.d.ts", "tests/gameState.test.ts", "tests/gameState.deck.test.ts", "tests/gameState.deck.test.ts", "tests/player.test.ts", "tests/gameFlow.test.ts", "tests/lobbyForm.test.ts", "tests/cardUtils.test.ts", "src/shared/events.ts"],
   "exclude": ["node_modules", "dist"]
 }

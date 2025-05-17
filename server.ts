@@ -1,7 +1,8 @@
 import express, { Express, Request, Response } from 'express';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import GameController from './controllers/GameController';
+import GameController from './controllers/GameController.js'; // Assuming GameController will also be .ts
+
 const app: Express = express();
 const server: http.Server = http.createServer(app);
 

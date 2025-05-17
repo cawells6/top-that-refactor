@@ -34,15 +34,15 @@ jest.mock('../src/shared/events', () => ({ // Path to events.ts (without extensi
   // Add other events if public/scripts/events.js (script under test) uses them from shared/events
 }));
 
-// Import the actual constant for use in test assertions
+// Import the actual constants for use in test assertions
 import { JOIN_GAME } from '../src/shared/events'; // Import from the actual (now .ts) module
 
 // Import the client-side script under test (AFTER mocks are set up)
 // This file (public/scripts/events.js) has NOT been converted to TS yet.
-import '../public/scripts/events.js'; // This remains .js for now as it's the System Under Test
+import '../public/scripts/events.js'; // Stays .js for now
 
 // Import the mocked state to re-assign socket.emit for test assertions
-import * as state from '../public/scripts/state.js'; // This remains .js for now
+import * as state from '../public/scripts/state.js'; // Stays .js for now
 
 describe('Lobby Form Submission', () => {
   let lobbyForm: HTMLFormElement;
@@ -73,8 +73,7 @@ describe('Lobby Form Submission', () => {
     playerCountError = document.getElementById('player-count-error') as HTMLElement;
 
     // Re-assign our top-level mockEmit to the one inside the mocked state.socket
-    // This allows us to check if the SUT (public/scripts/events.js) called state.socket.emit
-    if (state.socket) { // Ensure state.socket exists from the mock
+    if (state.socket) {
         (state.socket.emit as jest.Mock) = mockEmit;
         (state.socket.on as jest.Mock) = mockOn;
     }

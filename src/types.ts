@@ -1,9 +1,16 @@
 // src/types.ts
 export interface Card {
   value: string | number;
-  suit: string; // Made non-optional based on typical card structure
+  suit: string;
   back?: boolean;
   copied?: boolean;
 }
 
-// You can add other shared interfaces/types here as your project grows.
+export interface DealtCards { // <<< ADD THIS INTERFACE AND EXPORT IT
+  hands: Card[][];
+  upCards: Card[][];
+  downCards: Card[][];
+}
+
+// You can add other shared interfaces or type aliases here
+// as your project needs them.
