@@ -1,16 +1,8 @@
 // models/GameState.ts
 
-import { Card } from '../src/types'; // Assuming Card interface is in src/types.ts
+import { Card, DealtCards } from '../src/types'; // Import both Card and DealtCards
 
-interface AddToPileOptions {
-  isCopy?: boolean;
-}
-
-interface DealtCards {
-  hands: Card[][];
-  upCards: Card[][];
-  downCards: Card[][];
-}
+// No local DealtCards interface definition needed here anymore
 
 /**
  * GAME STATE
@@ -30,7 +22,7 @@ export default class GameState {
     this.currentPlayerIndex = 0;
     this.pile = [];
     this.discard = [];
-    this.maxPlayers = 4;
+    this.maxPlayers = 4; // Default max players
     this.lastRealCard = null;
     this.deck = [];
   }
@@ -40,8 +32,12 @@ export default class GameState {
    * @param playerId
    */
   addPlayer(playerId: string): void {
-    this.players.push(playerId);
-    // this.playersCount is no longer used/updated
+    if (this.players.length < this.maxPlayers) {
+      this.players.push(playerId);
+    } else {
+      console.warn("Max players reached. Cannot add more players.");
+      // Potentially throw an error or handle this case as per game rules
+    }
   }
 
   /**
@@ -49,7 +45,10 @@ export default class GameState {
    * wrapping back to 0 at the end.
    */
   advancePlayer(): void {
-    if (this.players.length === 0) return;
+    if (this.players.length === 0) {
+        // console.warn("Cannot advance player, no players in game.");
+        return;
+    }
     this.currentPlayerIndex =
       (this.currentPlayerIndex + 1) % this.players.length;
   }
@@ -59,9 +58,9 @@ export default class GameState {
    * @param card
    * @param options
    */
-  addToPile(card: Card, options: AddToPileOptions = {}): void {
+  addToPile(card: Card, options: { isCopy?: boolean } = {}): void {
     if (options.isCopy) {
-      this.pile.push({ ...card, copied: true }); // 'copied' is an optional prop in Card interface
+      this.pile.push({ ...card, copied: true });
     } else {
       this.pile.push(card);
     }
@@ -80,15 +79,17 @@ export default class GameState {
   }
 
   /**
-   * Helper to check if the top 4 cards of the pile are four-of-a-kind
+   * Helper to check if the top 4 cards of the pile have the same value property.
+   * Note: This compares raw `value` properties, not normalized values.
    * @returns
    */
   isFourOfAKindOnPile(): boolean {
     if (this.pile.length < 4) return false;
-    // Ensure values exist before comparing
-    const vals = this.pile.slice(-4).map(c => c?.value); // Use optional chaining for safety
-    if (vals.some(v => v === undefined || v === null)) return false;
-    return vals.every(v => v === vals[0]);
+    const topFourCards = this.pile.slice(-4);
+    const firstValue = topFourCards[0]?.value; // Use optional chaining
+    if (firstValue === undefined || firstValue === null) return false; // Ensure first card has a value
+
+    return topFourCards.every(card => card?.value === firstValue);
   }
 
   /**
@@ -99,9 +100,10 @@ export default class GameState {
     const values: (string | number)[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
     this.deck = [];
     
-    const numDecks = this.players.length >= 4 ? 2 : 1; // // TODO: Confirm if this.players is populated before buildDeck
-                                                      // If not, this.players.length might be 0 here.
-                                                      // GameController calls addPlayer then buildDeck, so it should be fine.
+    // Determine number of decks based on current number of players
+    // This assumes `this.players` is populated before `buildDeck` is called,
+    // which GameController's logic should ensure.
+    const numDecks = this.players.length >= 4 ? 2 : 1;
 
     for (let i = 0; i < numDecks; i++) {
       for (const suit of suits) {
@@ -116,31 +118,30 @@ export default class GameState {
       const j = Math.floor(Math.random() * (i + 1));
       [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
     }
-    console.log(`Built deck with ${this.deck.length} cards for ${this.players.length} players (${numDecks} deck(s))`);
+    // console.log(`Built deck with ${this.deck.length} cards for ${this.players.length} players (${numDecks} deck(s))`);
   }
 
   /**
    * Deal cards to players: hand, upCards, downCards for each.
-   * @param numPlayers
-   * @param handSize
-   * @returns
+   * @param numPlayers The number of players to deal to (should match this.players.length ideally)
+   * @param handSize The number of cards for each category (hand, up, down)
+   * @returns DealtCards object
    */
   dealCards(numPlayers: number, handSize: number = 3): DealtCards {
     const hands: Card[][] = [];
     const upCards: Card[][] = [];
     const downCards: Card[][] = [];
 
-    if (!this.deck || this.deck.length < numPlayers * handSize * 3) {
-        console.warn("[GameState.dealCards] Deck is not initialized or insufficient cards. Rebuilding deck.");
-        // This is a fallback. Ideally, buildDeck is always called appropriately before dealCards.
-        this.buildDeck();
-        // If after rebuilding, there are still not enough cards (e.g., too many players for standard decks),
-        // this indicates a more fundamental logic issue or need for more decks.
-        if (this.deck.length < numPlayers * handSize * 3) {
-            console.error("[GameState.dealCards] CRITICAL: Insufficient cards even after rebuilding deck.");
-            // Return empty arrays to prevent further errors, but this state is problematic.
-            return { hands: [], upCards: [], downCards: [] };
-        }
+    if (!this.deck || this.deck.length === 0) {
+        // console.warn("[GameState.dealCards] Deck is not initialized or is empty. Attempting to build deck.");
+        this.buildDeck(); // Attempt to build if not already built or empty
+    }
+    
+    // After attempting to build, check if deck is sufficient
+    const requiredCards = numPlayers * handSize * 3;
+    if (this.deck.length < requiredCards) {
+        console.error(`[GameState.dealCards] CRITICAL: Insufficient cards (${this.deck.length}) to deal ${requiredCards} cards for ${numPlayers} players with handsize ${handSize}. Dealing what's available.`);
+        // Deal what's possible, players might get fewer cards.
     }
 
     for (let p = 0; p < numPlayers; p++) {
