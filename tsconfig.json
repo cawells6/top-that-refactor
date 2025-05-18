@@ -1,17 +1,29 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "es2022",
-    "moduleResolution": "node",
+    "module": "NodeNext", // Changed from es2022 to NodeNext
+    "moduleResolution": "NodeNext", // Recommended for modern Node.js ESM
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "allowJs": true,
-    "checkJs": true,
-    "noEmit": true,
-    "strict": false,
-    "types": ["jest"]
+    "allowJs": true, // If you still have some .js files you want TS to check
+    "checkJs": false,
+    "outDir": "./dist",
+    "rootDir": "./", // Assuming server.ts, controllers, models, etc., are at root or in subdirs
+    "noEmit": false, // Allow tsc to output .js files for 'build' and 'start' scripts
+    "strict": true,
+    "skipLibCheck": true, // Removed extra comma and string
+    "types": ["jest", "node"]
   },
-  "include": ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.d.ts", "tests/gameState.test.ts", "tests/gameState.deck.test.ts", "tests/gameState.deck.test.ts", "tests/player.test.ts", "tests/gameFlow.test.ts", "tests/lobbyForm.test.ts", "tests/cardUtils.test.ts", "src/shared/events.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "server.ts",
+    "controllers/**/*.ts",
+    "models/**/*.ts",
+    "utils/**/*.ts",
+    "src/**/*.ts", // If you have a generic src folder
+    "scripts/**/*.ts",
+    "tests/**/*.ts",
+    "jest-globals.d.ts"
+  ],
+  "exclude": ["node_modules", "dist", "public"]
 }
