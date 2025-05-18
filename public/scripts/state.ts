@@ -16,30 +16,6 @@ export let processingEffects: boolean = false;
 export const stateHistory: any[] = []; // Consider defining a type for state history items
 export let stateIndex: number = -1;
 
-// handy DOM‑by‑ID shortcut
-/**
- * @param {string} id
- * @returns {HTMLElement | null}
- */
-export const $ = (id: string): HTMLElement | null => document.getElementById(id);
-
-// DOM element getter functions - called only when needed
-export const getLobbyContainer = (): HTMLElement | null => $('lobby-container');
-export const getLobbyFormContent = (): HTMLElement | null => $('lobby-form-content');
-export const getWaitingStateDiv = (): HTMLElement | null => $('waiting-state');
-export const getTable = (): HTMLElement | null => $('table');
-export const getCopyLinkBtn = (): HTMLButtonElement | null =>
-  $('copy-link-button') as HTMLButtonElement | null;
-export const getRulesButton = (): HTMLButtonElement | null =>
-  $('rules-button') as HTMLButtonElement | null;
-export const getRulesModal = (): HTMLElement | null => $('rules-modal');
-export const getModalOverlay = (): HTMLElement | null => document.querySelector('.modal__backdrop');
-export const getBackToLobbyButton = (): HTMLButtonElement | null =>
-  $('back-to-lobby-button') as HTMLButtonElement | null;
-export const getGameLogEntries = (): HTMLElement | null => $('game-log-entries');
-export const getNameInput = (): HTMLInputElement | null =>
-  $('name-input') as HTMLInputElement | null;
-
 export function loadSession(): void {
   setMyId(sessionStorage.getItem('myId'));
   setCurrentRoom(sessionStorage.getItem('currentRoom'));

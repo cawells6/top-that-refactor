@@ -1,6 +1,7 @@
 // public/scripts/main.ts
 import io from 'socket.io-client';
 import { initializePageEventListeners } from './events.js'; // Use .js extension
+import { initializeSocketHandlers } from './socketService.js';
 
 console.log('[Client] main.ts loaded successfully via Vite!');
 
@@ -22,4 +23,5 @@ socket.on('disconnect', (reason) => {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('[Client] DOM fully loaded and parsed (from main.ts)');
   initializePageEventListeners();
+  initializeSocketHandlers();
 });

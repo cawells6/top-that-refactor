@@ -1,8 +1,9 @@
 // public/scripts/events.ts
 import * as state from './state.js';
+import * as uiManager from './uiManager.js';
 import { initializeSocketHandlers } from './socketHandlers.js';
-import { showLobbyForm, openModal, closeModal } from './uiHelpers.js'; // Removed unused validateName
-import { JOIN_GAME, START_GAME } from '@shared/events.js'; // Use path alias
+import { showLobbyForm, openModal, closeModal } from './uiManager.js'; // Removed unused validateName
+import { JOIN_GAME, START_GAME } from '../../src/shared/events.js'; // Use relative path
 
 export function initializePageEventListeners(): void {
   state.loadSession();
@@ -11,10 +12,10 @@ export function initializePageEventListeners(): void {
   initializeSocketHandlers();
 
   // UI hooks
-  const createJoinBtn = state.$('create-join') as HTMLButtonElement | null;
+  const createJoinBtn = uiManager.$('create-join') as HTMLButtonElement | null;
   if (createJoinBtn) {
     createJoinBtn.onclick = () => {
-      const nameInput = state.getNameInput(); // Get name input directly
+      const nameInput = uiManager.getNameInput(); // Get name input directly
       const name = nameInput?.value.trim(); // Get and trim value
       if (!name) {
         // Optionally show an error to the user if name is invalid
@@ -26,17 +27,17 @@ export function initializePageEventListeners(): void {
     };
   }
 
-  const copyLinkBtn = state.getCopyLinkBtn();
+  const copyLinkBtn = uiManager.getCopyLinkBtn();
   if (copyLinkBtn) {
     copyLinkBtn.onclick = () => {
       navigator.clipboard.writeText(window.location.href);
     };
   }
 
-  const rulesButton = state.getRulesButton();
+  const rulesButton = uiManager.getRulesButton();
   if (rulesButton) {
     rulesButton.onclick = () => {
-      const rulesModal = state.getRulesModal();
+      const rulesModal = uiManager.getRulesModal();
       if (rulesModal) {
         openModal(rulesModal);
       }
@@ -45,7 +46,7 @@ export function initializePageEventListeners(): void {
 
   document.querySelector('.modal-close-button')?.addEventListener('click', closeModal);
 
-  const backToLobbyButton = state.getBackToLobbyButton();
+  const backToLobbyButton = uiManager.getBackToLobbyButton();
   if (backToLobbyButton) {
     backToLobbyButton.onclick = () => {
       sessionStorage.clear();

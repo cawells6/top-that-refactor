@@ -27,11 +27,19 @@
     "transpileOnly": true
   },
   "include": [
-    "**/*.ts" // Include all .ts files in the project
+    "server.ts",
+    "controllers/**/*.ts",
+    "models/**/*.ts",
+    "utils/**/*.ts",
+    "src/**/*.ts",
+    "scripts/**/*.ts",
+    "public/scripts/**/*.ts",
+    "tests/**/*.ts",
+    "jest-globals.d.ts"
   ],
   "exclude": [
-    "node_modules", 
+    "node_modules",
     "dist",
-    "public/scripts/tsconfig.json" // Exclude the nested tsconfig
+    "public/scripts/tsconfig.json"
   ]
 }
