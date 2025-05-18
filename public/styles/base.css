@@ -2,7 +2,7 @@
 :root {
   --bg: #0b5137;
   --header-bg: #1b2e3c;
-  --accent: #FFC300;
+  --accent: #ffc300;
   --text: #ffffff;
   --error: #ff4d4d;
   --success: #4caf50;
@@ -15,7 +15,8 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   font-family: sans-serif;
   color: var(--text);

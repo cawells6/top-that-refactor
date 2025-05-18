@@ -31,6 +31,7 @@ server.listen(PORT, () => {
 
 // Optional HTTP error handling
 server.on('error', async (err: NodeJS.ErrnoException) => {
+  // Keep NodeJS.ErrnoException
   if (err && err.code === 'EADDRINUSE') {
     console.error(`\nERROR: Port ${PORT} is already in use.`);
     console.error(`Please close the application using port ${PORT} or use a different port.`);

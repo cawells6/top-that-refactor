@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS", // or ESNext if your node environment supports it
+    "outDir": "./dist/server", // Separate output for node-specific files if needed
+    "types": ["node", "jest"] // Node-specific types
+  },
+  "include": [
+    "scripts/**/*.ts",
+    "server.ts",
+    "vite.config.ts", // If it's processed by ts-node or similar for Vite's config
+    "jest.config.cjs" // Although .cjs, including it here might help some setups if it interacts with TS
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "public/scripts/**/*.ts" // Exclude client-side TS from this config
+  ]
+}

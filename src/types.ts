@@ -6,7 +6,8 @@ export interface Card {
   copied?: boolean;
 }
 
-export interface DealtCards { // <<< ADD THIS INTERFACE AND EXPORT IT
+export interface DealtCards {
+  // <<< ADD THIS INTERFACE AND EXPORT IT
   hands: Card[][];
   upCards: Card[][];
   downCards: Card[][];

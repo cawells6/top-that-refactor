@@ -1,7 +1,7 @@
 // tests/player.test.ts
 
 import Player from '../models/Player'; // CORRECTED IMPORT (no .js)
-import { Card } from '../src/types';   // Import Card type
+import { Card } from '../src/types'; // Import Card type
 // rank is used by Player.sortHand() internally, so no direct import needed here for these tests.
 
 describe('Player model', () => {
@@ -23,11 +23,17 @@ describe('Player model', () => {
 
   test('setHand replaces hand and sorts it', () => {
     // Explicitly type the cards array
-    const cards: Card[] = [{ value: 'K', suit: 'hearts' }, { value: '2', suit: 'spades' }];
+    const cards: Card[] = [
+      { value: 'K', suit: 'hearts' },
+      { value: '2', suit: 'spades' },
+    ];
     p.setHand(cards);
     // Expect sorted hand: 2 should come before K
     // rank('2') is 2, rank('K') is 13 (based on rank logic in cardUtils)
-    const expectedHand: Card[] = [{ value: '2', suit: 'spades' }, { value: 'K', suit: 'hearts' }];
+    const expectedHand: Card[] = [
+      { value: '2', suit: 'spades' },
+      { value: 'K', suit: 'hearts' },
+    ];
     expect(p.hand).toEqual(expectedHand);
   });
 
@@ -77,14 +83,17 @@ describe('Player model', () => {
 
   test('pickUpPile adds cards to hand and re-sorts', () => {
     p.setHand([{ value: 'Q', suit: 'hearts' }]);
-    const pile: Card[] = [{ value: '3', suit: 'diamonds' }, { value: 'A', suit: 'spades' }];
+    const pile: Card[] = [
+      { value: '3', suit: 'diamonds' },
+      { value: 'A', suit: 'spades' },
+    ];
     p.pickUpPile(pile);
     // Expected sorted hand based on rank: 3, Q, A
     // rank('3')=3, rank('Q')=12, rank('A')=14
     const expectedHand: Card[] = [
       { value: '3', suit: 'diamonds' },
       { value: 'Q', suit: 'hearts' },
-      { value: 'A', suit: 'spades' }
+      { value: 'A', suit: 'spades' },
     ];
     expect(p.hand).toEqual(expectedHand);
   });

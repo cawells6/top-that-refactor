@@ -1,19 +1,35 @@
 // utils/cardUtils.ts
 import { Card } from '../src/types.js'; // <-- CHANGED
 
-export function normalizeCardValue(cardValue: string | number | null | undefined): string | null | undefined {
+export function normalizeCardValue(
+  cardValue: string | number | null | undefined
+): string | null | undefined {
   if (cardValue === null || cardValue === undefined) {
     return cardValue;
   }
   const lowerVal = String(cardValue).toLowerCase();
   switch (lowerVal) {
-    case '2': case 'two': return 'two';
-    case '5': case 'five': return 'five';
-    case '10': case 'ten': return 'ten';
-    case 'j': case 'jack': return 'j';
-    case 'q': case 'queen': return 'q';
-    case 'k': case 'king': return 'k';
-    case 'a': case 'ace': return 'a';
+    case '2':
+    case 'two':
+      return 'two';
+    case '5':
+    case 'five':
+      return 'five';
+    case '10':
+    case 'ten':
+      return 'ten';
+    case 'j':
+    case 'jack':
+      return 'j';
+    case 'q':
+    case 'queen':
+      return 'q';
+    case 'k':
+    case 'king':
+      return 'k';
+    case 'a':
+    case 'ace':
+      return 'a';
     default:
       return lowerVal;
   }
@@ -25,19 +41,27 @@ export function rank(card: Card): number {
     return 0;
   }
   switch (val) {
-    case 'two': return 2;
-    case 'five': return 5;
-    case 'ten': return 10;
-    case 'j': return 11;
-    case 'q': return 12;
-    case 'k': return 13;
-    case 'a': return 14;
-    default:
+    case 'two':
+      return 2;
+    case 'five':
+      return 5;
+    case 'ten':
+      return 10;
+    case 'j':
+      return 11;
+    case 'q':
+      return 12;
+    case 'k':
+      return 13;
+    case 'a':
+      return 14;
+    default: {
       const parsed = parseInt(val, 10);
       if (isNaN(parsed)) {
         return 0;
       }
       return parsed;
+    }
   }
 }
 
@@ -72,12 +96,12 @@ export function isFourOfAKind(hand: Card[]): boolean {
   const normalizedFirstValue = normalizeCardValue(firstCardValue);
 
   if (normalizedFirstValue === null || normalizedFirstValue === undefined) {
-      return false;
+    return false;
   }
 
-  return cardsToCompare.every(card => {
+  return cardsToCompare.every((card) => {
     if (!card || card.value === undefined || card.value === null) {
-        return false;
+      return false;
     }
     return normalizeCardValue(card.value) === normalizedFirstValue;
   });
@@ -90,6 +114,6 @@ const cardUtils = {
   isFiveCard,
   isTenCard,
   isSpecialCard,
-  isFourOfAKind
+  isFourOfAKind,
 };
 export default cardUtils;

@@ -33,7 +33,8 @@ export default class GameState {
     this.started = false; // Added: Initialized to false
   }
 
-  public startGameInstance(): void { // Added method
+  public startGameInstance(): void {
+    // Added method
     this.buildDeck();
     this.started = true;
     if (this.players.length > 0 && this.currentPlayerIndex === -1) {
@@ -41,7 +42,8 @@ export default class GameState {
     }
   }
 
-  public endGameInstance(): void { // Added method
+  public endGameInstance(): void {
+    // Added method
     this.started = false;
     this.deck = null; // Reset deck
     this.pile = [];
@@ -54,7 +56,7 @@ export default class GameState {
 
   public addPlayer(playerId: string): void {
     if (this.players.length >= this.maxPlayers) {
-      console.warn("Max players reached. Cannot add more players.");
+      console.warn('Max players reached. Cannot add more players.');
       return;
     }
     if (!this.players.includes(playerId)) {
@@ -122,15 +124,17 @@ export default class GameState {
     if (this.pile.length < 4) return false;
     const topFourCards = this.pile.slice(-4);
     const firstValue = topFourCards[0].value; // Directly compare values
-    return topFourCards.every(card => card.value === firstValue);
+    return topFourCards.every((card) => card.value === firstValue);
   }
 
-  private buildDeck(): void { // Changed to private as it's an internal part of startGameInstance
+  private buildDeck(): void {
+    // Changed to private as it's an internal part of startGameInstance
     const suits: string[] = ['hearts', 'diamonds', 'clubs', 'spades'];
     const values: CardValue[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
     this.deck = []; // Initialize deck
     let numDecks = 1;
-    if (this.players.length >= 4) { // Standard rule: 2 decks for 4+ players
+    if (this.players.length >= 4) {
+      // Standard rule: 2 decks for 4+ players
       numDecks = 2;
     }
     for (let i = 0; i < numDecks; i++) {
@@ -148,14 +152,19 @@ export default class GameState {
     }
   }
 
-  public dealCards(numPlayers: number, handSize: number = 3): { hands: Card[][]; upCards: Card[][]; downCards: Card[][] } {
+  public dealCards(
+    numPlayers: number,
+    handSize: number = 3
+  ): { hands: Card[][]; upCards: Card[][]; downCards: Card[][] } {
     const hands: Card[][] = [];
     const upCards: Card[][] = [];
     const downCards: Card[][] = [];
 
     const requiredCards = numPlayers * handSize * 3;
     if (!this.deck || this.deck.length < requiredCards) {
-      console.error(`[GameState.dealCards] CRITICAL: Insufficient cards (${this.deck?.length || 0}) to deal ${requiredCards} cards for ${numPlayers} players with handsize ${handSize}. Dealing what's available.`);
+      console.error(
+        `[GameState.dealCards] CRITICAL: Insufficient cards (${this.deck?.length || 0}) to deal ${requiredCards} cards for ${numPlayers} players with handsize ${handSize}. Dealing what's available.`
+      );
     }
 
     for (let p = 0; p < numPlayers; p++) {

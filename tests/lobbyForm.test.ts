@@ -18,16 +18,25 @@ jest.mock('../public/scripts/state.js', () => {
   return {
     socket: { emit: jest.fn(), on: jest.fn() }, // These will be overridden in beforeEach
     loadSession: jest.fn(),
-    $: jest.fn((selector: string) => global.document ? global.document.querySelector(selector) : null),
-    getCopyLinkBtn: jest.fn(() => global.document ? global.document.createElement('button') : null),
-    getRulesButton: jest.fn(() => global.document ? global.document.createElement('button') : null),
-    getRulesModal: jest.fn(() => global.document ? global.document.createElement('div') : null),
-    getBackToLobbyButton: jest.fn(() => global.document ? global.document.createElement('button') : null),
+    $: jest.fn((selector: string) =>
+      global.document ? global.document.querySelector(selector) : null
+    ),
+    getCopyLinkBtn: jest.fn(() =>
+      global.document ? global.document.createElement('button') : null
+    ),
+    getRulesButton: jest.fn(() =>
+      global.document ? global.document.createElement('button') : null
+    ),
+    getRulesModal: jest.fn(() => (global.document ? global.document.createElement('div') : null)),
+    getBackToLobbyButton: jest.fn(() =>
+      global.document ? global.document.createElement('button') : null
+    ),
   };
 });
 
 // Mock the shared events module
-jest.mock('../src/shared/events', () => ({ // Path to events.ts (without extension)
+jest.mock('../src/shared/events', () => ({
+  // Path to events.ts (without extension)
   __esModule: true, // Use if events.ts is an ES module
   JOIN_GAME: 'join-game',
   START_GAME: 'start-game',
@@ -74,8 +83,8 @@ describe('Lobby Form Submission', () => {
 
     // Re-assign our top-level mockEmit to the one inside the mocked state.socket
     if (state.socket) {
-        (state.socket.emit as jest.Mock) = mockEmit;
-        (state.socket.on as jest.Mock) = mockOn;
+      (state.socket.emit as jest.Mock) = mockEmit;
+      (state.socket.on as jest.Mock) = mockOn;
     }
     mockEmit.mockClear();
     mockOn.mockClear();
@@ -136,7 +145,7 @@ describe('Lobby Form Submission', () => {
     expect(mockEmit).toHaveBeenCalledWith(JOIN_GAME, {
       name: 'ChrisP',
       numHumans: 1,
-      numCPUs: 1
+      numCPUs: 1,
     });
     expect(submitButton.disabled).toBe(true);
   });

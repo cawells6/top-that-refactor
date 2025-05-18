@@ -5,10 +5,11 @@ import { exec } from 'child_process';
 const isWin = process.platform === 'win32';
 const killCommand = isWin
   ? 'for /f "tokens=5" %a in ("netstat -aon | findstr :3000") do tasklist /FI "PID eq %a" | find /I "node.exe" && taskkill /F /PID %a'
-  : "lsof -i :3000 | awk '$1==\"node\"{print $2}' | xargs -r kill";
+  : 'lsof -i :3000 | awk \'$1=="node"{print $2}\' | xargs -r kill';
 
 console.log('[wait] Killing any node process on port 3000...');
-exec(killCommand, (err, stdout, stderr) => {
+exec(killCommand, (err, stdout /*, stderr */) => {
+  // Commented out stderr as it's unused
   if (err) {
     console.log(`[wait] Error killing node process: ${err.message}`);
   } else {

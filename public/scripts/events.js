@@ -4,10 +4,7 @@ import * as state from './state.js';
 import { initializeSocketHandlers } from './socketHandlers.js';
 import { showLobbyForm, openModal, closeModal, validateName } from './uiHelpers.js';
 
-import {
-  JOIN_GAME,
-  START_GAME
-} from '../src/shared/events.js';
+import { JOIN_GAME, START_GAME } from '../src/shared/events.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   state.loadSession();
@@ -28,17 +25,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  state.getCopyLinkBtn() && (state.getCopyLinkBtn().onclick = () => {
-    navigator.clipboard.writeText(window.location.href);
-  });
+  state.getCopyLinkBtn() &&
+    (state.getCopyLinkBtn().onclick = () => {
+      navigator.clipboard.writeText(window.location.href);
+    });
 
-  state.getRulesButton() && (state.getRulesButton().onclick = () => openModal(state.getRulesModal()));
+  state.getRulesButton() &&
+    (state.getRulesButton().onclick = () => openModal(state.getRulesModal()));
   document.querySelector('.modal-close-button')?.addEventListener('click', closeModal);
 
-  state.getBackToLobbyButton() && (state.getBackToLobbyButton().onclick = () => {
-    sessionStorage.clear();
-    showLobbyForm();
-  });
+  state.getBackToLobbyButton() &&
+    (state.getBackToLobbyButton().onclick = () => {
+      sessionStorage.clear();
+      showLobbyForm();
+    });
 
   const startGameBtn = document.getElementById('start-game-button');
   if (startGameBtn) {
@@ -48,10 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       const computerInput = document.getElementById('computer-count');
-      const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
-      
-      console.log('!!!!!!!!!! CLIENT (events.js): CLICKED start-game-button, ATTEMPTING TO EMIT START_GAME !!!!!!!!!!!', { computerCount }); // <--- ADDED THIS LOG
-      
+      const computerCount =
+        computerInput instanceof HTMLInputElement ? parseInt(computerInput.value, 10) || 0 : 0;
+
+      console.log(
+        '!!!!!!!!!! CLIENT (events.js): CLICKED start-game-button, ATTEMPTING TO EMIT START_GAME !!!!!!!!!!!',
+        { computerCount }
+      ); // <--- ADDED THIS LOG
+
       state.socket.emit(START_GAME, { computerCount });
       if (startGameBtn instanceof HTMLButtonElement) {
         startGameBtn.disabled = true;
@@ -96,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Rules Modal: Close on Outside Click ---
   const rulesModalOverlay = document.getElementById('modal-overlay');
   if (rulesModalOverlay && rulesModal) {
-    rulesModalOverlay.addEventListener('click', function(event) {
+    rulesModalOverlay.addEventListener('click', function (event) {
       const target = event.target;
       if (target instanceof Node && !rulesModal.contains(target) && target === rulesModalOverlay) {
         rulesModal.classList.add('modal--hidden');
@@ -108,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Rules Modal: Close on Green Background (main-content) ---
   const mainContent = document.getElementById('main-content');
   if (mainContent && rulesModal && rulesModalOverlay) {
-    mainContent.addEventListener('click', function() {
+    mainContent.addEventListener('click', function () {
       if (!rulesModal.classList.contains('modal--hidden')) {
         rulesModal.classList.add('modal--hidden');
         rulesModalOverlay.classList.add('modal__overlay--hidden');
@@ -131,20 +135,21 @@ document.addEventListener('DOMContentLoaded', () => {
     expandCollapseBtn.addEventListener('click', function () {
       const detailsList = Array.from(rulesModal.querySelectorAll('.rules-section'));
       // Only operate on <details> elements
-      const allOpen = detailsList.every(d => d instanceof HTMLDetailsElement && d.open);
-      detailsList.forEach(d => {
+      const allOpen = detailsList.every((d) => d instanceof HTMLDetailsElement && d.open);
+      detailsList.forEach((d) => {
         if (d instanceof HTMLDetailsElement) d.open = !allOpen;
       });
       expandCollapseBtn.textContent = allOpen ? 'Expand All' : 'Collapse All';
     });
     // Update button label on modal open
-    rulesBtn && rulesBtn.addEventListener('click', function () {
-      setTimeout(() => {
-        const detailsList = Array.from(rulesModal.querySelectorAll('.rules-section'));
-        const allOpen = detailsList.every(d => d instanceof HTMLDetailsElement && d.open);
-        expandCollapseBtn.textContent = allOpen ? 'Collapse All' : 'Expand All';
-      }, 0);
-    });
+    rulesBtn &&
+      rulesBtn.addEventListener('click', function () {
+        setTimeout(() => {
+          const detailsList = Array.from(rulesModal.querySelectorAll('.rules-section'));
+          const allOpen = detailsList.every((d) => d instanceof HTMLDetailsElement && d.open);
+          expandCollapseBtn.textContent = allOpen ? 'Collapse All' : 'Expand All';
+        }, 0);
+      });
   }
 
   // Ensure the Start Game button is enabled/disabled when lobby updates
@@ -201,34 +206,36 @@ document.addEventListener('DOMContentLoaded', () => {
       // --- Client-side validation for player/CPU counts ---
       const playerCountErrorDiv = document.getElementById('player-count-error');
       if (numHumans < 1) {
-        if(playerCountErrorDiv) {
+        if (playerCountErrorDiv) {
           playerCountErrorDiv.textContent = 'At least one human player is required.';
           playerCountErrorDiv.classList.remove('hidden');
         }
         return;
       }
-      if ((numHumans + numCPUs) < 2) {
-        if(playerCountErrorDiv) {
+      if (numHumans + numCPUs < 2) {
+        if (playerCountErrorDiv) {
           playerCountErrorDiv.textContent = 'A minimum of 2 total players is required.';
           playerCountErrorDiv.classList.remove('hidden');
         }
         return;
       }
-      if ((numHumans + numCPUs) > 4) {
-        if(playerCountErrorDiv) {
+      if (numHumans + numCPUs > 4) {
+        if (playerCountErrorDiv) {
           playerCountErrorDiv.textContent = 'Total players cannot exceed 4.';
           playerCountErrorDiv.classList.remove('hidden');
         }
         return;
       }
-      if(playerCountErrorDiv) playerCountErrorDiv.classList.add('hidden');
+      if (playerCountErrorDiv) playerCountErrorDiv.classList.add('hidden');
 
       // --- Emit the JOIN_GAME Event ---
-      console.log(`Emitting JOIN_GAME with name: ${name}, numHumans: ${numHumans}, numCPUs: ${numCPUs}`);
+      console.log(
+        `Emitting JOIN_GAME with name: ${name}, numHumans: ${numHumans}, numCPUs: ${numCPUs}`
+      );
       state.socket.emit(JOIN_GAME, {
         name: name,
         numHumans: numHumans,
-        numCPUs: numCPUs
+        numCPUs: numCPUs,
       });
 
       // --- Disable the Submit Button ---
@@ -252,8 +259,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return false;
     }
     // Ensure we are working with HTMLInputElement
-    const numTotalPlayers = parseInt((totalPlayersInput instanceof HTMLInputElement ? totalPlayersInput.value : '1'), 10);
-    const numCpuPlayers = parseInt((cpuPlayersInput instanceof HTMLInputElement ? cpuPlayersInput.value : '0'), 10);
+    const numTotalPlayers = parseInt(
+      totalPlayersInput instanceof HTMLInputElement ? totalPlayersInput.value : '1',
+      10
+    );
+    const numCpuPlayers = parseInt(
+      cpuPlayersInput instanceof HTMLInputElement ? cpuPlayersInput.value : '0',
+      10
+    );
     playerCountErrorDisplay.classList.add('hidden');
     playerCountErrorDisplay.textContent = '';
     if (isNaN(numTotalPlayers) || isNaN(numCpuPlayers)) {
@@ -289,8 +302,9 @@ function canStartGame() {
   const playerList = document.getElementById('player-list');
   const humanCount = playerList ? playerList.getElementsByTagName('li').length : 0;
   const computerInput = document.getElementById('computer-count');
-  const computerCount = (computerInput instanceof HTMLInputElement) ? parseInt(computerInput.value, 10) || 0 : 0;
-  return humanCount > 0 && (humanCount + computerCount) >= 2;
+  const computerCount =
+    computerInput instanceof HTMLInputElement ? parseInt(computerInput.value, 10) || 0 : 0;
+  return humanCount > 0 && humanCount + computerCount >= 2;
 }
 
 function updateStartGameButton() {

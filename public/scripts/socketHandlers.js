@@ -6,13 +6,7 @@ import * as state from './state.js';
 import { renderGameState } from './render.js';
 import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiHelpers.js';
 
-import {
-  JOINED,
-  PLAYER_JOINED,
-  LOBBY,
-  STATE_UPDATE,
-  REJOIN,
-} from '../src/shared/events.js';
+import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../src/shared/events.js';
 
 export function initializeSocketHandlers() {
   state.socket.on('connect', () => {
@@ -33,18 +27,18 @@ export function initializeSocketHandlers() {
     // Handle player joined logic
   });
 
-  state.socket.on(LOBBY, data => {
+  state.socket.on(LOBBY, (data) => {
     const { roomId, players, maxPlayers } = data;
     showWaitingState(roomId, players.length, maxPlayers, players);
   });
 
-  state.socket.on(STATE_UPDATE, s => {
+  state.socket.on(STATE_UPDATE, (s) => {
     console.log('Received STATE_UPDATE:', s); // Added for debugging
     renderGameState(s);
     if (s.started) showGameTable();
   });
 
-  state.socket.on('err', msg => {
+  state.socket.on('err', (msg) => {
     showError(msg);
   });
 }

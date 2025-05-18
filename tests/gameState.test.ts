@@ -1,7 +1,7 @@
 // tests/gameState.test.ts
 
 import GameState from '../models/GameState.js'; // Ensure this points to GameState.ts
-import { Card } from '../src/types.js';     // Import Card type
+import { Card } from '../src/types.js'; // Import Card type
 
 describe('GameState', () => {
   let gs: GameState;
@@ -34,7 +34,7 @@ describe('GameState', () => {
     // Try to add a 5th player
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     gs.addPlayer('player5');
-    expect(consoleWarnSpy).toHaveBeenCalledWith("Max players reached. Cannot add more players.");
+    expect(consoleWarnSpy).toHaveBeenCalledWith('Max players reached. Cannot add more players.');
     consoleWarnSpy.mockRestore();
     expect(gs.players.length).toBe(4); // Should still be 4 if maxPlayers is enforced
     expect(gs.players).not.toContain('player5');
@@ -123,18 +123,18 @@ describe('GameState', () => {
     });
 
     test('isFourOfAKindOnPile directly compares values, not normalized values', () => {
-        gs.addToPile(createCard('2', 'hearts'));
-        gs.addToPile(createCard(2, 'diamonds')); // number 2
-        gs.addToPile(createCard('2', 'clubs'));
-        gs.addToPile(createCard('2', 'spades'));
-        expect(gs.isFourOfAKindOnPile()).toBe(false); // '2' !== 2
+      gs.addToPile(createCard('2', 'hearts'));
+      gs.addToPile(createCard(2, 'diamonds')); // number 2
+      gs.addToPile(createCard('2', 'clubs'));
+      gs.addToPile(createCard('2', 'spades'));
+      expect(gs.isFourOfAKindOnPile()).toBe(false); // '2' !== 2
 
-        gs.clearPile();
-        gs.addToPile(createCard('A', 'hearts'));
-        gs.addToPile(createCard('A', 'diamonds'));
-        gs.addToPile(createCard('A', 'clubs'));
-        gs.addToPile(createCard('A', 'spades'));
-        expect(gs.isFourOfAKindOnPile()).toBe(true); // All are string 'A'
+      gs.clearPile();
+      gs.addToPile(createCard('A', 'hearts'));
+      gs.addToPile(createCard('A', 'diamonds'));
+      gs.addToPile(createCard('A', 'clubs'));
+      gs.addToPile(createCard('A', 'spades'));
+      expect(gs.isFourOfAKindOnPile()).toBe(true); // All are string 'A'
     });
   });
 

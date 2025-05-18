@@ -1,7 +1,13 @@
 import { Server, Socket } from 'socket.io';
 import GameState, { Card, CardValue } from '../models/GameState.js';
 import Player from '../models/Player.js';
-import { normalizeCardValue, isSpecialCard, isTwoCard, isFiveCard, isTenCard, rank as getCardRank } from '../utils/cardUtils.js';
+import {
+  normalizeCardValue,
+  isSpecialCard,
+  isTwoCard,
+  isFiveCard,
+  isTenCard,
+} from '../utils/cardUtils.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -17,7 +23,7 @@ import {
   PILE_PICKED_UP,
   ERROR as ERROR_EVENT,
   PLAY_CARD,
-  PICK_UP_PILE
+  PICK_UP_PILE,
 } from '../src/shared/events.js';
 
 interface PlayerJoinData {
@@ -82,19 +88,23 @@ export default class GameController {
 
   private setupListeners(socket: Socket): void {
     socket.on(JOIN_GAME, (playerData: PlayerJoinData) => this.handleJoin(socket, playerData));
-    socket.on(START_GAME, (opts: Pick<StartGameOptions, 'computerCount'> = {}) => this.handleStartGame({ ...opts, socket }));
+    socket.on(START_GAME, (opts: Pick<StartGameOptions, 'computerCount'> = {}) =>
+      this.handleStartGame({ ...opts, socket })
+    );
     socket.on(PLAY_CARD, (data: PlayData) => this.handlePlayCard(socket, data));
     socket.on(PICK_UP_PILE, () => this.handlePickUpPile(socket));
-    socket.on(REJOIN, ({ roomId, playerId }: RejoinData) => this.handleRejoin(socket, roomId, playerId));
+    socket.on(REJOIN, ({ roomId, playerId }: RejoinData) =>
+      this.handleRejoin(socket, roomId, playerId)
+    );
     socket.on('disconnect', () => this.handleDisconnect(socket));
     console.log(`[GameController] Listeners set up for socket: ${socket.id}`);
   }
 
-  private getLobbyPlayerList(): {id: string, name: string, disconnected: boolean}[] {
+  private getLobbyPlayerList(): { id: string; name: string; disconnected: boolean }[] {
     return Array.from(this.players.values()).map((p: Player) => ({
-        id: p.id,
-        name: p.name,
-        disconnected: p.disconnected
+      id: p.id,
+      name: p.name,
+      disconnected: p.disconnected,
     }));
   }
 
@@ -128,14 +138,16 @@ export default class GameController {
     let name = playerData.name || `Player-${id.substring(0, 4)}`;
     const numCPUs = playerData.numCPUs || 0;
 
-    console.log(`[GameController] Join attempt: id=${id}, name=${name}, numCPUs=${numCPUs}, socket=${socket.id}`);
+    console.log(
+      `[GameController] Join attempt: id=${id}, name=${name}, numCPUs=${numCPUs}, socket=${socket.id}`
+    );
 
     if (this.players.has(id) && !this.players.get(id)?.disconnected) {
       socket.emit(ERROR_EVENT, `Player ID '${id}' is already active in a game.`);
       console.warn(`[GameController] Join rejected: Player ${id} already active.`);
       return;
     }
-     if (this.players.has(id) && this.players.get(id)?.disconnected) {
+    if (this.players.has(id) && this.players.get(id)?.disconnected) {
       console.log(`[GameController] Player ${id} is rejoining.`);
       this.handleRejoin(socket, 'game-room', id);
       return;
@@ -162,7 +174,9 @@ export default class GameController {
 
     socket.join('game-room');
     socket.emit(JOINED, { id: player.id, name: player.name, roomId: 'game-room' });
-    console.log(`[GameController] Player ${player.name} (${player.id}) joined with socket ${socket.id}. Players count: ${this.players.size}`);
+    console.log(
+      `[GameController] Player ${player.name} (${player.id}) joined with socket ${socket.id}. Players count: ${this.players.size}`
+    );
 
     const currentLobbyPlayers = this.getLobbyPlayerList();
     this.io.to('game-room').emit(PLAYER_JOINED, currentLobbyPlayers);
@@ -174,10 +188,14 @@ export default class GameController {
 
     const autoStartEnabled = true;
     if (autoStartEnabled && this.players.size === 1 && numCPUs > 0 && !this.gameState.started) {
-      console.log(`[GameController] Player ${id} is host. Auto-starting game with ${numCPUs} CPU players.`);
+      console.log(
+        `[GameController] Player ${id} is host. Auto-starting game with ${numCPUs} CPU players.`
+      );
       this.handleStartGame({ computerCount: numCPUs, socket });
     } else {
-      console.log(`[GameController] Not auto-starting. Total Players: ${this.players.size}, Requested CPUs: ${numCPUs}, GameStarted: ${this.gameState.started}`);
+      console.log(
+        `[GameController] Not auto-starting. Total Players: ${this.players.size}, Requested CPUs: ${numCPUs}, GameStarted: ${this.gameState.started}`
+      );
       this.pushState();
     }
   }
@@ -195,20 +213,22 @@ export default class GameController {
       return;
     }
 
-    const currentHumanPlayers = Array.from(this.players.values()).filter((p: Player) => !p.isComputer).length;
+    const currentHumanPlayers = Array.from(this.players.values()).filter(
+      (p: Player) => !p.isComputer
+    ).length;
     if (currentHumanPlayers === 0 && computerCount < 2) {
-        const errorMsg = 'At least two players (humans or CPUs) are required to start.';
-        console.warn(`[GameController] Start game failed: ${errorMsg}`);
-        if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-        else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
-        return;
+      const errorMsg = 'At least two players (humans or CPUs) are required to start.';
+      console.warn(`[GameController] Start game failed: ${errorMsg}`);
+      if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
+      else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
+      return;
     }
-    if (currentHumanPlayers > 0 && (currentHumanPlayers + computerCount) < 2) {
-        const errorMsg = 'At least two total players (humans + CPUs) are required.';
-        console.warn(`[GameController] Start game failed: ${errorMsg}`);
-        if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-        else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
-        return;
+    if (currentHumanPlayers > 0 && currentHumanPlayers + computerCount < 2) {
+      const errorMsg = 'At least two total players (humans + CPUs) are required.';
+      console.warn(`[GameController] Start game failed: ${errorMsg}`);
+      if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
+      else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
+      return;
     }
 
     for (let i = 0; i < computerCount; i++) {
@@ -226,18 +246,20 @@ export default class GameController {
         console.log(`[GameController] Added ${cpuPlayer.name}`);
       }
     }
-    
-    console.log(`[GameController] About to start game instance. Number of players in gameState: ${this.gameState.players.length}`);
+
+    console.log(
+      `[GameController] About to start game instance. Number of players in gameState: ${this.gameState.players.length}`
+    );
     this.gameState.startGameInstance();
     console.log('[GameController] Game instance started and deck built.');
 
     const numPlayers = this.gameState.players.length;
     if (numPlayers < 2) {
-        const errorMsg = `Not enough players to start (need at least 2, have ${numPlayers}).`;
-        console.warn(`[GameController] Start game failed: ${errorMsg}`);
-        if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-        else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
-        return;
+      const errorMsg = `Not enough players to start (need at least 2, have ${numPlayers}).`;
+      console.warn(`[GameController] Start game failed: ${errorMsg}`);
+      if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
+      else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
+      return;
     }
 
     const { hands, upCards, downCards } = this.gameState.dealCards(numPlayers);
@@ -245,7 +267,9 @@ export default class GameController {
     this.gameState.players.forEach((id: string, idx: number) => {
       const player = this.players.get(id);
       if (!player) {
-        console.error(`[GameController] Critical error: Player ${id} not found in map during card dealing.`);
+        console.error(
+          `[GameController] Critical error: Player ${id} not found in map during card dealing.`
+        );
         return;
       }
       player.setHand(hands[idx] || []);
@@ -258,10 +282,10 @@ export default class GameController {
 
     console.log('--- GameController: handleStartGame --- CARDS ASSIGNED ---');
     this.players.forEach((player: Player) => {
-        console.log(`Player ${player.id} (${player.name}):`);
-        console.log(`    Hand: ${player.hand.length}`);
-        console.log(`    UpCards: ${player.upCards.length}`);
-        console.log(`    DownCards: ${player.downCards.length}`);
+      console.log(`Player ${player.id} (${player.name}):`);
+      console.log(`    Hand: ${player.hand.length}`);
+      console.log(`    UpCards: ${player.upCards.length}`);
+      console.log(`    DownCards: ${player.downCards.length}`);
     });
     console.log('------------------------------------');
 
@@ -275,129 +299,158 @@ export default class GameController {
   private handlePlayCard(socket: Socket, { cardIndices, zone }: PlayData): void {
     const playerId = this.socketIdToPlayerId.get(socket.id);
     if (!playerId) {
-      socket.emit(ERROR_EVENT, "Player not recognized.");
+      socket.emit(ERROR_EVENT, 'Player not recognized.');
       return;
     }
 
     const player = this.players.get(playerId);
     if (!player) {
-      socket.emit(ERROR_EVENT, "Player data not found.");
+      socket.emit(ERROR_EVENT, 'Player data not found.');
       return;
     }
 
     if (this.gameState.players[this.gameState.currentPlayerIndex] !== playerId) {
-      socket.emit(ERROR_EVENT, "Not your turn.");
+      socket.emit(ERROR_EVENT, 'Not your turn.');
       return;
     }
 
     if (!cardIndices || cardIndices.length === 0) {
-      socket.emit(ERROR_EVENT, "No cards selected to play.");
+      socket.emit(ERROR_EVENT, 'No cards selected to play.');
       return;
     }
 
     const cardsToPlay: Card[] = [];
-    let validPlay = true;
+    let sourceZone: Card[] | undefined;
+    if (zone === 'hand') sourceZone = player.hand;
+    else if (zone === 'upCards') sourceZone = player.upCards;
+    else if (zone === 'downCards') sourceZone = player.downCards;
 
-    for (const index of cardIndices) {
-        let card: Card | undefined;
-        if (zone === 'hand') card = player.hand[index];
-        else if (zone === 'upCards') card = player.upCards[index];
-        else if (zone === 'downCards') card = player.downCards[0];
-
-        if (!card) {
-            validPlay = false;
-            break;
-        }
-        cardsToPlay.push(card);
+    if (!sourceZone) {
+      socket.emit(ERROR_EVENT, 'Invalid zone.');
+      return;
     }
 
-    if (!validPlay || (zone !== 'downCards' && cardsToPlay.length !== cardIndices.length) || (zone === 'downCards' && cardsToPlay.length !== 1) ) {
-        socket.emit(ERROR_EVENT, "Invalid card selection.");
+    for (const index of cardIndices) {
+      if (index < 0 || index >= sourceZone.length) {
+        socket.emit(ERROR_EVENT, 'Invalid card index.');
         return;
+      }
+      cardsToPlay.push(sourceZone[index]);
+    }
+
+    if (zone === 'downCards' && cardsToPlay.length > 1) {
+      socket.emit(ERROR_EVENT, 'Can only play one down card.');
+      return;
+    }
+
+    this.handlePlayCardInternal(player, cardIndices, zone, cardsToPlay);
+  }
+
+  private handlePlayCardInternal(
+    player: Player,
+    cardIndices: number[],
+    zone: 'hand' | 'upCards' | 'downCards',
+    cardsToPlay: Card[]
+  ): void {
+    if (this.gameState.players[this.gameState.currentPlayerIndex] !== player.id) {
+      console.warn(`[GameController] Play attempt by ${player.name} (${player.id}) out of turn.`);
+      return;
+    }
+    if (cardsToPlay.length === 0) {
+      console.warn(`[GameController] Play attempt by ${player.name} (${player.id}) with no cards.`);
+      return;
     }
 
     const isValid = this.gameState.isValidPlay(cardsToPlay);
-    if (!isValid) {
-        socket.emit(ERROR_EVENT, "Invalid play according to game rules.");
-        return;
+    if (!isValid && zone !== 'downCards') {
+      console.warn(`[GameController] ${player.name} (${player.id}) made an invalid play.`);
+      if (player.isComputer) {
+        this.handlePickUpPileInternal(player);
+      }
+      return;
     }
 
     if (zone === 'hand') {
-        player.setHand(player.hand.filter((_, i) => !cardIndices.includes(i)));
+      player.setHand(player.hand.filter((_, i) => !cardIndices.includes(i)));
     } else if (zone === 'upCards') {
-        player.setUpCards(player.upCards.filter((_, i) => !cardIndices.includes(i)));
+      player.setUpCards(player.upCards.filter((_, i) => !cardIndices.includes(i)));
     } else if (zone === 'downCards') {
-        player.playDownCard();
+      player.playDownCard();
     }
 
-    cardsToPlay.forEach(card => {
-        const normalizedValue = normalizeCardValue(card.value) as CardValue;
-        const playedCardForPile: Card = { ...card, value: normalizedValue };
-        this.gameState.addToPile(playedCardForPile);
+    cardsToPlay.forEach((card) => {
+      const normalizedValue = normalizeCardValue(card.value) as CardValue;
+      const playedCardForPile: Card = { ...card, value: normalizedValue };
+      this.gameState.addToPile(playedCardForPile);
 
-        if (!isSpecialCard(normalizedValue) && !this.gameState.isFourOfAKindOnPile()) {
-            this.gameState.lastRealCard = playedCardForPile;
-        }
+      if (!isSpecialCard(normalizedValue) && !this.gameState.isFourOfAKindOnPile()) {
+        this.gameState.lastRealCard = playedCardForPile;
+      }
     });
 
-    this.io.to('game-room').emit(CARD_PLAYED, { playerId, cards: cardsToPlay, zone });
+    this.io.to('game-room').emit(CARD_PLAYED, { playerId: player.id, cards: cardsToPlay, zone });
 
     const lastPlayedCard = cardsToPlay[0];
     const lastPlayedNormalizedValue = normalizeCardValue(lastPlayedCard.value);
 
-    let effectApplied = false;
+    let pileClearedBySpecial = false;
     if (isTwoCard(lastPlayedNormalizedValue)) {
-        this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: 'two', value: lastPlayedNormalizedValue });
-        this.gameState.clearPile();
-        effectApplied = true;
+      this.io
+        .to('game-room')
+        .emit(SPECIAL_CARD_EFFECT, { type: 'two', value: lastPlayedNormalizedValue });
+      this.gameState.clearPile();
+      pileClearedBySpecial = true;
     } else if (this.gameState.isFourOfAKindOnPile() || isTenCard(lastPlayedNormalizedValue)) {
-        this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four', value: lastPlayedNormalizedValue });
-        this.gameState.clearPile();
-         if (this.gameState.deck && this.gameState.deck.length > 0) {
-            const nextCardFromDeck = this.gameState.deck.pop();
-            if (nextCardFromDeck) {
-                this.gameState.addToPile(nextCardFromDeck);
-                if(!isSpecialCard(normalizeCardValue(nextCardFromDeck.value))) {
-                    this.gameState.lastRealCard = nextCardFromDeck;
-                } else {
-                    this.gameState.lastRealCard = null;
-                }
-            }
+      this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, {
+        type: isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four',
+        value: lastPlayedNormalizedValue,
+      });
+      this.gameState.clearPile();
+      pileClearedBySpecial = true;
+      if (this.gameState.deck && this.gameState.deck.length > 0) {
+        const nextCardFromDeck = this.gameState.deck.pop();
+        if (nextCardFromDeck) {
+          this.gameState.addToPile(nextCardFromDeck);
+          if (!isSpecialCard(normalizeCardValue(nextCardFromDeck.value))) {
+            this.gameState.lastRealCard = nextCardFromDeck;
+          } else {
+            this.gameState.lastRealCard = null;
+          }
         }
-        effectApplied = true;
+      }
     } else if (isFiveCard(lastPlayedNormalizedValue)) {
-        this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: 'five', value: lastPlayedNormalizedValue });
-        if (this.gameState.lastRealCard) {
-            this.gameState.addToPile({ ...this.gameState.lastRealCard, copied: true });
-        }
-        effectApplied = true;
+      this.io
+        .to('game-room')
+        .emit(SPECIAL_CARD_EFFECT, { type: 'five', value: lastPlayedNormalizedValue });
+      if (this.gameState.lastRealCard) {
+        this.gameState.addToPile({ ...this.gameState.lastRealCard, copied: true });
+      }
     }
 
     if (player.hasEmptyHand() && player.hasEmptyUp() && player.hasEmptyDown()) {
-      this.io.to('game-room').emit(GAME_OVER, { winnerId: playerId, winnerName: player.name });
-      console.log(`[GameController] Game Over! Winner: ${player.name} (${playerId})`);
+      this.io.to('game-room').emit(GAME_OVER, { winnerId: player.id, winnerName: player.name });
+      console.log(`[GameController] Game Over! Winner: ${player.name} (${player.id})`);
       this.gameState.endGameInstance();
+      this.pushState();
+      return;
+    }
+
+    if (zone === 'hand' && this.gameState.deck) {
+      while (player.hand.length < 3 && this.gameState.deck.length > 0) {
+        const drawnCard = this.gameState.deck.pop();
+        if (drawnCard) player.hand.push(drawnCard);
+      }
+      player.sortHand();
+    }
+
+    if (pileClearedBySpecial) {
+      this.pushState();
+      this.io.to('game-room').emit(NEXT_TURN, player.id);
+      if (player.isComputer) {
+        setTimeout(() => this.playComputerTurn(player), 1200);
+      }
     } else {
-      if (zone === 'hand' && this.gameState.deck) {
-          while(player.hand.length < 3 && this.gameState.deck.length > 0) {
-              const drawnCard = this.gameState.deck.pop();
-              if (drawnCard) player.hand.push(drawnCard);
-          }
-          player.sortHand();
-      }
-      if (!(isTenCard(lastPlayedNormalizedValue) || this.gameState.isFourOfAKindOnPile())) {
-        this.handleNextTurn();
-      } else {
-        this.pushState();
-        if (this.gameState.pile.length === 0) {
-             this.io.to('game-room').emit(NEXT_TURN, playerId);
-        } else {
-            const currentPlayerInstance = this.players.get(playerId);
-            if (currentPlayerInstance?.isComputer) {
-                setTimeout(() => this.playComputerTurn(playerId), 1200);
-            }
-        }
-      }
+      this.handleNextTurn();
     }
     this.pushState();
   }
@@ -408,42 +461,41 @@ export default class GameController {
 
     const player = this.players.get(playerId);
     if (!player) {
-      socket.emit(ERROR_EVENT, "Player data not found or not your turn to pick up.");
+      socket.emit(ERROR_EVENT, 'Player data not found.');
       return;
     }
+    if (this.gameState.players[this.gameState.currentPlayerIndex] !== playerId) {
+      socket.emit(ERROR_EVENT, 'Not your turn to pick up pile.');
+      return;
+    }
+    this.handlePickUpPileInternal(player);
+  }
 
+  private handlePickUpPileInternal(player: Player): void {
     if (this.gameState.pile.length === 0) {
-        socket.emit(ERROR_EVENT, "Pile is empty, cannot pick up.");
-        return;
+      console.warn(`[GameController] ${player.name} tried to pick up an empty pile.`);
+      if (player.isComputer) this.handleNextTurn();
+      return;
     }
 
     player.pickUpPile([...this.gameState.pile]);
     this.gameState.clearPile();
 
-    this.io.to('game-room').emit(PILE_PICKED_UP, { playerId });
-    console.log(`[GameController] Player ${playerId} picked up the pile.`);
-    this.gameState.advancePlayer();
-    const nextPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
-    this.io.to('game-room').emit(NEXT_TURN, nextPlayerId);
-    console.log(`[GameController] Advanced turn to ${nextPlayerId} after pile pick up.`);
-    this.pushState();
-
-    const nextPlayerInstance = this.players.get(nextPlayerId);
-    if (nextPlayerInstance?.isComputer) {
-        setTimeout(() => this.playComputerTurn(nextPlayerId), 1200);
-    }
+    this.io.to('game-room').emit(PILE_PICKED_UP, { playerId: player.id });
+    console.log(`[GameController] Player ${player.id} picked up the pile.`);
+    this.handleNextTurn();
   }
 
   private handleNextTurn(): void {
     if (!this.gameState.started) {
-        console.log("[GameController] handleNextTurn called but game not started.");
-        this.pushState();
-        return;
+      console.log('[GameController] handleNextTurn called but game not started.');
+      this.pushState();
+      return;
     }
     this.gameState.advancePlayer();
     const nextPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
     if (!nextPlayerId) {
-      console.error("[GameController] Critical: Next player ID is undefined after advancing turn.");
+      console.error('[GameController] Critical: Next player ID is undefined after advancing turn.');
       return;
     }
     this.io.to('game-room').emit(NEXT_TURN, nextPlayerId);
@@ -452,128 +504,72 @@ export default class GameController {
 
     const nextPlayerInstance = this.players.get(nextPlayerId);
     if (nextPlayerInstance?.isComputer) {
-        setTimeout(() => this.playComputerTurn(nextPlayerId), 1200);
+      setTimeout(() => this.playComputerTurn(nextPlayerInstance), 1200);
     }
   }
 
-  private playComputerTurn(cpuPlayerId: string): void {
-    if (!this.gameState.started || this.gameState.players[this.gameState.currentPlayerIndex] !== cpuPlayerId) {
-        return;
-    }
-    const cpu = this.players.get(cpuPlayerId);
-    if (!cpu || !cpu.isComputer) return;
-
-    console.log(`[GameController] CPU ${cpuPlayerId} (${cpu.name}) is taking its turn.`);
-
-    let playedACard = false;
-    let cardToPlayInfo: { card: Card, index: number, zone: 'hand' | 'upCards' | 'downCards' } | null = null;
-
-    if (cpu.hand.length > 0) {
-        for (let i = 0; i < cpu.hand.length; i++) {
-            if (this.gameState.isValidPlay([cpu.hand[i]])) {
-                cardToPlayInfo = { card: cpu.hand[i], index: i, zone: 'hand' };
-                break;
-            }
-        }
-    }
-    if (!cardToPlayInfo && cpu.hand.length === 0 && cpu.upCards.length > 0) {
-        for (let i = 0; i < cpu.upCards.length; i++) {
-            if (this.gameState.isValidPlay([cpu.upCards[i]])) {
-                cardToPlayInfo = { card: cpu.upCards[i], index: i, zone: 'upCards' };
-                break;
-            }
-        }
-    }
-    if (!cardToPlayInfo && cpu.hand.length === 0 && cpu.upCards.length === 0 && cpu.downCards.length > 0) {
-        cardToPlayInfo = { card: cpu.downCards[0], index: 0, zone: 'downCards' };
+  private playComputerTurn(computerPlayer: Player): void {
+    if (
+      !this.gameState.started ||
+      this.gameState.players[this.gameState.currentPlayerIndex] !== computerPlayer.id
+    ) {
+      return;
     }
 
-    if (cardToPlayInfo) {
-        console.log(`[AI] ${cpu.name} attempts to play ${cardToPlayInfo.card.value} of ${cardToPlayInfo.card.suit} from ${cardToPlayInfo.zone}.`);
-        
-        const { card, index, zone } = cardToPlayInfo;
-        let playedCard: Card | undefined;
+    console.log(`[GameController] Computer ${computerPlayer.name} is taking its turn.`);
 
-        if (zone === 'hand') playedCard = cpu.playFromHand(index);
-        else if (zone === 'upCards') playedCard = cpu.playUpCard(index);
-        else if (zone === 'downCards') playedCard = cpu.playDownCard();
+    const bestPlay =
+      this.findBestPlayForComputer(computerPlayer, 'hand') ||
+      this.findBestPlayForComputer(computerPlayer, 'upCards');
 
-        if (playedCard) {
-            if (zone === 'downCards' && !this.gameState.isValidPlay([playedCard])) {
-                console.log(`[AI] ${cpu.name} played an invalid down card: ${playedCard.value}. Picking up pile.`);
-                cpu.hand.push(playedCard);
-                if (this.gameState.pile.length > 0) {
-                    cpu.pickUpPile([...this.gameState.pile]);
-                    this.gameState.clearPile();
-                    this.io.to('game-room').emit(PILE_PICKED_UP, { playerId: cpu.id });
-                }
-                playedACard = false;
-            } else {
-                this.gameState.addToPile(playedCard);
-                if (!isSpecialCard(normalizeCardValue(playedCard.value)) && !this.gameState.isFourOfAKindOnPile()) {
-                    this.gameState.lastRealCard = playedCard;
-                }
-                this.io.to('game-room').emit(CARD_PLAYED, { playerId: cpu.id, cards: [playedCard], zone });
-                playedACard = true;
-
-                const normalizedValue = normalizeCardValue(playedCard.value);
-                if (isTwoCard(normalizedValue)) {
-                    this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: 'two', value: normalizedValue });
-                    this.gameState.clearPile();
-                } else if (this.gameState.isFourOfAKindOnPile() || isTenCard(normalizedValue)) {
-                     this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: isTenCard(normalizedValue) ? 'ten' : 'four', value: normalizedValue });
-                     this.gameState.clearPile();
-                     if (this.gameState.deck && this.gameState.deck.length > 0) {
-                        const nextCard = this.gameState.deck.pop();
-                        if (nextCard) {
-                            this.gameState.addToPile(nextCard);
-                            if(!isSpecialCard(normalizeCardValue(nextCard.value))) this.gameState.lastRealCard = nextCard;
-                            else this.gameState.lastRealCard = null;
-                        }
-                    }
-                } else if (isFiveCard(normalizedValue)) {
-                    this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: 'five', value: normalizedValue });
-                    if (this.gameState.lastRealCard) this.gameState.addToPile({ ...this.gameState.lastRealCard, copied: true });
-                }
-            }
-        }
-    }
-
-    if (playedACard && cpu.hand.length < 3 && cpu.isComputer && this.gameState.deck && this.gameState.deck.length > 0) {
-        while(cpu.hand.length < 3 && this.gameState.deck.length > 0) {
-            const drawn = this.gameState.deck.pop();
-            if(drawn) cpu.hand.push(drawn);
-        }
-        cpu.sortHand();
-    } else if (!playedACard) {
-        console.log(`[AI] ${cpu.name} has no valid play or played invalid down card, picking up pile.`);
-        if (this.gameState.pile.length > 0) {
-            cpu.pickUpPile([...this.gameState.pile]);
-            this.gameState.clearPile();
-            this.io.to('game-room').emit(PILE_PICKED_UP, { playerId: cpu.id });
-        } else {
-             console.log(`[AI] ${cpu.name} tried to pick up an empty pile (or pile was cleared by invalid down play). Passing turn.`);
-        }
-    }
-    
-    if (cpu.hasEmptyHand() && cpu.hasEmptyUp() && cpu.hasEmptyDown()) {
-      this.io.to('game-room').emit(GAME_OVER, { winnerId: cpu.id, winnerName: cpu.name });
-      this.gameState.endGameInstance();
+    if (bestPlay) {
+      console.log(
+        `[GameController] Computer ${computerPlayer.name} will play ${bestPlay.cards.map((c) => `${c.value}${c.suit ? c.suit[0] : ''}`).join(', ')} from ${bestPlay.zone}`
+      );
+      this.handlePlayCardInternal(computerPlayer, bestPlay.indices, bestPlay.zone, bestPlay.cards);
+    } else if (computerPlayer.downCards.length > 0) {
+      const downCardToPlay = computerPlayer.downCards[0];
+      console.log(
+        `[GameController] Computer ${computerPlayer.name} will play a down card: ${downCardToPlay.value}${downCardToPlay.suit ? downCardToPlay.suit[0] : ''}`
+      );
+      this.handlePlayCardInternal(computerPlayer, [0], 'downCards', [downCardToPlay]);
     } else {
-        const lastPlayedValue = cardToPlayInfo && playedACard ? normalizeCardValue(cardToPlayInfo.card.value) : null;
-        if (!(isTenCard(lastPlayedValue) || (this.gameState.isFourOfAKindOnPile() && playedACard))) {
-            this.handleNextTurn();
-        } else {
-            this.pushState();
-             if (this.gameState.pile.length === 0) {
-                 this.io.to('game-room').emit(NEXT_TURN, cpu.id);
-                 setTimeout(() => this.playComputerTurn(cpu.id), 1200);
-            }
+      console.log(
+        `[GameController] Computer ${computerPlayer.name} has no valid plays, picking up pile.`
+      );
+      this.handlePickUpPileInternal(computerPlayer);
+    }
+  }
+
+  private findBestPlayForComputer(
+    player: Player,
+    zone: 'hand' | 'upCards'
+  ): { cards: Card[]; indices: number[]; zone: 'hand' | 'upCards' } | null {
+    const cardsInZone = zone === 'hand' ? player.hand : player.upCards;
+    if (cardsInZone.length === 0) return null;
+
+    for (let i = 0; i < cardsInZone.length; i++) {
+      const firstCard = cardsInZone[i];
+      const sameValueCards = [firstCard];
+      const sameValueIndices = [i];
+      for (let j = i + 1; j < cardsInZone.length; j++) {
+        if (cardsInZone[j].value === firstCard.value) {
+          sameValueCards.push(cardsInZone[j]);
+          sameValueIndices.push(j);
         }
+      }
+      if (this.gameState.isValidPlay(sameValueCards)) {
+        return { cards: sameValueCards, indices: sameValueIndices, zone };
+      }
     }
-    if (!playedACard || (isTenCard(cardToPlayInfo?.card.value) || this.gameState.isFourOfAKindOnPile())) {
-        this.pushState();
+
+    for (let i = 0; i < cardsInZone.length; i++) {
+      const card = cardsInZone[i];
+      if (this.gameState.isValidPlay([card])) {
+        return { cards: [card], indices: [i], zone };
+      }
     }
+    return null;
   }
 
   private handleDisconnect(socket: Socket): void {
@@ -587,11 +583,16 @@ export default class GameController {
       }
       this.socketIdToPlayerId.delete(socket.id);
 
-      const activePlayers = Array.from(this.players.values()).filter((p: Player) => !p.disconnected);
+      const activePlayers = Array.from(this.players.values()).filter(
+        (p: Player) => !p.disconnected
+      );
       if (activePlayers.length === 0 && this.gameState.started) {
-        console.log("[GameController] All players disconnected. Ending game session.");
+        console.log('[GameController] All players disconnected. Ending game session.');
         this.gameState.endGameInstance();
-      } else if (this.gameState.started && playerId === this.gameState.players[this.gameState.currentPlayerIndex]) {
+      } else if (
+        this.gameState.started &&
+        playerId === this.gameState.players[this.gameState.currentPlayerIndex]
+      ) {
         console.log(`[GameController] Current player ${playerId} disconnected. Advancing turn.`);
         this.handleNextTurn();
         return;
@@ -601,36 +602,47 @@ export default class GameController {
     }
     this.pushState();
     this.io.to('game-room').emit(LOBBY, {
-        roomId: 'game-room',
-        players: this.getLobbyPlayerList(),
-        maxPlayers: this.gameState.maxPlayers,
+      roomId: 'game-room',
+      players: this.getLobbyPlayerList(),
+      maxPlayers: this.gameState.maxPlayers,
     });
   }
 
   private pushState(): void {
     if (!this.io) {
-        console.error("[GameController] pushState called but IO is not initialized.");
-        return;
+      console.error('[GameController] pushState called but IO is not initialized.');
+      return;
     }
 
-    const currentPlayerId = this.gameState.started && this.gameState.players.length > 0 && this.gameState.currentPlayerIndex >= 0 && this.gameState.currentPlayerIndex < this.gameState.players.length
+    const currentPlayerId =
+      this.gameState.started &&
+      this.gameState.players.length > 0 &&
+      this.gameState.currentPlayerIndex >= 0 &&
+      this.gameState.currentPlayerIndex < this.gameState.players.length
         ? this.gameState.players[this.gameState.currentPlayerIndex]
         : undefined;
-    
-    console.log(`[pushState] Determined currentPlayerId: ${currentPlayerId} (type: ${typeof currentPlayerId})`);
-    console.log(`[pushState] gameState.players: ${JSON.stringify(this.gameState.players)}, currentPlayerIndex: ${this.gameState.currentPlayerIndex}`);
+
+    console.log(
+      `[pushState] Determined currentPlayerId: ${currentPlayerId} (type: ${typeof currentPlayerId})`
+    );
+    console.log(
+      `[pushState] gameState.players: ${JSON.stringify(this.gameState.players)}, currentPlayerIndex: ${this.gameState.currentPlayerIndex}`
+    );
 
     const stateForEmit: ClientState = {
       players: Array.from(this.players.values()).map((player: Player): ClientStatePlayer => {
-        const isSelf = player.socketId && this.io.sockets.sockets.get(player.socketId) !== undefined;
+        const isSelf =
+          player.socketId && this.io.sockets.sockets.get(player.socketId) !== undefined;
         return {
           id: player.id,
           name: player.name,
           hand: isSelf || player.isComputer ? player.hand : undefined,
           handCount: player.hand.length,
-          upCards: player.upCards, 
+          upCards: player.upCards,
           upCount: player.upCards.length,
-          downCards: isSelf ? player.downCards : player.downCards.map(() => ({ value: '?', suit: '?', back: true } as Card)),
+          downCards: isSelf
+            ? player.downCards
+            : player.downCards.map(() => ({ value: '?', suit: '?', back: true }) as Card),
           downCount: player.downCards.length,
           disconnected: player.disconnected,
         };
@@ -640,34 +652,44 @@ export default class GameController {
       deckCount: this.gameState.deck?.length || 0,
       currentPlayerId: currentPlayerId,
       started: this.gameState.started,
-      lastRealCard: this.gameState.lastRealCard
+      lastRealCard: this.gameState.lastRealCard,
     };
-    
-    console.log("--- GameController: pushState ---");
-    console.log("[pushState] Value of stateForEmit.currentPlayer before stringify:", stateForEmit.currentPlayerId);
-    console.log("---------------------------------");
 
-    this.players.forEach(playerInstance => {
-        if(playerInstance.socketId && !playerInstance.disconnected) {
-            const targetSocket = this.io.sockets.sockets.get(playerInstance.socketId);
-            if (targetSocket) {
-                console.log(`[pushState] Emitting STATE_UPDATE to socket: ${targetSocket.id}, player: ${playerInstance.id}`);
-                const personalizedState: ClientState = {
-                    ...stateForEmit,
-                    players: stateForEmit.players.map(p => ({
-                        ...p,
-                        hand: p.id === playerInstance.id ? p.hand : undefined,
-                        downCards: p.id === playerInstance.id ? p.downCards : p.downCards?.map(() => ({ value: '?', suit: '?', back: true } as Card))
-                    }))
-                };
-                targetSocket.emit(STATE_UPDATE, personalizedState);
-            }
+    console.log('--- GameController: pushState ---');
+    console.log(
+      '[pushState] Value of stateForEmit.currentPlayer before stringify:',
+      stateForEmit.currentPlayerId
+    );
+    console.log('---------------------------------');
+
+    this.players.forEach((playerInstance) => {
+      if (playerInstance.socketId && !playerInstance.disconnected) {
+        const targetSocket = this.io.sockets.sockets.get(playerInstance.socketId);
+        if (targetSocket) {
+          console.log(
+            `[pushState] Emitting STATE_UPDATE to socket: ${targetSocket.id}, player: ${playerInstance.id}`
+          );
+          const personalizedState: ClientState = {
+            ...stateForEmit,
+            players: stateForEmit.players.map((p) => ({
+              ...p,
+              hand: p.id === playerInstance.id ? p.hand : undefined,
+              downCards:
+                p.id === playerInstance.id
+                  ? p.downCards
+                  : p.downCards?.map(() => ({ value: '?', suit: '?', back: true }) as Card),
+            })),
+          };
+          targetSocket.emit(STATE_UPDATE, personalizedState);
         }
+      }
     });
-     if (this.players.size === 0 && !this.gameState.started) {
-        this.io.to('game-room').emit(STATE_UPDATE, stateForEmit);
+    if (this.players.size === 0 && !this.gameState.started) {
+      this.io.to('game-room').emit(STATE_UPDATE, stateForEmit);
     }
 
-    console.log(`[GameController] Pushed state. Current Turn: ${currentPlayerId || 'None'}. Game Started: ${this.gameState.started}`);
+    console.log(
+      `[GameController] Pushed state. Current Turn: ${currentPlayerId || 'None'}. Game Started: ${this.gameState.started}`
+    );
   }
 }

@@ -12,7 +12,8 @@ describe('GameState deck and dealCards', () => {
 
     // Check for uniqueness of card types
     const cardSet = new Set<string>();
-    for (const card of gs.deck!) { // Added !
+    for (const card of gs.deck!) {
+      // Added !
       cardSet.add(`${card.value}-${card.suit}`);
     }
     expect(cardSet.size).toBe(52);
@@ -27,8 +28,9 @@ describe('GameState deck and dealCards', () => {
       }
     }
     let actualDeckString = '';
-    for (const card of gs.deck!) { // Added !
-        actualDeckString += `${card.value}-${card.suit},`;
+    for (const card of gs.deck!) {
+      // Added !
+      actualDeckString += `${card.value}-${card.suit},`;
     }
     expect(actualDeckString).not.toBe(orderedDeckString);
   });
@@ -41,7 +43,8 @@ describe('GameState deck and dealCards', () => {
 
     // Check there are 52 unique types, each appearing twice
     const cardCounts: Record<string, number> = {};
-    for (const card of gs.deck!) { // Added !
+    for (const card of gs.deck!) {
+      // Added !
       const cardKey = `${card.value}-${card.suit}`;
       cardCounts[cardKey] = (cardCounts[cardKey] || 0) + 1;
     }
@@ -50,7 +53,6 @@ describe('GameState deck and dealCards', () => {
       expect(cardCounts[key]).toBe(2);
     }
   });
-
 
   test('dealCards deals correct number of cards to players', () => {
     const gs = new GameState();
@@ -73,7 +75,7 @@ describe('GameState deck and dealCards', () => {
       expect(dealt.downCards[i].length).toBe(handSize);
     }
 
-    const expectedDeckSize = 104 - (numPlayers * cardsPerPlayerTotal);
+    const expectedDeckSize = 104 - numPlayers * cardsPerPlayerTotal;
     expect(gs.deck!.length).toBe(expectedDeckSize); // Added !
   });
 
@@ -92,14 +94,14 @@ describe('GameState deck and dealCards', () => {
     const gs = new GameState();
     // Manually set a tiny deck
     gs.deck = [
-        {value: 'A', suit: 'spades'}, 
-        {value: 'K', suit: 'hearts'}
+      { value: 'A', suit: 'spades' },
+      { value: 'K', suit: 'hearts' },
     ] as Card[]; // Cast to Card[]
-    
+
     // Request 3 hand, 3 up, 3 down = 9 cards for 1 player
     const originalConsoleError = console.error;
     console.error = jest.fn(); // Suppress console.error
-    const dealt: DealtCards = gs.dealCards(1, 3); 
+    const dealt: DealtCards = gs.dealCards(1, 3);
     expect(console.error).toHaveBeenCalled(); // Check that the error was logged as expected
     console.error = originalConsoleError; // Restore console.error
 
@@ -108,7 +110,7 @@ describe('GameState deck and dealCards', () => {
     // If deck has 2 cards, handSize is 3: Math.min(3,2) = 2. Splices 2. Deck is empty.
     // upCards: Math.min(3,0) = 0. Splices 0.
     // downCards: Math.min(3,0) = 0. Splices 0.
-    expect(dealt.hands[0].length).toBe(2); 
+    expect(dealt.hands[0].length).toBe(2);
     expect(dealt.upCards[0].length).toBe(0);
     expect(dealt.downCards[0].length).toBe(0);
     expect(gs.deck!.length).toBe(0); // Added ! (deck is manually set and then emptied)

@@ -6,9 +6,8 @@ import { createCardElement } from './card.js';
 function code(card) {
   // This function is only called by cardImg when card.back is false.
   // So, we expect card.value and card.suit to be present.
-  const v = String(card.value).toUpperCase() === '10' ? '0'
-          : String(card.value).toUpperCase();
-  const s = { hearts:'H', diamonds:'D', clubs:'C', spades:'S' }[card.suit.toLowerCase()]; // Ensure consistent casing for lookup
+  const v = String(card.value).toUpperCase() === '10' ? '0' : String(card.value).toUpperCase();
+  const s = { hearts: 'H', diamonds: 'D', clubs: 'C', spades: 'S' }[card.suit.toLowerCase()]; // Ensure consistent casing for lookup
   return v + s;
 }
 
@@ -110,13 +109,13 @@ export function renderGameState(state) {
   if (slotRight) slotRight.innerHTML = '';
 
   // Remove any previous active highlights
-  document.querySelectorAll('.player-area.active').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.player-area.active').forEach((el) => el.classList.remove('active'));
 
   // --- Robust seat assignment for 2-4 players ---
   const myId = window.sessionStorage.getItem('myId');
   const players = state.players;
   const playerCount = players.length;
-  const meIdx = players.findIndex(p => p.id === myId);
+  const meIdx = players.findIndex((p) => p.id === myId);
   function seatFor(idx) {
     if (playerCount === 2) return idx === meIdx ? 'bottom' : 'top';
     if (playerCount === 3) {
@@ -200,7 +199,10 @@ export function renderGameState(state) {
           downCardImg.classList.add('down-card');
           if (p.id === myId) downCardImg.dataset.idx = String(i + 2000);
         }
-        const upCard = cardImg(c, p.id === myId && state.currentPlayer === myId && p.hand.length === 0);
+        const upCard = cardImg(
+          c,
+          p.id === myId && state.currentPlayer === myId && p.hand.length === 0
+        );
         const upCardImg = upCard.querySelector('.card-img');
         if (upCardImg && upCardImg instanceof HTMLImageElement) {
           upCardImg.classList.add('up-card');
@@ -216,14 +218,25 @@ export function renderGameState(state) {
       for (let i = 0; i < p.downCount; i++) {
         const col = document.createElement('div');
         col.className = 'stack';
-        const downCard = cardImg({ back: true }, p.id === myId && state.currentPlayer === myId && (!p.upCards || p.upCards.length === 0) && i === 0);
+        const downCard = cardImg(
+          { back: true },
+          p.id === myId &&
+            state.currentPlayer === myId &&
+            (!p.upCards || p.upCards.length === 0) &&
+            i === 0
+        );
         const downCardImg = downCard.querySelector('.card-img');
         if (downCardImg && downCardImg instanceof HTMLImageElement) {
           downCardImg.classList.add('down-card');
           if (p.id === myId) downCardImg.dataset.idx = String(i + 2000);
         }
         col.appendChild(downCard);
-        if (p.id === myId && state.currentPlayer === myId && (!p.upCards || p.upCards.length === 0) && i === 0) {
+        if (
+          p.id === myId &&
+          state.currentPlayer === myId &&
+          (!p.upCards || p.upCards.length === 0) &&
+          i === 0
+        ) {
           col.classList.add('playable-stack');
         }
         stackRow.appendChild(col);
@@ -285,11 +298,18 @@ export function showCardEvent(cardValue, type) {
         icon.style.justifyContent = 'center';
         icon.style.alignItems = 'center';
         const fallbackText = document.createElement('div');
-        fallbackText.textContent = type === 'take' ? 'TAKE' : 
-                                  type === 'two' ? 'RESET' :
-                                  type === 'five' ? 'COPY' :
-                                  type === 'ten' ? 'BURN' :
-                                  type === 'four' ? '4X' : 'X';
+        fallbackText.textContent =
+          type === 'take'
+            ? 'TAKE'
+            : type === 'two'
+              ? 'RESET'
+              : type === 'five'
+                ? 'COPY'
+                : type === 'ten'
+                  ? 'BURN'
+                  : type === 'four'
+                    ? '4X'
+                    : 'X';
         fallbackText.style.color = '#000';
         fallbackText.style.fontWeight = 'bold';
         icon.appendChild(fallbackText);

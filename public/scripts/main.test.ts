@@ -36,7 +36,7 @@ describe('Client Main Script (main.ts)', () => {
       });
     } catch (e) {
       errorThrown = true;
-      console.error("Error loading main.ts in test:", e);
+      console.error('Error loading main.ts in test:', e);
     }
     expect(errorThrown).toBe(false);
   });

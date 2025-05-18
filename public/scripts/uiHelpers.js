@@ -40,7 +40,7 @@ export function showWaitingState(roomId, current, max, players = []) {
     if (waitingStateDiv) waitingStateDiv.appendChild(playerList);
   }
   playerList.innerHTML = '';
-  players.forEach(player => {
+  players.forEach((player) => {
     if (player) {
       const li = document.createElement('li');
       li.textContent = player.name || player.id;
