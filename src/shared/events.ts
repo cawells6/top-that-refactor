@@ -11,6 +11,11 @@ export const NEXT_TURN: string = 'next-turn';
 export const GAME_OVER: string = 'game-over';
 export const REJOIN: string = 'rejoin'; // Player attempts to rejoin a game in progress
 
+// New events
+export const PLAY_CARD_VALIDATED: string = 'playCardValidated'; // Server to client (optional)
+export const GAME_LOG_ENTRY: string = 'gameLogEntry'; // Server to clients, payload: { message: string }
+export const PLAYER_ACTION_ERROR: string = 'playerActionError'; // Server to client, payload: { message: string }
+
 // Player actions
 export const PLAY_CARD: string = 'play-card';
 export const PICK_UP_PILE: string = 'pick-up-pile'; // Player chooses to pick up the pile
@@ -19,7 +24,7 @@ export const PILE_PICKED_UP: string = 'pile-picked-up'; // The pile was picked u
 
 // Game state and updates
 export const STATE_UPDATE: string = 'state-update'; // Generic state update from server
-export const SPECIAL_CARD: string = 'special-card'; // Indicates a special card effect (e.g., 2, 5, 10 played)
+export const SPECIAL_CARD_EFFECT: string = 'specialCardEffect'; // Renamed from SPECIAL_CARD, Indicates a special card effect (e.g., 2, 5, 10 played)
 
 // Errors and generic messages
 export const ERROR: string = 'err'; // Generic error message from server
