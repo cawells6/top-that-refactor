@@ -9,6 +9,11 @@ module.exports = {
     '**/?(*.)+(spec|test).(ts|tsx|js|jsx)' // Common alternative pattern
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  moduleNameMapper: {
+    // Handle .js extensions in imports from .ts files
+    // e.g., import GameState from '../models/GameState.js' -> maps to GameState.ts
+    '^(\.\.\/.*)\.js$': '$1',
+  },
   // Add any other specific configurations you had or need
   // For example, setupFilesAfterEnv for @testing-library/jest-dom:
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.js'], // if you have a setup file

@@ -651,6 +651,7 @@ export default class GameController {
         if(playerInstance.socketId && !playerInstance.disconnected) {
             const targetSocket = this.io.sockets.sockets.get(playerInstance.socketId);
             if (targetSocket) {
+                console.log(`[pushState] Emitting STATE_UPDATE to socket: ${targetSocket.id}, player: ${playerInstance.id}`);
                 const personalizedState: ClientState = {
                     ...stateForEmit,
                     players: stateForEmit.players.map(p => ({

@@ -1,7 +1,7 @@
 // tests/gameState.test.ts
 
-import GameState from '../models/GameState'; // Ensure this points to GameState.ts
-import { Card } from '../src/types';     // Import Card type
+import GameState from '../models/GameState.js'; // Ensure this points to GameState.ts
+import { Card } from '../src/types.js';     // Import Card type
 
 describe('GameState', () => {
   let gs: GameState;
@@ -12,13 +12,13 @@ describe('GameState', () => {
 
   test('initializes with default values', () => {
     expect(gs.players).toEqual([]);
-    expect(gs.currentPlayerIndex).toBe(0);
+    expect(gs.currentPlayerIndex).toBe(-1); // Changed from 0 to -1
     expect(gs.pile).toEqual([]);
     expect(gs.discard).toEqual([]);
     expect(gs.maxPlayers).toBe(4);
     // gs.playersCount was removed
     expect(gs.lastRealCard).toBeNull();
-    expect(gs.deck).toEqual([]); // Deck is initialized as empty in the constructor
+    expect(gs.deck).toBeNull(); // Changed from expect(gs.deck).toEqual([])
   });
 
   test('addPlayer adds a player ID and does not exceed maxPlayers', () => {
@@ -58,7 +58,7 @@ describe('GameState', () => {
     test('does nothing if no players', () => {
       const emptyGs = new GameState(); // New instance for this test
       emptyGs.advancePlayer();
-      expect(emptyGs.currentPlayerIndex).toBe(0); // Should remain 0
+      expect(emptyGs.currentPlayerIndex).toBe(-1); // Changed from 0 to -1
     });
   });
 

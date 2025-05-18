@@ -17,17 +17,24 @@ import {
 interface MockSocket {
   id: string;
   join: jest.Mock<void, [string]>;
-  emit: jest.Mock<void, [string, any?]>;
+  emit: jest.Mock<void, [string, any?]>; // Ensure this matches the expected signature
   on: jest.Mock<void, [string, (data?: any, ack?: Function) => void]>;
   eventHandlers: Record<string, (data?: any, ack?: Function) => void>;
   simulateIncomingEvent: (event: string, data?: any, ack?: Function) => void;
   disconnect?: jest.Mock<void, []>;
 }
 
+interface MockIOWithEmit {
+  emit: jest.Mock<void, [string, any?]>;
+}
+
 interface MockIO {
   on: jest.Mock<void, [string, (socket: MockSocket) => void]>;
-  to: jest.Mock<MockIO, [string]>;
+  to: jest.Mock<MockIOWithEmit, [string]>;
   emit: jest.Mock<void, [string, any?]>;
+  sockets: {
+    sockets: Map<string, MockSocket>;
+  };
 }
 
 interface PlayerJoinDataPayload {
@@ -39,26 +46,49 @@ interface PlayerJoinDataPayload {
 // --- Mock Implementations ---
 let globalMockSocket: MockSocket;
 
+const topLevelEmitMock = jest.fn<void, [string, any?]>(); // Explicitly type topLevelEmitMock
+
 const mockIo: MockIO = {
   on: jest.fn((event, handler) => {
     if (event === 'connection') {
-      handler(globalMockSocket);
+      if (globalMockSocket && mockIo.sockets && mockIo.sockets.sockets) {
+        mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
+      }
+      if (handler && globalMockSocket) { // Ensure handler and globalMockSocket are defined
+        handler(globalMockSocket);
+      }
     }
   }),
-  to: jest.fn(function(this: MockIO, roomName: string) {
-    return this;
+  to: jest.fn(function (id: string): MockIOWithEmit { // id can be roomName or socketId
+    console.log(`DEBUG_TEST: mockIo.to CALLED WITH: '${id}'`);
+    const specificEmitMock = jest.fn<void, [string, any?]>((event: string, payload?: any) => {
+        console.log(`DEBUG_TEST: mockIo.to('${id}').emit CALLED -> event: '${event}', payload:`, payload !== undefined ? JSON.stringify(payload) : 'undefined');
+        topLevelEmitMock(event, payload);
+    });
+    return { emit: specificEmitMock };
   }),
-  emit: jest.fn(),
+  emit: jest.fn<void, [string, any?]>((event: string, payload?: any) => { // For direct io.emit
+    console.log(`DEBUG_TEST: mockIo.emit CALLED -> event: '${event}', payload:`, payload !== undefined ? JSON.stringify(payload) : 'undefined');
+    topLevelEmitMock(event, payload);
+  }),
+  sockets: {
+    sockets: new Map<string, MockSocket>(),
+  },
 };
 
 describe('Game Flow - Single Player vs CPU (auto-start)', () => {
   let gameController: GameController;
 
   beforeEach(() => {
+    topLevelEmitMock.mockClear();
+
     globalMockSocket = {
       id: 'socket-id-1',
       join: jest.fn(),
-      emit: jest.fn(),
+      emit: jest.fn((event: string, payload?: any) => {
+        console.log(`DEBUG_TEST: globalMockSocket.emit CALLED -> event: '${event}', payload:`, payload !== undefined ? JSON.stringify(payload) : 'undefined');
+        topLevelEmitMock(event, payload);
+      }),
       on: jest.fn((event, handler) => {
         globalMockSocket.eventHandlers[event] = handler;
       }),
@@ -66,41 +96,43 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
       simulateIncomingEvent: (event, data, ack) => {
         if (globalMockSocket.eventHandlers[event]) {
           globalMockSocket.eventHandlers[event](data, ack);
-        } else {
-          // Optional: log if no handler is found for a simulated event
-          // console.log(`No handler for simulated event: ${event}`);
         }
       },
       disconnect: jest.fn(),
     };
+
+    if (mockIo.sockets && mockIo.sockets.sockets) {
+      mockIo.sockets.sockets.clear();
+      mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
+    }
+
     mockIo.on.mockClear();
     mockIo.to.mockClear();
-    mockIo.emit.mockClear();
     gameController = new GameController(mockIo as any);
   });
 
   test('Player joins, game auto-starts with 1 CPU, initial state is broadcast', () => {
     const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
-    // Simulate the JOIN_GAME event from the client
     globalMockSocket.simulateIncomingEvent(JOIN_GAME, playerData);
 
-    // Initial checks (Player1 should be added immediately by handleJoin)
+    const numCPUsInTest = playerData.numCPUs || 0;
+    console.log('TEST_DEBUG: gameController.players.size after JOIN_GAME:', gameController['players'].size);
+    console.log('TEST_DEBUG: numCPUsInTest (from playerData):', numCPUsInTest);
+    console.log('TEST_DEBUG: gameController.gameState.started after JOIN_GAME:', gameController['gameState'].started);
+    const autoStartConditionInTest = gameController['players'].size === 1 && numCPUsInTest > 0 && !gameController['gameState'].started;
+    console.log('TEST_DEBUG: Calculated autoStartCondition in test:', autoStartConditionInTest);
+
     expect(gameController['gameState'].players).toContain(playerData.id);
     expect(gameController['players'].has(playerData.id!)).toBe(true);
 
-    // The GameController's handleJoin calls handleStartGame (for auto-start),
-    // which then calls pushState. pushState emits STATE_UPDATE.
-    // We need to find the STATE_UPDATE call that indicates the game has started.
-    const stateUpdateAfterAutoStart = mockIo.emit.mock.calls.find(call => call[0] === STATE_UPDATE && call[1]?.started === true);
-    
-    // If this fails, it means the expected STATE_UPDATE (with started:true) wasn't emitted.
-    // Adding a console.log here can help see what *was* emitted if the test fails.
+    const stateUpdateAfterAutoStart = topLevelEmitMock.mock.calls.find(call => call[0] === STATE_UPDATE && call[1]?.started === true);
+
     if (!stateUpdateAfterAutoStart) {
-        console.log('TEST_DEBUG: All mockIo.emit calls in auto-start test:', JSON.stringify(mockIo.emit.mock.calls, null, 2));
+      console.log('TEST_DEBUG: All topLevelEmitMock calls in auto-start test:', JSON.stringify(topLevelEmitMock.mock.calls, null, 2));
     }
     expect(stateUpdateAfterAutoStart).toBeDefined();
+    console.log('TEST_DEBUG: stateUpdateAfterAutoStart[1] in test:', JSON.stringify(stateUpdateAfterAutoStart?.[1], null, 2)); // ADD THIS LINE
 
-    // Now that we have (presumably) found the state update after game start:
     expect(gameController['gameState'].players).toContain('COMPUTER_1');
     expect(gameController['players'].has('COMPUTER_1')).toBe(true);
 
@@ -108,15 +140,13 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
     const cpu1Instance = gameController['players'].get('COMPUTER_1');
     expect(player1Instance!.hand.length).toBe(3);
     expect(cpu1Instance!.hand.length).toBe(3);
-    // For 2 players (Player1 + COMPUTER_1), GameState.buildDeck uses 1 deck (52 cards)
-    // Each gets 3 hand, 3 up, 3 down = 9 cards. Total 18 cards dealt.
     expect(gameController['gameState'].deck.length).toBe(52 - (2 * 9));
 
-    const emittedState = stateUpdateAfterAutoStart![1]; // Asserted it's defined
+    const emittedState = stateUpdateAfterAutoStart![1];
     expect(emittedState.players.length).toBe(2);
-    expect(emittedState.currentPlayer).toBe(playerData.id);
+    expect(emittedState.currentPlayerId).toBe(playerData.id); // CHANGED THIS LINE from .currentPlayer to .currentPlayerId
 
-    const nextTurnArgs = mockIo.emit.mock.calls.find(call => call[0] === NEXT_TURN);
+    const nextTurnArgs = topLevelEmitMock.mock.calls.find(call => call[0] === NEXT_TURN);
     expect(nextTurnArgs).toBeDefined();
     expect(nextTurnArgs![1]).toBe(playerData.id);
   });
@@ -126,10 +156,15 @@ describe('Game Flow - Manual Start by Host', () => {
   let gameController: GameController;
 
   beforeEach(() => {
+    topLevelEmitMock.mockClear();
+
     globalMockSocket = {
       id: 'host-socket-id',
       join: jest.fn(),
-      emit: jest.fn(),
+      emit: jest.fn((event: string, payload?: any) => {
+        console.log(`DEBUG_TEST: globalMockSocket.emit CALLED -> event: '${event}', payload:`, payload !== undefined ? JSON.stringify(payload) : 'undefined');
+        topLevelEmitMock(event, payload);
+      }),
       on: jest.fn((event, handler) => { globalMockSocket.eventHandlers[event] = handler; }),
       eventHandlers: {},
       simulateIncomingEvent: (event, data, ack) => {
@@ -139,41 +174,80 @@ describe('Game Flow - Manual Start by Host', () => {
       },
       disconnect: jest.fn(),
     };
+
+    if (mockIo.sockets && mockIo.sockets.sockets) {
+      mockIo.sockets.sockets.clear();
+      mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
+    }
+
     mockIo.on.mockClear();
     mockIo.to.mockClear();
-    mockIo.emit.mockClear();
+    topLevelEmitMock.mockClear();
     gameController = new GameController(mockIo as any);
   });
 
   test('Host joins (no auto-CPUs), Player2 joins, Host starts game (no explicit CPUs)', () => {
+    topLevelEmitMock.mockClear();
+
+    const originalHostSocketId = globalMockSocket.id;
+    if (mockIo.sockets.sockets.has(originalHostSocketId)) {
+        mockIo.sockets.sockets.delete(originalHostSocketId);
+    }
+
     globalMockSocket.id = 'socket-A';
+    globalMockSocket.emit = jest.fn((event: string, payload?: any) => {
+      console.log(`DEBUG_TEST: globalMockSocket.emit (socket-A) CALLED -> event: '${event}', payload:`, payload !== undefined ? JSON.stringify(payload) : 'undefined');
+      topLevelEmitMock(event, payload);
+    });
+    // Ensure the GameController can find this socket by its new ID
+    if (mockIo.sockets && mockIo.sockets.sockets) { // Ensure sockets map exists
+        mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
+    }
+
     const playerAData: PlayerJoinDataPayload = { name: 'PlayerA', numCPUs: 0, id: 'PlayerA-ID' };
     (gameController['handleJoin'] as Function)(globalMockSocket, playerAData);
 
-    expect(globalMockSocket.emit).toHaveBeenCalledWith(JOINED, { id: playerAData.id, roomId: 'game-room' });
+    expect(globalMockSocket.emit).toHaveBeenCalledWith(JOINED, { id: playerAData.id, name: playerAData.name, roomId: 'game-room' });
     expect(gameController['gameState'].players).toEqual([playerAData.id]);
-    let stateUpdateCallHost = mockIo.emit.mock.calls.find(call => call[0] === STATE_UPDATE && call[1]?.started === false);
+    let stateUpdateCallHost = topLevelEmitMock.mock.calls.find(call => call[0] === STATE_UPDATE && call[1]?.started === false);
     expect(stateUpdateCallHost).toBeDefined();
-    if(stateUpdateCallHost) expect(stateUpdateCallHost[1].players.length).toBe(1);
-    mockIo.emit.mockClear();
+    if (stateUpdateCallHost) expect(stateUpdateCallHost[1].players.length).toBe(1);
+    topLevelEmitMock.mockClear();
     globalMockSocket.emit.mockClear();
 
-    globalMockSocket.id = 'socket-B';
-    const playerBData: PlayerJoinDataPayload = { name: 'PlayerB', numCPUs: 0, id: 'PlayerB-ID' };
-    (gameController['handleJoin'] as Function)(globalMockSocket, playerBData);
+    const playerBJoinSocket: MockSocket = {
+      id: 'socket-B',
+      join: jest.fn(),
+      emit: jest.fn((event: string, payload?: any) => {
+        console.log(`DEBUG_TEST: playerBJoinSocket.emit (socket-B) CALLED -> event: '${event}', payload:`, payload !== undefined ? JSON.stringify(payload) : 'undefined');
+        topLevelEmitMock(event, payload);
+      }),
+      on: jest.fn((event, handler) => { (playerBJoinSocket.eventHandlers as any)[event] = handler; }),
+      eventHandlers: {},
+      simulateIncomingEvent: (event, data, ack) => {
+        if ((playerBJoinSocket.eventHandlers as any)[event]) {
+          (playerBJoinSocket.eventHandlers as any)[event](data, ack);
+        }
+      },
+      disconnect: jest.fn(),
+    };
+    mockIo.sockets.sockets.set(playerBJoinSocket.id, playerBJoinSocket);
 
-    expect(globalMockSocket.emit).toHaveBeenCalledWith(JOINED, { id: playerBData.id, roomId: 'game-room' });
+    const playerBData: PlayerJoinDataPayload = { name: 'PlayerB', numCPUs: 0, id: 'PlayerB-ID' };
+    (gameController['handleJoin'] as Function)(playerBJoinSocket, playerBData);
+
+    expect(playerBJoinSocket.emit).toHaveBeenCalledWith(JOINED, { id: playerBData.id, name: playerBData.name, roomId: 'game-room' });
     expect(gameController['gameState'].players).toEqual([playerAData.id, playerBData.id]);
-    expect(mockIo.emit).toHaveBeenCalledWith(LOBBY, expect.objectContaining({
+    expect(topLevelEmitMock).toHaveBeenCalledWith(LOBBY, expect.objectContaining({
       players: expect.arrayContaining([
         expect.objectContaining({ id: playerAData.id, name: playerAData.name }),
         expect.objectContaining({ id: playerBData.id, name: playerBData.name }),
       ]),
     }));
-    let stateUpdateCallPlayer2 = mockIo.emit.mock.calls.find(call => call[0] === STATE_UPDATE && call[1]?.started === false && call[1]?.players.length === 2);
+    let stateUpdateCallPlayer2 = topLevelEmitMock.mock.calls.find(call => call[0] === STATE_UPDATE && call[1]?.started === false && call[1]?.players.length === 2);
     expect(stateUpdateCallPlayer2).toBeDefined();
-    if(stateUpdateCallPlayer2) expect(stateUpdateCallPlayer2[1].players.length).toBe(2);
-    mockIo.emit.mockClear();
+    if (stateUpdateCallPlayer2) expect(stateUpdateCallPlayer2[1].players.length).toBe(2);
+    topLevelEmitMock.mockClear();
     globalMockSocket.emit.mockClear();
 
     globalMockSocket.id = 'socket-A';
@@ -185,15 +259,15 @@ describe('Game Flow - Manual Start by Host', () => {
     expect(playerA_Instance!.hand.length).toBe(3);
     expect(playerB_Instance!.hand.length).toBe(3);
 
-    const stateUpdateCallStart = mockIo.emit.mock.calls.find(call => call[0] === STATE_UPDATE && call[1]?.started === true);
+    const stateUpdateCallStart = topLevelEmitMock.mock.calls.find(call => call[0] === STATE_UPDATE && call[1]?.started === true);
     expect(stateUpdateCallStart).toBeDefined();
-    if(stateUpdateCallStart) {
-        expect(stateUpdateCallStart[1].players.length).toBe(2);
-        expect(stateUpdateCallStart[1].currentPlayer).toBe(playerAData.id);
+    if (stateUpdateCallStart) {
+      expect(stateUpdateCallStart[1].players.length).toBe(2);
+      expect(stateUpdateCallStart[1].currentPlayerId).toBe(playerAData.id); // Changed from currentPlayer to currentPlayerId
     }
 
-    const nextTurnCall = mockIo.emit.mock.calls.find(call => call[0] === NEXT_TURN);
+    const nextTurnCall = topLevelEmitMock.mock.calls.find(call => call[0] === NEXT_TURN);
     expect(nextTurnCall).toBeDefined();
-    if(nextTurnCall) expect(nextTurnCall[1]).toBe(playerAData.id);
+    if (nextTurnCall) expect(nextTurnCall[1]).toBe(playerAData.id);
   });
 });

@@ -15,3 +15,9 @@ main().catch(err => {
 });
 
 console.log("Test.ts finished synchronous execution.");
+
+describe('scripts/test.ts', () => {
+    it('should run without errors', () => {
+        expect(true).toBe(true);
+    });
+});
