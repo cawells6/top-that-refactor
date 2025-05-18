@@ -1,18 +1,18 @@
 // tests/gameState.deck.test.ts
-import GameState from '../models/GameState';
-import { Card, DealtCards } from '../src/types'; // Import both Card and DealtCards
+import GameState from '../models/GameState.js';
+import { Card, DealtCards } from '../src/types.js'; // Import both Card and DealtCards
 
 describe('GameState deck and dealCards', () => {
   test('buildDeck creates 52 unique cards and shuffles for < 4 players', () => {
     const gs = new GameState();
     gs.players = ['p1', 'p2']; // Simulate less than 4 players
-    gs.buildDeck();
+    gs.startGameInstance(); // Changed from gs.buildDeck()
 
-    expect(gs.deck.length).toBe(52);
+    expect(gs.deck!.length).toBe(52); // Added !
 
     // Check for uniqueness of card types
     const cardSet = new Set<string>();
-    for (const card of gs.deck) {
+    for (const card of gs.deck!) { // Added !
       cardSet.add(`${card.value}-${card.suit}`);
     }
     expect(cardSet.size).toBe(52);
@@ -27,7 +27,7 @@ describe('GameState deck and dealCards', () => {
       }
     }
     let actualDeckString = '';
-    for (const card of gs.deck) {
+    for (const card of gs.deck!) { // Added !
         actualDeckString += `${card.value}-${card.suit},`;
     }
     expect(actualDeckString).not.toBe(orderedDeckString);
@@ -36,12 +36,12 @@ describe('GameState deck and dealCards', () => {
   test('buildDeck creates 104 cards (2 decks) for 4 or more players', () => {
     const gs = new GameState();
     gs.players = ['p1', 'p2', 'p3', 'p4']; // Simulate 4 players
-    gs.buildDeck();
-    expect(gs.deck.length).toBe(104);
+    gs.startGameInstance(); // Changed from gs.buildDeck()
+    expect(gs.deck!.length).toBe(104); // Added !
 
     // Check there are 52 unique types, each appearing twice
     const cardCounts: Record<string, number> = {};
-    for (const card of gs.deck) {
+    for (const card of gs.deck!) { // Added !
       const cardKey = `${card.value}-${card.suit}`;
       cardCounts[cardKey] = (cardCounts[cardKey] || 0) + 1;
     }
@@ -55,7 +55,7 @@ describe('GameState deck and dealCards', () => {
   test('dealCards deals correct number of cards to players', () => {
     const gs = new GameState();
     gs.players = ['p1', 'p2', 'p3', 'p4']; // 4 players, so 2 decks (104 cards)
-    gs.buildDeck();
+    gs.startGameInstance(); // Changed from gs.buildDeck()
 
     const numPlayers = 4;
     const handSize = 3; // Each player gets 3 for hand, 3 for up, 3 for down
@@ -74,18 +74,18 @@ describe('GameState deck and dealCards', () => {
     }
 
     const expectedDeckSize = 104 - (numPlayers * cardsPerPlayerTotal);
-    expect(gs.deck.length).toBe(expectedDeckSize);
+    expect(gs.deck!.length).toBe(expectedDeckSize); // Added !
   });
 
   test('dealCards handles scenario with 0 players', () => {
     const gs = new GameState();
-    // No players assigned to gs.players, so buildDeck will create 1 deck (52 cards)
-    gs.buildDeck();
+    // No players assigned to gs.players
+    gs.startGameInstance(); // Changed from gs.buildDeck()
     const dealt: DealtCards = gs.dealCards(0, 3);
     expect(dealt.hands.length).toBe(0);
     expect(dealt.upCards.length).toBe(0);
     expect(dealt.downCards.length).toBe(0);
-    expect(gs.deck.length).toBe(52); // No cards dealt from a single deck
+    expect(gs.deck!.length).toBe(52); // Added ! (deck should be 52 as per buildDeck logic for <4 players)
   });
 
   test('dealCards handles scenario where deck might not have enough cards (gracefully deals what it can)', () => {
@@ -97,7 +97,11 @@ describe('GameState deck and dealCards', () => {
     ] as Card[]; // Cast to Card[]
     
     // Request 3 hand, 3 up, 3 down = 9 cards for 1 player
+    const originalConsoleError = console.error;
+    console.error = jest.fn(); // Suppress console.error
     const dealt: DealtCards = gs.dealCards(1, 3); 
+    expect(console.error).toHaveBeenCalled(); // Check that the error was logged as expected
+    console.error = originalConsoleError; // Restore console.error
 
     // The current GameState.ts dealCards:
     // hands.push(this.deck.splice(0, Math.min(handSize, this.deck.length)));
@@ -107,6 +111,6 @@ describe('GameState deck and dealCards', () => {
     expect(dealt.hands[0].length).toBe(2); 
     expect(dealt.upCards[0].length).toBe(0);
     expect(dealt.downCards[0].length).toBe(0);
-    expect(gs.deck.length).toBe(0);
+    expect(gs.deck!.length).toBe(0); // Added ! (deck is manually set and then emptied)
   });
 });

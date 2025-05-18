@@ -32,7 +32,10 @@ describe('GameState', () => {
     expect(gs.players.length).toBe(4);
 
     // Try to add a 5th player
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     gs.addPlayer('player5');
+    expect(consoleWarnSpy).toHaveBeenCalledWith("Max players reached. Cannot add more players.");
+    consoleWarnSpy.mockRestore();
     expect(gs.players.length).toBe(4); // Should still be 4 if maxPlayers is enforced
     expect(gs.players).not.toContain('player5');
   });

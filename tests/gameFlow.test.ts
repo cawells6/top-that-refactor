@@ -1,8 +1,8 @@
 // tests/gameFlow.test.ts
-import GameController from '../controllers/GameController';
-import Player from '../models/Player'; // For type hints
-import GameState from '../models/GameState'; // For type hints
-import { Card } from '../src/types';      // For type hints
+import GameController from '../controllers/GameController.js';
+import Player from '../models/Player.js'; // For type hints
+import GameState from '../models/GameState.js'; // For type hints
+import { Card } from '../src/types.js';      // For type hints
 import {
   JOIN_GAME,
   JOINED,
@@ -11,7 +11,7 @@ import {
   START_GAME,
   STATE_UPDATE,
   NEXT_TURN,
-} from '../src/shared/events';
+} from '../src/shared/events.js';
 
 // --- Type Definitions for Mocks ---
 interface MockSocket {
@@ -140,7 +140,7 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
     const cpu1Instance = gameController['players'].get('COMPUTER_1');
     expect(player1Instance!.hand.length).toBe(3);
     expect(cpu1Instance!.hand.length).toBe(3);
-    expect(gameController['gameState'].deck.length).toBe(52 - (2 * 9));
+    expect(gameController['gameState'].deck!.length).toBe(52 - (2 * 9));
 
     const emittedState = stateUpdateAfterAutoStart![1];
     expect(emittedState.players.length).toBe(2);
@@ -253,7 +253,7 @@ describe('Game Flow - Manual Start by Host', () => {
     globalMockSocket.id = 'socket-A';
     globalMockSocket.simulateIncomingEvent(START_GAME, { computerCount: 0 });
 
-    expect(gameController['gameState'].deck.length).toBe(52 - (2 * 9));
+    expect(gameController['gameState'].deck!.length).toBe(52 - (2 * 9));
     const playerA_Instance = gameController['players'].get(playerAData.id!);
     const playerB_Instance = gameController['players'].get(playerBData.id!);
     expect(playerA_Instance!.hand.length).toBe(3);
