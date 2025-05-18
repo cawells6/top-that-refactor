@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "npx ts-node-dev --respawn --transpile-only --watch server.ts --watch controllers/**/*.ts --watch models/**/*.ts --watch src/**/*.ts server.ts",
+    "dev": "npx ts-node-dev --respawn --transpile-only --esm server.ts",
     "force": "npx ts-node ./scripts/force-dev-start.ts",
     "dev:force": "npx ts-node ./scripts/force-dev-start.ts",
     "test": "jest"

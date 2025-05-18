@@ -4,6 +4,7 @@ import os from 'os';
 
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
 
+// ADDED TYPES HERE
 function killProcessByPort(port: number, callback: () => void): void {
     const platform: NodeJS.Platform = os.platform();
     let findPidsCommand = '';
@@ -26,11 +27,11 @@ function killProcessByPort(port: number, callback: () => void): void {
             if (typeof callback === 'function') callback();
             return;
         }
-        if (stderr && platform !== 'win32' && !stdout.trim()) { // Check stdout too for lsof
+        if (stderr && platform !== 'win32' && !stdout.trim()) {
              console.log(`[force-dev-start] 'lsof' stderr (port likely free): ${stderr.trim()}`);
         }
 
-        const pidsToKill: string[] = [];
+        const pidsToKill: string[] = []; // This is already correctly typed in your uploaded file
         const lines = stdout.trim().split(os.EOL).filter(line => line.trim() !== '');
 
         if (lines.length === 0) {
@@ -40,10 +41,9 @@ function killProcessByPort(port: number, callback: () => void): void {
         }
 
         if (platform === 'win32') {
-            const winPids: string[] = [];
+            const winPids: string[] = []; // Correctly typed
             lines.forEach(line => {
                 const parts = line.trim().split(/\s+/);
-                // Ensure the line is for a listening TCP connection on the specified port
                 if (parts.length >= 4 && parts[0].toUpperCase() === 'TCP' && parts[1] && parts[1].endsWith(`:${port}`) && parts[3] === 'LISTENING') {
                     const pid = parts[parts.length - 1];
                     if (pid && /^\d+$/.test(pid) && parseInt(pid, 10) > 0) {
@@ -52,8 +52,8 @@ function killProcessByPort(port: number, callback: () => void): void {
                 }
             });
             pidsToKill.push(...new Set(winPids));
-        } else {
-            lines.forEach(pidStr => {
+        } else { // macOS / Linux
+            lines.forEach(pidStr => { // pidStr is inferred as string from string[]
                 const pid = pidStr.trim();
                 if (pid && /^\d+$/.test(pid)) {
                     pidsToKill.push(pid);
@@ -61,7 +61,7 @@ function killProcessByPort(port: number, callback: () => void): void {
             });
         }
         
-        const uniquePids = [...new Set(pidsToKill)];
+        const uniquePids = [...new Set(pidsToKill)]; // Correctly typed as string[]
 
         if (uniquePids.length === 0) {
             console.log(`[force-dev-start] No specific processes found to kill on port ${port} after filtering.`);
@@ -101,15 +101,12 @@ killProcessByPort(PORT, () => {
         const nodemonPreamble = 'npx';
         const nodemonCmd = 'nodemon';
         
-        // Path to the actual ts-node-dev JavaScript binary
         const tsNodeDevMainScript = './node_modules/ts-node-dev/lib/bin.js';
         
-        // Construct the command for nodemon to execute
-        // This directly invokes node with the ESM loader and ts-node-dev's main script
         const execCmd = `node --loader ts-node/esm ${tsNodeDevMainScript} --respawn --transpile-only server.ts`;
 
         const nodemonArgs = [
-            nodemonCmd, // 'nodemon' command itself, will be prefixed by npx
+            nodemonCmd,
             '--watch', 'server.ts',
             '--watch', 'controllers/**/*.ts',
             '--watch', 'models/**/*.ts',
@@ -119,7 +116,7 @@ killProcessByPort(PORT, () => {
             '--watch', 'package.json',
             '--watch', 'tsconfig.json',
             '--ext', 'ts,js,json', 
-            '--exec', execCmd, // The command nodemon will run
+            '--exec', execCmd,
         ];
 
         console.log(`[force-dev-start] Starting nodemon with command: ${nodemonPreamble} ${nodemonArgs.join(' ')}`);

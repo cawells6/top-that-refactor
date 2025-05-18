@@ -1,10 +1,10 @@
 // models/Player.ts
-import { Card } from '../src/types.js'; // Path to your types.ts file
+import { Card } from '../src/types.js';
 import { rank } from '../utils/cardUtils.js';
 
 export default class Player {
   public id: string;
-  public socketId?: string; // Added: To associate with active socket
+  public socketId?: string;
   public hand: Card[];
   public upCards: Card[];
   public downCards: Card[];
@@ -20,7 +20,6 @@ export default class Player {
     this.name = '';
     this.isComputer = false;
     this.disconnected = false;
-    // socketId will be set when the player connects/reconnects
   }
 
   setHand(cards: Card[]): void {
@@ -48,10 +47,7 @@ export default class Player {
 
   playDownCard(): Card | undefined {
     if (this.downCards.length === 0) return undefined;
-    // Original logic played a random down card, but games often require playing them in order or a specific one.
-    // For now, let's assume playing the first one if not specified otherwise.
-    // const idx = Math.floor(Math.random() * this.downCards.length);
-    return this.downCards.shift(); // Plays the first down card
+    return this.downCards.shift();
   }
 
   pickUpPile(pile: Card[]): void {
