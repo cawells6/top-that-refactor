@@ -1,18 +1,24 @@
-// public/scripts/render.js
-import { stateHistory, stateIndex, pileTransition } from './state.js';
-import { createCardElement } from './card.js';
+// public/scripts/render.ts
+import { Card as CardType } from '@srcTypes/types.js';
+import GameStateType from '@models/GameState.js'; // Reverted to default import
+import PlayerType from '@models/Player.js'; // Reverted to default import
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
-function code(card) {
+function code(card: CardType): string {
   // This function is only called by cardImg when card.back is false.
   // So, we expect card.value and card.suit to be present.
   const v = String(card.value).toUpperCase() === '10' ? '0' : String(card.value).toUpperCase();
-  const s = { hearts: 'H', diamonds: 'D', clubs: 'C', spades: 'S' }[card.suit.toLowerCase()]; // Ensure consistent casing for lookup
+  const suitMap = { hearts: 'H', diamonds: 'D', clubs: 'C', spades: 'S' };
+  const s = suitMap[card.suit.toLowerCase() as keyof typeof suitMap];
   return v + s;
 }
 
 // Produce one <div class="card-container"><img class="card-img" …></div>
-export function cardImg(card, selectable, onLoad) {
+export function cardImg(
+  card: CardType,
+  selectable?: boolean,
+  onLoad?: (img: HTMLImageElement) => void
+): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'card-container';
 
@@ -44,28 +50,29 @@ export function cardImg(card, selectable, onLoad) {
 
 /**
  * Renders the center piles (deck and discard)
- * @param {object} state - Current game state
+ * @param {GameStateType} gameState - Current game state
  */
-export function createCenterPiles(state) {
+export function createCenterPiles(gameState: GameStateType): void {
   const center = document.getElementById('center');
+  if (!center) return;
   center.innerHTML = '';
 
   const wrapper = document.createElement('div');
   wrapper.className = 'center-piles-wrapper';
 
   // Create deck pile with label
-  const deckContainer = createPileContainer('Deck', state.deckCount);
+  const deckContainer = createPileContainer('Deck', gameState.deck?.length || 0);
   const deckPile = createPile('deck');
-  if (state.deckCount > 0) {
-    deckPile.appendChild(cardImg({ back: true }, false));
+  if (gameState.deck && gameState.deck.length > 0) {
+    deckPile.appendChild(cardImg({ back: true } as CardType, false));
   }
   deckContainer.appendChild(deckPile);
 
   // Create discard pile with label
-  const discardContainer = createPileContainer('Discard', state.discardCount);
+  const discardContainer = createPileContainer('Discard', gameState.discard?.length || 0);
   const discardPile = createPile('discard');
-  if (state.pile && state.pile.length) {
-    discardPile.appendChild(cardImg(state.pile[state.pile.length - 1], false));
+  if (gameState.discard && gameState.discard.length) {
+    discardPile.appendChild(cardImg(gameState.discard[gameState.discard.length - 1], false));
   }
   discardContainer.appendChild(discardPile);
 
@@ -76,7 +83,7 @@ export function createCenterPiles(state) {
 /**
  * Creates a container for a pile with label
  */
-function createPileContainer(label, count) {
+function createPileContainer(label: string, count: number): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'center-pile-container';
   container.innerHTML = `<div class="pile-label">${label} (${count})</div>`;
@@ -86,7 +93,7 @@ function createPileContainer(label, count) {
 /**
  * Creates an empty pile element
  */
-function createPile(className) {
+function createPile(className: string): HTMLDivElement {
   const pile = document.createElement('div');
   pile.className = `${className} pile`;
   return pile;
@@ -94,15 +101,15 @@ function createPile(className) {
 
 /**
  * Main render function to update the entire game view
- * @param {object} state - Full game state
+ * @param {GameStateType} gameState - Full game state
  */
-export function renderGameState(state) {
-  console.log('Rendering game state:', state); // Added for debugging
+export function renderGameState(gameState: GameStateType): void {
+  console.log('Rendering game state:', gameState); // Added for debugging
   // Clear all player slots
-  const slotTop = document.querySelector('.table-slot-top');
-  const slotBottom = document.querySelector('.table-slot-bottom');
-  const slotLeft = document.querySelector('.table-slot-left');
-  const slotRight = document.querySelector('.table-slot-right');
+  const slotTop = document.querySelector('.table-slot-top') as HTMLElement | null;
+  const slotBottom = document.querySelector('.table-slot-bottom') as HTMLElement | null;
+  const slotLeft = document.querySelector('.table-slot-left') as HTMLElement | null;
+  const slotRight = document.querySelector('.table-slot-right') as HTMLElement | null;
   if (slotTop) slotTop.innerHTML = '';
   if (slotBottom) slotBottom.innerHTML = '';
   if (slotLeft) slotLeft.innerHTML = '';
@@ -113,10 +120,10 @@ export function renderGameState(state) {
 
   // --- Robust seat assignment for 2-4 players ---
   const myId = window.sessionStorage.getItem('myId');
-  const players = state.players;
+  const players = gameState.players as unknown as PlayerType[];
   const playerCount = players.length;
-  const meIdx = players.findIndex((p) => p.id === myId);
-  function seatFor(idx) {
+  const meIdx = players.findIndex((p: PlayerType) => p.id === myId);
+  function seatFor(idx: number): string {
     if (playerCount === 2) return idx === meIdx ? 'bottom' : 'top';
     if (playerCount === 3) {
       if (idx === meIdx) return 'bottom';
@@ -133,7 +140,7 @@ export function renderGameState(state) {
   }
 
   // --- Render all players in correct slots ---
-  players.forEach((p, idx) => {
+  players.forEach((p: PlayerType, idx: number) => {
     const seat = seatFor(idx);
     let panel = document.createElement('div');
     panel.className = 'player-area' + (p.isComputer ? ' computer-player' : '');
@@ -141,7 +148,9 @@ export function renderGameState(state) {
     if (seat === 'bottom' && p.id === myId) panel.id = 'my-area';
     if (p.isComputer) panel.classList.add('computer-player');
     if (p.disconnected) panel.classList.add('disconnected');
-    if (p.id === state.currentPlayer) panel.classList.add('active');
+    if (p.id === players[gameState.currentPlayerIndex]?.id) {
+      panel.classList.add('active');
+    }
     panel.style.display = 'flex';
     panel.style.flexDirection = 'column';
     panel.style.alignItems = 'center';
@@ -162,19 +171,19 @@ export function renderGameState(state) {
       // Render hand cards for self
       for (let i = 0; i < p.hand.length; i++) {
         const card = p.hand[i];
-        const canInteract = state.currentPlayer === myId;
+        const canInteract = players[gameState.currentPlayerIndex]?.id === myId;
         const container = cardImg(card, canInteract);
         const imgEl = container.querySelector('.card-img');
         if (imgEl && imgEl instanceof HTMLImageElement) imgEl.dataset.idx = String(i);
         handRow.appendChild(container);
       }
-    } else if (p.handCount > 0) {
+    } else if (p.hand?.length > 0) {
       // Show placeholder backs for opponents
-      const displayCount = Math.min(p.handCount, 3);
+      const displayCount = Math.min(p.hand.length, 3);
       for (let i = 0; i < displayCount; i++) {
         const el = document.createElement('div');
         el.className = 'card-placeholder';
-        const cardEl = cardImg({ back: true }, false);
+        const cardEl = cardImg({ back: true } as CardType, false);
         el.appendChild(cardEl);
         handRow.appendChild(el);
       }
@@ -182,7 +191,7 @@ export function renderGameState(state) {
     // Show the actual card count in the section label for opponents
     const handLabel = document.createElement('div');
     handLabel.className = 'row-label';
-    handLabel.textContent = `Hand${p.id === myId ? '' : ' (' + (p.handCount || 0) + ')'}`;
+    handLabel.textContent = `Hand${p.id === myId ? '' : ' (' + (p.hand?.length || 0) + ')'}`;
     panel.appendChild(handLabel);
     panel.appendChild(handRow);
 
@@ -190,10 +199,16 @@ export function renderGameState(state) {
     const stackRow = document.createElement('div');
     stackRow.className = 'stack-row';
     if (p.upCards && p.upCards.length > 0) {
-      p.upCards.forEach((c, i) => {
+      p.upCards.forEach((c: CardType, i: number) => {
         const col = document.createElement('div');
         col.className = 'stack';
-        const downCard = cardImg({ back: true }, false);
+        const downCard = cardImg(
+          { back: true } as CardType,
+          p.id === myId &&
+            players[gameState.currentPlayerIndex]?.id === myId &&
+            (!p.upCards || p.upCards.length === 0) &&
+            i === 0
+        );
         const downCardImg = downCard.querySelector('.card-img');
         if (downCardImg && downCardImg instanceof HTMLImageElement) {
           downCardImg.classList.add('down-card');
@@ -201,7 +216,7 @@ export function renderGameState(state) {
         }
         const upCard = cardImg(
           c,
-          p.id === myId && state.currentPlayer === myId && p.hand.length === 0
+          p.id === myId && players[gameState.currentPlayerIndex]?.id === myId && p.hand.length === 0
         );
         const upCardImg = upCard.querySelector('.card-img');
         if (upCardImg && upCardImg instanceof HTMLImageElement) {
@@ -209,19 +224,23 @@ export function renderGameState(state) {
           if (p.id === myId) upCardImg.dataset.idx = String(i + 1000);
         }
         col.append(downCard, upCard);
-        if (p.id === myId && state.currentPlayer === myId && p.hand.length === 0) {
+        if (
+          p.id === myId &&
+          players[gameState.currentPlayerIndex]?.id === myId &&
+          p.hand.length === 0
+        ) {
           col.classList.add('playable-stack');
         }
         stackRow.appendChild(col);
       });
-    } else if (p.downCount && p.downCount > 0) {
-      for (let i = 0; i < p.downCount; i++) {
+    } else if (p.downCards && p.downCards.length > 0) {
+      for (let i = 0; i < p.downCards.length; i++) {
         const col = document.createElement('div');
         col.className = 'stack';
         const downCard = cardImg(
-          { back: true },
+          { back: true } as CardType,
           p.id === myId &&
-            state.currentPlayer === myId &&
+            players[gameState.currentPlayerIndex]?.id === myId &&
             (!p.upCards || p.upCards.length === 0) &&
             i === 0
         );
@@ -232,10 +251,16 @@ export function renderGameState(state) {
         }
         col.appendChild(downCard);
         if (
-          p.id === myId &&
-          state.currentPlayer === myId &&
-          (!p.upCards || p.upCards.length === 0) &&
-          i === 0
+          (p.id === myId &&
+            players[gameState.currentPlayerIndex]?.id === myId &&
+            p.hand.length === 0 &&
+            (!p.upCards || p.upCards.length === 0) &&
+            i === 0) ||
+          (p.id !== myId &&
+            players[gameState.currentPlayerIndex]?.id === myId &&
+            p.hand.length === 0 &&
+            (!p.upCards || p.upCards.length === 0) &&
+            i === 0)
         ) {
           col.classList.add('playable-stack');
         }
@@ -257,17 +282,17 @@ export function renderGameState(state) {
   });
 
   // Draw center piles
-  createCenterPiles(state);
+  createCenterPiles(gameState);
 }
 
 /**
  * Overlay special card symbol on top of discard pile card
  */
-export function showCardEvent(cardValue, type) {
-  let discardImg = document.querySelector('.discard .card-img');
+export function showCardEvent(cardValue: number | string, type: string): void {
+  let discardImg = document.querySelector('.discard .card-img') as HTMLImageElement | null;
   let retries = 0;
   function tryRunEffect() {
-    discardImg = document.querySelector('.discard .card-img');
+    discardImg = document.querySelector('.discard .card-img') as HTMLImageElement | null;
     if (!discardImg && retries < 5) {
       retries++;
       setTimeout(tryRunEffect, 100);
@@ -276,7 +301,10 @@ export function showCardEvent(cardValue, type) {
     if (!discardImg) return;
     function runEffect() {
       // Remove any existing icon
-      const prev = discardImg.parentElement.querySelector('.special-icon');
+      const parentElement = discardImg!.parentElement;
+      if (!parentElement) return;
+
+      const prev = parentElement.querySelector('.special-icon');
       if (prev) prev.remove();
       // Create an image for the special effect
       const icon = document.createElement('img');
@@ -326,8 +354,8 @@ export function showCardEvent(cardValue, type) {
       icon.style.pointerEvents = 'none';
       icon.style.filter = 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))';
       icon.style.animation = 'iconPulse 1.5s ease-in-out';
-      discardImg.parentElement.style.position = 'relative';
-      discardImg.parentElement.appendChild(icon);
+      parentElement.style.position = 'relative';
+      parentElement.appendChild(icon);
       setTimeout(() => {
         icon.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
         icon.style.opacity = '0';

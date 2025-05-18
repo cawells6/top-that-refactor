@@ -1,14 +1,15 @@
 // @ts-nocheck
-// socketHandlers.js
+// socketHandlers.ts
 // Handles socket events and communication
 
 import * as state from './state.js';
 import { renderGameState } from './render.js';
 import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiHelpers.js';
+import { GameState } from '@models/GameState.js'; // Use path alias
 
-import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../src/shared/events.js';
+import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '@shared/events.js'; // Use path alias
 
-export function initializeSocketHandlers() {
+export function initializeSocketHandlers(): void {
   state.socket.on('connect', () => {
     if (state.myId && state.currentRoom) {
       state.socket.emit(REJOIN, state.myId, state.currentRoom);
@@ -17,7 +18,7 @@ export function initializeSocketHandlers() {
     }
   });
 
-  state.socket.on(JOINED, ({ id, roomId }) => {
+  state.socket.on(JOINED, ({ id, roomId }: { id: string; roomId: string }) => {
     state.setMyId(id);
     state.setCurrentRoom(roomId);
     state.saveSession();
@@ -27,18 +28,18 @@ export function initializeSocketHandlers() {
     // Handle player joined logic
   });
 
-  state.socket.on(LOBBY, (data) => {
+  state.socket.on(LOBBY, (data: { roomId: string; players: any[]; maxPlayers: number }) => {
     const { roomId, players, maxPlayers } = data;
     showWaitingState(roomId, players.length, maxPlayers, players);
   });
 
-  state.socket.on(STATE_UPDATE, (s) => {
+  state.socket.on(STATE_UPDATE, (s: GameState) => {
     console.log('Received STATE_UPDATE:', s); // Added for debugging
     renderGameState(s);
     if (s.started) showGameTable();
   });
 
-  state.socket.on('err', (msg) => {
+  state.socket.on('err', (msg: string) => {
     showError(msg);
   });
 }

@@ -1,20 +1,24 @@
 {
-  "extends": "../../tsconfig.json", // Corrected: Inherit from the root tsconfig.json
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../dist/public/scripts", // Or a suitable output directory for client scripts
-    "rootDir": ".",
-    "module": "ESNext", // Client-side usually uses ES modules
-    "target": "ES2020", // Modern browser compatibility
-    "lib": ["DOM", "ES2020"], // Include DOM typings for browser environment
-    "types": ["jest"], // Include Jest types if you have tests here
-    "noEmit": true // Typically true for client-side TS if bundler handles emission
+    "rootDir": "../..", // Relative to this tsconfig.json, points to project root
+    "baseUrl": "../..", // Relative to this tsconfig.json, points to project root
+    "outDir": "../../dist/public/scripts", // Example of a specific output for client scripts if needed
+    "noEmit": true, // Keep this true, Vite handles emit
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "types": ["jest"],
+    // Paths should be relative to baseUrl (which is now project root)
+    "paths": {
+      "@models/*": ["models/*"],
+      "@shared/*": ["src/shared/*"],
+      "@publicScripts/*": ["public/scripts/*"],
+      "@srcTypes/*": ["src/types.ts"] // Point directly to the types file
+    }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "../../dist" // Exclude the main dist folder
+    "./**/*.ts", // Include all .ts files within public/scripts
+    "../../models/**/*.ts", // Corrected path for models
+    "../../src/shared/**/*.ts", // Corrected path for shared files
+    "../../src/types.ts" // Corrected path for the main types file
   ]
 }

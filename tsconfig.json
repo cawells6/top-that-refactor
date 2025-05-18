@@ -9,11 +9,17 @@
     "allowJs": true,
     "checkJs": false,
     "outDir": "./dist",
-    "rootDir": "./",
-    "noEmit": false,
+    "rootDir": "./", // Project root
+    "noEmit": false, 
     "strict": true,
     "skipLibCheck": true,
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "allowImportingTsExtensions": false, // Explicitly set to false
+    "moduleDetection": "force", // Ensure all files are treated as modules
+    "composite": true, // Added for project references
+    "declaration": true, // Recommended with composite: true
+    "declarationMap": true // Recommended with composite: true
   },
   "ts-node": {
     "esm": true,
@@ -21,19 +27,11 @@
     "transpileOnly": true
   },
   "include": [
-    "controllers/**/*.ts",
-    "models/**/*.ts",
-    "scripts/**/*.ts",
-    "src/**/*.ts",
-    "tests/**/*.ts",
-    "utils/**/*.ts",
-    "vite.config.ts",
-    "server.ts",
-    "jest-globals.d.ts"
+    "**/*.ts" // Include all .ts files in the project
   ],
   "exclude": [
-    "node_modules",
+    "node_modules", 
     "dist",
-    "public/scripts/**/*.js"
+    "public/scripts/tsconfig.json" // Exclude the nested tsconfig
   ]
 }

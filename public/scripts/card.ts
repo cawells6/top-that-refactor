@@ -1,13 +1,18 @@
-// card.js - Handles card rendering logic
+// card.ts - Handles card rendering logic
+import { Card } from '@srcTypes/types.js'; // Use path alias
 
 /**
  * Creates a card element with appropriate styling and behavior
- * @param {object} card - Card data (value, suit, or {back: true})
+ * @param {Card} card - Card data (value, suit, or {back: true})
  * @param {boolean} selectable - Whether the card can be selected
- * @param {Function} onSelect - Optional callback when card is selected
- * @returns {HTMLElement} The card container element
+ * @param {(card: Card, selected: boolean) => void | null} onSelect - Optional callback when card is selected
+ * @returns {HTMLDivElement} The card container element
  */
-export function createCardElement(card, selectable = false, onSelect = null) {
+export function createCardElement(
+  card: Card,
+  selectable = false,
+  onSelect: ((card: Card, selected: boolean) => void) | null = null
+): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'card-container';
 
@@ -50,10 +55,10 @@ export function createCardElement(card, selectable = false, onSelect = null) {
 
 /**
  * Formats card value for file naming
- * @param {string|number} value - Card value (e.g., 2, 10, J, Q, K, A)
+ * @param {string | number} value - Card value (e.g., 2, 10, J, Q, K, A)
  * @returns {string} Formatted card value
  */
-function formatCardValue(value) {
+export function formatCardValue(value: string | number): string {
   const v = String(value).toLowerCase();
   if (v === 'j' || v === 'jack') return 'jack';
   if (v === 'q' || v === 'queen') return 'queen';
