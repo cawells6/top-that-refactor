@@ -2,13 +2,14 @@
   "name": "top-that-refactor",
   "version": "1.0.0",
   "description": "Refactored Top That! card game server and utilities",
-  "main": "server.js",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon --delay 1.5 server.js",
-    "force": "node scripts/force-dev-start.js",
-    "dev:force": "node scripts/force-dev-start.js",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "npx ts-node-dev --respawn --transpile-only --watch server.ts --watch controllers/**/*.ts --watch models/**/*.ts --watch src/**/*.ts server.ts",
+    "force": "npx ts-node ./scripts/force-dev-start.ts",
+    "dev:force": "npx ts-node ./scripts/force-dev-start.ts",
     "test": "jest"
   },
   "dependencies": {
