@@ -8,7 +8,7 @@ import {
   PLAYER_JOINED,
   LOBBY,
   STATE_UPDATE,
-  SPECIAL_CARD,
+  SPECIAL_CARD_EFFECT,
   REJOIN,
   START_GAME,
   NEXT_TURN,
@@ -347,11 +347,11 @@ export default class GameController {
 
     let effectApplied = false;
     if (isTwoCard(lastPlayedNormalizedValue)) {
-        this.io.to('game-room').emit(SPECIAL_CARD, { type: 'two', value: lastPlayedNormalizedValue });
+        this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: 'two', value: lastPlayedNormalizedValue });
         this.gameState.clearPile();
         effectApplied = true;
     } else if (this.gameState.isFourOfAKindOnPile() || isTenCard(lastPlayedNormalizedValue)) {
-        this.io.to('game-room').emit(SPECIAL_CARD, { type: isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four', value: lastPlayedNormalizedValue });
+        this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four', value: lastPlayedNormalizedValue });
         this.gameState.clearPile();
          if (this.gameState.deck && this.gameState.deck.length > 0) {
             const nextCardFromDeck = this.gameState.deck.pop();
@@ -366,7 +366,7 @@ export default class GameController {
         }
         effectApplied = true;
     } else if (isFiveCard(lastPlayedNormalizedValue)) {
-        this.io.to('game-room').emit(SPECIAL_CARD, { type: 'five', value: lastPlayedNormalizedValue });
+        this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: 'five', value: lastPlayedNormalizedValue });
         if (this.gameState.lastRealCard) {
             this.gameState.addToPile({ ...this.gameState.lastRealCard, copied: true });
         }
@@ -518,10 +518,10 @@ export default class GameController {
 
                 const normalizedValue = normalizeCardValue(playedCard.value);
                 if (isTwoCard(normalizedValue)) {
-                    this.io.to('game-room').emit(SPECIAL_CARD, { type: 'two', value: normalizedValue });
+                    this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: 'two', value: normalizedValue });
                     this.gameState.clearPile();
                 } else if (this.gameState.isFourOfAKindOnPile() || isTenCard(normalizedValue)) {
-                     this.io.to('game-room').emit(SPECIAL_CARD, { type: isTenCard(normalizedValue) ? 'ten' : 'four', value: normalizedValue });
+                     this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: isTenCard(normalizedValue) ? 'ten' : 'four', value: normalizedValue });
                      this.gameState.clearPile();
                      if (this.gameState.deck && this.gameState.deck.length > 0) {
                         const nextCard = this.gameState.deck.pop();
@@ -532,7 +532,7 @@ export default class GameController {
                         }
                     }
                 } else if (isFiveCard(normalizedValue)) {
-                    this.io.to('game-room').emit(SPECIAL_CARD, { type: 'five', value: normalizedValue });
+                    this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, { type: 'five', value: normalizedValue });
                     if (this.gameState.lastRealCard) this.gameState.addToPile({ ...this.gameState.lastRealCard, copied: true });
                 }
             }
