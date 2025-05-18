@@ -96,14 +96,10 @@ function killProcessByPort(port: number, callback: () => void): void {
 }
 
 killProcessByPort(PORT, () => {
-    console.log('[force-dev-start] Proceeding to start dev server with ts-node-dev...');
+    console.log('[force-dev-start] Proceeding to start dev server...');
     setTimeout(() => { 
         const nodemonPreamble = 'npx';
         const nodemonCmd = 'nodemon';
-        
-        const tsNodeDevMainScript = './node_modules/ts-node-dev/lib/bin.js';
-        
-        const execCmd = `node --loader ts-node/esm ${tsNodeDevMainScript} --respawn --transpile-only server.ts`;
 
         const nodemonArgs = [
             nodemonCmd,
@@ -116,11 +112,10 @@ killProcessByPort(PORT, () => {
             '--watch', 'package.json',
             '--watch', 'tsconfig.json',
             '--ext', 'ts,js,json', 
-            '--exec', execCmd,
+            '--exec', 'node --loader ts-node/esm ./server.ts',
         ];
 
         console.log(`[force-dev-start] Starting nodemon with command: ${nodemonPreamble} ${nodemonArgs.join(' ')}`);
-        console.log(`[force-dev-start] Full exec command for nodemon: ${execCmd}`);
 
         const nodemonProcess: ChildProcess = spawn(nodemonPreamble, nodemonArgs, {
             stdio: 'inherit', 
@@ -133,7 +128,7 @@ killProcessByPort(PORT, () => {
 
         nodemonProcess.on('error', (err: Error) => {
             console.error(`[force-dev-start] Failed to start nodemon process: ${err.message}`);
-            console.error("[force-dev-start] Ensure nodemon, ts-node, and ts-node-dev are installed correctly and in PATH or node_modules/.bin.");
+            console.error("[force-dev-start] Ensure nodemon and ts-node are installed correctly and in PATH or node_modules/.bin.");
         });
 
         nodemonProcess.on('close', (code: number | null) => {
