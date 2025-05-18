@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Top That! – Card Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Your CSS -->
+
+  <!-- Entry‑point for your client modules -->
+  <script type="module" crossorigin src="/assets/main-BIlJH73a.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/main-ZtqGa-ZQ.css">
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column;">
+  <header class="header" id="main-header">
+    <div class="header__content" style="display: flex; align-items: center; justify-content: space-between; padding: 0 2.5rem; background: #1b2e3c; min-height: 54px;">
+      <div class="header__brand" style="display: flex; flex-direction: column; align-items: flex-start;">
+        <h1 style="color: #FFC300; font-weight: bold; font-size: 1.4rem; letter-spacing: 0.01em; margin: 0;">&#x1F451; Top That!</h1>
+        <span style="color: #FFC300; font-size: 0.95rem; font-weight: 400; margin-top: -2px;">One Pile. One Winner. No Mercy.</span>
+      </div>
+      <button id="rules-button" class="btn btn-primary" style="font-size: 1rem; font-weight: 600; padding: 0.5rem 1.2rem; border-radius: 6px; background: #FFC300; color: #222;">How to Play</button>
+    </div>
+  </header>
+
+  <div class="notice notice--hidden" id="notice-banner"></div>
+  <div class="notice notice--hidden" id="error-banner"></div>
+  <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
+
+  <main class="main-content" id="main-content" style="flex: 1 0 auto; display: flex; flex-direction: column; align-items: center; min-height: 0; justify-content: flex-start; padding-top: 5vh;">
+    <!-- Lobby Screen -->
+    <div class="lobby lobby--hidden" id="lobby-container">
+      <div class="lobby-card" id="lobby-form-card" style="margin-top: 0; padding-top: 1.2rem;">
+        <h2 class="lobby-title" style="color: #FFC300; margin-bottom: 0.7rem; font-size: 1.3rem;">Game Setup</h2>
+        <div class="lobby-form-content" id="lobby-form-content" style="padding-top: 0;">
+          <form id="lobby-form" autocomplete="off" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div class="form-group" style="margin-bottom: 0.3rem;">
+              <label for="name-input" style="display:none;">Name</label>
+              <input type="text" id="name-input" name="playerName" placeholder="Name" style="width: 8.5rem;" />
+            </div>
+            <div id="name-input-error" class="error-message hidden" style="margin-bottom: 0.2rem;">Name is required</div>
+            <div class="participant-inputs-container" style="display: flex; gap: 0.7rem; margin-bottom: 0.2rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="total-players-input">Players</label>
+                <input type="number" id="total-players-input" min="1" max="4" value="1" style="width: 3.5rem;" />
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="cpu-players-input">CPUs</label>
+                <input type="number" id="cpu-players-input" min="0" max="3" value="0" style="width: 3.5rem;" />
+              </div>
+            </div>
+            <div class="lobby-buttons" style="margin: 0 0 0.3rem 0; align-self: center; width: 100%; display: flex; justify-content: center;">
+              <button id="join-game-button" class="btn btn-primary play-button" type="submit" style="margin: 0; min-width: 7.5rem;">Play Game</button>
+            </div>
+            <div id="player-count-error" class="error-message hidden" style="margin-bottom: 0.2rem;">Total players cannot exceed 4.</div>
+            <div id="lobby-player-list-container" class="lobby-player-list-container" style="margin-bottom: 0.2rem;"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Table -->
+    <div class="table table--hidden" id="table">
+      <div class="table-slot table-slot-top"></div>
+      <div class="table-slot table-slot-left"></div>
+      <div class="table-center" id="center"></div>
+      <div class="table-slot table-slot-right"></div>
+      <div class="table-slot table-slot-bottom"></div>
+    </div>
+  </main>
+
+  <section class="game-log game-log--hidden" id="game-log"></section>
+
+  <div class="modal modal--hidden" id="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rules-modal-title">
+    <div class="modal__content rules-modal-content">
+      <button class="modal__close-button" aria-label="Close">&times;</button>
+      <div class="rules-container">
+        <h2 id="rules-modal-title">How to Play Top That!</h2>
+        <button id="expand-collapse-all-btn" class="btn btn-secondary" style="width:100%;margin-bottom:1rem;font-size:1rem;">Expand All</button>
+        <details class="rules-section">
+          <summary class="rules-summary"><h3>1. Getting Started (Game Setup)</h3></summary>
+          <div class="rules-details-content">
+            <ul>
+              <li><strong>Players & Decks:</strong>
+                <ul>
+                  <li>1-4 Players: Use 1 standard deck of 52 cards.</li>
+                  <li>5-8 Players: Use 2 standard decks of 52 cards.</li>
+                </ul>
+              </li>
+              <li><strong>Dealing the Cards:</strong> Each player gets 9 cards in total, dealt in this order:
+                <ol>
+                  <li><strong>Three Face-Down Cards:</strong> Place 3 cards per player in a row, face-down. <em>Don't look at these yet!</em></li>
+                  <li><strong>Three Face-Up Cards:</strong> Place 3 cards per player face-up, directly on top of their face-down cards.</li>
+                  <li><strong>Three Hand Cards:</strong> Deal 3 cards to each player for their starting hand. You can look at these.</li>
+                </ol>
+              </li>
+              <li><strong>The Draw Pile:</strong> Place any remaining cards face-down in the center. This is the <strong>Draw Pile</strong>.</li>
+              <li><strong>The Discard Pile:</strong> Flip the top card of the Draw Pile face-up next to it. This starts the <strong>Discard Pile</strong>.</li>
+            </ul>
+          </div>
+        </details>
+        <hr class="rules-hr">
+        <details class="rules-section">
+          <summary class="rules-summary"><h3>2. How to Play Your Turn</h3></summary>
+          <div class="rules-details-content">
+            <p>Players take turns clockwise. Your main goal on a turn is to play a card (or cards of the same value) from your hand that is <strong>higher in value</strong> than the top card on the Discard Pile. (Aces are high, regular 2s are low).</p>
+            <p><strong>Playing from Your Hand:</strong></p>
+            <ol>
+              <li><strong>Play a Card (or Cards):</strong>
+                <ul>
+                  <li>You can play one card, or multiple cards <em>of the same value</em> (e.g., two 8s, three Kings).</li>
+                  <li>Normally, the card(s) you play must be <strong>higher</strong> than the current top card of the Discard Pile.
+                    <ul>
+                      <li><em>Example:</em> If a 7 is on top, you can play an 8, a Jack, or multiple 9s.</li>
+                    </ul>
+                  </li>
+                  <li>See "Special Cards" and "Four of a Kind" for exceptions to playing higher.</li>
+                </ul>
+              </li>
+              <li><strong>Draw Back Up (If Needed):</strong> If you played from your hand and now have fewer than 3 cards, draw from the Draw Pile until you have 3 cards again (as long as there are cards left in the Draw Pile).</li>
+              <li><strong>Can't Play? Pick Up!</strong>
+                <ul>
+                  <li>If you can't make a legal play from your hand (neither a higher card nor a special card/play), you must pick up the <strong>entire Discard Pile</strong>. These cards are added to your hand. This ends your turn.</li>
+                </ul>
+              </li>
+            </ol>
+            <p><strong>Your Turn Ends</strong> after you've played and drawn (if applicable), or after you've picked up the Discard Pile. Then, it's the next player's turn.</p>
+          </div>
+        </details>
+        <hr class="rules-hr">
+        <details class="rules-section">
+          <summary class="rules-summary"><h3>3. Special Cards & Their Powers!</h3></summary>
+          <div class="rules-details-content">
+            <ul>
+              <li><strong>2 (Reset Card):</strong>
+                <img src="/assets/Reset-icon-BiZJWfxa.png" alt="Reset" class="rules-icon" style="vertical-align:middle;width:1.5em;height:1.5em;margin-left:8px;"/>
+                <ul>
+                  <li>A 2 can be played on <strong>any card</strong>, no matter its value.</li>
+                  <li>It <strong>resets</strong> the Discard Pile. The pile is cleared, and the next player can start a new Discard Pile by playing any card they wish.</li>
+                </ul>
+              </li>
+              <li><strong>5 (Copy Card):</strong>
+                <img src="/assets/Copy-icon-D_RDkLwu.png" alt="Copy" class="rules-icon" style="vertical-align:middle;width:1.5em;height:1.5em;margin-left:8px;"/>
+                <ul>
+                  <li>A 5 <strong>copies the value</strong> of the card directly underneath it on the Discard Pile.</li>
+                  <li><em>Example:</em> If a Jack is showing, and you play a 5 on it, that 5 now acts like a Jack. The next player must beat a Jack.</li>
+                  <li>If a 5 is played on an empty (or just reset) Discard Pile, it just counts as a normal 5.</li>
+                </ul>
+              </li>
+              <li><strong>10 (Burn Card):</strong>
+                <img src="/assets/Burn-icon-C1_hg670.png" alt="Burn" class="rules-icon" style="vertical-align:middle;width:1.5em;height:1.5em;margin-left:8px;"/>
+                <ul>
+                  <li>A 10 can be played on <strong>any card</strong>.</li>
+                  <li>When a 10 is played, the <strong>entire Discard Pile is "burned"</strong> (removed from the game).</li>
+                  <li>If there are no cards left to start a new Discard Pile, the next player may start it with any card from their hand.</li>
+                </ul>
+              </li>
+              <li><strong>Four of a Kind (Burn & Play Any Value):</strong>
+                <img src="/assets/4ofakind-icon-e0qU6jGE.png" alt="Four-of-a-kind" class="rules-icon" style="vertical-align:middle;width:1.5em;height:1.5em;margin-left:8px;"/>
+                <ul>
+                  <li>If you play four cards of the same value at once (e.g., four 7s), this also <strong>burns the Discard Pile</strong>.
+                    <ul>
+                      <li><em>Multi-Deck Note:</em> If using multiple decks, you can play more than four (e.g., five or six of the same card) to activate this burn.</li>
+                    </ul>
+                  </li>
+                  <li><strong>Important:</strong> Four-of-a-Kind can be played even if its value is <strong>not higher</strong> than the top card of the Discard Pile.</li>
+                  <li>The Discard Pile (including the cards that made the Four-of-a-Kind) is removed from the game.</li>
+                  <li>If there are no cards left to start a new Discard Pile, the next player may start it with any card from their hand.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </details>
+        <hr class="rules-hr">
+        <details class="rules-section">
+          <summary class="rules-summary"><h3>4. Playing Your Face-Up & Face-Down Cards</h3></summary>
+          <div class="rules-details-content">
+            <p>You only move to these cards when your <strong>hand is empty</strong>.</p>
+            <ul>
+              <li><strong>Playing Face-Up Cards:</strong>
+                <ol>
+                  <li>Once your hand is empty (and the Draw Pile is also empty, if it wasn't already), you can play from your face-up cards.</li>
+                  <li>Choose <strong>one</strong> face-up card to play. It must be a legal play (higher value or a special card/play).</li>
+                  <li><strong>If you can't play any face-up card:</strong> You must choose one of your face-up cards to add to your hand, and then pick up the <strong>entire Discard Pile</strong>. You'll play from your hand again on your next turns. You can return to playing your remaining face-up cards once your hand is empty again.</li>
+                </ol>
+              </li>
+              <li><strong>Playing Face-Down Cards (The Final Challenge!):</strong>
+                <ol>
+                  <li>Once your hand AND all your face-up cards are gone, you play your face-down cards.</li>
+                  <li>Choose <strong>one</strong> face-down card per turn <em>without looking at it first</em>. Flip it over.
+                    <ul>
+                      <li><strong>If it's a legal play:</strong> Great! It's played on the Discard Pile.</li>
+                      <li><strong>If it's not a legal play:</strong> You must add that revealed face-down card to your hand AND pick up the <strong>entire Discard Pile</strong>. You'll play from your hand again. You can return to playing your remaining face-down cards once your hand is empty again.</li>
+                    </ul>
+                  </li>
+                </ol>
+              </li>
+            </ul>
+          </div>
+        </details>
+        <hr class="rules-hr">
+        <details class="rules-section">
+          <summary class="rules-summary"><h3>5. Winning the Game!</h3></summary>
+          <div class="rules-details-content">
+            <p>The first player to successfully play all of their cards – hand, then all three face-up, then all three face-down – is the <strong>WINNER!</strong></p>
+          </div>
+        </details>
+        <hr class="rules-hr">
+        <details class="rules-section" id="quick-tips-section">
+          <summary class="rules-summary"><h3>6. Quick Tips for New Players</h3></summary>
+          <ul>
+            <li><strong>Play Higher:</strong> Generally, you need to play a card (or cards of the same value) that's higher than the top card on the Discard Pile.</li>
+            <li><strong>Special Cards are Key:</strong> Use 2s, 5s, 10s, and Four-of-a-Kind strategically to change the game!</li>
+            <li><strong>Can't Play? Pick Up:</strong> If you can't make a legal play, you pick up the entire Discard Pile.</li>
+            <li><strong>Card Order:</strong> Play cards from your Hand first, then your Face-Up cards, and finally your Face-Down cards.</li>
+          </ul>
+        </details>
+        <button class="btn btn-primary rules-gotit-btn" id="rules-gotit-btn" style="width:100%;margin-top:1.1rem;font-size:1.1rem;">Got it!</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+  <script>
+    // Ensure lobby is visible on load if it starts hidden
+    document.addEventListener('DOMContentLoaded', function() {
+      var lobby = document.getElementById('lobby-container');
+      if (lobby && lobby.classList.contains('lobby--hidden')) {
+        lobby.classList.remove('lobby--hidden');
+      }
+    });
+  </script>
+</body>
+</html>

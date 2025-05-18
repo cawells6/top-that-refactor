@@ -1,12 +1,12 @@
 // jest.config.cjs
 module.exports = {
-  testEnvironment: 'jsdom', // Or 'node' if some tests are purely Node.js
+  testEnvironment: 'jsdom', // Recommended for client-side tests
   transform: {
     '^.+\\.(ts|tsx|js|jsx)$': 'babel-jest',
   },
   testMatch: [
-    '**/tests/**/*.test.(ts|tsx|js|jsx)', // Matches files like your-test.test.ts in tests folder
-    '**/?(*.)+(spec|test).(ts|tsx|js|jsx)' // Common alternative pattern
+    '**/tests/**/*.test.ts',         // Server-side tests
+    '**/public/scripts/**/*.test.ts' // Client-side tests
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {
