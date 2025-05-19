@@ -292,6 +292,7 @@ export default class GameController {
     const firstPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
     console.log(`[GameController] Game started. First turn: ${firstPlayerId}`);
 
+    console.log(`[DEBUG_handleStartGame] JUST BEFORE PUSHSTATE - this.gameState.started is: ${this.gameState.started}`);
     this.pushState();
     this.io.to('game-room').emit(NEXT_TURN, firstPlayerId);
   }
@@ -371,9 +372,9 @@ export default class GameController {
     }
 
     if (zone === 'hand') {
-      player.setHand(player.hand.filter((_, i) => !cardIndices.includes(i)));
+      player.setHand(player.hand.filter((_: Card, i: number) => !cardIndices.includes(i)));
     } else if (zone === 'upCards') {
-      player.setUpCards(player.upCards.filter((_, i) => !cardIndices.includes(i)));
+      player.setUpCards(player.upCards.filter((_: Card, i: number) => !cardIndices.includes(i)));
     } else if (zone === 'downCards') {
       player.playDownCard();
     }
@@ -609,11 +610,8 @@ export default class GameController {
   }
 
   private pushState(): void {
-    if (!this.io) {
-      console.error('[GameController] pushState called but IO is not initialized.');
-      return;
-    }
-
+    console.log(`[DEBUG_pushState_Entry] Value of this.gameState.started: ${this.gameState.started}`);
+    console.log(`[DEBUG_pushState_Entry] Value of this.gameState object: ${JSON.stringify(this.gameState, null, 2)}`);
     const currentPlayerId =
       this.gameState.started &&
       this.gameState.players.length > 0 &&
