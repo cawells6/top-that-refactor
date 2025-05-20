@@ -12,7 +12,8 @@
       "@models/*": ["models/*"],
       "@shared/*": ["src/shared/*"],
       "@publicScripts/*": ["public/scripts/*"],
-      "@srcTypes/*": ["src/types.ts"] // Point directly to the types file
+      "@srcTypes/*": ["src/types.ts"], // Point directly to the types file
+      "@srcTypes/types": ["src/types.ts"]
     },
     "moduleResolution": "NodeNext", // Set to NodeNext
     "allowImportingTsExtensions": true // Keep this

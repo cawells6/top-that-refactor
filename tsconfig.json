@@ -19,7 +19,16 @@
     "moduleDetection": "force", // Ensure all files are treated as modules
     "composite": true, // Added for project references
     "declaration": true, // Recommended with composite: true
-    "declarationMap": true // Recommended with composite: true
+    "declarationMap": true, // Recommended with composite: true
+    "baseUrl": "./", // <--- ADDED (points to your project root)
+    "paths": {
+      "@srcTypes/*": ["src/types/*"],
+      "@models/*": ["models/*"],
+      "@utils/*": ["utils/*"],
+      "@shared/*": ["src/shared/*"],
+      "@controllers/*": ["controllers/*"],
+      "@publicScripts/*": ["public/scripts/*"]
+    }
     // Ensure there is no "bundler" option here
   },
   "ts-node": {
