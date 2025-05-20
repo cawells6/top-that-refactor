@@ -13,7 +13,9 @@
       "@shared/*": ["src/shared/*"],
       "@publicScripts/*": ["public/scripts/*"],
       "@srcTypes/*": ["src/types.ts"] // Point directly to the types file
-    }
+    },
+    "moduleResolution": "NodeNext", // Set to NodeNext
+    "allowImportingTsExtensions": true // Keep this
   },
   "include": [
     "./**/*.ts", // Include all .ts files within public/scripts

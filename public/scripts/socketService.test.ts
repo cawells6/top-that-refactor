@@ -4,7 +4,7 @@
 import { initializeSocketHandlers } from './socketService.js';
 
 // Mocks for state, render, and uiManager modules
-jest.mock('./state.js', () => ({
+jest.mock('./state', () => ({ // Removed .js
   socket: {
     on: jest.fn(),
     emit: jest.fn(),
@@ -15,10 +15,10 @@ jest.mock('./state.js', () => ({
   setCurrentRoom: jest.fn(),
   saveSession: jest.fn(),
 }));
-jest.mock('./render.js', () => ({
+jest.mock('./render', () => ({ // Removed .js
   renderGameState: jest.fn(),
 }));
-jest.mock('./uiManager.js', () => ({
+jest.mock('./uiManager', () => ({ // Removed .js
   showLobbyForm: jest.fn(),
   showWaitingState: jest.fn(),
   showGameTable: jest.fn(),

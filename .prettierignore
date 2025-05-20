@@ -1,9 +1,9 @@
 # Ignore build output
-dist
+dist/
 dist-server
 
 # Ignore dependencies
-node_modules
+node_modules/
 
 # Lockfiles
 package-lock.json
@@ -11,8 +11,9 @@ yarn.lock
 pnpm-lock.yaml
 
 # Coverage reports
-coverage
+coverage/
 
 # Other generated files or directories
 .DS_Store
 *.log
+*.archived

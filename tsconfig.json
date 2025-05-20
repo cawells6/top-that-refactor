@@ -10,16 +10,17 @@
     "checkJs": false,
     "outDir": "./dist",
     "rootDir": "./", // Project root
-    "noEmit": false, 
+    "noEmit": true, // Updated to true to satisfy allowImportingTsExtensions
     "strict": true,
     "skipLibCheck": true,
     "types": ["jest", "node"],
     "lib": ["es2022", "dom", "dom.iterable"],
-    "allowImportingTsExtensions": false, // Explicitly set to false
+    "allowImportingTsExtensions": true, // Updated to true
     "moduleDetection": "force", // Ensure all files are treated as modules
     "composite": true, // Added for project references
     "declaration": true, // Recommended with composite: true
     "declarationMap": true // Recommended with composite: true
+    // Ensure there is no "bundler" option here
   },
   "ts-node": {
     "esm": true,

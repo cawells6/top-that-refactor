@@ -1,5 +1,5 @@
 // public/scripts/state.ts
-import { io, Socket } from 'socket.io-client'; // Corrected import quote style
+import { io, Socket } from 'socket.io-client'; // Corrected import
 
 export const socket: Socket = io({
   reconnection: true,
