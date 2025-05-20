@@ -1,6 +1,7 @@
 // vite.config.ts
-import { defineConfig } from 'vite';
 import path from 'path'; // Node.js path module
+
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   // Set the 'public' directory as the root for Vite's dev server

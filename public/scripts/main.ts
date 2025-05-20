@@ -1,7 +1,7 @@
 // public/scripts/main.ts
-import { socket } from './state.js'; // Use shared socket
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
+import { socket } from './state.js'; // Use shared socket
 
 console.log('[Client] main.ts loaded successfully via Vite!');
 

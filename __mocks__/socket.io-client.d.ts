@@ -10,7 +10,7 @@ interface MockSocket extends Socket {
   id: string;
 }
 
-// Define type for our mock io function 
+// Define type for our mock io function
 interface MockIoFunction extends jest.Mock<MockSocket> {
   (uri?: string, opts?: any): MockSocket;
   connect: jest.Mock<MockSocket>;

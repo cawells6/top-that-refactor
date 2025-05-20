@@ -5,15 +5,15 @@ import tsPlugin from '@typescript-eslint/eslint-plugin';
 import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 import originalGlobals from 'globals'; // Import original globals
+import importPlugin from 'eslint-plugin-import';
+import promisePlugin from 'eslint-plugin-promise'; // Added promise plugin
 
 // Helper function to trim keys of an object
 const trimGlobalKeys = (obj) => {
   if (!obj || typeof obj !== 'object') {
     return obj;
   }
-  return Object.fromEntries(
-    Object.entries(obj).map(([key, value]) => [key.trim(), value])
-  );
+  return Object.fromEntries(Object.entries(obj).map(([key, value]) => [key.trim(), value]));
 };
 
 // Create sanitized versions of globals
@@ -32,7 +32,6 @@ export default [
       'dist/',
       'node_modules/',
       '**/*.d.ts', // Ignore all TypeScript declaration files
-      '.eslintrc.js', // Ignore old ESLint config file
       'vite.config.ts*.timestamp-*',
       'public/scripts/**/*.js', // JS files in public/scripts handled by their own block
     ],
@@ -42,11 +41,9 @@ export default [
 
   // 2. Main TypeScript Configuration (Server, Scripts, Root TS files, Non-client Tests)
   {
-    files: [
-      '**/*.ts',
-      '**/*.tsx',
-    ],
-    ignores: [ // Exclude files handled by more specific configurations
+    files: ['**/*.ts', '**/*.tsx'],
+    ignores: [
+      // Exclude files handled by more specific configurations
       'public/scripts/**/*.ts',
       'public/scripts/**/*.tsx',
     ],
@@ -67,6 +64,8 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       prettier: prettierPlugin,
+      import: importPlugin,
+      promise: promisePlugin, // Added promise plugin
     },
     rules: {
       'prettier/prettier': 'error',
@@ -74,7 +73,43 @@ export default [
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // Updated
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-var-requires': 'warn', // Added
       'no-undef': 'off', // Updated: TypeScript handles this
+      'import/order': [
+        'warn',
+        {
+          groups: ['builtin', 'external', 'internal', ['parent', 'sibling', 'index']],
+          pathGroups: [
+            { pattern: 'react', group: 'external', position: 'before' },
+            { pattern: '@/', group: 'internal', position: 'before' },
+            { pattern: '@shared/', group: 'internal', position: 'before' },
+            { pattern: '@models/', group: 'internal', position: 'before' },
+            { pattern: '@publicScripts/', group: 'internal', position: 'before' },
+            { pattern: '@srcTypes/', group: 'internal', position: 'before' },
+          ],
+          pathGroupsExcludedImportTypes: ['react'],
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
+      'import/prefer-default-export': 'off',
+      'import/no-unresolved': 'off', // Rely on TypeScript/parserOptions.project
+      'promise/always-return': 'warn', // Added promise rule
+      'promise/catch-or-return': [
+        'warn',
+        { terminationMethod: ['catch', 'asCallback', 'finally'] },
+      ], // Added promise rule
+      eqeqeq: ['error', 'always', { null: 'ignore' }], // Added
+      'no-else-return': ['warn', { allowElseIf: false }], // Added
+      'no-extra-semi': 'warn', // Added
+      'no-useless-escape': 'warn', // Added
+    },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: ['./tsconfig.json', './tsconfig.node.json'], // For the main/server TS block
+        },
+      },
     },
   },
 
@@ -98,6 +133,8 @@ export default [
     plugins: {
       '@typescript-eslint': tsPlugin,
       prettier: prettierPlugin,
+      import: importPlugin,
+      promise: promisePlugin, // Added promise plugin
     },
     rules: {
       'prettier/prettier': 'error',
@@ -105,7 +142,43 @@ export default [
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // Updated
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-var-requires': 'warn', // Added
       'no-undef': 'off', // Updated: TypeScript handles this
+      'import/order': [
+        'warn',
+        {
+          groups: ['builtin', 'external', 'internal', ['parent', 'sibling', 'index']],
+          pathGroups: [
+            { pattern: 'react', group: 'external', position: 'before' },
+            { pattern: '@/', group: 'internal', position: 'before' },
+            { pattern: '@shared/', group: 'internal', position: 'before' },
+            { pattern: '@models/', group: 'internal', position: 'before' },
+            { pattern: '@publicScripts/', group: 'internal', position: 'before' },
+            { pattern: '@srcTypes/', group: 'internal', position: 'before' },
+          ],
+          pathGroupsExcludedImportTypes: ['react'],
+          'newlines-between': 'always',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
+      'import/prefer-default-export': 'off',
+      'import/no-unresolved': 'off', // Rely on TypeScript/parserOptions.project
+      'promise/always-return': 'warn', // Added promise rule
+      'promise/catch-or-return': [
+        'warn',
+        { terminationMethod: ['catch', 'asCallback', 'finally'] },
+      ], // Added promise rule
+      eqeqeq: ['error', 'always', { null: 'ignore' }], // Added
+      'no-else-return': ['warn', { allowElseIf: false }], // Added
+      'no-extra-semi': 'warn', // Added
+      'no-useless-escape': 'warn', // Added
+    },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: './public/scripts/tsconfig.json', // For the client-side TS block
+        },
+      },
     },
   },
 
@@ -178,7 +251,7 @@ export default [
       'no-undef': 'error',
     },
   },
-  
+
   // 7. Test File Configuration (specific to server-side tests, client tests handled in client TS block)
   {
     files: ['tests/**/*.ts', 'tests/**/*.tsx'],
@@ -189,7 +262,8 @@ export default [
         ...globals.es2021,
         ...globals.browser, // For tests like lobbyForm.test.ts
       },
-      parserOptions: { // Ensure parser options are set for test files if not inheriting correctly
+      parserOptions: {
+        // Ensure parser options are set for test files if not inheriting correctly
         project: ['./tsconfig.json'], // Or a specific tsconfig.test.json
         sourceType: 'module',
         ecmaVersion: 'latest',

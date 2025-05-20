@@ -38,9 +38,5 @@
     "tests/**/*.ts",
     "jest-globals.d.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "public/scripts/tsconfig.json"
-  ]
+  "exclude": ["node_modules", "dist", "public/scripts/tsconfig.json"]
 }

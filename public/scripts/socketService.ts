@@ -1,5 +1,5 @@
-import * as state from './state.js';
 import { renderGameState } from './render.js';
+import * as state from './state.js';
 import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
 import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
 

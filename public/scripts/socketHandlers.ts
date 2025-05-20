@@ -2,11 +2,11 @@
 // socketHandlers.ts
 // Handles socket events and communication
 
-import * as state from './state'; // Removed .js
-import { renderGameState } from './render'; // Removed .js
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager'; // Removed .js
 import { GameState } from '@models/GameState'; // Use path alias
 
+import { renderGameState } from './render'; // Removed .js
+import * as state from './state'; // Removed .js
+import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager'; // Removed .js
 import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
 
 export function initializeSocketHandlers(): void {

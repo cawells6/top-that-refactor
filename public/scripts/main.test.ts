@@ -1,18 +1,17 @@
-/* eslint-disable prettier/prettier */
 /** @jest-environment jsdom */
 
 // Mock dependencies
 jest.mock(
   './state.js',
   () => ({
-    socket: { on: jest.fn(), emit: jest.fn(), id: 'mock-socket-id', },
+    socket: { on: jest.fn(), emit: jest.fn(), id: 'mock-socket-id' },
     myId: null,
     currentRoom: null,
     setMyId: jest.fn(),
     setCurrentRoom: jest.fn(),
     saveSession: jest.fn(),
   }),
-  { virtual: true },
+  { virtual: true }
 );
 
 jest.mock(
@@ -21,7 +20,7 @@ jest.mock(
     renderGameState: jest.fn(),
     renderLobby: jest.fn(),
   }),
-  { virtual: true },
+  { virtual: true }
 );
 
 jest.mock(
@@ -30,7 +29,7 @@ jest.mock(
     showLobbyForm: jest.fn(),
     showWaitingState: jest.fn(),
   }),
-  { virtual: true },
+  { virtual: true }
 );
 
 jest.mock(
@@ -38,7 +37,7 @@ jest.mock(
   () => ({
     initializePageEventListeners: jest.fn(),
   }),
-  { virtual: true },
+  { virtual: true }
 );
 
 jest.mock(
@@ -46,7 +45,7 @@ jest.mock(
   () => ({
     initializeSocketHandlers: jest.fn(),
   }),
-  { virtual: true },
+  { virtual: true }
 );
 
 describe('Client Main Script (main.ts)', () => {

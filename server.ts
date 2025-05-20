@@ -1,6 +1,8 @@
-import express, { Express, Request, Response } from 'express';
 import http from 'http';
+
+import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
+
 import GameController from './controllers/GameController.js';
 
 const app: Express = express();

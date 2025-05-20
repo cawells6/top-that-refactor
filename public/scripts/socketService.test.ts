@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+/* eslint-disable import/order */ // TODO: Re-evaluate import order for this file
 import { initializeSocketHandlers } from './socketService.js';
 
 // Mocks for state, render, and uiManager modules
@@ -27,8 +28,8 @@ jest.mock('./uiManager.js', () => ({
   showError: jest.fn(),
 }));
 
-import * as state from './state.js';
 import * as render from './render.js';
+import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 
 const JOINED = 'joined';

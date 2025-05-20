@@ -1,13 +1,7 @@
 import { Server, Socket } from 'socket.io';
+
 import GameState, { Card, CardValue } from '../models/GameState.js';
 import Player from '../models/Player.js';
-import {
-  normalizeCardValue,
-  isSpecialCard,
-  isTwoCard,
-  isFiveCard,
-  isTenCard,
-} from '../utils/cardUtils.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -25,6 +19,13 @@ import {
   PLAY_CARD,
   PICK_UP_PILE,
 } from '../src/shared/events.js';
+import {
+  normalizeCardValue,
+  isSpecialCard,
+  isTwoCard,
+  isFiveCard,
+  isTenCard,
+} from '../utils/cardUtils.js';
 
 interface PlayerJoinData {
   id?: string;

@@ -8,45 +8,47 @@
 // Corrected line 2:
 import { Card } from '@srcTypes/types'; // Use path alias
 
-/**
- * Creates a card element with appropriate styling and behavior
- * @param {Card} card - Card data (value, suit, or {back: true})
- * @param {boolean} selectable - Whether the card can be selected
- * @param {(card: Card, selected: boolean) => void | null} onSelect - Optional callback when card is selected
- * @returns {HTMLDivElement} The card container element
- */
-export function createCardElement(
+/\*\*
+
+- Creates a card element with appropriate styling and behavior
+- @param {Card} card - Card data (value, suit, or {back: true})
+- @param {boolean} selectable - Whether the card can be selected
+- @param {(card: Card, selected: boolean) => void | null} onSelect - Optional callback when card is selected
+- @returns {HTMLDivElement} The card container element
+  \*/
+  export function createCardElement(
   card: Card,
   selectable = false,
   onSelect: ((card: Card, selected: boolean) => void) | null = null
-): HTMLDivElement {
+  ): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'card-container';
 
-  const img = document.createElement('img');
-  img.className = 'card-img';
+const img = document.createElement('img');
+img.className = 'card-img';
 
-  // Handle back of card vs face
-  if (card.back) {
-    img.src = '/assets/cards/back.png'; // Ensure this path is correct relative to your public dir
-    img.alt = 'Card Back';
-  } else {
-    // Format card values for image src
-    const value = formatCardValue(card.value);
-    const suit = card.suit.toLowerCase();
-    img.src = `/assets/cards/${value}_of_${suit}.png`; // Ensure this path is correct
-    img.alt = `${value} of ${suit}`;
+// Handle back of card vs face
+if (card.back) {
+img.src = '/assets/cards/back.png'; // Ensure this path is correct relative to your public dir
+img.alt = 'Card Back';
+} else {
+// Format card values for image src
+const value = formatCardValue(card.value);
+const suit = card.suit.toLowerCase();
+img.src = `/assets/cards/${value}_of_${suit}.png`; // Ensure this path is correct
+img.alt = `${value} of ${suit}`;
 
     // Handle copied cards (e.g., 5s effect)
     if (card.copied) {
       img.classList.add('copied-card');
     }
-  }
 
-  // Make card selectable if needed
-  if (selectable) {
-    img.classList.add('selectable');
-    img.style.touchAction = 'manipulation';
+}
+
+// Make card selectable if needed
+if (selectable) {
+img.classList.add('selectable');
+img.style.touchAction = 'manipulation';
 
     container.addEventListener('click', () => {
       img.classList.toggle('selected');
@@ -54,26 +56,29 @@ export function createCardElement(
 
       if (onSelect) onSelect(card, img.classList.contains('selected'));
     });
-  }
 
-  container.appendChild(img);
-  return container;
 }
 
-/**
- * Formats card value for file naming
- * @param {string | number} value - Card value (e.g., 2, 10, J, Q, K, A)
- * @returns {string} Formatted card value
- */
-export function formatCardValue(value: string | number): string {
+container.appendChild(img);
+return container;
+}
+
+/\*\*
+
+- Formats card value for file naming
+- @param {string | number} value - Card value (e.g., 2, 10, J, Q, K, A)
+- @returns {string} Formatted card value
+  \*/
+  export function formatCardValue(value: string | number): string {
   const v = String(value).toLowerCase();
   if (v === 'j' || v === 'jack') return 'jack';
   if (v === 'q' || v === 'queen') return 'queen';
   if (v === 'k' || v === 'king') return 'king';
   if (v === 'a' || v === 'ace') return 'ace';
   return v;
-}
-```typescript
+  }
+
+````typescript
 // File: public/scripts/render.ts
 // Change: import { Card as CardType } from '@srcTypes/types.js';
 // To: import { Card as CardType } from '@srcTypes/types';
@@ -268,7 +273,7 @@ export function renderGameState(gameState: any): void { // Changed GameStateType
     const handRow = document.createElement('div');
     if (p.id === myId) handRow.id = 'my-hand';
     handRow.className = p.id === myId ? 'hand' : 'opp-hand';
-    
+
     // Render actual hand for self, or placeholders for others
     const handCardsToRender = p.id === myId ? p.hand : Array(p.handCount || 0).fill({ back: true });
 
@@ -912,7 +917,7 @@ jest.mock('socket.io-client', () => {
   (globalThis as any).__mockedIo__ = mockIo; // Use 'as any' to bypass TS7017 for now, will fix in .d.ts
   return {
     __esModule: true,
-    default: mockIo, 
+    default: mockIo,
   };
 });
 
@@ -964,3 +969,4 @@ declare global {
 }
 
 export {}; // This ensures this file is treated as a module
+````

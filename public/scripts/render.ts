@@ -1,7 +1,7 @@
 // public/scripts/render.ts
-import { Card as CardType } from '@srcTypes/types.js';
 import GameStateType from '@models/GameState.js'; // Reverted to default import
 import PlayerType from '@models/Player.js'; // Reverted to default import
+import { Card as CardType } from '@srcTypes/types.js';
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 function code(card: CardType): string {
@@ -311,9 +311,9 @@ export function showCardEvent(cardValue: number | string, type: string): void {
       icon.className = 'special-icon';
       // Use updated PNGs for each effect
       let src = '';
-      if (type === 'two' || cardValue == 2) src = '/src/shared/Reset-icon.png';
-      else if (type === 'five' || cardValue == 5) src = '/src/shared/Copy-icon.png';
-      else if (type === 'ten' || cardValue == 10) src = '/src/shared/Burn-icon.png';
+      if (type === 'two' || cardValue === 2) src = '/src/shared/Reset-icon.png';
+      else if (type === 'five' || cardValue === 5) src = '/src/shared/Copy-icon.png';
+      else if (type === 'ten' || cardValue === 10) src = '/src/shared/Burn-icon.png';
       else if (type === 'four') src = '/src/shared/4ofakind-icon.png';
       else if (type === 'invalid') src = '/src/shared/invalid play-icon.png';
       else if (type === 'take') src = '/src/shared/take pile-icon.png';
