@@ -1,6 +1,6 @@
 // public/scripts/events.ts
-import * as state from './state'; // Removed .js
-import { initializeSocketHandlers } from './socketHandlers'; // Removed .js
+import * as state from './state.js'; // Add `.js` extension
+import { initializeSocketHandlers } from './socketHandlers.js'; // Add `.js` extension
 import { JOIN_GAME, START_GAME } from '../../src/shared/events.js';
 import {
   showLobbyForm,
@@ -9,7 +9,7 @@ import {
   getRulesButton,
   getRulesModal,
   getBackToLobbyButton,
-} from './uiManager';
+} from './uiManager.js'; // Add `.js` extension
 
 export function initializePageEventListeners(): void {
   state.loadSession();
