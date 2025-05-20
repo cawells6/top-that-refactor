@@ -4,21 +4,23 @@
 import { initializeSocketHandlers } from './socketService.js';
 
 // Mocks for state, render, and uiManager modules
-jest.mock('./state', () => ({ // Removed .js
+jest.mock('./state.js', () => ({ 
   socket: {
     on: jest.fn(),
     emit: jest.fn(),
   },
-  myId: 'mockId',
-  currentRoom: 'mockRoom',
+  myId: null, // Set to null initially so showLobbyForm gets called
+  currentRoom: null, // Set to null initially
   setMyId: jest.fn(),
   setCurrentRoom: jest.fn(),
   saveSession: jest.fn(),
 }));
-jest.mock('./render', () => ({ // Removed .js
+
+jest.mock('./render.js', () => ({ 
   renderGameState: jest.fn(),
 }));
-jest.mock('./uiManager', () => ({ // Removed .js
+
+jest.mock('./uiManager.js', () => ({ 
   showLobbyForm: jest.fn(),
   showWaitingState: jest.fn(),
   showGameTable: jest.fn(),
@@ -38,6 +40,9 @@ const STATE_UPDATE = 'state-update';
 describe('socketService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Ensure state.myId and state.currentRoom are null before each test
+    (state as any).myId = null;
+    (state as any).currentRoom = null;
   });
 
   it('registers socket event handlers and calls UI functions', () => {
@@ -51,14 +56,21 @@ describe('socketService', () => {
   });
 
   it('calls showLobbyForm if not rejoining on connect', () => {
-    (state.myId as any) = null;
-    (state.currentRoom as any) = null;
+    // Make sure state.myId and state.currentRoom are null
+    (state as any).myId = null;
+    (state as any).currentRoom = null;
+    
     initializeSocketHandlers();
+    
     // Simulate connect event
     const connectHandler = (state.socket.on as jest.Mock).mock.calls.find(
       ([event]) => event === 'connect'
     )[1];
+    
+    // Call the handler function
     connectHandler();
+    
+    // Verify showLobbyForm was called
     expect(uiManager.showLobbyForm).toHaveBeenCalled();
   });
 

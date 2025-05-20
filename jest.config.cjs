@@ -1,18 +1,37 @@
 // jest.config.cjs
+/** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: 'jsdom', // Recommended for client-side tests
   transform: {
-    '^.+\\.(ts|tsx|js|jsx)$': 'babel-jest', // Corrected: removed unnecessary escape for period
+    '^.+\\.(ts|tsx)$': [
+      'babel-jest',
+      { configFile: './babel.config.js' }, // Ensure babel.config.js is used
+    ],
   },
   testMatch: [
     '**/tests/**/*.test.ts', // Server-side tests
     '**/public/scripts/**/*.test.ts', // Client-side tests
   ],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'], // Ensure 'ts', 'tsx' are before 'js', 'jsx'
+  moduleDirectories: ['node_modules', '<rootDir>/public/scripts'], // Keep this
+  modulePaths: ['<rootDir>'], // Keep this
+
   moduleNameMapper: {
-    // Handle .js extensions in imports from .ts files
-    // e.g., import GameState from '../models/GameState.js' -> maps to GameState.ts
-    '^(\\.\\./.*).js$': '$1', // Corrected: removed unnecessary escape for period
+    // --- Keep your existing specific mocks first ---
+    '^socket.io-client$': '<rootDir>/__mocks__/socket.io-client.js', // This is a specific .js file mock
+
+    // --- Path aliases from tsconfig.json (map to module path without extension) ---
+    // Jest will append extensions based on moduleFileExtensions
+    '^@models/(.*)$': '<rootDir>/models/$1',
+    '^@shared/(.*)$': '<rootDir>/src/shared/$1',
+    '^@publicScripts/(.*)$': '<rootDir>/public/scripts/$1',
+    // Assuming @srcTypes is an alias for the single file src/types.ts
+    '^@srcTypes$': '<rootDir>/src/types',
+
+    // --- General mapping for .js extensions (map to module path without extension) ---
+    // This tells Jest to strip .js, then it will try .ts (from moduleFileExtensions), then .js, etc.
+    // This should correctly resolve project files to .ts and library files to .js
+    '^(.+)\\.js$': '$1',
   },
   // Add any other specific configurations you had or need
   // For example, setupFilesAfterEnv for @testing-library/jest-dom:

@@ -1,12 +1,11 @@
 // public/scripts/main.ts
-import { io } from 'socket.io-client'; // Corrected import
-import { initializePageEventListeners } from './events'; // Removed .js
-import { initializeSocketHandlers } from './socketService'; // Removed .js
+import { socket } from './state.js'; // Use shared socket
+import { initializePageEventListeners } from './events.js';
+import { initializeSocketHandlers } from './socketService.js';
 
 console.log('[Client] main.ts loaded successfully via Vite!');
 
-// Attempt to connect to the server (Vite will proxy /socket.io to http://localhost:3000)
-const socket = io();
+// Shared socket from state handles connection
 
 socket.on('connect', () => {
   console.log('[Client] Socket.IO connected to backend via Vite proxy! Socket ID:', socket.id);
