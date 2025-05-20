@@ -1,4 +1,4 @@
-// tests/player.test.ts
+// tests/player.test.js
 import Player from '../models/Player'; // CORRECTED IMPORT (no .js)
 // rank is used by Player.sortHand() internally, so no direct import needed here for these tests.
 describe('Player model', () => {
@@ -12,7 +12,7 @@ describe('Player model', () => {
         expect(p.upCards).toEqual([]);
         expect(p.downCards).toEqual([]);
         expect(p.name).toBe('');
-        expect(p.isComputer).toBe(false); // Assuming isComputer is a property in Player.ts
+        expect(p.isComputer).toBe(false); // Assuming isComputer is a property in Player.js
         expect(p.disconnected).toBe(false); // Assuming disconnected is a property
     });
     test('setHand replaces hand and sorts it', () => {

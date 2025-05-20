@@ -1,4 +1,4 @@
-// tests/lobbyForm.test.ts
+// tests/lobbyForm.test.js
 /**
  * @jest-environment jsdom
  */
@@ -25,14 +25,14 @@ jest.mock('../public/scripts/state.js', () => {
 });
 // Mock the shared events module
 jest.mock('../src/shared/events', () => ({
-    // Path to events.ts (without extension)
-    __esModule: true, // Use if events.ts is an ES module
+    // Path to events.js (without extension)
+    __esModule: true, // Use if events.js is an ES module
     JOIN_GAME: 'join-game',
     START_GAME: 'start-game',
     // Add other events if public/scripts/events.js (script under test) uses them from shared/events
 }));
 // Import the actual constants for use in test assertions
-import { JOIN_GAME } from '../src/shared/events'; // Import from the actual (now .ts) module
+import { JOIN_GAME } from '../src/shared/events'; // Import from the actual (now .js) module
 // Import the client-side script under test (AFTER mocks are set up)
 // This file (public/scripts/events.js) has NOT been converted to TS yet.
 import '../public/scripts/events.js'; // Stays .js for now

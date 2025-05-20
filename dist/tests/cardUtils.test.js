@@ -1,4 +1,4 @@
-// tests/cardUtils.test.ts
+// tests/cardUtils.test.js
 import { normalizeCardValue, rank, isTwoCard, isFiveCard, isTenCard, isSpecialCard, isFourOfAKind, } from '../utils/cardUtils'; // *** CORRECTED: No .js extension ***
 describe('normalizeCardValue', () => {
     test('normalizes string numbers to keywords where applicable', () => {
@@ -28,7 +28,7 @@ describe('normalizeCardValue', () => {
         expect(normalizeCardValue(undefined)).toBeUndefined();
     });
     test('handles empty string', () => {
-        // Based on the utils/cardUtils.ts normalizeCardValue, empty string returns itself
+        // Based on the utils/cardUtils.js normalizeCardValue, empty string returns itself
         expect(normalizeCardValue('')).toBe('');
     });
 });

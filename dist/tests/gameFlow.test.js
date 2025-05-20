@@ -1,4 +1,4 @@
-// tests/gameFlow.test.ts
+// tests/gameFlow.test.js
 import GameController from '../controllers/GameController.js';
 import { JOIN_GAME, JOINED, LOBBY, START_GAME, STATE_UPDATE, NEXT_TURN, } from '../src/shared/events.js';
 // --- Mock Implementations ---

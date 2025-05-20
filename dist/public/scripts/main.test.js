@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-// Mock socket.io-client before any imports from main.ts occur
+// Mock socket.io-client before any imports from main.js occur
 jest.mock('socket.io-client', () => {
     const mSocket = {
         on: jest.fn(),
@@ -20,7 +20,7 @@ jest.mock('socket.io-client', () => {
         default: mockIo, // Provide default export for io()
     };
 });
-describe('Client Main Script (main.ts)', () => {
+describe('Client Main Script (main.js)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         document.body.innerHTML = '';
@@ -29,20 +29,20 @@ describe('Client Main Script (main.ts)', () => {
         let errorThrown = false;
         try {
             jest.isolateModules(() => {
-                require('./main.ts');
+                require('./main.js');
             });
         }
         catch (e) {
             errorThrown = true;
-            console.error('Error loading main.ts in test:', e);
+            console.error('Error loading main.js in test:', e);
         }
         expect(errorThrown).toBe(false);
     });
     it('should attempt to connect with Socket.IO when loaded', () => {
         jest.isolateModules(() => {
-            require('./main.ts');
+            require('./main.js');
         });
-        // Access the actual mock used by main.ts
+        // Access the actual mock used by main.js
         const actualMockIo = globalThis.__mockedIo__;
         expect(jest.isMockFunction(actualMockIo)).toBe(true);
         expect(actualMockIo.mock.calls.length).toBeGreaterThan(0);

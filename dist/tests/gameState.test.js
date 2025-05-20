@@ -1,5 +1,5 @@
-// tests/gameState.test.ts
-import GameState from '../models/GameState.js'; // Ensure this points to GameState.ts
+// tests/gameState.test.js
+import GameState from '../models/GameState.js'; // Ensure this points to GameState.js
 describe('GameState', () => {
     let gs;
     beforeEach(() => {

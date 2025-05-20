@@ -1,4 +1,4 @@
-// uiHelpers.ts
+// uiHelpers.js
 // Contains UI-related helper functions
 import * as uiManager from './uiManager.js';
 export function showGameOverMessage(didWin, winnerName) {

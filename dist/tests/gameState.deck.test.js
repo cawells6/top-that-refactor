@@ -1,4 +1,4 @@
-// tests/gameState.deck.test.ts
+// tests/gameState.deck.test.js
 import GameState from '../models/GameState.js';
 describe('GameState deck and dealCards', () => {
     test('buildDeck creates 52 unique cards and shuffles for < 4 players', () => {
@@ -88,7 +88,7 @@ describe('GameState deck and dealCards', () => {
         const dealt = gs.dealCards(1, 3);
         expect(console.error).toHaveBeenCalled(); // Check that the error was logged as expected
         console.error = originalConsoleError; // Restore console.error
-        // The current GameState.ts dealCards:
+        // The current GameState.js dealCards:
         // hands.push(this.deck.splice(0, Math.min(handSize, this.deck.length)));
         // If deck has 2 cards, handSize is 3: Math.min(3,2) = 2. Splices 2. Deck is empty.
         // upCards: Math.min(3,0) = 0. Splices 0.

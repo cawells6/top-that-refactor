@@ -1,6 +1,6 @@
 // tests/cardUtils.test.ts
 
-import { Card } from '../src/types'; // Import the Card type
+import { Card } from '../src/types.js'; // Import the Card type
 import {
   normalizeCardValue,
   rank,
@@ -9,7 +9,7 @@ import {
   isTenCard,
   isSpecialCard,
   isFourOfAKind,
-} from '../utils/cardUtils'; // *** CORRECTED: No .js extension ***
+} from '../utils/cardUtils.js'; // Use .js extension for NodeNext
 
 describe('normalizeCardValue', () => {
   test('normalizes string numbers to keywords where applicable', () => {

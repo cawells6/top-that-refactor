@@ -1,4 +1,4 @@
-// public/scripts/events.ts
+// public/scripts/events.js
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 import { initializeSocketHandlers } from './socketHandlers.js';

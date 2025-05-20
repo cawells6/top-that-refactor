@@ -1,4 +1,4 @@
-// src/shared/events.ts
+// src/shared/events.js
 // Game setup and flow
 export const JOIN_GAME = 'join-game';
 export const JOINED = 'joined';

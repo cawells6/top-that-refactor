@@ -1,4 +1,4 @@
-// scripts/force-dev-start.ts
+// scripts/force-dev-start.js
 import { exec, spawn } from 'child_process';
 import os from 'os';
 const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -112,17 +112,17 @@ killProcessByPort(PORT, () => {
         const nodemonArgs = [
             nodemonCmd,
             '--watch',
-            'server.ts',
+            'server.js',
             '--watch',
-            'controllers/**/*.ts',
+            'controllers/**/*.js',
             '--watch',
-            'models/**/*.ts',
+            'models/**/*.js',
             '--watch',
-            'src/**/*.ts',
+            'src/**/*.js',
             '--watch',
-            'routes/**/*.ts',
+            'routes/**/*.js',
             '--watch',
-            'config/**/*.ts',
+            'config/**/*.js',
             '--watch',
             'package.json',
             '--watch',
@@ -130,7 +130,7 @@ killProcessByPort(PORT, () => {
             '--ext',
             'ts,js,json',
             '--exec',
-            'node --loader ts-node/esm ./server.ts',
+            'node --loader ts-node/esm ./server.js',
         ];
         console.log(`[force-dev-start] Starting nodemon with command: ${nodemonPreamble} ${nodemonArgs.join(' ')}`);
         const nodemonProcess = spawn(nodemonPreamble, nodemonArgs, {

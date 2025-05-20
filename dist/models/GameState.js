@@ -1,4 +1,4 @@
-// models/GameState.ts
+// models/GameState.js
 export default class GameState {
     players;
     currentPlayerIndex;

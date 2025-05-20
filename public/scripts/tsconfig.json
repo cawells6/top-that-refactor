@@ -12,8 +12,8 @@
       "@models/*": ["models/*"],
       "@shared/*": ["src/shared/*"],
       "@publicScripts/*": ["public/scripts/*"],
-      "@srcTypes/*": ["src/types.ts"], // Point directly to the types file
-      "@srcTypes/types": ["src/types.ts"]
+      "@srcTypes/*": ["src/types/*"], // Use wildcard pattern for all types
+      "@srcTypes/types": ["src/types.ts"] // Direct alias for types.ts
     },
     "moduleResolution": "NodeNext", // Set to NodeNext
     "allowImportingTsExtensions": true // Keep this

@@ -1,8 +1,8 @@
-// public/scripts/main.ts
+// public/scripts/main.js
 import io from 'socket.io-client';
 import { initializePageEventListeners } from './events.js'; // Use .js extension
 import { initializeSocketHandlers } from './socketService.js';
-console.log('[Client] main.ts loaded successfully via Vite!');
+console.log('[Client] main.js loaded successfully via Vite!');
 // Attempt to connect to the server (Vite will proxy /socket.io to http://localhost:3000)
 const socket = io();
 socket.on('connect', () => {
@@ -15,7 +15,7 @@ socket.on('disconnect', (reason) => {
     console.log('[Client] Socket.IO disconnected:', reason);
 });
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[Client] DOM fully loaded and parsed (from main.ts)');
+    console.log('[Client] DOM fully loaded and parsed (from main.js)');
     initializePageEventListeners();
     initializeSocketHandlers();
 });

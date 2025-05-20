@@ -1,4 +1,4 @@
-// public/scripts/state.ts
+// public/scripts/state.js
 import { io } from 'socket.io-client'; // Corrected import quote style
 export const socket = io({
     reconnection: true,

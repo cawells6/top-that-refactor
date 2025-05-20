@@ -23,6 +23,7 @@
     "baseUrl": "./", // <--- ADDED (points to your project root)
     "paths": {
       "@srcTypes/*": ["src/types/*"],
+      "@srcTypes/types": ["src/types.ts"], // Add direct alias for types.ts
       "@models/*": ["models/*"],
       "@utils/*": ["utils/*"],
       "@shared/*": ["src/shared/*"],

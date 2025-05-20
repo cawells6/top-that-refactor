@@ -1,5 +1,5 @@
 // @ts-nocheck
-// socketHandlers.ts
+// socketHandlers.js
 // Handles socket events and communication
 import * as state from './state.js';
 import { renderGameState } from './render.js';

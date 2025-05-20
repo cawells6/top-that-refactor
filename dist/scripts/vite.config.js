@@ -1,4 +1,4 @@
-// vite.config.ts
+// vite.config.js
 import { defineConfig } from 'vite';
 import path from 'path'; // Node.js path module
 export default defineConfig({
