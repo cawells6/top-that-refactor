@@ -4,7 +4,7 @@
 import { initializeSocketHandlers } from './socketService.js';
 
 // Mocks for state, render, and uiManager modules
-jest.mock('./state.js', () => ({ 
+jest.mock('./state.js', () => ({
   socket: {
     on: jest.fn(),
     emit: jest.fn(),
@@ -16,11 +16,11 @@ jest.mock('./state.js', () => ({
   saveSession: jest.fn(),
 }));
 
-jest.mock('./render.js', () => ({ 
+jest.mock('./render.js', () => ({
   renderGameState: jest.fn(),
 }));
 
-jest.mock('./uiManager.js', () => ({ 
+jest.mock('./uiManager.js', () => ({
   showLobbyForm: jest.fn(),
   showWaitingState: jest.fn(),
   showGameTable: jest.fn(),
@@ -59,17 +59,17 @@ describe('socketService', () => {
     // Make sure state.myId and state.currentRoom are null
     (state as any).myId = null;
     (state as any).currentRoom = null;
-    
+
     initializeSocketHandlers();
-    
+
     // Simulate connect event
     const connectHandler = (state.socket.on as jest.Mock).mock.calls.find(
       ([event]) => event === 'connect'
     )[1];
-    
+
     // Call the handler function
     connectHandler();
-    
+
     // Verify showLobbyForm was called
     expect(uiManager.showLobbyForm).toHaveBeenCalled();
   });

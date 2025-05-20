@@ -1,7 +1,7 @@
 // tests/player.test.ts
 
-import Player from '../models/Player'; // CORRECTED IMPORT (no .js)
-import { Card } from '../src/types'; // Import Card type
+import Player from '../models/Player.js'; // CORRECTED IMPORT with .js extension
+import { Card } from '../src/types.js'; // Import Card type
 // rank is used by Player.sortHand() internally, so no direct import needed here for these tests.
 
 describe('Player model', () => {
