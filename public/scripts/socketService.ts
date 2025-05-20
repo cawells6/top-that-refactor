@@ -24,7 +24,7 @@ export function initializeSocketHandlers(): void {
     showWaitingState(roomId, players.length, maxPlayers, players);
   });
   state.socket.on(STATE_UPDATE, (s: any) => {
-    console.log('Received STATE_UPDATE:', s); // Added for debugging
+    console.log('Received STATE_UPDATE payload:', JSON.stringify(s, null, 2));
     renderGameState(s);
     if (s.started) showGameTable();
   });
