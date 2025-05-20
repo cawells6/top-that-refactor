@@ -4,7 +4,7 @@
 
 import * as state from './state.js';
 import { renderGameState } from './render.js';
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiHelpers.js';
+import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
 import { GameState } from '@models/GameState.js'; // Use path alias
 
 import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';

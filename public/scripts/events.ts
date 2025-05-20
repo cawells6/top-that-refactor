@@ -1,9 +1,15 @@
 // public/scripts/events.ts
-import * as state from './state.js';
-import * as uiManager from './uiManager.js';
-import { initializeSocketHandlers } from './socketHandlers.js';
-import { showLobbyForm, openModal, closeModal } from './uiManager.js'; // Removed unused validateName
-import { JOIN_GAME, START_GAME } from '../../src/shared/events.js'; // Use relative path
+import * as state from './state.js'; // Changed from './state.js'
+import { initializeSocketHandlers } from './socketHandlers'; // Changed from './socketHandlers.js'
+import { JOIN_GAME, START_GAME } from '../../src/shared/events.js';
+import {
+  showLobbyForm,
+  getNameInput,
+  getCopyLinkBtn,
+  getRulesButton,
+  getRulesModal,
+  getBackToLobbyButton,
+} from './uiManager.js';
 
 export function initializePageEventListeners(): void {
   state.loadSession();
@@ -12,13 +18,12 @@ export function initializePageEventListeners(): void {
   initializeSocketHandlers();
 
   // UI hooks
-  const createJoinBtn = uiManager.$('create-join') as HTMLButtonElement | null;
+  const createJoinBtn = document.getElementById('create-join') as HTMLButtonElement | null;
   if (createJoinBtn) {
     createJoinBtn.onclick = () => {
-      const nameInput = uiManager.getNameInput(); // Get name input directly
-      const name = nameInput?.value.trim(); // Get and trim value
+      const nameInputElement = getNameInput();
+      const name = nameInputElement?.value.trim();
       if (!name) {
-        // Optionally show an error to the user if name is invalid
         alert('Please enter a valid name.');
         return;
       }
@@ -27,26 +32,38 @@ export function initializePageEventListeners(): void {
     };
   }
 
-  const copyLinkBtn = uiManager.getCopyLinkBtn();
+  const copyLinkBtn = getCopyLinkBtn();
   if (copyLinkBtn) {
     copyLinkBtn.onclick = () => {
       navigator.clipboard.writeText(window.location.href);
     };
   }
 
-  const rulesButton = uiManager.getRulesButton();
-  if (rulesButton) {
-    rulesButton.onclick = () => {
-      const rulesModal = uiManager.getRulesModal();
-      if (rulesModal) {
-        openModal(rulesModal);
+  const rulesButtonElement = getRulesButton();
+  const rulesModalElement = getRulesModal();
+  const overlayElement = document.getElementById('modal-overlay') as HTMLElement | null;
+
+  const mainCloseButton = rulesModalElement?.querySelector('.modal__close-button');
+  if (mainCloseButton) {
+    mainCloseButton.addEventListener('click', () => {
+      if (rulesModalElement && overlayElement) {
+        rulesModalElement.classList.add('modal--hidden');
+        overlayElement.classList.add('modal__overlay--hidden');
       }
-    };
+    });
+  } else {
+    const modalCloseButton = document.querySelector('.modal-close-button');
+    if (modalCloseButton) {
+      modalCloseButton.addEventListener('click', () => {
+        if (rulesModalElement && overlayElement) {
+          rulesModalElement.classList.add('modal--hidden');
+          overlayElement.classList.add('modal__overlay--hidden');
+        }
+      });
+    }
   }
 
-  document.querySelector('.modal-close-button')?.addEventListener('click', closeModal);
-
-  const backToLobbyButton = uiManager.getBackToLobbyButton();
+  const backToLobbyButton = getBackToLobbyButton();
   if (backToLobbyButton) {
     backToLobbyButton.onclick = () => {
       sessionStorage.clear();
@@ -60,138 +77,137 @@ export function initializePageEventListeners(): void {
       const computerInput = document.getElementById('computer-count') as HTMLInputElement | null;
       const computerCount = computerInput ? parseInt(computerInput.value, 10) || 0 : 0;
 
-      console.log(
-        '!!!!!!!!!! CLIENT (events.js): CLICKED start-game-button, ATTEMPTING TO EMIT START_GAME !!!!!!!!!!!',
-        { computerCount }
-      );
-
       state.socket.emit(START_GAME, { computerCount });
       startGameBtn.disabled = true;
     };
   }
 
-  // Rules modal logic (robust)
-  const rulesBtn = document.getElementById('rules-button') as HTMLButtonElement | null;
-  const rulesModal = document.getElementById('rules-modal');
-  const closeBtn = rulesModal?.querySelector('.modal__close-button') as HTMLButtonElement | null;
-  const overlay = document.getElementById('modal-overlay');
-
-  if (rulesModal) rulesModal.classList.add('modal--hidden');
-  if (overlay) overlay.classList.add('modal__overlay--hidden');
-
-  // --- Toggle rules modal with How to Play button ---
-  if (rulesBtn && rulesModal && closeBtn && overlay) {
-    let rulesOpen = false;
-    rulesBtn.onclick = () => {
-      rulesOpen = !rulesModal.classList.contains('modal--hidden');
-      if (rulesOpen) {
-        rulesModal.classList.add('modal--hidden');
-        overlay.classList.add('modal__overlay--hidden');
-      } else {
-        rulesModal.classList.remove('modal--hidden');
-        overlay.classList.remove('modal__overlay--hidden');
-      }
-    };
-    closeBtn.addEventListener('click', () => {
-      rulesModal.classList.add('modal--hidden');
-      overlay.classList.add('modal__overlay--hidden');
-    });
-    overlay.onclick = (e) => {
-      if (e.target === overlay) {
-        rulesModal.classList.add('modal--hidden');
-        overlay.classList.add('modal__overlay--hidden');
-      }
-    };
+  if (rulesModalElement) {
+    rulesModalElement.classList.add('modal--hidden');
+  }
+  if (overlayElement) {
+    overlayElement.classList.add('modal__overlay--hidden');
   }
 
-  // --- Rules Modal: Close on Outside Click ---
-  const rulesModalOverlay = document.getElementById('modal-overlay');
-  if (rulesModalOverlay && rulesModal) {
-    rulesModalOverlay.addEventListener('click', function (event) {
-      const target = event.target;
-      if (target instanceof Node && !rulesModal.contains(target) && target === rulesModalOverlay) {
-        rulesModal.classList.add('modal--hidden');
-        rulesModalOverlay.classList.add('modal__overlay--hidden');
-      }
-    });
-  }
-
-  // --- Rules Modal: Close on Green Background (main-content) ---
-  const mainContent = document.getElementById('main-content');
-  if (mainContent && rulesModal && rulesModalOverlay) {
-    mainContent.addEventListener('click', function () {
-      if (!rulesModal.classList.contains('modal--hidden')) {
-        rulesModal.classList.add('modal--hidden');
-        rulesModalOverlay.classList.add('modal__overlay--hidden');
-      }
-    });
-  }
-
-  // Add event handler for the "Got it!" button in the rules modal
-  const gotItBtn = document.getElementById('rules-gotit-btn') as HTMLButtonElement | null;
-  if (gotItBtn && rulesModal && overlay) {
-    gotItBtn.addEventListener('click', () => {
-      rulesModal.classList.add('modal--hidden');
-      overlay.classList.add('modal__overlay--hidden');
-    });
-  }
-
-  // --- Expand/Collapse All Rules Sections (including quick tips) ---
-  const expandCollapseBtn = document.getElementById(
-    'expand-collapse-all-btn'
+  const closeBtnInsideModal = rulesModalElement?.querySelector(
+    '.modal__close-button'
   ) as HTMLButtonElement | null;
-  if (expandCollapseBtn && rulesModal) {
-    expandCollapseBtn.addEventListener('click', function () {
-      const detailsList = Array.from(rulesModal.querySelectorAll('.rules-section'));
-      const allOpen = detailsList.every((d) => d instanceof HTMLDetailsElement && d.open);
-      detailsList.forEach((d) => {
-        if (d instanceof HTMLDetailsElement) d.open = !allOpen;
-      });
-      expandCollapseBtn.textContent = allOpen ? 'Expand All' : 'Collapse All';
+
+  if (rulesButtonElement && rulesModalElement && closeBtnInsideModal && overlayElement) {
+    rulesButtonElement.onclick = () => {
+      const isOpen = !rulesModalElement.classList.contains('modal--hidden');
+      if (isOpen) {
+        rulesModalElement.classList.add('modal--hidden');
+        overlayElement.classList.add('modal__overlay--hidden');
+      } else {
+        rulesModalElement.classList.remove('modal--hidden');
+        overlayElement.classList.remove('modal__overlay--hidden');
+      }
+    };
+    closeBtnInsideModal.addEventListener('click', () => {
+      rulesModalElement.classList.add('modal--hidden');
+      overlayElement.classList.add('modal__overlay--hidden');
     });
-    rulesBtn &&
-      rulesBtn.addEventListener('click', function () {
+    overlayElement.onclick = (e) => {
+      if (e.target === overlayElement) {
+        rulesModalElement.classList.add('modal--hidden');
+        overlayElement.classList.add('modal__overlay--hidden');
+      }
+    };
+  }
+
+  if (overlayElement && rulesModalElement) {
+    overlayElement.addEventListener('click', function (event) {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        !rulesModalElement.contains(target) &&
+        target === overlayElement
+      ) {
+        rulesModalElement.classList.add('modal--hidden');
+        overlayElement.classList.add('modal__overlay--hidden');
+      }
+    });
+  }
+
+  const mainContent = document.getElementById('main-content');
+  if (mainContent && rulesModalElement && overlayElement) {
+    mainContent.addEventListener('click', function () {
+      if (!rulesModalElement.classList.contains('modal--hidden')) {
+        rulesModalElement.classList.add('modal--hidden');
+        overlayElement.classList.add('modal__overlay--hidden');
+      }
+    });
+  }
+
+  const gotItBtn = document.getElementById('rules-gotit-btn') as HTMLButtonElement | null;
+  if (gotItBtn && rulesModalElement && overlayElement) {
+    gotItBtn.addEventListener('click', () => {
+      rulesModalElement.classList.add('modal--hidden');
+      overlayElement.classList.add('modal__overlay--hidden');
+    });
+  }
+
+  if (rulesModalElement) {
+    const expandCollapseBtn = rulesModalElement.querySelector(
+      '#expand-collapse-rules'
+    ) as HTMLButtonElement | null;
+
+    if (expandCollapseBtn) {
+      expandCollapseBtn.addEventListener('click', function () {
+        const detailsList = Array.from(rulesModalElement.querySelectorAll('.rules-section'));
+        const allOpen = detailsList.every((d) => d instanceof HTMLDetailsElement && d.open);
+        detailsList.forEach((d) => {
+          if (d instanceof HTMLDetailsElement) {
+            d.open = !allOpen;
+          }
+        });
+        this.textContent = allOpen ? 'Expand All' : 'Collapse All'; // Use 'this' as it refers to expandCollapseBtn
+      });
+    }
+
+    if (rulesButtonElement && expandCollapseBtn) {
+      rulesButtonElement.addEventListener('click', function () {
         setTimeout(() => {
-          const detailsList = Array.from(rulesModal.querySelectorAll('.rules-section'));
-          const allOpen = detailsList.every((d) => d instanceof HTMLDetailsElement && d.open);
-          expandCollapseBtn.textContent = allOpen ? 'Collapse All' : 'Expand All';
+          if (rulesModalElement && expandCollapseBtn) {
+            const detailsList = Array.from(rulesModalElement.querySelectorAll('.rules-section'));
+            const allOpen = detailsList.every((d) => d instanceof HTMLDetailsElement && d.open);
+            expandCollapseBtn.textContent = allOpen ? 'Collapse All' : 'Expand All';
+          }
         }, 0);
       });
+    }
   }
 
-  // Ensure the Start Game button is enabled/disabled when lobby updates
   const observer = new MutationObserver(updateStartGameButton);
   const playerList = document.getElementById('player-list');
   if (playerList) {
     observer.observe(playerList, { childList: true, subtree: false });
   }
 
-  // Lobby form validation and error handling (from reference Canvas)
   const lobbyForm = document.getElementById('lobby-form');
-  const nameInput = document.getElementById('name-input') as HTMLInputElement | null;
-  const nameInputError = document.getElementById('name-input-error');
+  const nameInputLobby = getNameInput();
+  const nameInputError = document.getElementById('name-input-error') as HTMLElement | null;
 
-  if (lobbyForm && nameInput && nameInputError) {
+  if (lobbyForm && nameInputLobby && nameInputError) {
     lobbyForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = nameInput.value.trim();
+      const name = nameInputLobby.value.trim();
 
-      // --- Name validation ---
       if (!name) {
         nameInputError.textContent = 'Name is required';
         nameInputError.classList.remove('hidden');
-        nameInput.focus();
+        nameInputLobby.focus();
         return;
       }
       if (name.length < 2) {
         nameInputError.textContent = 'Name must be at least 2 characters';
         nameInputError.classList.remove('hidden');
-        nameInput.focus();
+        nameInputLobby.focus();
         return;
       }
       nameInputError.classList.add('hidden');
 
-      // --- Retrieve Player and CPU Counts ---
       const numHumansInput = document.getElementById(
         'total-players-input'
       ) as HTMLInputElement | null;
@@ -212,59 +228,50 @@ export function initializePageEventListeners(): void {
         }
       }
 
-      // --- Client-side validation for player/CPU counts ---
-      const playerCountErrorDiv = document.getElementById('player-count-error');
-      if (numHumans < 1) {
-        if (playerCountErrorDiv) {
+      const playerCountErrorDiv = document.getElementById(
+        'player-count-error'
+      ) as HTMLElement | null;
+      if (playerCountErrorDiv) {
+        if (numHumans < 1) {
           playerCountErrorDiv.textContent = 'At least one human player is required.';
           playerCountErrorDiv.classList.remove('hidden');
+          return;
         }
-        return;
-      }
-      if (numHumans + numCPUs < 2) {
-        if (playerCountErrorDiv) {
+        if (numHumans + numCPUs < 2) {
           playerCountErrorDiv.textContent = 'A minimum of 2 total players is required.';
           playerCountErrorDiv.classList.remove('hidden');
+          return;
         }
-        return;
-      }
-      if (numHumans + numCPUs > 4) {
-        if (playerCountErrorDiv) {
+        if (numHumans + numCPUs > 4) {
           playerCountErrorDiv.textContent = 'Total players cannot exceed 4.';
           playerCountErrorDiv.classList.remove('hidden');
+          return;
         }
-        return;
+        playerCountErrorDiv.classList.add('hidden');
       }
-      if (playerCountErrorDiv) playerCountErrorDiv.classList.add('hidden');
 
-      // --- Emit the JOIN_GAME Event ---
-      console.log(
-        `Emitting JOIN_GAME with name: ${name}, numHumans: ${numHumans}, numCPUs: ${numCPUs}`
-      );
-      state.socket.emit(JOIN_GAME, {
-        name: name,
-        numHumans: numHumans,
-        numCPUs: numCPUs,
-      });
+      state.socket.emit(JOIN_GAME, { name, numHumans, numCPUs });
 
-      // --- Disable the Submit Button ---
       const submitButton = lobbyForm.querySelector('#join-game-button') as HTMLButtonElement | null;
       if (submitButton) {
         submitButton.disabled = true;
       }
     });
-    nameInput.addEventListener('input', () => {
-      nameInputError.classList.add('hidden');
+    nameInputLobby.addEventListener('input', () => {
+      if (nameInputError) {
+        nameInputError.classList.add('hidden');
+      }
     });
   }
 
   const totalPlayersInput = document.getElementById('total-players') as HTMLInputElement | null;
   const cpuPlayersInput = document.getElementById('cpu-players') as HTMLInputElement | null;
-  const playerCountErrorDisplay = document.getElementById('player-count-error');
+  const playerCountErrorDisplay = document.getElementById(
+    'player-count-error'
+  ) as HTMLElement | null;
 
   function validatePlayerCounts() {
     if (!totalPlayersInput || !cpuPlayersInput || !playerCountErrorDisplay) {
-      console.error('Lobby input elements not found for validation.');
       return false;
     }
     const numTotalPlayers = parseInt(totalPlayersInput.value, 10);
@@ -289,6 +296,7 @@ export function initializePageEventListeners(): void {
     }
     return true;
   }
+
   if (totalPlayersInput) {
     totalPlayersInput.addEventListener('input', validatePlayerCounts);
   }
@@ -297,10 +305,7 @@ export function initializePageEventListeners(): void {
   }
 }
 
-// Call the initialization function when the DOM is ready
 document.addEventListener('DOMContentLoaded', initializePageEventListeners);
-
-// —– UI helper functions —–
 
 function updateStartGameButton() {
   const startGameBtn = document.getElementById('start-game-button') as HTMLButtonElement | null;

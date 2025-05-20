@@ -1,7 +1,7 @@
 // public/scripts/main.ts
 import io from 'socket.io-client';
-import { initializePageEventListeners } from './events.js'; // Use .js extension
-import { initializeSocketHandlers } from './socketService.js';
+import { initializePageEventListeners } from './events.js';
+import { initializeSocketHandlers } from './socketService.js'; // Changed from './socketService.js'
 
 console.log('[Client] main.ts loaded successfully via Vite!');
 

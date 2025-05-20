@@ -1,0 +1,26 @@
+// uiHelpers.ts
+// Contains UI-related helper functions
+import * as uiManager from './uiManager.js';
+export function showGameOverMessage(didWin, winnerName) {
+    const over = document.createElement('div');
+    over.id = 'game-over-container';
+    over.innerHTML = `
+    <div class="modal-content">
+      <h1>Game Over!</h1>
+      <p>${didWin ? '🎉 You win!' : `${winnerName} wins!`}</p>
+      <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+    </div>`;
+    document.body.appendChild(over);
+    uiManager.$('play-again-btn')?.addEventListener('click', () => location.reload());
+}
+export function validateName() {
+    const nameInput = uiManager.getNameInput();
+    if (nameInput) {
+        const name = nameInput.value.trim();
+        if (name.length > 0 && name.length <= 20) {
+            return name;
+        }
+    }
+    alert('Please enter a name between 1 and 20 characters.');
+    return null;
+}

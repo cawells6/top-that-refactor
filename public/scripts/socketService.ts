@@ -1,6 +1,6 @@
 import * as state from './state.js';
 import { renderGameState } from './render.js';
-import * as uiManager from './uiManager.js';
+import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
 import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
 
 export function initializeSocketHandlers(): void {
@@ -8,7 +8,7 @@ export function initializeSocketHandlers(): void {
     if (state.myId && state.currentRoom) {
       state.socket.emit(REJOIN, state.myId, state.currentRoom);
     } else {
-      uiManager.showLobbyForm();
+      showLobbyForm();
     }
   });
   state.socket.on(JOINED, ({ id, roomId }: { id: string; roomId: string }) => {
@@ -21,14 +21,14 @@ export function initializeSocketHandlers(): void {
   });
   state.socket.on(LOBBY, (data: { roomId: string; players: any[]; maxPlayers: number }) => {
     const { roomId, players, maxPlayers } = data;
-    uiManager.showWaitingState(roomId, players.length, maxPlayers, players);
+    showWaitingState(roomId, players.length, maxPlayers, players);
   });
   state.socket.on(STATE_UPDATE, (s: any) => {
     console.log('Received STATE_UPDATE:', s); // Added for debugging
     renderGameState(s);
-    if (s.started) uiManager.showGameTable();
+    if (s.started) showGameTable();
   });
   state.socket.on('err', (msg: string) => {
-    uiManager.showError(msg);
+    showError(msg);
   });
 }

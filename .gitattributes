@@ -1,0 +1,17 @@
+# Enforce LF line endings for all text files
+* text=auto
+*.ts eol=lf
+*.js eol=lf
+*.json eol=lf
+*.css eol=lf
+*.html eol=lf
+
+# Binary files - do not modify line endings
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.exe binary
+*.dll binary
