@@ -10,7 +10,7 @@ export default defineConfig({
 
   // Configure the development server
   server: {
-    port: 8080, // Port for the Vite client-side dev server
+    port: 5173, // Port for the Vite client-side dev server (changed from 8080 to 5173)
     open: false, // Set to true if you want Vite to open the browser automatically
     proxy: {
       // Proxy WebSocket requests for Socket.IO to your backend Node.js server

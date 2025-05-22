@@ -9,7 +9,7 @@ const io = require('socket.io-client');
 let port = '3000';
 try {
   port = fs.readFileSync('current-port.txt', 'utf-8').trim();
-} catch (e) {
+} catch {
   console.warn('[SMOKE] Could not read current-port.txt, defaulting to 3000');
 }
 const SERVER_URL = `http://localhost:${port}`;

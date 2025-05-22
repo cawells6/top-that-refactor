@@ -4,7 +4,7 @@ import http from 'http';
 import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 
-import GameController from './controllers/GameController.js';
+import { GameRoomManager } from './controllers/GameController.js';
 
 const app: Express = express();
 
@@ -20,13 +20,15 @@ app.get('/health', (req: Request, res: Response) => {
 const DEFAULT_PORT: number = 3000;
 const MAX_RETRIES = 10;
 
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : DEFAULT_PORT;
+
 function startServer(port: number, retries = 0) {
   // Create a single HTTP server
   const server = http.createServer(app);
   // Attach Socket.IO to the same HTTP server
   const io: SocketIOServer = new SocketIOServer(server, { cors: { origin: '*' } });
-  // Instantiate your game controller (it wires up all socket events)
-  new GameController(io);
+  // Instantiate your game room manager (multi-room support)
+  new GameRoomManager(io);
 
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE' && retries < MAX_RETRIES) {
@@ -45,4 +47,4 @@ function startServer(port: number, retries = 0) {
   });
 }
 
-startServer(DEFAULT_PORT);
+startServer(PORT);

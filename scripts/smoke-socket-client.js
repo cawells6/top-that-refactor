@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 // scripts/smoke-socket-client.cjs
 // This file should be run as CommonJS (.cjs) to allow require().
+
+/* global console */
 // Rename this file to smoke-socket-client.cjs for Node.js ESM compatibility.
 // Minimal smoke test: connects to the server, joins a game, and starts a game.
-const fs = require('fs');
-const io = require('socket.io-client');
+import fs from 'fs';
+import process from 'process';
+import { io } from 'socket.io-client';
 
 let port = '3000';
 try {
   port = fs.readFileSync('current-port.txt', 'utf-8').trim();
-} catch (e) {
+} catch {
   console.warn('[SMOKE] Could not read current-port.txt, defaulting to 3000');
 }
 const SERVER_URL = `http://localhost:${port}`;
@@ -39,7 +42,9 @@ socket.on('state-update', (data) => {
 
 socket.on('disconnect', () => {
   console.log('[SMOKE] Disconnected from server');
-  process.exit(0);
+  if (typeof process !== 'undefined' && process.exit) {
+    process.exit(0);
+  }
 });
 
 socket.on('err', (msg) => {

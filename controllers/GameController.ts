@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
 
 import GameState, { Card, CardValue } from '../models/GameState.js';
 import Player from '../models/Player.js';
@@ -71,14 +72,58 @@ interface ClientState {
   lastRealCard: Card | null;
 }
 
+export class GameRoomManager {
+  private io: Server;
+  private rooms: Map<string, GameController>;
+
+  constructor(io: Server) {
+    this.io = io;
+    this.rooms = new Map();
+    this.io.on('connection', (socket: Socket) => this.setupListeners(socket));
+
+    // --- CLEANUP: Remove rooms whose games have ended and have no players ---
+    setInterval(() => {
+      for (const [roomId, controller] of this.rooms.entries()) {
+        const hasActivePlayers = Array.from(controller['players'].values()).some(
+          (p) => !p.disconnected
+        );
+        if (!hasActivePlayers && !controller['gameState'].started) {
+          this.rooms.delete(roomId);
+        }
+      }
+    }, 60000); // Run every 60 seconds
+  }
+
+  private setupListeners(socket: Socket): void {
+    socket.on('create-room', (cb: (roomId: string) => void) => {
+      const roomId = uuidv4().slice(0, 6);
+      const controller = new GameController(this.io, roomId);
+      this.rooms.set(roomId, controller);
+      cb(roomId);
+    });
+    socket.on('join-room', (roomId: string, playerData: any) => {
+      const controller = this.rooms.get(roomId);
+      if (controller) controller.publicHandleJoin(socket, playerData);
+      else socket.emit('err', 'Room not found');
+    });
+    socket.on('rejoin-room', (roomId: string, playerId: string) => {
+      const controller = this.rooms.get(roomId);
+      if (controller) controller.publicHandleRejoin(socket, roomId, playerId);
+      else socket.emit('err', 'Room not found');
+    });
+  }
+}
+
 export default class GameController {
   private io: Server;
   private gameState: GameState;
   private players: Map<string, Player>;
   private socketIdToPlayerId: Map<string, string>;
+  private roomId: string;
 
-  constructor(io: Server) {
+  constructor(io: Server, roomId: string) {
     this.io = io;
+    this.roomId = roomId;
     this.gameState = new GameState();
     this.players = new Map<string, Player>();
     this.socketIdToPlayerId = new Map<string, string>();
@@ -107,22 +152,30 @@ export default class GameController {
     }));
   }
 
+  public publicHandleJoin(socket: Socket, playerData: any) {
+    this.handleJoin(socket, playerData);
+  }
+
+  public publicHandleRejoin(socket: Socket, roomId: string, playerId: string) {
+    this.handleRejoin(socket, roomId, playerId);
+  }
+
   private handleRejoin(socket: Socket, roomId: string, playerId: string): void {
-    if (roomId !== 'game-room') {
+    if (roomId !== this.roomId) {
       socket.emit(ERROR_EVENT, 'Invalid room for rejoin.');
       return;
     }
     const player = this.players.get(playerId);
     if (player) {
-      socket.join('game-room');
+      socket.join(this.roomId);
       player.socketId = socket.id;
       player.disconnected = false;
       this.socketIdToPlayerId.set(socket.id, playerId);
 
-      socket.emit(JOINED, { id: player.id, name: player.name, roomId: 'game-room' });
+      socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
       this.pushState();
-      this.io.to('game-room').emit(LOBBY, {
-        roomId: 'game-room',
+      this.io.to(this.roomId).emit(LOBBY, {
+        roomId: this.roomId,
         players: this.getLobbyPlayerList(),
         maxPlayers: this.gameState.maxPlayers,
       });
@@ -141,7 +194,7 @@ export default class GameController {
       return;
     }
     if (this.players.has(id) && this.players.get(id)?.disconnected) {
-      this.handleRejoin(socket, 'game-room', id);
+      this.handleRejoin(socket, this.roomId, id);
       return;
     }
 
@@ -162,13 +215,13 @@ export default class GameController {
     this.players.set(id, player);
     this.socketIdToPlayerId.set(socket.id, id);
 
-    socket.join('game-room');
-    socket.emit(JOINED, { id: player.id, name: player.name, roomId: 'game-room' });
+    socket.join(this.roomId);
+    socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
 
     const currentLobbyPlayers = this.getLobbyPlayerList();
-    this.io.to('game-room').emit(PLAYER_JOINED, currentLobbyPlayers);
-    this.io.to('game-room').emit(LOBBY, {
-      roomId: 'game-room',
+    this.io.to(this.roomId).emit(PLAYER_JOINED, currentLobbyPlayers);
+    this.io.to(this.roomId).emit(LOBBY, {
+      roomId: this.roomId,
       players: currentLobbyPlayers,
       maxPlayers: this.gameState.maxPlayers,
     });
@@ -187,7 +240,7 @@ export default class GameController {
     if (this.gameState.started) {
       const errorMsg = 'Game has already started.';
       if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-      else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
+      else this.io.to(this.roomId).emit(ERROR_EVENT, errorMsg);
       return;
     }
 
@@ -197,13 +250,13 @@ export default class GameController {
     if (currentHumanPlayers === 0 && computerCount < 2) {
       const errorMsg = 'At least two players (humans or CPUs) are required to start.';
       if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-      else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
+      else this.io.to(this.roomId).emit(ERROR_EVENT, errorMsg);
       return;
     }
     if (currentHumanPlayers > 0 && currentHumanPlayers + computerCount < 2) {
       const errorMsg = 'At least two total players (humans + CPUs) are required.';
       if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-      else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
+      else this.io.to(this.roomId).emit(ERROR_EVENT, errorMsg);
       return;
     }
 
@@ -227,7 +280,7 @@ export default class GameController {
     if (numPlayers < 2) {
       const errorMsg = `Not enough players to start (need at least 2, have ${numPlayers}).`;
       if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-      else this.io.to('game-room').emit(ERROR_EVENT, errorMsg);
+      else this.io.to(this.roomId).emit(ERROR_EVENT, errorMsg);
       return;
     }
 
@@ -249,7 +302,7 @@ export default class GameController {
     const firstPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
 
     this.pushState();
-    this.io.to('game-room').emit(NEXT_TURN, firstPlayerId);
+    this.io.to(this.roomId).emit(NEXT_TURN, firstPlayerId);
   }
 
   private handlePlayCard(socket: Socket, { cardIndices, zone }: PlayData): void {
@@ -341,7 +394,7 @@ export default class GameController {
       }
     });
 
-    this.io.to('game-room').emit(CARD_PLAYED, { playerId: player.id, cards: cardsToPlay, zone });
+    this.io.to(this.roomId).emit(CARD_PLAYED, { playerId: player.id, cards: cardsToPlay, zone });
 
     const lastPlayedCard = cardsToPlay[0];
     const lastPlayedNormalizedValue = normalizeCardValue(lastPlayedCard.value);
@@ -349,12 +402,12 @@ export default class GameController {
     let pileClearedBySpecial = false;
     if (isTwoCard(lastPlayedNormalizedValue)) {
       this.io
-        .to('game-room')
+        .to(this.roomId)
         .emit(SPECIAL_CARD_EFFECT, { type: 'two', value: lastPlayedNormalizedValue });
       this.gameState.clearPile();
       pileClearedBySpecial = true;
     } else if (this.gameState.isFourOfAKindOnPile() || isTenCard(lastPlayedNormalizedValue)) {
-      this.io.to('game-room').emit(SPECIAL_CARD_EFFECT, {
+      this.io.to(this.roomId).emit(SPECIAL_CARD_EFFECT, {
         type: isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four',
         value: lastPlayedNormalizedValue,
       });
@@ -373,7 +426,7 @@ export default class GameController {
       }
     } else if (isFiveCard(lastPlayedNormalizedValue)) {
       this.io
-        .to('game-room')
+        .to(this.roomId)
         .emit(SPECIAL_CARD_EFFECT, { type: 'five', value: lastPlayedNormalizedValue });
       if (this.gameState.lastRealCard) {
         this.gameState.addToPile({ ...this.gameState.lastRealCard, copied: true });
@@ -381,7 +434,7 @@ export default class GameController {
     }
 
     if (player.hasEmptyHand() && player.hasEmptyUp() && player.hasEmptyDown()) {
-      this.io.to('game-room').emit(GAME_OVER, { winnerId: player.id, winnerName: player.name });
+      this.io.to(this.roomId).emit(GAME_OVER, { winnerId: player.id, winnerName: player.name });
       this.gameState.endGameInstance();
       this.pushState();
       return;
@@ -397,7 +450,7 @@ export default class GameController {
 
     if (pileClearedBySpecial) {
       this.pushState();
-      this.io.to('game-room').emit(NEXT_TURN, player.id);
+      this.io.to(this.roomId).emit(NEXT_TURN, player.id);
       if (player.isComputer) {
         setTimeout(() => this.playComputerTurn(player), 1200);
       }
@@ -432,7 +485,7 @@ export default class GameController {
     player.pickUpPile([...this.gameState.pile]);
     this.gameState.clearPile();
 
-    this.io.to('game-room').emit(PILE_PICKED_UP, { playerId: player.id });
+    this.io.to(this.roomId).emit(PILE_PICKED_UP, { playerId: player.id });
     this.handleNextTurn();
   }
 
@@ -446,7 +499,7 @@ export default class GameController {
     if (!nextPlayerId) {
       return;
     }
-    this.io.to('game-room').emit(NEXT_TURN, nextPlayerId);
+    this.io.to(this.roomId).emit(NEXT_TURN, nextPlayerId);
     this.pushState();
 
     const nextPlayerInstance = this.players.get(nextPlayerId);
@@ -532,8 +585,8 @@ export default class GameController {
       }
     }
     this.pushState();
-    this.io.to('game-room').emit(LOBBY, {
-      roomId: 'game-room',
+    this.io.to(this.roomId).emit(LOBBY, {
+      roomId: this.roomId,
       players: this.getLobbyPlayerList(),
       maxPlayers: this.gameState.maxPlayers,
     });
@@ -594,7 +647,7 @@ export default class GameController {
       }
     });
     if (this.players.size === 0 && !this.gameState.started) {
-      this.io.to('game-room').emit(STATE_UPDATE, stateForEmit);
+      this.io.to(this.roomId).emit(STATE_UPDATE, stateForEmit);
     }
   }
 }

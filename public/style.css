@@ -20,7 +20,9 @@
 }
 
 body {
-  background: var(--bg);
+  background: linear-gradient(135deg, #0b5137 0%, #137a4b 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
 
 #lobby-container {
@@ -28,14 +30,29 @@ body {
   padding: 0;
   border-radius: 0;
   box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
 }
 
 #lobby-form-card {
   background: var(--header-bg);
   color: var(--text);
-  padding: 2.2rem 2.2rem 2.2rem 2.2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  padding: 3.2rem 2.8rem 2.6rem 2.8rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  margin-top: 4vh;
+  min-width: 340px;
+  max-width: 420px;
+  width: 100%;
+  animation: fadeInCard 0.7s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes fadeInCard {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 #lobby-form-card h2,
@@ -52,8 +69,11 @@ body {
 /* --- Participant Inputs Horizontal Layout --- */
 .participant-inputs-container {
   display: flex;
-  gap: 0.7rem !important;
-  margin-bottom: 0.2rem !important;
+  gap: 2.2rem !important;
+  margin-bottom: 1.2rem !important;
+  justify-content: space-between;
+  border-bottom: 1px solid #2e4a5a;
+  padding-bottom: 1.2rem;
 }
 .participant-inputs-container .form-group {
   flex: 1 1 0;
@@ -70,7 +90,16 @@ body {
   text-align: center;
   padding-left: 5px;
   padding-right: 5px;
+  border-radius: 6px;
+  border: 1.5px solid var(--input-border);
+  font-size: 1.1rem;
+  transition: border 0.2s;
 }
+.participant-inputs-container .form-group input[type='number']:focus {
+  border: 1.5px solid var(--accent);
+  outline: none;
+}
+
 input#total-players,
 input#cpu-players {
   width: 70px;
@@ -90,16 +119,29 @@ input#cpu-players-input {
 /* Center placeholder text in name input */
 #name-input::placeholder {
   text-align: center;
+  color: #bbb;
 }
 #name-input {
   text-align: center;
+  border-radius: 6px;
+  border: 1.5px solid var(--input-border);
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  transition: border 0.2s;
+}
+#name-input:focus {
+  border: 1.5px solid var(--accent);
+  outline: none;
 }
 
 /* Center the Play Game button */
 .lobby-buttons {
   text-align: center;
-  margin: 0 0 0.3rem 0 !important;
-  align-self: flex-start !important;
+  margin: 1.2rem 0 0.7rem 0 !important;
+  align-self: center !important;
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
 }
 #create-join {
   display: inline-block;
@@ -108,14 +150,21 @@ input#cpu-players-input {
 
 /* Fine-tune spacing and alignment */
 .lobby-form-content .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 1.1rem !important;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 .participant-inputs-container .form-group:last-child {
   margin-bottom: 0;
 }
 
 .lobby-form-content {
-  padding: 0 1.2rem 0.7rem 1.2rem !important;
+  padding: 0 2rem 1.5rem 2rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .main-content {
@@ -142,14 +191,15 @@ input#cpu-players-input {
 }
 .lobby-card h2,
 .lobby-title {
-  font-size: 2rem;
+  font-size: 2.2rem;
   font-weight: 700;
-  margin-bottom: 0.7rem !important;
-  color: #ffc300;
+  margin-bottom: 1.5rem;
+  color: var(--accent);
   text-align: center;
+  letter-spacing: 0.5px;
 }
 .form-group {
-  margin-bottom: 0.3rem !important;
+  margin-bottom: 1.1rem !important;
   width: 100%;
   text-align: left;
 }
@@ -187,7 +237,9 @@ input#cpu-players-input {
 }
 #error-message,
 #player-count-error {
+  margin-top: 0.7rem;
   margin-bottom: 0.2rem !important;
+  font-size: 1.05rem;
 }
 .error-message::before {
   content: '\26A0';
@@ -221,10 +273,13 @@ input#cpu-players-input {
   margin-bottom: 0.5em;
 }
 @media (max-width: 600px) {
-  .lobby-card {
-    max-width: 98vw;
+  #lobby-form-card {
     padding: 1.2rem 0.5rem 1.2rem 0.5rem;
-    margin-top: 0;
+    min-width: 0;
+    max-width: 98vw;
+  }
+  .lobby-form-content {
+    padding: 0 0.2rem 0.7rem 0.2rem !important;
   }
   .participant-inputs-container {
     flex-direction: column;
@@ -378,6 +433,7 @@ input#cpu-players-input {
   letter-spacing: 0.01em;
   border-bottom: 1px solid #ffc30044;
   padding-bottom: 0.5rem;
+  display: block;
 }
 
 #rules-gotit-btn {
@@ -388,4 +444,141 @@ input#cpu-players-input {
   margin-top: 1.2rem;
   font-size: 1.1rem;
   display: block;
+}
+
+/* --- Card Layout for Game Table --- */
+.player-area .hand,
+.player-area .opp-hand,
+.player-area .stack-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  gap: 5px;
+  width: 100%;
+}
+
+/* Shingling for hand cards */
+.player-area .hand .card-container {
+  display: inline-block;
+  position: relative;
+  margin-right: -25px;
+}
+.player-area .hand .card-container:last-child {
+  margin-right: 0;
+}
+.card-container.selected-container {
+  z-index: 50;
+  margin-right: 5px;
+}
+
+/* Opponent hand shingling (if needed) */
+.player-area .opp-hand .card-container {
+  display: inline-block;
+  position: relative;
+  margin-right: -25px;
+}
+.player-area .opp-hand .card-container:last-child {
+  margin-right: 0;
+}
+
+/* Stacks: up/down pairs are vertical, stacks are horizontal in .stack-row */
+.player-area .stack-row .stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.stack .card-img.down-card {
+  position: absolute !important;
+  top: -20px !important;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+.stack .card-img.up-card {
+  position: absolute !important;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+/* --- Restore quadrant layout for player areas --- */
+.table {
+  display: grid;
+  grid-template-areas:
+    'top top top'
+    'left center right'
+    'bottom bottom bottom';
+  grid-template-rows: 1fr 2fr 1fr;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 10px;
+  width: 100vw;
+  height: calc(100vh - 80px);
+  background: #137a4b;
+  justify-content: flex-start;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.table-slot {
+  border: 2px solid #fff;
+  border-radius: 12px;
+  min-height: 180px;
+  min-width: 220px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 10px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.table-slot-top {
+  grid-area: top;
+  justify-content: flex-start;
+}
+.table-slot-left {
+  grid-area: left;
+}
+.table-slot-right {
+  grid-area: right;
+}
+.table-slot-bottom {
+  grid-area: bottom;
+}
+.table-center {
+  grid-area: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  min-height: 120px;
+}
+
+.table--hidden {
+  display: none !important;
+}
+
+.lobby--hidden {
+  display: none !important;
+}
+
+.player-area {
+  background: rgba(20, 30, 40, 0.12);
+  border: 2px solid #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+  margin: 0 auto;
+  min-width: 220px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }

@@ -1,11 +1,50 @@
 // public/scripts/state.ts
-import { io, Socket } from 'socket.io-client'; // Corrected import
+import { io, Socket } from 'socket.io-client';
 
-export const socket: Socket = io({
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 10000,
+let socket: Socket;
+export let socketReady: Promise<void>;
+
+function getSocketURL(port: string): string {
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+  return `${protocol}//${hostname}:${port}`;
+}
+
+async function initSocket(): Promise<Socket> {
+  try {
+    const resp = await fetch('/current-port.txt', { cache: 'no-store' });
+    if (resp.ok) {
+      const port = (await resp.text()).trim();
+      // If the port matches the current location, use default (relative) connection
+      if (window.location.port === port) {
+        return io({
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 10000,
+        });
+      }
+      return io(getSocketURL(port), {
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 10000,
+      });
+    }
+  } catch {
+    // Ignore and fallback
+  }
+  // Fallback: connect to same origin
+  return io({
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 10000,
+  });
+}
+
+socketReady = initSocket().then((s) => {
+  socket = s;
+  return;
 });
+export { socket };
 
 export let myId: string | null = null;
 export let currentRoom: string | null = null;

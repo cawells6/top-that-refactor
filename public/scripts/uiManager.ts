@@ -24,24 +24,61 @@ export const getNameInput = (): HTMLInputElement | null =>
 export const $ = (id: string): HTMLElement | null => document.getElementById(id);
 
 export function showLobbyForm(): void {
-  // Implementation for showing the lobby form
+  const lobbyContainer = getLobbyContainer();
+  const lobbyFormContent = getLobbyFormContent();
+  const waitingStateDiv = getWaitingStateDiv();
+  const table = getTable();
+  if (lobbyContainer) lobbyContainer.classList.remove('hidden');
+  if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
+  if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
+  if (table) table.classList.add('table--hidden', 'hidden');
 }
 
 export function showWaitingState(
-  _roomId: string,
-  _currentPlayers: number,
-  _maxPlayers: number,
-  _players: any[]
+  roomId: string,
+  currentPlayers: number,
+  maxPlayers: number,
+  players: any[]
 ): void {
-  // Implementation for showing the waiting state
+  const lobbyContainer = getLobbyContainer();
+  const lobbyFormContent = getLobbyFormContent();
+  const waitingStateDiv = getWaitingStateDiv();
+  if (lobbyContainer) lobbyContainer.classList.remove('hidden');
+  if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
+  if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
+  // Update waiting heading
+  const waitingHeading = document.getElementById('waiting-heading');
+  if (waitingHeading) {
+    waitingHeading.textContent = `Room: ${roomId} (${currentPlayers}/${maxPlayers})`;
+  }
+  // Render player list
+  let playerList = document.getElementById('player-list');
+  if (!playerList) {
+    playerList = document.createElement('ul');
+    playerList.id = 'player-list';
+    playerList.style.marginTop = '1rem';
+    playerList.style.marginBottom = '1rem';
+    playerList.style.listStyle = 'none';
+    playerList.style.padding = '0';
+    if (waitingStateDiv) waitingStateDiv.appendChild(playerList);
+  }
+  playerList.innerHTML = '';
+  players.forEach((p: any) => {
+    const li = document.createElement('li');
+    li.textContent = p.name + (p.disconnected ? ' (disconnected)' : '');
+    playerList.appendChild(li);
+  });
 }
 
 export function showGameTable(): void {
-  // Implementation for showing the game table
+  const lobbyContainer = getLobbyContainer();
+  const table = getTable();
+  if (lobbyContainer) lobbyContainer.classList.add('hidden');
+  if (table) table.classList.remove('table--hidden', 'hidden');
 }
 
-export function showError(_msg: string): void {
-  // Implementation for showing an error message
+export function showError(msg: string): void {
+  alert(msg);
 }
 
 export function initializeSocketHandlers(): void {

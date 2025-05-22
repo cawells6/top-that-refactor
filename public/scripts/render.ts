@@ -177,7 +177,8 @@ export function renderGameState(gameState: any): void {
     if (p.id === myId) handRow.id = 'my-hand';
     handRow.className = p.id === myId ? 'hand' : 'opp-hand';
 
-    const handCardsToRender = p.id === myId && p.hand ? p.hand : Array(p.handCount || 0).fill({ back: true });
+    const handCardsToRender =
+      p.id === myId && p.hand ? p.hand : Array(p.handCount || 0).fill({ back: true });
 
     if (handCardsToRender && handCardsToRender.length > 0) {
       for (let i = 0; i < handCardsToRender.length; i++) {

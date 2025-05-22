@@ -9,7 +9,8 @@ import * as state from './state'; // Removed .js
 import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager'; // Removed .js
 import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
 
-export function initializeSocketHandlers(): void {
+export async function initializeSocketHandlers(): Promise<void> {
+  await state.socketReady;
   state.socket.on('connect', () => {
     if (state.myId && state.currentRoom) {
       state.socket.emit(REJOIN, state.myId, state.currentRoom);
