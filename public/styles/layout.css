@@ -30,11 +30,63 @@
     'left center right'
     'bottom bottom bottom';
   grid-template-rows: 1fr 2fr 1fr;
-  grid-template-columns: 1fr 2fr 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 0px;
   width: 100vw;
   height: calc(100vh - 80px);
   background: #137a4b;
+}
+
+.table-slot {
+  border: 2px solid #fff;
+  border-radius: 12px;
+  min-height: 180px;
+  min-width: 220px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 10px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+.table-slot-top {
+  grid-area: top;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 220px;
+}
+.table-slot-left {
+  grid-area: left;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 220px;
+}
+.table-slot-right {
+  grid-area: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 220px;
+}
+.table-slot-bottom {
+  grid-area: bottom;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 220px;
+}
+.table-center {
+  grid-area: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  min-height: 120px;
 }
 
 .lobby-card {
@@ -175,141 +227,20 @@
   }
 }
 
-.table-slot {
-  border: 2px solid #fff;
-  border-radius: 12px;
-  min-height: 180px;
-  min-width: 220px;
-  background: rgba(0, 0, 0, 0.08);
-  margin: 10px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-}
-.table-slot-top {
-  grid-area: top;
-}
-.table-slot-left {
-  grid-area: left;
-}
-.table-slot-right {
-  grid-area: right;
-}
-.table-slot-bottom {
-  grid-area: bottom;
-}
-.table-center {
-  grid-area: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 120px;
-  min-height: 120px;
-}
-
-/* Central Game Area - Deck and Pile */
-#central-game-area {
-  display: flex;
-  flex-direction: column; /* Stack deck and pile vertically for now */
-  align-items: center;
-  justify-content: center;
-  gap: 20px; /* Space between deck and pile */
-  padding: 20px;
-  /* background-color: var(--game-board-bg); */ /* Removed to let main background show */
-  border-radius: var(--border-radius-large);
-  min-width: 250px; /* Ensure it has some width */
-}
-
-.central-pile-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-.card-placeholder-area {
-  position: relative;
-  width: var(--card-width); /* Use card width variable */
-  height: var(--card-height); /* Use card height variable */
-}
-
-.card-outline {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: 2px dashed var(--text-color-muted);
-  border-radius: var(--card-border-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8em;
-  color: var(--text-color-muted);
-  box-sizing: border-box;
-}
-
-#deck-outline-visual::after {
-  content: 'Deck';
-}
-
-#pile-outline-visual::after {
-  content: 'Pile';
-}
-
-#deck,
-#pile-top-card {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: var(--card-border-radius);
-  position: absolute; /* Ensure cards sit within the placeholder */
-  top: 0;
-  left: 0;
-}
-
-#deck-count-label,
-#pile-count-label {
-  font-size: 0.9em;
-  color: var(--text-color-light);
-  margin-top: 5px;
-}
-
-.footer {
-  background: #789;
-  color: #fff;
-  text-align: center;
-  padding: 4px 0;
-  font-size: 0.95em;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  z-index: 10;
-}
-
-body,
-html {
-  background: #137a4b !important;
-}
-
-/* Player Area Panels */
 .player-area {
   background: #223344;
-  border: 2px solid #fff;
+  border: 2.5px solid #fff;
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-  padding: 1.2rem 0.5rem 1.2rem 0.5rem;
-  margin: 0.5rem;
+  padding: 0 0 1.2rem 0;
+  margin: 0;
   min-width: 260px;
   max-width: 340px;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
+  padding-top: 2.2rem;
 }
 .player-area.active, #my-area.active {
   border-color: #00CCCC;
@@ -325,12 +256,18 @@ html {
   background: #1b2e3c;
   color: #ffc300;
   font-weight: bold;
-  border-radius: 8px 8px 0 0;
-  padding: 0.4rem 0.8rem;
+  border-radius: 12px 12px 0 0;
+  padding: 0.6rem 0.8rem 0.5rem 0.8rem;
   font-size: 1.2rem;
   width: 100%;
   text-align: center;
-  margin-bottom: 0.5rem;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  box-sizing: border-box;
 }
 
 /* Hand Shingling */
@@ -486,14 +423,13 @@ html {
 
 /* Hand and Stack Areas */
 .hand-area, .stack-area {
-  background: rgba(30, 40, 60, 0.18);
-  border: 2.5px solid #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-  padding: 0.7rem 0.5rem 0.5rem 0.5rem;
-  margin: 0.5rem 0 0.5rem 0;
-  min-width: 180px;
-  min-height: 70px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0.2rem 0 0.2rem 0;
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;

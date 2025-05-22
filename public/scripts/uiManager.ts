@@ -13,14 +13,18 @@ export const getWaitingStateDiv = (): HTMLElement | null =>
 
 export const getGameTable = (): HTMLElement | null => document.getElementById('game-table'); // Corrected getter
 
-export const getPlayerAreaBottom = (): HTMLElement | null => document.getElementById('player-area-bottom');
- 
-export const getOpponentAreaTop = (): HTMLElement | null => document.getElementById('opponent-area-top');
- 
-export const getOpponentAreaLeft = (): HTMLElement | null => document.getElementById('opponent-area-left');
- 
-export const getOpponentAreaRight = (): HTMLElement | null => document.getElementById('opponent-area-right');
- 
+export const getPlayerAreaBottom = (): HTMLElement | null =>
+  document.getElementById('player-area-bottom');
+
+export const getOpponentAreaTop = (): HTMLElement | null =>
+  document.getElementById('opponent-area-top');
+
+export const getOpponentAreaLeft = (): HTMLElement | null =>
+  document.getElementById('opponent-area-left');
+
+export const getOpponentAreaRight = (): HTMLElement | null =>
+  document.getElementById('opponent-area-right');
+
 export const getCopyLinkBtn = (): HTMLButtonElement | null =>
   document.getElementById('copy-link-button') as HTMLButtonElement | null;
 

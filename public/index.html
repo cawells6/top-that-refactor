@@ -110,37 +110,12 @@
 
       <!-- Game Table -->
       <div id="game-table" class="hidden">
-        <div id="game-board">
-          <div id="opponent-area-top">
-            <!-- CPU 2 player area will be injected here by render.ts -->
-          </div>
-          <div id="middle-area">
-            <div id="opponent-area-left">
-              <!-- CPU 1 player area will be injected here by render.ts -->
-            </div>
-            <div id="central-game-area">
-              <div class="central-pile-wrapper">
-                <div class="card-placeholder-area" id="deck-placeholder">
-                  <div class="card-outline" id="deck-outline-visual"></div>
-                  <img id="deck" src="/assets/cards/back.png" alt="Deck">
-                </div>
-                <span id="deck-count-label">Deck (0)</span>
-              </div>
-              <div class="central-pile-wrapper">
-                <div class="card-placeholder-area" id="pile-placeholder">
-                  <div class="card-outline" id="pile-outline-visual"></div>
-                  <img id="pile-top-card" src="/assets/cards/back.png" alt="Pile Top Card" style="display: none;">
-                </div>
-                <span id="pile-count-label">Discard (0)</span>
-              </div>
-            </div>
-            <div id="opponent-area-right">
-              <!-- CPU 3 player area will be injected here by render.ts -->
-            </div>
-          </div>
-          <div id="player-area-bottom">
-            <!-- Player 1 (human) area will be injected here by render.ts -->
-          </div>
+        <div class="table">
+          <div class="table-slot-top" id="opponent-area-top"></div>
+          <div class="table-slot-left" id="opponent-area-left"></div>
+          <div class="table-center" id="center-area"></div>
+          <div class="table-slot-right" id="opponent-area-right"></div>
+          <div class="table-slot-bottom" id="player-area-bottom"></div>
         </div>
       </div>
     </main>
