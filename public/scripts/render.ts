@@ -1,5 +1,4 @@
-// public/scripts/render.ts
-import { Card as CardType } from '@srcTypes/types'; // No .js extension for path alias
+import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js'; // Corrected import path
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 function code(card: CardType): string {
@@ -64,78 +63,48 @@ export function cardImg(
 }
 
 /**
- * Renders the center piles (deck and discard)
- * @param {any} gameState - Current game state
- */
-export function createCenterPiles(gameState: any): void {
-  const center = document.getElementById('center');
-  if (!center) return;
-  center.innerHTML = '';
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'center-piles-wrapper';
-
-  const deckContainer = createPileContainer('Deck', gameState.deckCount || 0);
-  const deckPile = createPile('deck');
-  if (gameState.deckCount && gameState.deckCount > 0) {
-    deckPile.appendChild(cardImg({ value: '', suit: '', back: true } as CardType, false));
-  }
-  deckContainer.appendChild(deckPile);
-
-  const discardContainer = createPileContainer('Pile', gameState.pile?.length || 0);
-  const discardPile = createPile('discard');
-  if (gameState.pile && gameState.pile.length > 0) {
-    discardPile.appendChild(cardImg(gameState.pile[gameState.pile.length - 1], false));
-  }
-  discardContainer.appendChild(discardPile);
-
-  wrapper.append(deckContainer, discardContainer);
-  center.appendChild(wrapper);
-}
-
-/**
- * Creates a container for a pile with label
- */
-function createPileContainer(label: string, count: number): HTMLDivElement {
-  const container = document.createElement('div');
-  container.className = 'center-pile-container';
-  container.innerHTML = `<div class="pile-label">${label} (${count})</div>`;
-  return container;
-}
-
-/**
- * Creates an empty pile element
- */
-function createPile(className: string): HTMLDivElement {
-  const pile = document.createElement('div');
-  pile.className = `${className} pile`;
-  return pile;
-}
-
-/**
  * Main render function to update the entire game view
- * @param {any} gameState - Full game state
+ * @param {GameStateData} gameState - Full game state from server
  */
-export function renderGameState(gameState: any): void {
-  const slotTop = document.querySelector('.table-slot-top') as HTMLElement | null;
-  const slotBottom = document.querySelector('.table-slot-bottom') as HTMLElement | null;
-  const slotLeft = document.querySelector('.table-slot-left') as HTMLElement | null;
-  const slotRight = document.querySelector('.table-slot-right') as HTMLElement | null;
+export function renderGameState(gameState: GameStateData, localPlayerId: string | null): void {
+  // Corrected selectors to use IDs from index.html
+  const slotTop = document.getElementById('opponent-area-top') as HTMLElement | null;
+  const slotBottom = document.getElementById('player-area-bottom') as HTMLElement | null;
+  const slotLeft = document.getElementById('opponent-area-left') as HTMLElement | null;
+  const slotRight = document.getElementById('opponent-area-right') as HTMLElement | null;
+  const deckElement = document.getElementById('deck') as HTMLImageElement;
+  const pileTopCardElement = document.getElementById('pile-top-card') as HTMLImageElement;
+  const deckCountLabel = document.getElementById('deck-count-label');
+  const pileCountLabel = document.getElementById('pile-count-label');
+  const pileOutlineVisual = document.getElementById('pile-outline-visual');
+
+  if (!gameState || !gameState.players) {
+    console.warn('Render: No game state or players to render.');
+    // Potentially hide or clear game board elements if state is invalid
+    if (slotTop) slotTop.innerHTML = '';
+    if (slotBottom) slotBottom.innerHTML = '';
+    if (slotLeft) slotLeft.innerHTML = '';
+    if (slotRight) slotRight.innerHTML = '';
+    if (deckElement) deckElement.style.display = 'none';
+    if (pileTopCardElement) pileTopCardElement.style.display = 'none';
+    if (pileOutlineVisual) pileOutlineVisual.style.display = 'flex';
+    if (deckCountLabel) deckCountLabel.textContent = 'Deck (0)';
+    if (pileCountLabel) pileCountLabel.textContent = 'Pile (0)';
+    return;
+  }
+
+  // Clear player areas
   if (slotTop) slotTop.innerHTML = '';
   if (slotBottom) slotBottom.innerHTML = '';
   if (slotLeft) slotLeft.innerHTML = '';
   if (slotRight) slotRight.innerHTML = '';
-
   document.querySelectorAll('.player-area.active').forEach((el) => el.classList.remove('active'));
 
-  const myId = window.sessionStorage.getItem('myId');
-  const players = gameState.players as any[];
+  const players = gameState.players;
   const playerCount = players.length;
-  const meIdx = players.findIndex((p: any) => p.id === myId);
+  const meIdx = localPlayerId ? players.findIndex((p) => p.id === localPlayerId) : -1;
 
   function seatFor(idx: number): string {
-    if (playerCount === 0) return 'bottom';
-    if (playerCount === 1 && idx === meIdx) return 'bottom';
     if (playerCount === 2) return idx === meIdx ? 'bottom' : 'top';
     if (playerCount === 3) {
       if (idx === meIdx) return 'bottom';
@@ -151,132 +120,187 @@ export function renderGameState(gameState: any): void {
     return 'bottom';
   }
 
-  players.forEach((p: any, idx: number) => {
+  players.forEach((p: ClientStatePlayer, idx: number) => {
     const seat = seatFor(idx);
     let panel = document.createElement('div');
     panel.className = 'player-area' + (p.isComputer ? ' computer-player' : '');
     panel.dataset.playerId = p.id;
-    if (seat === 'bottom' && p.id === myId) panel.id = 'my-area';
+    if (seat === 'bottom' && p.id === localPlayerId) panel.id = 'my-area';
     if (p.isComputer) panel.classList.add('computer-player');
     if (p.disconnected) panel.classList.add('disconnected');
-    if (p.id === gameState.currentPlayerId) {
-      panel.classList.add('active');
-    }
+    if (p.id === gameState.currentPlayerId) panel.classList.add('active');
     panel.style.display = 'flex';
     panel.style.flexDirection = 'column';
     panel.style.alignItems = 'center';
-    if (seat === 'left') panel.classList.add('rotate-right');
-    if (seat === 'right') panel.classList.add('rotate-left');
 
+    // Player name banner (revert to simple span)
     const nameHeader = document.createElement('div');
     nameHeader.className = 'player-name-header ' + (p.isComputer ? 'player-cpu' : 'player-human');
     nameHeader.innerHTML = `<span class="player-name-text">${p.name || p.id}${p.disconnected ? " <span class='player-role'>(Disconnected)</span>" : ''}</span>`;
     panel.appendChild(nameHeader);
 
+    // --- Hand row (always 3 cards, shingled) ---
+    const handArea = document.createElement('div');
+    handArea.className = 'hand-area' + (p.id === gameState.currentPlayerId ? ' active' : '');
     const handRow = document.createElement('div');
-    if (p.id === myId) handRow.id = 'my-hand';
-    handRow.className = p.id === myId ? 'hand' : 'opp-hand';
-
-    const handCardsToRender =
-      p.id === myId && p.hand ? p.hand : Array(p.handCount || 0).fill({ back: true });
-
-    if (handCardsToRender && handCardsToRender.length > 0) {
-      for (let i = 0; i < handCardsToRender.length; i++) {
-        const card = handCardsToRender[i];
-        const canInteract = p.id === myId && gameState.currentPlayerId === myId && !card.back;
-        const cardElement = cardImg(card, canInteract);
-        if (p.id === myId && !card.back) {
-          const imgEl = cardElement.querySelector('.card-img');
-          if (imgEl && imgEl instanceof HTMLImageElement) imgEl.dataset.idx = String(i);
-        }
-        handRow.appendChild(cardElement);
-      }
+    handRow.className = p.id === localPlayerId ? 'hand player-hand' : 'hand opp-hand';
+    handRow.id = p.id === localPlayerId ? 'my-hand' : '';
+    let handCards: CardType[] = [];
+    if (p.id === localPlayerId && p.hand) {
+      handCards = p.hand;
+    } else {
+      handCards = Array(3).fill({ back: true } as CardType);
     }
+    for (let i = 0; i < 3; i++) {
+      const cardData = handCards[i] || { back: true };
+      const canInteract =
+        p.id === localPlayerId &&
+        gameState.currentPlayerId === p.id &&
+        !cardData.back &&
+        (p.hand?.length || 0) > 0;
+      const cardElement = cardImg(cardData, canInteract);
+      if (p.id === localPlayerId && !cardData.back) {
+        const imgEl = cardElement.querySelector('.card-img');
+        if (imgEl && imgEl instanceof HTMLImageElement) imgEl.dataset.idx = String(i);
+      }
+      handRow.appendChild(cardElement);
+    }
+    if (p.id !== localPlayerId) {
+      const handCountBadge = document.createElement('div');
+      handCountBadge.className = 'hand-count-badge';
+      handCountBadge.textContent = String(p.handCount ?? 0);
+      handRow.appendChild(handCountBadge);
+    }
+    handArea.appendChild(handRow);
+    panel.appendChild(handArea);
 
-    const handLabel = document.createElement('div');
-    handLabel.className = 'row-label';
-    handLabel.textContent = `Hand (${p.handCount || 0})`;
-    panel.appendChild(handLabel);
-    panel.appendChild(handRow);
-
+    // --- Up/Down stack row (always 3 columns) ---
+    const stackArea = document.createElement('div');
+    stackArea.className = 'stack-area' + (p.id === gameState.currentPlayerId ? ' active' : '');
     const stackRow = document.createElement('div');
     stackRow.className = 'stack-row';
-    if (p.upCards && p.upCards.length > 0) {
-      p.upCards.forEach((c: CardType, i: number) => {
-        const col = document.createElement('div');
-        col.className = 'stack';
-        if (p.downCount > i) {
-          const downCardElement = cardImg({ value: '', suit: '', back: true } as CardType, false);
-          const downImg = downCardElement.querySelector('.card-img');
-          if (downImg) downImg.classList.add('down-card');
-          col.appendChild(downCardElement);
-        }
-        const canPlayUp = p.id === myId && gameState.currentPlayerId === myId && p.handCount === 0;
-        const upCardElement = cardImg(c, canPlayUp);
+    for (let i = 0; i < 3; i++) {
+      const col = document.createElement('div');
+      col.className = 'stack';
+      const hasDown = p.downCardsHidden && i < p.downCardsHidden;
+      const canPlayDown =
+        p.id === localPlayerId &&
+        gameState.currentPlayerId === p.id &&
+        (p.hand?.length || 0) === 0 &&
+        (p.upCards?.length || 0) === 0 &&
+        !!hasDown &&
+        i === 0;
+      const downCardElement = cardImg({ value: '', suit: '', back: true } as CardType, canPlayDown);
+      const downImg = downCardElement.querySelector('.card-img');
+      if (downImg && downImg instanceof HTMLImageElement) {
+        downImg.classList.add('down-card');
+        if (p.id === localPlayerId) downImg.dataset.idx = String(i + 2000);
+      }
+      col.appendChild(downCardElement);
+      const hasUp = p.upCards && i < p.upCards.length;
+      if (hasUp && p.upCards) {
+        const upCardData = p.upCards[i];
+        const canPlayUp =
+          p.id === localPlayerId &&
+          gameState.currentPlayerId === p.id &&
+          (p.hand?.length || 0) === 0 &&
+          (p.upCards?.length || 0) > 0;
+        const upCardElement = cardImg(upCardData, canPlayUp);
         const upImg = upCardElement.querySelector('.card-img');
         if (upImg && upImg instanceof HTMLImageElement) {
           upImg.classList.add('up-card');
-          if (p.id === myId) upImg.dataset.idx = String(i + 1000);
+          if (p.id === localPlayerId) upImg.dataset.idx = String(i + 1000);
         }
         col.appendChild(upCardElement);
         if (canPlayUp) col.classList.add('playable-stack');
-        stackRow.appendChild(col);
-      });
-    } else if (p.downCount && p.downCount > 0) {
-      for (let i = 0; i < p.downCount; i++) {
-        const col = document.createElement('div');
-        col.className = 'stack';
-        const canPlayDown =
-          p.id === myId &&
-          gameState.currentPlayerId === myId &&
-          p.handCount === 0 &&
-          p.upCount === 0;
-        const downCardElement = cardImg(
-          { value: '', suit: '', back: true } as CardType,
-          canPlayDown && i === 0
-        );
-        const downImg = downCardElement.querySelector('.card-img');
-        if (downImg && downImg instanceof HTMLImageElement) {
-          downImg.classList.add('down-card');
-          if (p.id === myId) downImg.dataset.idx = String(i + 2000);
-        }
-        col.appendChild(downCardElement);
-        if (canPlayDown && i === 0) col.classList.add('playable-stack');
-        stackRow.appendChild(col);
       }
+      stackRow.appendChild(col);
     }
+    stackArea.appendChild(stackRow);
+    panel.appendChild(stackArea);
 
-    const stackLabel = document.createElement('div');
-    stackLabel.className = 'row-label';
-    stackLabel.textContent = `Up (${p.upCount || 0}) / Down (${p.downCount || 0})`;
-    panel.appendChild(stackLabel);
-    panel.appendChild(stackRow);
-
+    // Place panel in correct slot
     if (seat === 'bottom' && slotBottom) slotBottom.appendChild(panel);
     else if (seat === 'top' && slotTop) slotTop.appendChild(panel);
     else if (seat === 'left' && slotLeft) slotLeft.appendChild(panel);
     else if (seat === 'right' && slotRight) slotRight.appendChild(panel);
   });
 
-  createCenterPiles(gameState);
+  // --- Center area: Deck and Discard placeholders ---
+  const centerArea = document.getElementById('center-area');
+  if (centerArea) centerArea.innerHTML = '';
+  const pilesWrapper = document.createElement('div');
+  pilesWrapper.className = 'piles-wrapper';
+  // Deck placeholder
+  const deckContainer = document.createElement('div');
+  deckContainer.className = 'deck-placeholder';
+  deckContainer.id = 'deck-placeholder';
+  if (gameState.deckSize > 0) {
+    const deckImg = document.createElement('img');
+    deckImg.src = 'https://deckofcardsapi.com/static/img/back.png';
+    deckImg.alt = 'Deck';
+    deckImg.className = 'deck-img';
+    deckContainer.appendChild(deckImg);
+  }
+  const deckCount = document.createElement('div');
+  deckCount.className = 'deck-count-label';
+  deckCount.textContent = String(gameState.deckSize || 0);
+  deckContainer.appendChild(deckCount);
+  pilesWrapper.appendChild(deckContainer);
+  // Discard placeholder
+  const discardContainer = document.createElement('div');
+  discardContainer.className = 'discard-placeholder';
+  discardContainer.id = 'discard-placeholder';
+  if (gameState.pile && gameState.pile.length > 0) {
+    const topCard = gameState.pile[gameState.pile.length - 1];
+    const discardImg = document.createElement('img');
+    discardImg.src = `https://deckofcardsapi.com/static/img/${code(topCard)}.png`;
+    discardImg.alt = `${topCard.value} of ${topCard.suit}`;
+    discardImg.className = 'discard-img';
+    discardContainer.appendChild(discardImg);
+  }
+  const pileCount = document.createElement('div');
+  pileCount.className = 'pile-count-label';
+  pileCount.textContent = String(gameState.pile ? gameState.pile.length : 0);
+  discardContainer.appendChild(pileCount);
+  pilesWrapper.appendChild(discardContainer);
+  centerArea?.appendChild(pilesWrapper);
 }
 
 /**
  * Overlay special card symbol on top of discard pile card
  */
 export function showCardEvent(cardValue: number | string | null, type: string): void {
-  let discardImg = document.querySelector('.discard .card-img') as HTMLImageElement | null;
+  // Query for the pile top card image directly, as it's now consistently used.
+  let discardImg = document.getElementById('pile-top-card') as HTMLImageElement | null;
+
+  // If pile-top-card is not visible (e.g. pile is empty), try to find a card in a .discard container if that structure still exists from old code.
+  // This is a fallback, ideally the pile-top-card is the single source of truth for the top discard image.
+  if (!discardImg || discardImg.style.display === 'none') {
+    discardImg = document.querySelector('.discard .card-img') as HTMLImageElement | null;
+  }
+
   let retries = 0;
   function tryRunEffect() {
-    discardImg = document.querySelector('.discard .card-img') as HTMLImageElement | null;
+    if (!discardImg || discardImg.style.display === 'none') {
+      if (retries < 1) {
+        discardImg = document.querySelector('.discard .card-img') as HTMLImageElement | null;
+      }
+      console.warn('showCardEvent: Could not find discard image to overlay effect.');
+    }
+
     if (!discardImg && retries < 5) {
       retries++;
       setTimeout(tryRunEffect, 100);
       return;
     }
-    if (!discardImg) return;
+    if (!discardImg) {
+      console.warn('showCardEvent: Could not find discard image to overlay effect.');
+      return;
+    }
+
     function runEffect() {
-      const parentElement = discardImg!.parentElement;
+      const parentElement = discardImg!.parentElement; // pile-placeholder or .card-container
       if (!parentElement) return;
 
       const prev = parentElement.querySelector('.special-icon');
@@ -327,7 +351,10 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
       icon.style.pointerEvents = 'none';
       icon.style.filter = 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))';
       icon.style.animation = 'iconPulse 1.5s ease-in-out';
-      parentElement.style.position = 'relative';
+      // Ensure parent has relative positioning if it doesn't already.
+      if (getComputedStyle(parentElement).position === 'static') {
+        parentElement.style.position = 'relative';
+      }
       parentElement.appendChild(icon);
       setTimeout(() => {
         icon.style.transition = 'opacity 0.5s ease, transform 0.5s ease';

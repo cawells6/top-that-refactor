@@ -4,30 +4,49 @@ import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/sh
 
 export const getLobbyContainer = (): HTMLElement | null =>
   document.getElementById('lobby-container');
+
 export const getLobbyFormContent = (): HTMLElement | null =>
   document.getElementById('lobby-form-content');
+
 export const getWaitingStateDiv = (): HTMLElement | null =>
   document.getElementById('waiting-state');
-export const getTable = (): HTMLElement | null => document.getElementById('table');
+
+export const getGameTable = (): HTMLElement | null => document.getElementById('game-table'); // Corrected getter
+
+export const getPlayerAreaBottom = (): HTMLElement | null => document.getElementById('player-area-bottom');
+ 
+export const getOpponentAreaTop = (): HTMLElement | null => document.getElementById('opponent-area-top');
+ 
+export const getOpponentAreaLeft = (): HTMLElement | null => document.getElementById('opponent-area-left');
+ 
+export const getOpponentAreaRight = (): HTMLElement | null => document.getElementById('opponent-area-right');
+ 
 export const getCopyLinkBtn = (): HTMLButtonElement | null =>
   document.getElementById('copy-link-button') as HTMLButtonElement | null;
+
 export const getRulesButton = (): HTMLButtonElement | null =>
   document.getElementById('rules-button') as HTMLButtonElement | null;
+
 export const getRulesModal = (): HTMLElement | null => document.getElementById('rules-modal');
+
 export const getModalOverlay = (): HTMLElement | null => document.querySelector('.modal__backdrop');
+
 export const getBackToLobbyButton = (): HTMLButtonElement | null =>
   document.getElementById('back-to-lobby-button') as HTMLButtonElement | null;
+
 export const getGameLogEntries = (): HTMLElement | null =>
   document.getElementById('game-log-entries');
+
 export const getNameInput = (): HTMLInputElement | null =>
   document.getElementById('name-input') as HTMLInputElement | null;
+
 export const $ = (id: string): HTMLElement | null => document.getElementById(id);
 
 export function showLobbyForm(): void {
   const lobbyContainer = getLobbyContainer();
   const lobbyFormContent = getLobbyFormContent();
   const waitingStateDiv = getWaitingStateDiv();
-  const table = getTable();
+  const table = getGameTable(); // Use corrected getter
   if (lobbyContainer) lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
@@ -72,7 +91,7 @@ export function showWaitingState(
 
 export function showGameTable(): void {
   const lobbyContainer = getLobbyContainer();
-  const table = getTable();
+  const table = getGameTable(); // Use corrected getter
   if (lobbyContainer) lobbyContainer.classList.add('hidden');
   if (table) table.classList.remove('table--hidden', 'hidden');
 }
@@ -103,7 +122,7 @@ export function initializeSocketHandlers(): void {
   });
   state.socket.on(STATE_UPDATE, (s: any) => {
     console.log('Received STATE_UPDATE:', s); // Added for debugging
-    renderGameState(s);
+    renderGameState(s, state.myId); // Pass both game state and localPlayerId
     if (s.started) showGameTable();
   });
   state.socket.on('err', (msg: string) => {

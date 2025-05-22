@@ -554,7 +554,9 @@ export default class GameController {
       this.log(
         `Play card rejected: Not player ${player.id}'s turn. Current player: ${this.gameState.players[this.gameState.currentPlayerIndex]}`
       );
-      const playerSocket = this.io.sockets.sockets.get(player.socketId);
+      const playerSocket = player.socketId
+        ? this.io.sockets.sockets.get(player.socketId)
+        : undefined;
       if (playerSocket) {
         playerSocket.emit(ERROR_EVENT, 'Not your turn.');
       }
@@ -573,9 +575,11 @@ export default class GameController {
         )} onto pile top: ${JSON.stringify(this.gameState.pile[this.gameState.pile.length - 1])}.`
       );
       if (!player.isComputer) {
-        const playerSocket = this.io.sockets.sockets.get(player.socketId);
-        if (playerSocket) {
-          playerSocket.emit(ERROR_EVENT, 'Invalid play.');
+        if (player.socketId) {
+          const playerSocket = this.io.sockets.sockets.get(player.socketId);
+          if (playerSocket) {
+            playerSocket.emit(ERROR_EVENT, 'Invalid play.');
+          }
         }
       } else {
         this.log(`Computer player ${player.id} made an invalid play. Forcing pickup.`);
