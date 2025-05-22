@@ -101,52 +101,134 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
     rotatedPlayers = players.slice();
   }
 
-  // Assign seats in fixed order: bottom, left, top, right
+  // --- NEW: Always render all four player areas (bottom, left, top, right) ---
   const seatOrder = ['bottom', 'left', 'top', 'right'];
-  rotatedPlayers.forEach((p, idx) => {
-    const seat = seatOrder[idx] || 'top';
+  // Fill up to 4 seats with placeholder objects if needed
+  type PlayerOrPlaceholder = ClientStatePlayer | { __placeholder: true };
+  const paddedPlayers: PlayerOrPlaceholder[] = [...rotatedPlayers];
+  while (paddedPlayers.length < 4) paddedPlayers.push({ __placeholder: true });
+
+  seatOrder.forEach((seat, idx) => {
+    const p = paddedPlayers[idx] as ClientStatePlayer | { __placeholder: true };
     let panel = document.createElement('div');
-    panel.className = 'player-area' + (p.isComputer ? ' computer-player' : '');
-    panel.dataset.playerId = p.id;
-    if (seat === 'bottom' && p.id === localPlayerId) panel.id = 'my-area';
-    if (p.isComputer) panel.classList.add('computer-player');
-    if (p.disconnected) panel.classList.add('disconnected');
-    if (p.id === gameState.currentPlayerId) {
-      panel.classList.add('active');
-    }
-    panel.style.display = 'flex';
-    panel.style.flexDirection = 'column';
-    panel.style.alignItems = 'center';
-    if (seat === 'left') panel.classList.add('rotate-right');
-    if (seat === 'right') panel.classList.add('rotate-left');
-
-    const nameHeader = document.createElement('div');
-    nameHeader.className = 'player-name-header ' + (p.isComputer ? 'player-cpu' : 'player-human');
-    nameHeader.innerHTML = `<span class="player-name-text">${p.name || p.id}${p.disconnected ? " <span class='player-role'>(Disconnected)</span>" : ''}</span>`;
-    panel.appendChild(nameHeader);
-
-    const handRow = document.createElement('div');
-    if (p.id === localPlayerId) handRow.id = 'my-hand';
-    handRow.className = p.id === localPlayerId ? 'hand' : 'opp-hand';
-
-    const handCardsToRender = p.id === localPlayerId 
-      ? p.hand 
-      : Array(p.handCount || 0).fill({ back: true });
-
-    if (handCardsToRender && handCardsToRender.length > 0) {
-      for (let i = 0; i < handCardsToRender.length; i++) {
-        const card = handCardsToRender[i];
-        const canInteract = p.id === localPlayerId && gameState.currentPlayerId === localPlayerId;
-        const cardElement = cardImg(card, canInteract && !card.back);
-        if (p.id === localPlayerId && !card.back) {
-          const imgEl = cardElement.querySelector('.card-img');
-          if (imgEl && imgEl instanceof HTMLImageElement) imgEl.dataset.idx = String(i);
-        }
-        handRow.appendChild(cardElement);
+    panel.className = 'player-area';
+    if ((p as any).__placeholder) {
+      // Placeholder for empty seat
+      panel.classList.add('player-area-placeholder');
+      panel.innerHTML = `<div class="player-name-header player-placeholder">(Empty)</div>`;
+    } else {
+      const player = p as ClientStatePlayer;
+      if (player.isComputer) panel.classList.add('computer-player');
+      panel.dataset.playerId = player.id;
+      if (seat === 'bottom' && player.id === localPlayerId) panel.id = 'my-area';
+      if (player.isComputer) panel.classList.add('computer-player');
+      if (player.disconnected) panel.classList.add('disconnected');
+      if (player.id === gameState.currentPlayerId) {
+        panel.classList.add('active');
       }
+      panel.style.display = 'flex';
+      panel.style.flexDirection = 'column';
+      panel.style.alignItems = 'center';
+      if (seat === 'left') panel.classList.add('rotate-right');
+      if (seat === 'right') panel.classList.add('rotate-left');
+      // Name header
+      const nameHeader = document.createElement('div');
+      nameHeader.className =
+        'player-name-header ' + (player.isComputer ? 'player-cpu' : 'player-human');
+      nameHeader.innerHTML = `<span class="player-name-text">${player.name || player.id}${player.disconnected ? " <span class='player-role'>(Disconnected)</span>" : ''}</span>`;
+      panel.appendChild(nameHeader);
+      // Hand row (for all players)
+      const handRow = document.createElement('div');
+      if (player.id === localPlayerId) handRow.id = 'my-hand';
+      handRow.className = player.id === localPlayerId ? 'hand' : 'opp-hand';
+      if (player.id === localPlayerId) {
+        // Local player: show hand faces
+        let handCardsToRender: CardType[] = [];
+        if (player.hand && player.hand.length > 0) {
+          handCardsToRender = player.hand;
+        } else {
+          handCardsToRender = Array(3).fill({ back: true } as CardType);
+        }
+        for (let i = 0; i < 3; i++) {
+          const card = handCardsToRender[i] || { back: true };
+          const canInteract = gameState.currentPlayerId === localPlayerId;
+          const cardElement = cardImg(card, canInteract && !card.back);
+          if (!card.back) {
+            const imgEl = cardElement.querySelector('.card-img');
+            if (imgEl && imgEl instanceof HTMLImageElement) imgEl.dataset.idx = String(i);
+          }
+          handRow.appendChild(cardElement);
+        }
+      } else {
+        // Opponents: always show 3 card backs, plus a badge for handCount if > 0
+        for (let i = 0; i < 3; i++) {
+          const el = document.createElement('div');
+          el.className = 'card-container';
+          const cardEl = cardImg({ back: true } as CardType, false);
+          el.appendChild(cardEl);
+          handRow.appendChild(el);
+        }
+        // Add hand count badge if handCount > 0
+        if ((player.handCount || 0) > 0) {
+          const badge = document.createElement('div');
+          badge.className = 'hand-count-badge';
+          badge.textContent = String(player.handCount);
+          handRow.appendChild(badge);
+        }
+      }
+      panel.appendChild(handRow);
+      // Up/Down stacks (always show, always second row)
+      const stackRow = document.createElement('div');
+      stackRow.className = 'stack-row';
+      if (player.upCards && player.upCards.length > 0) {
+        player.upCards.forEach((c, i) => {
+          const col = document.createElement('div');
+          col.className = 'stack';
+          if ((player.downCount ?? 0) > i) {
+            const downCard = cardImg({ value: '', suit: '', back: true } as CardType, false);
+            const downImg = downCard.querySelector('.card-img') as HTMLImageElement | null;
+            if (downImg) downImg.classList.add('down-card');
+            col.appendChild(downCard);
+          }
+          const canPlayUp =
+            player.id === localPlayerId &&
+            gameState.currentPlayerId === localPlayerId &&
+            player.handCount === 0;
+          const upCard = cardImg(c, canPlayUp);
+          const upImg = upCard.querySelector('.card-img') as HTMLImageElement | null;
+          if (upImg) {
+            upImg.classList.add('up-card');
+            if (player.id === localPlayerId) upImg.dataset.idx = String(i + 1000);
+          }
+          col.appendChild(upCard);
+          if (canPlayUp) col.classList.add('playable-stack');
+          stackRow.appendChild(col);
+        });
+      } else if ((player?.downCount ?? 0) > 0) {
+        for (let i = 0; i < (player.downCount ?? 0); i++) {
+          const col = document.createElement('div');
+          col.className = 'stack';
+          const canPlayDown =
+            player.id === localPlayerId &&
+            gameState.currentPlayerId === localPlayerId &&
+            player.handCount === 0 &&
+            player.upCount === 0;
+          const downCard = cardImg(
+            { value: '', suit: '', back: true } as CardType,
+            canPlayDown && i === 0
+          );
+          const downImg = downCard.querySelector('.card-img') as HTMLImageElement | null;
+          if (downImg) {
+            downImg.classList.add('down-card');
+            if (player.id === localPlayerId) downImg.dataset.idx = String(i + 2000);
+          }
+          col.appendChild(downCard);
+          if (canPlayDown && i === 0) col.classList.add('playable-stack');
+          stackRow.appendChild(col);
+        }
+      }
+      panel.appendChild(stackRow);
     }
-    panel.appendChild(handRow);
-
     // Place panel in correct slot
     if (seat === 'bottom' && slotBottom) slotBottom.appendChild(panel);
     else if (seat === 'top' && slotTop) slotTop.appendChild(panel);
@@ -158,48 +240,41 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
   const centerArea = document.getElementById('center-area');
   if (centerArea) {
     centerArea.innerHTML = '';
-    // Create deck and discard piles visually
     const wrapper = document.createElement('div');
     wrapper.className = 'center-piles-wrapper';
-
     // Deck
     const deckContainer = document.createElement('div');
     deckContainer.className = 'center-pile-container';
-    deckContainer.innerHTML = `<div class="pile-label">Deck (${gameState.deckSize || 0})</div>`;
     const deckPile = document.createElement('div');
     deckPile.className = 'deck pile';
-    if (gameState.deckSize && gameState.deckSize > 0) {
+    const deckSize = typeof gameState.deckSize === 'number' ? gameState.deckSize : 0;
+    if (deckSize > 0) {
       deckPile.appendChild(cardImg({ value: '', suit: '', back: true } as CardType, false));
     } else {
-      // Always show a placeholder for empty deck
       const placeholder = document.createElement('div');
       placeholder.className = 'deck-placeholder';
-      placeholder.innerHTML = '<span style="color:#bbb;font-size:1.2em;">Empty</span>';
+      placeholder.innerHTML = '<span>DECK</span>';
       deckPile.appendChild(placeholder);
     }
     deckContainer.appendChild(deckPile);
-
     // Discard
     const discardContainer = document.createElement('div');
     discardContainer.className = 'center-pile-container';
-    const totalDiscardCount = (gameState.pile?.length || 0) + (gameState.discardCount || 0);
-    discardContainer.innerHTML = `<div class="pile-label">Discard (${totalDiscardCount})</div>`;
     const discardPile = document.createElement('div');
     discardPile.className = 'discard pile';
-    if (gameState.pile && gameState.pile.length > 0) {
-      discardPile.appendChild(cardImg(gameState.pile[gameState.pile.length - 1], false));
-    } else if (gameState.discardCount && gameState.discardCount > 0) {
-      // Show a card back or discard icon as a placeholder for hidden discard stack
+    const pile = gameState.pile && gameState.pile.length > 0 ? gameState.pile : null;
+    const discardCount = typeof gameState.discardCount === 'number' ? gameState.discardCount : 0;
+    if (pile) {
+      discardPile.appendChild(cardImg(pile[pile.length - 1], false));
+    } else if (discardCount > 0) {
       discardPile.appendChild(cardImg({ value: '', suit: '', back: true } as CardType, false));
     } else {
-      // Always show a placeholder for empty discard
       const placeholder = document.createElement('div');
       placeholder.className = 'discard-placeholder';
-      placeholder.innerHTML = '<span style="color:#bbb;font-size:1.2em;">Empty</span>';
+      placeholder.innerHTML = '<span>DISCARD</span>';
       discardPile.appendChild(placeholder);
     }
     discardContainer.appendChild(discardPile);
-
     wrapper.append(deckContainer, discardContainer);
     centerArea.appendChild(wrapper);
   }
