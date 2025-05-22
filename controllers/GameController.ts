@@ -31,6 +31,7 @@ import {
 interface PlayerJoinData {
   id?: string;
   name?: string;
+  numHumans?: number;
   numCPUs?: number;
 }
 
@@ -79,9 +80,36 @@ export class GameRoomManager {
   constructor(io: Server) {
     this.io = io;
     this.rooms = new Map();
-    this.io.on('connection', (socket: Socket) => this.setupListeners(socket));
+    this.io.on('connection', (socket: Socket) => {
+      this.log(`New connection: ${socket.id}`);
+      socket.on(
+        JOIN_GAME,
+        (
+          playerData: PlayerJoinData,
+          ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+        ) => {
+          this.handleClientJoinGame(socket, playerData, ack);
+        }
+      );
 
-    // --- CLEANUP: Remove rooms whose games have ended and have no players ---
+      socket.on(
+        REJOIN,
+        (
+          rejoinData: RejoinData,
+          ack?: (response: { success: boolean; error?: string }) => void
+        ) => {
+          const controller = this.rooms.get(rejoinData.roomId);
+          if (controller) {
+            controller.publicHandleRejoin(socket, rejoinData.roomId, rejoinData.playerId, ack);
+          } else {
+            this.log(`Rejoin attempt for non-existent room: ${rejoinData.roomId}`);
+            if (ack) ack({ success: false, error: 'Room not found' });
+            socket.emit(ERROR_EVENT, 'Room not found for rejoin.');
+          }
+        }
+      );
+    });
+
     setInterval(() => {
       for (const [roomId, controller] of this.rooms.entries()) {
         const hasActivePlayers = Array.from(controller['players'].values()).some(
@@ -91,26 +119,35 @@ export class GameRoomManager {
           this.rooms.delete(roomId);
         }
       }
-    }, 60000); // Run every 60 seconds
+    }, 60000);
   }
 
-  private setupListeners(socket: Socket): void {
-    socket.on('create-room', (cb: (roomId: string) => void) => {
-      const roomId = uuidv4().slice(0, 6);
-      const controller = new GameController(this.io, roomId);
+  private log(message: string, ...args: any[]): void {
+    console.log(`[GameRoomManager] ${message}`, ...args);
+  }
+
+  private handleClientJoinGame(
+    socket: Socket,
+    playerData: PlayerJoinData,
+    ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+  ): void {
+    let roomId = playerData.id;
+    let controller: GameController | undefined;
+
+    if (roomId) {
+      controller = this.rooms.get(roomId);
+    }
+
+    if (!controller) {
+      roomId = uuidv4().slice(0, 6);
+      this.log(`Creating new room ${roomId} for player ${playerData.name || socket.id}`);
+      controller = new GameController(this.io, roomId);
       this.rooms.set(roomId, controller);
-      cb(roomId);
-    });
-    socket.on('join-room', (roomId: string, playerData: any) => {
-      const controller = this.rooms.get(roomId);
-      if (controller) controller.publicHandleJoin(socket, playerData);
-      else socket.emit('err', 'Room not found');
-    });
-    socket.on('rejoin-room', (roomId: string, playerId: string) => {
-      const controller = this.rooms.get(roomId);
-      if (controller) controller.publicHandleRejoin(socket, roomId, playerId);
-      else socket.emit('err', 'Room not found');
-    });
+    } else {
+      this.log(`Player ${playerData.name || socket.id} attempting to join existing room ${roomId}`);
+    }
+
+    controller.publicHandleJoin(socket, playerData, ack);
   }
 }
 
@@ -121,26 +158,32 @@ export default class GameController {
   private socketIdToPlayerId: Map<string, string>;
   private roomId: string;
 
+  private log(message: string, ...args: any[]): void {
+    console.log(`[GameController ${this.roomId}] ${message}`, ...args);
+  }
+
   constructor(io: Server, roomId: string) {
     this.io = io;
     this.roomId = roomId;
     this.gameState = new GameState();
     this.players = new Map<string, Player>();
     this.socketIdToPlayerId = new Map<string, string>();
-
-    this.io.on('connection', (socket: Socket) => this.setupListeners(socket));
+    this.log('GameController instance created.');
   }
 
-  private setupListeners(socket: Socket): void {
-    socket.on(JOIN_GAME, (playerData: PlayerJoinData) => this.handleJoin(socket, playerData));
+  public attachSocketEventHandlers(socket: Socket): void {
+    this.log(`Attaching event handlers for socket ${socket.id}`);
+    socket.removeAllListeners(START_GAME);
+    socket.removeAllListeners(PLAY_CARD);
+    socket.removeAllListeners(PICK_UP_PILE);
+    socket.removeAllListeners(REJOIN);
+    socket.removeAllListeners('disconnect');
+
     socket.on(START_GAME, (opts: Pick<StartGameOptions, 'computerCount'> = {}) =>
       this.handleStartGame({ ...opts, socket })
     );
     socket.on(PLAY_CARD, (data: PlayData) => this.handlePlayCard(socket, data));
     socket.on(PICK_UP_PILE, () => this.handlePickUpPile(socket));
-    socket.on(REJOIN, ({ roomId, playerId }: RejoinData) =>
-      this.handleRejoin(socket, roomId, playerId)
-    );
     socket.on('disconnect', () => this.handleDisconnect(socket));
   }
 
@@ -152,62 +195,119 @@ export default class GameController {
     }));
   }
 
-  public publicHandleJoin(socket: Socket, playerData: any) {
-    this.handleJoin(socket, playerData);
+  public publicHandleJoin(
+    socket: Socket,
+    playerData: PlayerJoinData,
+    ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+  ): void {
+    this.attachSocketEventHandlers(socket);
+    this.handleJoin(socket, playerData, ack);
   }
 
-  public publicHandleRejoin(socket: Socket, roomId: string, playerId: string) {
-    this.handleRejoin(socket, roomId, playerId);
+  public publicHandleRejoin(
+    socket: Socket,
+    roomId: string,
+    playerId: string,
+    ack?: (response: { success: boolean; error?: string }) => void
+  ): void {
+    this.attachSocketEventHandlers(socket);
+    this.handleRejoin(socket, roomId, playerId, ack);
   }
 
-  private handleRejoin(socket: Socket, roomId: string, playerId: string): void {
+  private handleRejoin(
+    socket: Socket,
+    roomId: string,
+    playerId: string,
+    ack?: (response: { success: boolean; error?: string }) => void
+  ): void {
+    this.log(`Attempting to rejoin player ${playerId} in room ${roomId} with socket ${socket.id}`);
     if (roomId !== this.roomId) {
+      this.log(`Rejoin failed: Mismatched room ID. Expected ${this.roomId}, got ${roomId}`);
+      if (ack) ack({ success: false, error: 'Invalid room for rejoin.' });
       socket.emit(ERROR_EVENT, 'Invalid room for rejoin.');
       return;
     }
     const player = this.players.get(playerId);
     if (player) {
+      this.log(
+        `Player ${playerId} found. Updating socket ID from ${player.socketId} to ${socket.id} and joining room.`
+      );
       socket.join(this.roomId);
       player.socketId = socket.id;
       player.disconnected = false;
       this.socketIdToPlayerId.set(socket.id, playerId);
 
       socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
+      this.log(`Emitted JOINED to rejoining player ${player.name}`);
+
       this.pushState();
       this.io.to(this.roomId).emit(LOBBY, {
         roomId: this.roomId,
         players: this.getLobbyPlayerList(),
         maxPlayers: this.gameState.maxPlayers,
       });
+      this.log(`Pushed state and lobby info to room ${this.roomId} after rejoin.`);
+      if (ack) ack({ success: true });
     } else {
+      this.log(`Rejoin failed: Player ${playerId} not found in this room.`);
+      if (ack) ack({ success: false, error: `Player ${playerId} not found for rejoin.` });
       socket.emit(ERROR_EVENT, `Player ${playerId} not found for rejoin.`);
     }
   }
 
-  private handleJoin(socket: Socket, playerData: PlayerJoinData): void {
+  private handleJoin(
+    socket: Socket,
+    playerData: PlayerJoinData,
+    ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+  ): void {
     let id = playerData.id || socket.id;
     let name = playerData.name || `Player-${id.substring(0, 4)}`;
-    const numCPUs = playerData.numCPUs || 0;
+    this.log(
+      `Handling join request for player: ${name} (Proposed ID: ${id}, Socket: ${socket.id})`
+    );
 
-    if (this.players.has(id) && !this.players.get(id)?.disconnected) {
-      socket.emit(ERROR_EVENT, `Player ID '${id}' is already active in a game.`);
+    const existingPlayer = this.players.get(id);
+    if (existingPlayer && !existingPlayer.disconnected) {
+      this.log(`Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`);
+      if (ack) ack({ error: `Player ID '${id}' is already active in a game.` });
+      else socket.emit(ERROR_EVENT, `Player ID '${id}' is already active in a game.`);
       return;
     }
-    if (this.players.has(id) && this.players.get(id)?.disconnected) {
-      this.handleRejoin(socket, this.roomId, id);
+
+    if (existingPlayer && existingPlayer.disconnected) {
+      this.log(`Player ID '${id}' (${name}) is disconnected. Attempting rejoin logic.`);
+      this.handleRejoin(
+        socket,
+        this.roomId,
+        id,
+        ack
+          ? (rejoinAck) => {
+              if (rejoinAck.success) {
+                if (ack) ack({ roomId: this.roomId, playerId: id });
+              } else {
+                if (ack) ack({ error: rejoinAck.error || 'Rejoin failed' });
+              }
+            }
+          : undefined
+      );
       return;
     }
 
     if (this.gameState.started) {
-      socket.emit(ERROR_EVENT, 'Game has already started. Cannot join.');
+      this.log(`Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
+      if (ack) ack({ error: 'Game has already started. Cannot join.' });
+      else socket.emit(ERROR_EVENT, 'Game has already started. Cannot join.');
       return;
     }
 
     if (this.players.size >= this.gameState.maxPlayers) {
-      socket.emit(ERROR_EVENT, 'Game room is full.');
+      this.log(`Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
+      if (ack) ack({ error: 'Game room is full.' });
+      else socket.emit(ERROR_EVENT, 'Game room is full.');
       return;
     }
 
+    this.log(`Adding player '${name}' (ID: ${id}) to game state.`);
     this.gameState.addPlayer(id);
     const player = new Player(id);
     player.name = name;
@@ -216,9 +316,17 @@ export default class GameController {
     this.socketIdToPlayerId.set(socket.id, id);
 
     socket.join(this.roomId);
+    this.log(
+      `Player '${name}' (Socket ID: ${socket.id}) joined room '${this.roomId}'. Emitting JOINED.`
+    );
     socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
+    if (ack) ack({ roomId: this.roomId, playerId: player.id });
 
     const currentLobbyPlayers = this.getLobbyPlayerList();
+    this.log(
+      `Emitting PLAYER_JOINED and LOBBY to room '${this.roomId}'. Players:`,
+      currentLobbyPlayers
+    );
     this.io.to(this.roomId).emit(PLAYER_JOINED, currentLobbyPlayers);
     this.io.to(this.roomId).emit(LOBBY, {
       roomId: this.roomId,
@@ -227,63 +335,127 @@ export default class GameController {
     });
 
     const autoStartEnabled = true;
-    if (autoStartEnabled && this.players.size === 1 && numCPUs > 0 && !this.gameState.started) {
-      this.handleStartGame({ computerCount: numCPUs, socket });
+    const desiredNumHumans = playerData.numHumans || 1;
+    const desiredNumCPUs = playerData.numCPUs || 0;
+
+    this.log(
+      `Checking auto-start conditions: autoStartEnabled=${autoStartEnabled}, players.size=${this.players.size}, desiredNumHumans=${desiredNumHumans}, desiredNumCPUs=${desiredNumCPUs}, gameState.started=${this.gameState.started}`
+    );
+
+    if (
+      autoStartEnabled &&
+      this.players.size === 1 &&
+      desiredNumHumans === 1 &&
+      1 + desiredNumCPUs >= 2 &&
+      !this.gameState.started
+    ) {
+      this.log(
+        `Auto-starting game. Player: ${name} (the only human), CPUs: ${desiredNumCPUs}. Total players: ${
+          1 + desiredNumCPUs
+        }`
+      );
+      this.handleStartGame({ computerCount: desiredNumCPUs, socket });
     } else {
+      this.log(
+        `Not auto-starting. Conditions not met or game configured for multiple humans (desiredNumHumans=${desiredNumHumans}). Transitioning to lobby/waiting state.`
+      );
       this.pushState();
     }
   }
 
   private async handleStartGame(opts: StartGameOptions): Promise<void> {
     const computerCount = opts.computerCount || 0;
+    const requestingSocket = opts.socket;
+    this.log(
+      `Handling start game request. Computer count: ${computerCount}. Requested by: ${requestingSocket?.id}`
+    );
 
     if (this.gameState.started) {
       const errorMsg = 'Game has already started.';
-      if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-      else this.io.to(this.roomId).emit(ERROR_EVENT, errorMsg);
+      this.log(`Start game failed: ${errorMsg}`);
+      if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
       return;
     }
+
+    this.players.forEach((player) => {
+      if (!this.gameState.players.includes(player.id)) {
+        this.gameState.addPlayer(player.id);
+        this.log(`Added player ${player.id} to gameState.players before starting.`);
+      }
+    });
 
     const currentHumanPlayers = Array.from(this.players.values()).filter(
       (p: Player) => !p.isComputer
     ).length;
+
+    this.log(
+      `Current human players: ${currentHumanPlayers}. Desired CPUs: ${computerCount}. Total players before adding CPUs: ${this.players.size}`
+    );
+
     if (currentHumanPlayers === 0 && computerCount < 2) {
       const errorMsg = 'At least two players (humans or CPUs) are required to start.';
-      if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-      else this.io.to(this.roomId).emit(ERROR_EVENT, errorMsg);
+      this.log(`Start game failed: ${errorMsg}`);
+      if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
       return;
     }
     if (currentHumanPlayers > 0 && currentHumanPlayers + computerCount < 2) {
       const errorMsg = 'At least two total players (humans + CPUs) are required.';
-      if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-      else this.io.to(this.roomId).emit(ERROR_EVENT, errorMsg);
+      this.log(`Start game failed: ${errorMsg}`);
+      if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
+      return;
+    }
+    if (currentHumanPlayers + computerCount > this.gameState.maxPlayers) {
+      const errorMsg = `Cannot start: Total players (${currentHumanPlayers + computerCount}) would exceed max players (${this.gameState.maxPlayers}).`;
+      this.log(`Start game failed: ${errorMsg}`);
+      if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
       return;
     }
 
     for (let i = 0; i < computerCount; i++) {
       if (this.players.size >= this.gameState.maxPlayers) {
+        this.log('Max players reached, cannot add more CPUs.');
         break;
       }
       const cpuId = `COMPUTER_${i + 1}`;
       if (!this.players.has(cpuId)) {
-        this.gameState.addPlayer(cpuId);
         const cpuPlayer = new Player(cpuId);
         cpuPlayer.name = `CPU ${i + 1}`;
         cpuPlayer.isComputer = true;
         this.players.set(cpuId, cpuPlayer);
+        if (!this.gameState.players.includes(cpuId)) {
+          this.gameState.addPlayer(cpuId);
+        }
+        this.log(`Added CPU player ${cpuId}. Total players now: ${this.players.size}`);
       }
     }
+    this.log(
+      `Finished adding CPUs. Total players in this.players: ${this.players.size}. Players in gameState: ${this.gameState.players.length}`
+    );
+
+    this.players.forEach((p) => {
+      if (!this.gameState.players.includes(p.id)) {
+        this.gameState.addPlayer(p.id);
+        this.log(`Final sync: Added player ${p.id} to gameState.players.`);
+      }
+    });
 
     this.gameState.startGameInstance();
+    this.log(
+      `Game instance started. Players in gameState after start: ${this.gameState.players.join(', ')}`
+    );
 
     const numPlayers = this.gameState.players.length;
     if (numPlayers < 2) {
       const errorMsg = `Not enough players to start (need at least 2, have ${numPlayers}).`;
-      if (opts.socket) opts.socket.emit(ERROR_EVENT, errorMsg);
-      else this.io.to(this.roomId).emit(ERROR_EVENT, errorMsg);
+      this.log(
+        `Start game failed: ${errorMsg}. Players in gameState: ${this.gameState.players.join(', ')}`
+      );
+      this.gameState.started = false;
+      if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
       return;
     }
 
+    this.log(`Dealing cards for ${numPlayers} players: ${this.gameState.players.join(', ')}`);
     const { hands, upCards, downCards } = this.gameState.dealCards(numPlayers);
 
     this.gameState.players.forEach((id: string, idx: number) => {
@@ -300,13 +472,25 @@ export default class GameController {
     this.gameState.currentPlayerIndex = 0;
 
     const firstPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
+    this.log(
+      `Game started successfully. First player: ${firstPlayerId}. Emitting NEXT_TURN and pushing state.`
+    );
 
     this.pushState();
     this.io.to(this.roomId).emit(NEXT_TURN, firstPlayerId);
+
+    const firstPlayer = this.players.get(firstPlayerId);
+    if (firstPlayer && firstPlayer.isComputer) {
+      this.log(`First player ${firstPlayerId} is a CPU. Initiating their turn.`);
+      setTimeout(() => this.playComputerTurn(firstPlayer), 1200);
+    }
   }
 
   private handlePlayCard(socket: Socket, { cardIndices, zone }: PlayData): void {
     const playerId = this.socketIdToPlayerId.get(socket.id);
+    this.log(
+      `Handling play card request from socket ${socket.id} (Player ID: ${playerId}). Zone: ${zone}, Indices: ${cardIndices}`
+    );
     if (!playerId) {
       socket.emit(ERROR_EVENT, 'Player not recognized.');
       return;
@@ -361,16 +545,40 @@ export default class GameController {
     zone: 'hand' | 'upCards' | 'downCards',
     cardsToPlay: Card[]
   ): void {
+    this.log(
+      `Internal play card for player ${player.id} (${player.name}). Zone: ${zone}, Cards: ${JSON.stringify(
+        cardsToPlay
+      )}`
+    );
     if (this.gameState.players[this.gameState.currentPlayerIndex] !== player.id) {
+      this.log(
+        `Play card rejected: Not player ${player.id}'s turn. Current player: ${this.gameState.players[this.gameState.currentPlayerIndex]}`
+      );
+      const playerSocket = this.io.sockets.sockets.get(player.socketId);
+      if (playerSocket) {
+        playerSocket.emit(ERROR_EVENT, 'Not your turn.');
+      }
       return;
     }
     if (cardsToPlay.length === 0) {
+      this.log('Play card rejected: No cards provided.');
       return;
     }
 
     const isValid = this.gameState.isValidPlay(cardsToPlay);
     if (!isValid && zone !== 'downCards') {
-      if (player.isComputer) {
+      this.log(
+        `Play card rejected: Invalid play by ${player.id} with cards ${JSON.stringify(
+          cardsToPlay
+        )} onto pile top: ${JSON.stringify(this.gameState.pile[this.gameState.pile.length - 1])}.`
+      );
+      if (!player.isComputer) {
+        const playerSocket = this.io.sockets.sockets.get(player.socketId);
+        if (playerSocket) {
+          playerSocket.emit(ERROR_EVENT, 'Invalid play.');
+        }
+      } else {
+        this.log(`Computer player ${player.id} made an invalid play. Forcing pickup.`);
         this.handlePickUpPileInternal(player);
       }
       return;
@@ -395,20 +603,24 @@ export default class GameController {
     });
 
     this.io.to(this.roomId).emit(CARD_PLAYED, { playerId: player.id, cards: cardsToPlay, zone });
+    this.log(`Emitted CARD_PLAYED for player ${player.id}. Cards: ${JSON.stringify(cardsToPlay)}`);
 
     const lastPlayedCard = cardsToPlay[0];
     const lastPlayedNormalizedValue = normalizeCardValue(lastPlayedCard.value);
 
     let pileClearedBySpecial = false;
     if (isTwoCard(lastPlayedNormalizedValue)) {
+      this.log(`Special card: 2 played by ${player.id}. Resetting pile.`);
       this.io
         .to(this.roomId)
         .emit(SPECIAL_CARD_EFFECT, { type: 'two', value: lastPlayedNormalizedValue });
       this.gameState.clearPile();
       pileClearedBySpecial = true;
     } else if (this.gameState.isFourOfAKindOnPile() || isTenCard(lastPlayedNormalizedValue)) {
+      const effectType = isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four';
+      this.log(`Special card: ${effectType} played by ${player.id}. Burning pile.`);
       this.io.to(this.roomId).emit(SPECIAL_CARD_EFFECT, {
-        type: isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four',
+        type: effectType,
         value: lastPlayedNormalizedValue,
       });
       this.gameState.clearPile();
@@ -425,6 +637,7 @@ export default class GameController {
         }
       }
     } else if (isFiveCard(lastPlayedNormalizedValue)) {
+      this.log(`Special card: 5 played by ${player.id}. Copying last real card.`);
       this.io
         .to(this.roomId)
         .emit(SPECIAL_CARD_EFFECT, { type: 'five', value: lastPlayedNormalizedValue });
@@ -434,6 +647,7 @@ export default class GameController {
     }
 
     if (player.hasEmptyHand() && player.hasEmptyUp() && player.hasEmptyDown()) {
+      this.log(`Player ${player.id} (${player.name}) has played all cards. Game Over!`);
       this.io.to(this.roomId).emit(GAME_OVER, { winnerId: player.id, winnerName: player.name });
       this.gameState.endGameInstance();
       this.pushState();
@@ -449,12 +663,15 @@ export default class GameController {
     }
 
     if (pileClearedBySpecial) {
+      this.log(`Pile cleared by special card. Player ${player.id} plays again.`);
       this.pushState();
       this.io.to(this.roomId).emit(NEXT_TURN, player.id);
       if (player.isComputer) {
+        this.log(`Computer player ${player.id} plays again. Scheduling their turn.`);
         setTimeout(() => this.playComputerTurn(player), 1200);
       }
     } else {
+      this.log('Proceeding to next turn.');
       this.handleNextTurn();
     }
     this.pushState();
@@ -462,49 +679,85 @@ export default class GameController {
 
   private handlePickUpPile(socket: Socket): void {
     const playerId = this.socketIdToPlayerId.get(socket.id);
-    if (!playerId) return;
+    this.log(`Handling pick up pile request from socket ${socket.id} (Player ID: ${playerId})`);
+    if (!playerId) {
+      this.log(`Pick up pile failed: Player not recognized for socket ${socket.id}`);
+      socket.emit(ERROR_EVENT, 'Player not recognized.');
+      return;
+    }
 
     const player = this.players.get(playerId);
     if (!player) {
+      this.log(`Pick up pile failed: Player data not found for ID ${playerId}`);
       socket.emit(ERROR_EVENT, 'Player data not found.');
       return;
     }
+
     if (this.gameState.players[this.gameState.currentPlayerIndex] !== playerId) {
-      socket.emit(ERROR_EVENT, 'Not your turn to pick up pile.');
+      this.log(
+        `Pick up pile rejected: Not player ${playerId}'s turn. Current player: ${this.gameState.players[this.gameState.currentPlayerIndex]}`
+      );
+      socket.emit(ERROR_EVENT, 'Not your turn to pick up.');
       return;
     }
+
     this.handlePickUpPileInternal(player);
   }
 
   private handlePickUpPileInternal(player: Player): void {
+    this.log(
+      `Internal pick up pile for player ${player.id} (${player.name}). Pile size: ${this.gameState.pile.length}`
+    );
     if (this.gameState.pile.length === 0) {
-      if (player.isComputer) this.handleNextTurn();
-      return;
+      this.log(
+        `Player ${player.id} tried to pick up an empty pile. This shouldn't typically happen unless it's a forced pickup after an invalid downcard play on an empty pile.`
+      );
+    } else {
+      player.pickUpPile([...this.gameState.pile]);
+      this.gameState.clearPile();
+      this.log(
+        `Player ${player.id} picked up ${this.gameState.pile.length} cards. New hand size: ${player.hand.length}`
+      );
+      this.io.to(this.roomId).emit(PILE_PICKED_UP, { playerId: player.id });
     }
 
-    player.pickUpPile([...this.gameState.pile]);
-    this.gameState.clearPile();
-
-    this.io.to(this.roomId).emit(PILE_PICKED_UP, { playerId: player.id });
     this.handleNextTurn();
+    this.pushState();
   }
 
   private handleNextTurn(): void {
     if (!this.gameState.started) {
-      this.pushState();
+      this.log('Attempted to advance turn, but game has not started.');
       return;
     }
     this.gameState.advancePlayer();
     const nextPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
-    if (!nextPlayerId) {
+    const nextPlayer = this.players.get(nextPlayerId);
+
+    this.log(
+      `Advancing turn. Current player index: ${this.gameState.currentPlayerIndex}, Next player ID: ${nextPlayerId}`
+    );
+
+    if (!nextPlayer) {
+      this.log(
+        `Error: Next player with ID ${nextPlayerId} not found in 'this.players' map. This should not happen.`
+      );
+      this.io.to(this.roomId).emit(NEXT_TURN, nextPlayerId);
       return;
     }
-    this.io.to(this.roomId).emit(NEXT_TURN, nextPlayerId);
-    this.pushState();
 
-    const nextPlayerInstance = this.players.get(nextPlayerId);
-    if (nextPlayerInstance?.isComputer) {
-      setTimeout(() => this.playComputerTurn(nextPlayerInstance), 1200);
+    if (nextPlayer.disconnected) {
+      this.log(`Next player ${nextPlayerId} (${nextPlayer.name}) is disconnected. Skipping turn.`);
+      this.handleNextTurn();
+      return;
+    }
+
+    this.io.to(this.roomId).emit(NEXT_TURN, nextPlayerId);
+    this.log(`Emitted NEXT_TURN for player ${nextPlayerId} (${nextPlayer.name})`);
+
+    if (nextPlayer.isComputer) {
+      this.log(`Next player ${nextPlayerId} is a CPU. Scheduling their turn.`);
+      setTimeout(() => this.playComputerTurn(nextPlayer), 1200);
     }
   }
 
@@ -513,6 +766,7 @@ export default class GameController {
       !this.gameState.started ||
       this.gameState.players[this.gameState.currentPlayerIndex] !== computerPlayer.id
     ) {
+      this.log(`CPU ${computerPlayer.id} turn skipped: not their turn or game not started.`);
       return;
     }
 
@@ -567,21 +821,21 @@ export default class GameController {
       const player = this.players.get(playerId);
       if (player) {
         player.disconnected = true;
-        player.socketId = undefined;
-      }
-      this.socketIdToPlayerId.delete(socket.id);
+        this.log(`Player ${playerId} (${player.name}) disconnected (socket ${socket.id}).`);
+        this.socketIdToPlayerId.delete(socket.id);
 
-      const activePlayers = Array.from(this.players.values()).filter(
-        (p: Player) => !p.disconnected
-      );
-      if (activePlayers.length === 0 && this.gameState.started) {
-        this.gameState.endGameInstance();
-      } else if (
-        this.gameState.started &&
-        playerId === this.gameState.players[this.gameState.currentPlayerIndex]
-      ) {
-        this.handleNextTurn();
-        return;
+        const activePlayers = Array.from(this.players.values()).filter(
+          (p: Player) => !p.disconnected
+        );
+        if (activePlayers.length === 0 && this.gameState.started) {
+          this.gameState.endGameInstance();
+        } else if (
+          this.gameState.started &&
+          playerId === this.gameState.players[this.gameState.currentPlayerIndex]
+        ) {
+          this.handleNextTurn();
+          return;
+        }
       }
     }
     this.pushState();

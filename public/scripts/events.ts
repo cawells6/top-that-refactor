@@ -331,16 +331,14 @@ export function initializePageEventListeners() {
       }
       if (playerCountErrorDiv) playerCountErrorDiv.classList.add('hidden');
       // --- Emit the JOIN_GAME Event ---
-      console.debug('[LobbyForm] Emitting JOIN_GAME', {
-        name,
-        numHumans,
-        numCPUs,
-      });
-      state.socket.emit(JOIN_GAME, {
+      const playerDataForEmit = {
         name: name,
         numHumans: numHumans,
         numCPUs: numCPUs,
-      });
+      };
+      console.debug('[LobbyForm] Emitting JOIN_GAME', playerDataForEmit);
+      console.log('[Client events.ts] Attempting to emit JOIN_GAME with data:', playerDataForEmit);
+      state.socket.emit(JOIN_GAME, playerDataForEmit);
       // --- Disable the Submit Button ---
       const submitButton = lobbyForm.querySelector('#join-game-button');
       if (submitButton instanceof HTMLButtonElement) {
