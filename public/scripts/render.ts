@@ -83,11 +83,24 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
     return;
   }
 
-  // Clear player areas
-  if (slotTop) slotTop.innerHTML = '';
-  if (slotBottom) slotBottom.innerHTML = '';
-  if (slotLeft) slotLeft.innerHTML = '';
-  if (slotRight) slotRight.innerHTML = '';
+  // Clear player areas and set light green background
+  const lightGreen = '#137a4b'; // Lighter shade of lobby green (updated)
+  if (slotTop) {
+    slotTop.innerHTML = '';
+    slotTop.style.backgroundColor = lightGreen;
+  }
+  if (slotBottom) {
+    slotBottom.innerHTML = '';
+    slotBottom.style.backgroundColor = lightGreen;
+  }
+  if (slotLeft) {
+    slotLeft.innerHTML = '';
+    slotLeft.style.backgroundColor = lightGreen;
+  }
+  if (slotRight) {
+    slotRight.innerHTML = '';
+    slotRight.style.backgroundColor = lightGreen;
+  }
   document.querySelectorAll('.player-area.active').forEach((el) => el.classList.remove('active'));
 
   const players = gameState.players;
@@ -101,134 +114,185 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
     rotatedPlayers = players.slice();
   }
 
-  // --- NEW: Always render all four player areas (bottom, left, top, right) ---
-  const seatOrder = ['bottom', 'left', 'top', 'right'];
-  // Fill up to 4 seats with placeholder objects if needed
-  type PlayerOrPlaceholder = ClientStatePlayer | { __placeholder: true };
-  const paddedPlayers: PlayerOrPlaceholder[] = [...rotatedPlayers];
-  while (paddedPlayers.length < 4) paddedPlayers.push({ __placeholder: true });
+  // --- NEW: Only show player boards for actual players ---
+  const seatOrder = ['bottom', 'right', 'top', 'left']; // 6, 3, 12, 9 o'clock positions
 
   seatOrder.forEach((seat, idx) => {
-    const p = paddedPlayers[idx] as ClientStatePlayer | { __placeholder: true };
+    const player = rotatedPlayers[idx];
+    if (!player) return; // Don't show empty slots
+
     let panel = document.createElement('div');
     panel.className = 'player-area';
-    if ((p as any).__placeholder) {
-      // Placeholder for empty seat
-      panel.classList.add('player-area-placeholder');
-      panel.innerHTML = `<div class="player-name-header player-placeholder">(Empty)</div>`;
-    } else {
-      const player = p as ClientStatePlayer;
-      if (player.isComputer) panel.classList.add('computer-player');
-      panel.dataset.playerId = player.id;
-      if (seat === 'bottom' && player.id === localPlayerId) panel.id = 'my-area';
-      if (player.isComputer) panel.classList.add('computer-player');
-      if (player.disconnected) panel.classList.add('disconnected');
-      if (player.id === gameState.currentPlayerId) {
-        panel.classList.add('active');
-      }
-      panel.style.display = 'flex';
-      panel.style.flexDirection = 'column';
-      panel.style.alignItems = 'center';
-      if (seat === 'left') panel.classList.add('rotate-right');
-      if (seat === 'right') panel.classList.add('rotate-left');
-      // Name header
-      const nameHeader = document.createElement('div');
-      nameHeader.className =
-        'player-name-header ' + (player.isComputer ? 'player-cpu' : 'player-human');
-      nameHeader.innerHTML = `<span class="player-name-text">${player.name || player.id}${player.disconnected ? " <span class='player-role'>(Disconnected)</span>" : ''}</span>`;
-      panel.appendChild(nameHeader);
-      // Hand row (for all players)
-      const handRow = document.createElement('div');
-      if (player.id === localPlayerId) handRow.id = 'my-hand';
-      handRow.className = player.id === localPlayerId ? 'hand' : 'opp-hand';
-      if (player.id === localPlayerId) {
-        // Local player: show hand faces
-        let handCardsToRender: CardType[] = [];
-        if (player.hand && player.hand.length > 0) {
-          handCardsToRender = player.hand;
-        } else {
-          handCardsToRender = Array(3).fill({ back: true } as CardType);
-        }
-        for (let i = 0; i < 3; i++) {
-          const card = handCardsToRender[i] || { back: true };
+    panel.style.backgroundColor = 'transparent';
+    panel.style.margin = '10px';
+    panel.style.padding = '5px';
+
+    if (player.isComputer) panel.classList.add('computer-player');
+    panel.dataset.playerId = player.id;
+    if (seat === 'bottom' && player.id === localPlayerId) panel.id = 'my-area';
+    if (player.disconnected) panel.classList.add('disconnected');
+    if (player.id === gameState.currentPlayerId) {
+      panel.classList.add('active');
+    }
+    panel.style.display = 'flex';
+    panel.style.flexDirection = 'column';
+    panel.style.alignItems = 'center';
+    if (seat === 'left') panel.classList.add('rotate-right');
+    if (seat === 'right') panel.classList.add('rotate-left');
+
+    // Name header - blue banner with gold letters, full width of player board
+    const nameHeader = document.createElement('div');
+    nameHeader.className =
+      'player-name-header ' + (player.isComputer ? 'player-cpu' : 'player-human');
+    nameHeader.style.width = '100%';
+    nameHeader.style.textAlign = 'center';
+    nameHeader.style.marginBottom = '5px';
+    nameHeader.style.backgroundColor = '#1e3a8a'; // Blue background
+    nameHeader.style.color = '#fbbf24'; // Gold text
+    nameHeader.style.padding = '8px 12px';
+    nameHeader.style.borderRadius = '6px';
+    nameHeader.style.fontWeight = 'bold';
+    nameHeader.style.border = '2px solid #1e40af';
+    nameHeader.innerHTML = `<span class="player-name-text">${player.name || player.id}${player.disconnected ? " <span class='player-role'>(Disconnected)</span>" : ''}</span>`;
+    panel.appendChild(nameHeader);
+
+    // Hand row (for all players) - TOP ROW, FACE UP
+    const handRow = document.createElement('div');
+    if (player.id === localPlayerId) handRow.id = 'my-hand';
+    handRow.className = player.id === localPlayerId ? 'hand' : 'opp-hand';
+    handRow.style.display = 'flex';
+    handRow.style.gap = '5px';
+    handRow.style.marginBottom = '5px';
+
+    if (player.id === localPlayerId) {
+      // Local player: show hand cards face up, always 3 slots
+      for (let i = 0; i < 3; i++) {
+        const hasCard = player.hand && player.hand.length > i && player.hand[i];
+        if (hasCard) {
+          const card = player.hand![i];
           const canInteract = gameState.currentPlayerId === localPlayerId;
-          const cardElement = cardImg(card, canInteract && !card.back);
-          if (!card.back) {
-            const imgEl = cardElement.querySelector('.card-img');
-            if (imgEl && imgEl instanceof HTMLImageElement) imgEl.dataset.idx = String(i);
-          }
+          const cardElement = cardImg(card, canInteract);
+          const imgEl = cardElement.querySelector('.card-img');
+          if (imgEl && imgEl instanceof HTMLImageElement) imgEl.dataset.idx = String(i);
           handRow.appendChild(cardElement);
+        } else {
+          // Empty slot - show placeholder
+          const emptySlot = document.createElement('div');
+          emptySlot.className = 'card-container empty-card-slot';
+          emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
+          handRow.appendChild(emptySlot);
         }
-      } else {
-        // Opponents: always show 3 card backs, plus a badge for handCount if > 0
-        for (let i = 0; i < 3; i++) {
-          const el = document.createElement('div');
-          el.className = 'card-container';
-          const cardEl = cardImg({ back: true } as CardType, false);
-          el.appendChild(cardEl);
-          handRow.appendChild(el);
+      }
+    } else {
+      // Opponents: show card backs (hidden cards)
+      const handContainer = document.createElement('div');
+      handContainer.className = 'cpu-hand-container';
+      handContainer.style.display = 'flex';
+      handContainer.style.gap = '5px';
+
+      for (let i = 0; i < 3; i++) {
+        if ((player.handCount || 0) > 0 && i < (player.handCount || 0)) {
+          // Show card back if they have cards
+          const backCard: CardType = { back: true, value: 'A', suit: 'hearts' };
+          const cardEl = cardImg(backCard, false);
+          handContainer.appendChild(cardEl);
+        } else {
+          // Empty slot
+          const emptySlot = document.createElement('div');
+          emptySlot.className = 'card-container empty-card-slot';
+          emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
+          handContainer.appendChild(emptySlot);
         }
-        // Add hand count badge if handCount > 0
-        if ((player.handCount || 0) > 0) {
+      }
+
+      // Add hand count badge on the last card if handCount > 0
+      if ((player.handCount || 0) > 0) {
+        const lastCard = handContainer.children[
+          Math.min(2, (player.handCount || 1) - 1)
+        ] as HTMLElement;
+        if (lastCard) {
           const badge = document.createElement('div');
           badge.className = 'hand-count-badge';
           badge.textContent = String(player.handCount);
-          handRow.appendChild(badge);
+          badge.style.position = 'absolute';
+          badge.style.top = '5px';
+          badge.style.right = '5px';
+          badge.style.background = '#fff';
+          badge.style.borderRadius = '50%';
+          badge.style.width = '20px';
+          badge.style.height = '20px';
+          badge.style.display = 'flex';
+          badge.style.alignItems = 'center';
+          badge.style.justifyContent = 'center';
+          badge.style.fontSize = '12px';
+          badge.style.fontWeight = 'bold';
+          lastCard.style.position = 'relative';
+          lastCard.appendChild(badge);
         }
       }
-      panel.appendChild(handRow);
-      // Up/Down stacks (always show, always second row)
-      const stackRow = document.createElement('div');
-      stackRow.className = 'stack-row';
-      if (player.upCards && player.upCards.length > 0) {
-        player.upCards.forEach((c, i) => {
-          const col = document.createElement('div');
-          col.className = 'stack';
-          if ((player.downCount ?? 0) > i) {
-            const downCard = cardImg({ value: '', suit: '', back: true } as CardType, false);
-            const downImg = downCard.querySelector('.card-img') as HTMLImageElement | null;
-            if (downImg) downImg.classList.add('down-card');
-            col.appendChild(downCard);
-          }
-          const canPlayUp =
-            player.id === localPlayerId &&
-            gameState.currentPlayerId === localPlayerId &&
-            player.handCount === 0;
-          const upCard = cardImg(c, canPlayUp);
-          const upImg = upCard.querySelector('.card-img') as HTMLImageElement | null;
-          if (upImg) {
-            upImg.classList.add('up-card');
-            if (player.id === localPlayerId) upImg.dataset.idx = String(i + 1000);
-          }
-          col.appendChild(upCard);
-          if (canPlayUp) col.classList.add('playable-stack');
-          stackRow.appendChild(col);
-        });
-      } else if ((player?.downCount ?? 0) > 0) {
-        for (let i = 0; i < (player.downCount ?? 0); i++) {
-          const col = document.createElement('div');
-          col.className = 'stack';
-          const canPlayDown =
-            player.id === localPlayerId &&
-            gameState.currentPlayerId === localPlayerId &&
-            player.handCount === 0 &&
-            player.upCount === 0;
-          const downCard = cardImg(
-            { value: '', suit: '', back: true } as CardType,
-            canPlayDown && i === 0
-          );
-          const downImg = downCard.querySelector('.card-img') as HTMLImageElement | null;
-          if (downImg) {
-            downImg.classList.add('down-card');
-            if (player.id === localPlayerId) downImg.dataset.idx = String(i + 2000);
-          }
-          col.appendChild(downCard);
-          if (canPlayDown && i === 0) col.classList.add('playable-stack');
-          stackRow.appendChild(col);
-        }
-      }
-      panel.appendChild(stackRow);
+      handRow.appendChild(handContainer);
     }
+    panel.appendChild(handRow);
+
+    // Up/Down stacks (always show, always second row)
+    const stackRow = document.createElement('div');
+    stackRow.className = 'stack-row';
+    stackRow.style.display = 'flex';
+    stackRow.style.gap = '5px';
+
+    if (player.upCards && player.upCards.length > 0) {
+      player.upCards.forEach((c, i) => {
+        const col = document.createElement('div');
+        col.className = 'stack';
+        col.style.position = 'relative';
+
+        if ((player.downCount ?? 0) > i) {
+          const downCard = cardImg({ value: '', suit: '', back: true } as CardType, false);
+          const downImg = downCard.querySelector('.card-img') as HTMLImageElement | null;
+          if (downImg) downImg.classList.add('down-card');
+          col.appendChild(downCard);
+        }
+        const canPlayUp =
+          player.id === localPlayerId &&
+          gameState.currentPlayerId === localPlayerId &&
+          player.handCount === 0;
+        const upCard = cardImg(c, canPlayUp);
+        const upImg = upCard.querySelector('.card-img') as HTMLImageElement | null;
+        if (upImg) {
+          upImg.classList.add('up-card');
+          if (player.id === localPlayerId) upImg.dataset.idx = String(i + 1000);
+        }
+        col.appendChild(upCard);
+        if (canPlayUp) col.classList.add('playable-stack');
+        stackRow.appendChild(col);
+      });
+    } else if ((player?.downCount ?? 0) > 0) {
+      for (let i = 0; i < (player.downCount ?? 0); i++) {
+        const col = document.createElement('div');
+        col.className = 'stack';
+        col.style.position = 'relative';
+
+        const canPlayDown =
+          player.id === localPlayerId &&
+          gameState.currentPlayerId === localPlayerId &&
+          player.handCount === 0 &&
+          player.upCount === 0;
+        const downCard = cardImg(
+          { value: '', suit: '', back: true } as CardType,
+          canPlayDown && i === 0
+        );
+        const downImg = downCard.querySelector('.card-img') as HTMLImageElement | null;
+        if (downImg) {
+          downImg.classList.add('down-card');
+          if (player.id === localPlayerId) downImg.dataset.idx = String(i + 2000);
+        }
+        col.appendChild(downCard);
+        if (canPlayDown && i === 0) col.classList.add('playable-stack');
+        stackRow.appendChild(col);
+      }
+    }
+    panel.appendChild(stackRow);
+
     // Place panel in correct slot
     if (seat === 'bottom' && slotBottom) slotBottom.appendChild(panel);
     else if (seat === 'top' && slotTop) slotTop.appendChild(panel);
@@ -240,41 +304,71 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
   const centerArea = document.getElementById('center-area');
   if (centerArea) {
     centerArea.innerHTML = '';
+    centerArea.style.backgroundColor = lightGreen; // Light green background
+
     const wrapper = document.createElement('div');
     wrapper.className = 'center-piles-wrapper';
-    // Deck
+    wrapper.style.display = 'flex';
+    wrapper.style.gap = '20px';
+    wrapper.style.justifyContent = 'center';
+    wrapper.style.alignItems = 'center';
+
+    // Deck container - transparent with white dotted outline
     const deckContainer = document.createElement('div');
-    deckContainer.className = 'center-pile-container';
-    const deckPile = document.createElement('div');
-    deckPile.className = 'deck pile';
-    const deckSize = typeof gameState.deckSize === 'number' ? gameState.deckSize : 0;
-    if (deckSize > 0) {
-      deckPile.appendChild(cardImg({ value: '', suit: '', back: true } as CardType, false));
-    } else {
-      const placeholder = document.createElement('div');
-      placeholder.className = 'deck-placeholder';
-      placeholder.innerHTML = '<span>DECK</span>';
-      deckPile.appendChild(placeholder);
-    }
-    deckContainer.appendChild(deckPile);
-    // Discard
+    deckContainer.className = 'center-pile-container card-container';
+    deckContainer.style.width = '125px';
+    deckContainer.style.height = '175px';
+    deckContainer.style.border = '3px dotted #ffffff';
+    deckContainer.style.borderRadius = '12px';
+    deckContainer.style.display = 'flex';
+    deckContainer.style.alignItems = 'center';
+    deckContainer.style.justifyContent = 'center';
+    deckContainer.style.backgroundColor = 'transparent';
+    deckContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+
+    const deckLabel = document.createElement('span');
+    deckLabel.className = 'pile-label';
+    deckLabel.textContent = 'DECK';
+    deckLabel.style.color = '#ffffff';
+    deckLabel.style.fontWeight = 'bold';
+    deckLabel.style.fontSize = '14px';
+    deckLabel.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
+    deckContainer.appendChild(deckLabel);
+
+    // Discard container - transparent with white dotted outline
     const discardContainer = document.createElement('div');
-    discardContainer.className = 'center-pile-container';
-    const discardPile = document.createElement('div');
-    discardPile.className = 'discard pile';
+    discardContainer.className = 'center-pile-container card-container';
+    discardContainer.style.width = '125px';
+    discardContainer.style.height = '175px';
+    discardContainer.style.border = '3px dotted #ffffff';
+    discardContainer.style.borderRadius = '12px';
+    discardContainer.style.display = 'flex';
+    discardContainer.style.alignItems = 'center';
+    discardContainer.style.justifyContent = 'center';
+    discardContainer.style.backgroundColor = 'transparent';
+    discardContainer.style.position = 'relative';
+    discardContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+
+    // Show actual discard card if available, otherwise show placeholder
     const pile = gameState.pile && gameState.pile.length > 0 ? gameState.pile : null;
-    const discardCount = typeof gameState.discardCount === 'number' ? gameState.discardCount : 0;
     if (pile) {
-      discardPile.appendChild(cardImg(pile[pile.length - 1], false));
-    } else if (discardCount > 0) {
-      discardPile.appendChild(cardImg({ value: '', suit: '', back: true } as CardType, false));
+      const discardCard = cardImg(pile[pile.length - 1], false);
+      discardCard.style.position = 'absolute';
+      discardCard.style.top = '0';
+      discardCard.style.left = '0';
+      discardCard.id = 'pile-top-card';
+      discardContainer.appendChild(discardCard);
     } else {
-      const placeholder = document.createElement('div');
-      placeholder.className = 'discard-placeholder';
-      placeholder.innerHTML = '<span>DISCARD</span>';
-      discardPile.appendChild(placeholder);
+      const discardLabel = document.createElement('span');
+      discardLabel.className = 'pile-label';
+      discardLabel.textContent = 'DISCARD';
+      discardLabel.style.color = '#ffffff';
+      discardLabel.style.fontWeight = 'bold';
+      discardLabel.style.fontSize = '14px';
+      discardLabel.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
+      discardContainer.appendChild(discardLabel);
     }
-    discardContainer.appendChild(discardPile);
+
     wrapper.append(deckContainer, discardContainer);
     centerArea.appendChild(wrapper);
   }

@@ -34,14 +34,14 @@
     'top top top'
     'left center right'
     'bottom bottom bottom';
-  grid-template-columns: auto minmax(220px, 280px) auto;
-  grid-template-rows: minmax(120px, 1.2fr) minmax(180px, 1.6fr) minmax(120px, 1.2fr);
-  gap: 0px 0px;
+  grid-template-columns: auto minmax(160px, 200px) auto;
+  grid-template-rows: minmax(160px, 1fr) minmax(120px, 1fr) minmax(160px, 1fr);
+  gap: 8px 8px; /* Reduced gap to bring quadrants closer */
   width: 100vw;
   height: 100vh;
   align-items: center;
   justify-items: center;
-  background: var(--table-bg, #1a4d1a);
+  background: var(--table-bg, #137a4b); /* Updated default table background fallback to #137a4b */
   box-shadow: none;
   border: none;
 }
@@ -128,7 +128,7 @@ body {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 32px;
+  gap: 16px; /* Reduced from 32px */
   margin: 0;
   padding: 0;
   max-width: 320px;
@@ -139,16 +139,16 @@ body {
   border: 2.5px solid #fff;
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-  padding: 0 0 1.2rem 0;
+  padding: 8px;
   margin: 0 !important;
-  min-width: 180px !important;
-  min-height: 180px !important;
-  max-width: 420px;
+  min-width: 200px !important;
+  min-height: 200px !important;
+  max-width: 320px;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  padding-top: 2.2rem;
+  gap: 8px;
   box-sizing: border-box;
 }
 
@@ -180,4 +180,97 @@ body {
   right: 0;
   z-index: 2;
   box-sizing: border-box;
+}
+
+/* Hand count badge for CPU players */
+.hand-count-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ffc300;
+  color: #222;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  z-index: 10;
+}
+
+/* CPU hand container for proper positioning */
+.cpu-hand-container {
+  display: flex;
+  flex-direction: row;
+  gap: -10px; /* Overlap cards slightly */
+  position: relative;
+}
+
+.cpu-hand-container .card-container {
+  position: relative;
+}
+
+/* Center pile placeholder outlines */
+.deck-placeholder-outline,
+.discard-placeholder-outline {
+  width: var(--card-w, 80px);
+  height: var(--card-h, 112px);
+  border: 3px dashed #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.pile-label {
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Hand and stack rows layout */
+.hand, .opp-hand {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--card-h, 112px);
+}
+
+.stack-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--card-h, 112px);
+}
+
+/* Stack positioning for up/down cards */
+.stack {
+  position: relative;
+  width: var(--card-w, 80px);
+  height: var(--card-h, 112px);
+}
+
+.stack .card-img.down-card {
+  position: absolute;
+  top: -15px;
+  left: 0;
+  z-index: 1;
+}
+
+.stack .card-img.up-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
 }

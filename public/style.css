@@ -6,7 +6,7 @@
 @import 'styles/animations.css';
 
 :root {
-  --bg: #0b5137;
+  --bg: #137a4b;
   --header-bg: #1b2e3c;
   --accent: #ffc300;
   --text: #ffffff;
@@ -20,7 +20,7 @@
 }
 
 body {
-  background: linear-gradient(135deg, #0b5137 0%, #137a4b 100%);
+  background: linear-gradient(135deg, #137a4b 0%, #137a4b 100%);
   min-height: 100vh;
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
@@ -72,7 +72,7 @@ body {
   gap: 2.2rem !important;
   margin-bottom: 1.2rem !important;
   justify-content: space-between;
-  border-bottom: 1px solid #2e4a5a;
+  border-bottom: 1px solid #137a4b;
   padding-bottom: 1.2rem;
 }
 .participant-inputs-container .form-group {
@@ -457,7 +457,6 @@ input#cpu-players-input {
   flex-wrap: wrap;
   padding: 0.5rem;
   gap: 5px;
-  width: 100%;
 }
 
 /* Shingling for hand cards */
@@ -581,4 +580,143 @@ input#cpu-players-input {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+}
+
+/* --- Hand and Card Layout Fixes --- */
+
+/* CPU hand container styling */
+.cpu-hand-container {
+  display: flex;
+  flex-direction: row;
+  gap: -20px;
+  position: relative;
+}
+
+/* Hand count badge styling */
+.hand-count-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ffc300;
+  color: #222;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  border: 2px solid #fff;
+  z-index: 10;
+}
+
+/* Player hand - always show face up */
+.hand {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  margin: 8px 0;
+}
+
+/* Opponent hand styling */
+.opp-hand {
+  display: flex;
+  flex-direction: row;
+  gap: -20px;
+  justify-content: center;
+  align-items: center;
+  margin: 8px 0;
+  position: relative;
+}
+
+/* Stack row for up/down cards */
+.stack-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 8px 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: var(--card-w, 60px);
+  height: var(--card-h, 84px);
+}
+
+.stack .card-img.down-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.stack .card-img.up-card {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  z-index: 2;
+}
+
+/* --- Center Area Styling --- */
+.center-piles-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.center-pile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.deck-placeholder-outline,
+.discard-placeholder-outline {
+  width: var(--card-w, 60px);
+  height: var(--card-h, 84px);
+  border: 3px dashed #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pile-label {
+  color: #fff;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  transform: rotate(-45deg);
+}
+
+/* Player area adjustments for better card spacing */
+.player-area {
+  min-width: 220px !important;
+  min-height: 180px !important;
+  padding: 12px !important;
+  gap: 12px !important;
+}
+
+/* Player name header adjustments */
+.player-name-header {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  width: auto !important;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  padding: 8px 16px;
 }
