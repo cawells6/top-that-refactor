@@ -42,7 +42,7 @@ body {
   color: #222;
   padding: 2.2rem 2rem 2rem 2rem;
   border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(19, 122, 75, 0.13);
+  box-shadow: 0 8px 32px rgba(19, 122, 75, 0.13), 0 0 0 1px rgba(255, 195, 0, 0.1);
   margin-top: 5vh;
   min-width: 320px;
   max-width: 400px;
@@ -51,11 +51,43 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  border: 2px solid #ffc300;
+  background-clip: padding-box;
 }
 
 @keyframes fadeInCard {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0; 
+    transform: translateY(30px) scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+/* Add floating animation for decorative elements */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
+}
+
+.lobby-decoration {
+  animation: float 6s ease-in-out infinite;
+}
+
+.lobby-decoration:nth-child(2) {
+  animation-delay: -3s;
+  animation-duration: 8s;
+}
+
+/* Add a subtle hover effect to the lobby card */
+#lobby-form-card:hover {
+  box-shadow: 0 12px 40px rgba(19, 122, 75, 0.18), 0 0 0 1px rgba(255, 195, 0, 0.15);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  border-color: #ffb000;
 }
 
 #lobby-form-card h2,
@@ -99,63 +131,177 @@ body {
   padding: 0.7rem 0;
   border-radius: 8px;
   border: none;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
   box-shadow: 0 2px 8px rgba(19, 122, 75, 0.08);
+  cursor: pointer;
+}
+
+.lobby-buttons button:active {
+  transform: translateY(0) scale(0.98);
 }
 
 #join-game-button {
-  background: #137a4b;
+  background: linear-gradient(135deg, #137a4b 0%, #17805a 100%);
   color: #fff;
+  position: relative;
+  overflow: hidden;
 }
+
+#join-game-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s;
+}
+
+#join-game-button:hover::before {
+  left: 100%;
+}
+
 #join-game-button:hover {
-  background: #17805a;
+  background: linear-gradient(135deg, #17805a 0%, #1a8660 100%);
   color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(19, 122, 75, 0.3);
 }
+
 #new-game-button {
   background: #fff;
   color: #137a4b;
   border: 1.5px solid #137a4b;
+  position: relative;
+  overflow: hidden;
 }
+
 #new-game-button:hover {
   background: #e6f4ee;
   color: #137a4b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(19, 122, 75, 0.15);
 }
 
-.participant-inputs-container {
+/* Enhanced player setup section styling */
+.player-setup-section {
   display: flex;
-  flex-direction: row;
-  gap: 1.2rem;
-  justify-content: center;
-  align-items: flex-end;
-  margin-bottom: 1.2rem !important;
-  border-bottom: 1px solid #137a4b;
-  padding-bottom: 1.2rem;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background: rgba(19, 122, 75, 0.03);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(19, 122, 75, 0.08);
   width: 100%;
 }
-.participant-inputs-container .form-group {
-  flex: 1 1 0;
-  margin-bottom: 0;
+
+.player-type-group {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: #f9fcfa;
+  border-radius: 8px;
+  border: 1px solid rgba(19, 122, 75, 0.1);
+  transition: all 0.2s ease;
 }
-.participant-inputs-container label {
-  font-size: 1rem;
-  color: #137a4b;
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-  text-align: center;
+
+.player-type-group:hover {
+  background: #f2f9f4;
+  border-color: rgba(19, 122, 75, 0.15);
+  transform: translateY(-1px);
 }
-.participant-inputs-container input[type='number'] {
-  width: 70px;
-  text-align: center;
-  border-radius: 6px;
-  border: 1.5px solid #137a4b;
-  font-size: 1.1rem;
-  padding: 0.5rem;
+
+.player-type-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.2rem;
-  background: #f7faf9;
+}
+
+.player-icon {
+  font-size: 1.3rem;
+}
+
+.player-type-header h4 {
   color: #137a4b;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+.vs-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem 0;
+  position: relative;
+}
+
+.vs-divider::before,
+.vs-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(19, 122, 75, 0.2), transparent);
+}
+
+.vs-divider span {
+  background: #ffc300;
+  color: #222;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0 1rem;
+  box-shadow: 0 2px 8px rgba(255, 195, 0, 0.2);
+}
+
+.player-setup-section .form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0;
+}
+
+.player-setup-section input[type='number'] {
+  width: 80px;
+  text-align: center;
+  border-radius: 8px;
+  border: 2px solid #137a4b;
+  font-size: 1.2rem;
+  padding: 0.6rem;
+  background: #ffffff;
+  color: #137a4b;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(19, 122, 75, 0.08);
+}
+
+.player-setup-section input[type='number']:focus {
+  border-color: #ffc300;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.15), 0 4px 8px rgba(19, 122, 75, 0.12);
+  transform: scale(1.05);
+}
+
+.player-setup-section input[type='number']:hover {
+  border-color: #17805a;
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(19, 122, 75, 0.12);
+}
+
+.input-description {
+  font-size: 0.85rem;
+  color: #137a4b;
+  opacity: 0.8;
+  text-align: center;
+  font-weight: 500;
 }
 
 input#total-players,
@@ -184,17 +330,21 @@ input#cpu-players-input {
   font-size: 1.1rem;
   padding: 0.5rem;
   margin: 0 auto 0.5rem auto;
-  transition: border 0.2s;
+  transition: border 0.2s, box-shadow 0.2s, transform 0.2s;
   background: #f7faf9;
   color: #137a4b;
+  font-weight: 600;
 }
 #name-input::placeholder {
   text-align: center;
   color: #bbb;
+  font-weight: 400;
 }
 #name-input:focus {
   border: 1.5px solid #17805a;
   outline: none;
+  box-shadow: 0 0 0 3px rgba(23, 128, 90, 0.1);
+  transform: scale(1.02);
 }
 
 /* Center the Play Game button */
@@ -219,10 +369,6 @@ input#cpu-players-input {
   flex-direction: column;
   align-items: stretch;
 }
-.participant-inputs-container .form-group:last-child {
-  margin-bottom: 0;
-}
-
 .lobby-form-content {
   padding: 0 2rem 1.5rem 2rem !important;
   display: flex;
@@ -345,10 +491,19 @@ input#cpu-players-input {
   .lobby-form-content {
     padding: 0 0.2rem 0.7rem 0.2rem !important;
   }
-  .participant-inputs-container {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: stretch;
+  .player-setup-section {
+    padding: 1rem;
+    gap: 0.8rem;
+  }
+  .player-type-group {
+    padding: 0.8rem;
+  }
+  .vs-divider {
+    margin: 0.3rem 0;
+  }
+  .vs-divider span {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
   }
   .lobby-buttons {
     flex-direction: column;
