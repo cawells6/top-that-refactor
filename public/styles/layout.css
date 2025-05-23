@@ -34,7 +34,7 @@
     'top top top'
     'left center right'
     'bottom bottom bottom';
-  grid-template-columns: auto minmax(160px, 200px) auto;
+  grid-template-columns: auto 1fr auto; /* Center column takes available space */
   grid-template-rows: minmax(160px, 1fr) minmax(120px, 1fr) minmax(160px, 1fr);
   gap: 8px 8px; /* Reduced gap to bring quadrants closer */
   width: 100vw;
@@ -205,12 +205,16 @@ body {
 .cpu-hand-container {
   display: flex;
   flex-direction: row;
-  gap: -10px; /* Overlap cards slightly */
   position: relative;
 }
 
 .cpu-hand-container .card-container {
   position: relative;
+  margin-left: -10px; /* Apply negative margin for overlap */
+}
+
+.cpu-hand-container .card-container:first-child {
+  margin-left: 0; /* Remove negative margin from the first card */
 }
 
 /* Center pile placeholder outlines */

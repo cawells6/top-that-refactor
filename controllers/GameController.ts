@@ -479,11 +479,9 @@ export default class GameController {
     this.pushState();
     this.io.to(this.roomId).emit(NEXT_TURN, firstPlayerId);
 
-    const firstPlayer = this.players.get(firstPlayerId);
-    if (firstPlayer && firstPlayer.isComputer) {
-      this.log(`First player ${firstPlayerId} is a CPU. Initiating their turn.`);
-      setTimeout(() => this.playComputerTurn(firstPlayer), 1200);
-    }
+    // Only allow a human to start the game. If the first player is a CPU, do not auto-play.
+    // If you want to force a human to always be first, ensure player order is set accordingly before this point.
+    // If the first player is a CPU, do NOT call playComputerTurn.
   }
 
   private handlePlayCard(socket: Socket, { cardIndices, zone }: PlayData): void {

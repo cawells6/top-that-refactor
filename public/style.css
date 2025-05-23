@@ -20,7 +20,7 @@
 }
 
 body {
-  background: linear-gradient(135deg, #137a4b 0%, #137a4b 100%);
+  background: linear-gradient(135deg, #0b5137 0%, #137a4b 100%);
   min-height: 100vh;
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
@@ -38,16 +38,19 @@ body {
 }
 
 #lobby-form-card {
-  background: var(--header-bg);
-  color: var(--text);
-  padding: 3.2rem 2.8rem 2.6rem 2.8rem;
+  background: #fff !important;
+  color: #222;
+  padding: 2.2rem 2rem 2rem 2rem;
   border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-  margin-top: 4vh;
-  min-width: 340px;
-  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(19, 122, 75, 0.13);
+  margin-top: 5vh;
+  min-width: 320px;
+  max-width: 400px;
   width: 100%;
   animation: fadeInCard 0.7s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 @keyframes fadeInCard {
@@ -60,44 +63,99 @@ body {
   color: var(--text);
 }
 
-#lobby-form-card input[type='text'],
-#lobby-form-card input[type='number'] {
-  background-color: #fff;
-  color: #333;
+.lobby-title {
+  color: #137a4b;
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+  text-align: center;
+  letter-spacing: 0.01em;
 }
 
-/* --- Participant Inputs Horizontal Layout --- */
+.lobby-form-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  align-items: stretch;
+}
+
+.lobby-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1.2rem;
+  margin: 1.2rem 0 0.7rem 0 !important;
+  width: 100%;
+}
+
+.lobby-buttons button {
+  flex: 1 1 0;
+  min-width: 120px;
+  max-width: 180px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.7rem 0;
+  border-radius: 8px;
+  border: none;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(19, 122, 75, 0.08);
+}
+
+#join-game-button {
+  background: #137a4b;
+  color: #fff;
+}
+#join-game-button:hover {
+  background: #17805a;
+  color: #fff;
+}
+#new-game-button {
+  background: #fff;
+  color: #137a4b;
+  border: 1.5px solid #137a4b;
+}
+#new-game-button:hover {
+  background: #e6f4ee;
+  color: #137a4b;
+}
+
 .participant-inputs-container {
   display: flex;
-  gap: 2.2rem !important;
+  flex-direction: row;
+  gap: 1.2rem;
+  justify-content: center;
+  align-items: flex-end;
   margin-bottom: 1.2rem !important;
-  justify-content: space-between;
   border-bottom: 1px solid #137a4b;
   padding-bottom: 1.2rem;
+  width: 100%;
 }
 .participant-inputs-container .form-group {
   flex: 1 1 0;
   margin-bottom: 0;
-}
-.participant-inputs-container > .form-group {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-.participant-inputs-container .form-group input[type='number'] {
+.participant-inputs-container label {
+  font-size: 1rem;
+  color: #137a4b;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  text-align: center;
+}
+.participant-inputs-container input[type='number'] {
   width: 70px;
   text-align: center;
-  padding-left: 5px;
-  padding-right: 5px;
   border-radius: 6px;
-  border: 1.5px solid var(--input-border);
+  border: 1.5px solid #137a4b;
   font-size: 1.1rem;
-  transition: border 0.2s;
-}
-.participant-inputs-container .form-group input[type='number']:focus {
-  border: 1.5px solid var(--accent);
-  outline: none;
+  padding: 0.5rem;
+  margin-bottom: 0.2rem;
+  background: #f7faf9;
+  color: #137a4b;
 }
 
 input#total-players,
@@ -106,6 +164,7 @@ input#cpu-players {
   text-align: center;
   padding-left: 5px;
   padding-right: 5px;
+
 }
 
 input#total-players-input,
@@ -116,21 +175,25 @@ input#cpu-players-input {
   padding-right: 2px;
 }
 
-/* Center placeholder text in name input */
+#name-input {
+  width: 100%;
+  max-width: 220px;
+  text-align: center;
+  border-radius: 6px;
+  border: 1.5px solid #137a4b;
+  font-size: 1.1rem;
+  padding: 0.5rem;
+  margin: 0 auto 0.5rem auto;
+  transition: border 0.2s;
+  background: #f7faf9;
+  color: #137a4b;
+}
 #name-input::placeholder {
   text-align: center;
   color: #bbb;
 }
-#name-input {
-  text-align: center;
-  border-radius: 6px;
-  border: 1.5px solid var(--input-border);
-  font-size: 1.1rem;
-  padding: 0.5rem;
-  transition: border 0.2s;
-}
 #name-input:focus {
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid #17805a;
   outline: none;
 }
 
@@ -222,9 +285,9 @@ input#cpu-players-input {
   background: #fff;
 }
 .error-message {
-  color: var(--error-text-color, #ffc300);
-  background-color: var(--error-bg-color, rgba(255, 195, 0, 0.1));
-  border: 1px solid var(--error-border-color, #ffc300);
+  color: #fff;
+  background-color: #137a4b;
+  border: 1px solid #137a4b;
   font-weight: 500;
   padding: 10px 12px;
   border-radius: 6px;
@@ -233,7 +296,8 @@ input#cpu-players-input {
   display: flex;
   align-items: center;
   text-align: left;
-  font-size: 0.9em;
+  font-size: 0.95em;
+  justify-content: center;
 }
 #error-message,
 #player-count-error {
@@ -284,6 +348,11 @@ input#cpu-players-input {
   .participant-inputs-container {
     flex-direction: column;
     gap: 0.5rem;
+    align-items: stretch;
+  }
+  .lobby-buttons {
+    flex-direction: column;
+    gap: 0.7rem;
   }
   .form-group input[type='text'],
   .form-group input[type='number'] {
@@ -588,8 +657,15 @@ input#cpu-players-input {
 .cpu-hand-container {
   display: flex;
   flex-direction: row;
-  gap: -20px;
   position: relative;
+}
+
+.cpu-hand-container .card-container {
+  margin-left: -20px; /* Use negative margin for overlap */
+}
+
+.cpu-hand-container .card-container:first-child {
+  margin-left: 0; /* No margin on first card */
 }
 
 /* Hand count badge styling */
@@ -625,11 +701,18 @@ input#cpu-players-input {
 .opp-hand {
   display: flex;
   flex-direction: row;
-  gap: -20px;
   justify-content: center;
   align-items: center;
   margin: 8px 0;
   position: relative;
+}
+
+.opp-hand .card-container {
+  margin-left: -20px; /* Use negative margin for overlap */
+}
+
+.opp-hand .card-container:first-child {
+  margin-left: 0; /* No margin on first card */
 }
 
 /* Stack row for up/down cards */

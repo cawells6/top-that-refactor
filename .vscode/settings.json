@@ -1,0 +1,7 @@
+{
+    "window.autoDetectColorScheme": true,
+    "terminal.integrated.allowMnemonics": true,
+    "terminal.integrated.copyOnSelection": true,
+    "chat.agent.maxRequests": 100,
+    "inlineChat.enableV2": true
+}

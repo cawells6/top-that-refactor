@@ -1,7 +1,7 @@
-import { initializeSocketHandlers } from './socketService.js';
-import * as state from './state.js';
-import * as uiManager from './uiManager.js';
-import { JOIN_GAME, START_GAME } from '../../src/shared/events.js'; // Use relative path
+import { initializeSocketHandlers } from './socketService.ts';
+import * as state from './state.ts';
+import * as uiManager from './uiManager.ts';
+import { JOIN_GAME, START_GAME } from '../../src/shared/events.ts'; // Use relative path
 
 // Helper to safely get value from input elements
 function getInputValue(el: HTMLElement | null): string {

@@ -1,7 +1,7 @@
 // public/scripts/main.ts
-import { initializePageEventListeners } from './events.js'; // Use .js extension for Vite compatibility
-import { initializeSocketHandlers } from './socketService.js';
-import { socket, socketReady } from './state.js'; // Use shared socket
+import { initializePageEventListeners } from './events.ts'; // Use .ts extension for Vite
+import { initializeSocketHandlers } from './socketService.ts';
+import { socket, socketReady } from './state.ts'; // Use shared socket
 
 console.log('[Client] main.ts loaded successfully via Vite!');
 

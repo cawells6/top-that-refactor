@@ -60,8 +60,8 @@
       </div>
     </header>
 
-    <div class="notice notice--hidden" id="notice-banner"></div>
-    <div class="notice notice--hidden" id="error-banner"></div>
+    <!-- <div class="notice notice--hidden" id="notice-banner"></div> -->
+    <!-- <div class="notice notice--hidden" id="error-banner"></div> -->
     <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
 
     <main
@@ -74,11 +74,13 @@
         align-items: center;
         min-height: 0;
         justify-content: flex-start;
-        padding-top: 5vh;
+        padding-top: 0; /* Removed padding-top */
+        width: 100%; /* Ensure main content takes full width */
+        height: calc(100vh - 54px); /* Full height minus header */
       "
     >
       <!-- Lobby Screen -->
-      <div class="lobby" id="lobby-container">
+      <div class="lobby" id="lobby-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
         <div class="lobby-card" id="lobby-form-card" style="margin-top: 0; padding-top: 1.2rem">
           <h2 class="lobby-title" style="color: #ffc300; margin-bottom: 1.2rem; font-size: 1.4rem; letter-spacing: 0.01em;">Game Setup</h2>
           <form id="lobby-form" autocomplete="off" style="display: flex; flex-direction: column; gap: 1.2rem;">
@@ -103,14 +105,14 @@
             <div id="player-count-error" class="error-message hidden" style="margin-bottom: 0.2rem; text-align: center;"></div>
           </form>
         </div>
-        <div id="waiting-state" class="hidden">
+        <div id="waiting-state" class="hidden" style="width: 100%; text-align: center;">
           <h3 id="waiting-heading">Waiting for players...</h3>
         </div>
       </div>
 
       <!-- Game Table -->
-      <div id="game-table" class="hidden">
-        <div class="table">
+      <div id="game-table" class="hidden" style="width: 100%; height: 100%;">
+        <div class="table" style="width: 100%; height: 100%;">
           <div class="table-slot-top" id="opponent-area-top"></div>
           <div class="table-slot-left" id="opponent-area-left"></div>
           <div class="table-center" id="center-area"></div>
