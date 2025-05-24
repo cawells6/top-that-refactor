@@ -16,7 +16,8 @@
   display: none !important;
 }
 
-.modal__backdrop {
+.modal__backdrop,
+.modal__overlay {
   position: fixed;
   top: 0;
   left: 0;

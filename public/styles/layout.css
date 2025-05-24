@@ -17,38 +17,93 @@
   box-shadow: none !important;
 }
 
+/* Main content - reduced top padding for tighter layout */
 .main-content {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center vertically */
-  padding: 20px; /* Add some padding */
-  height: 100vh; /* Full viewport height */
+  min-height: 0;
+  justify-content: flex-start;
+  padding: 0.25rem 20px !important; /* Minimal top padding */
+  width: 100%;
+  height: calc(100vh - 54px);
   background: none !important;
   box-shadow: none !important;
 }
 
+/* When game table is visible, change layout */
+.main-content.game-active {
+  justify-content: center;
+  padding: 20px;
+  height: 100vh;
+}
+
+/* Lobby container styling */
+.lobby {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.game-setup-card {
+  background: rgba(27, 46, 60, 0.95);
+  border: 2px solid #fff;
+  border-radius: 12px;
+  padding: 1rem 2rem 2rem 2rem; /* Reduced top padding even more */
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.setup-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Copy the EXACT banner header styling to the setup modal */
+.setup-header .header-game-name {
+  /* Copy all properties from the banner's inline styles */
+  text-align: center !important; /* Override to center for modal */
+  font-size: 2.2rem !important; /* Match banner exactly */
+  font-weight: 900 !important; /* Match banner exactly */
+  color: #ffc300 !important; /* Match banner exactly */
+  letter-spacing: 0.04em !important; /* Match banner exactly */
+  margin-bottom: 0.1rem !important;
+  /* Let browser handle line height naturally like the banner */
+}
+
+.setup-header > p {
+  color: #fff !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.5rem !important;
+  margin-top: 0.1rem !important; /* Small gap after Top That! */
+  text-align: center !important;
+}
+
+/* Game table and layout styles */
 .table {
   display: grid;
   grid-template-areas:
     'top top top'
     'left center right'
     'bottom bottom bottom';
-  grid-template-columns: 1fr 2fr 1fr; /* Better proportions */
+  grid-template-columns: 1fr 2fr 1fr;
   grid-template-rows: 1fr 2fr 1fr;
-  gap: 12px; /* Restore some gap for visual separation */
-  width: min(90vw, 1400px); /* Increased max-width with responsive constraint */
-  height: min(90vh, 900px); /* Increased max-height with responsive constraint */
+  gap: 12px;
+  width: min(90vw, 1400px);
+  height: min(90vh, 900px);
   max-width: 90vw;
   max-height: 90vh;
   align-items: stretch;
   justify-items: stretch;
-  background: transparent; /* Make background transparent to show body color */
-  box-shadow: 0 0 30px 5px rgba(0, 204, 204, 0.4); /* Blue glowing border */
-  border: 3px solid #00CCCC; /* Blue border */
+  background: transparent;
+  box-shadow: 0 0 30px 5px rgba(0, 204, 204, 0.4);
+  border: 3px solid #00CCCC;
   border-radius: 20px;
   margin: 0;
-  padding: 16px; /* Internal padding for content spacing */
+  padding: 16px;
 }
 
 body {
@@ -66,9 +121,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center content */
+  justify-content: center;
   box-shadow: none;
-  padding: 8px; /* Add some internal padding */
+  padding: 8px;
 }
 
 .table-slot-top {
@@ -130,22 +185,22 @@ body {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 16px; /* Reduced from 32px */
+  gap: 16px;
   margin: 0;
   padding: 0;
   max-width: 320px;
 }
 
 .player-area {
-  background: rgba(27, 46, 60, 0.9); /* Slightly more opaque for better visibility */
+  background: rgba(27, 46, 60, 0.9);
   border: 2.5px solid #fff;
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-  padding: 12px; /* Slightly increased padding */
-  margin: 0 !important; /* Remove margin for efficient space usage */
-  min-width: 220px !important; /* Increased minimum sizes */
+  padding: 12px;
+  margin: 0 !important;
+  min-width: 220px !important;
   min-height: 220px !important;
-  max-width: 100%; /* Allow flexibility within grid constraints */
+  max-width: 100%;
   max-height: 100%;
   width: 100%;
   height: 100%;
@@ -156,7 +211,7 @@ body {
   position: relative;
   gap: 8px;
   box-sizing: border-box;
-  overflow: hidden; /* Prevent content overflow */
+  overflow: hidden;
 }
 
 .player-area.active, #my-area.active {
@@ -217,11 +272,11 @@ body {
 
 .cpu-hand-container .card-container {
   position: relative;
-  margin-left: -10px; /* Apply negative margin for overlap */
+  margin-left: -10px;
 }
 
 .cpu-hand-container .card-container:first-child {
-  margin-left: 0; /* Remove negative margin from the first card */
+  margin-left: 0;
 }
 
 /* Center pile placeholder outlines */
@@ -304,7 +359,11 @@ body {
 
 @media (max-width: 768px) {
   .main-content {
-    padding: 10px;
+    padding: 0.125rem 10px !important; /* Even tighter on mobile */
+  }
+  
+  .game-setup-card {
+    padding: 0.75rem 1.5rem 1.5rem 1.5rem; /* Reduced top padding on mobile */
   }
   
   .table {
@@ -335,7 +394,7 @@ body {
     height: 75vh;
     gap: 4px;
     padding: 6px;
-    grid-template-rows: 0.8fr 2fr 0.8fr; /* Adjust proportions for mobile */
+    grid-template-rows: 0.8fr 2fr 0.8fr;
   }
   
   .player-area {

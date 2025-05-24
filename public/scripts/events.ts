@@ -1,7 +1,7 @@
-import { initializeSocketHandlers } from './socketService.ts';
-import * as state from './state.ts';
-import * as uiManager from './uiManager.ts';
-import { JOIN_GAME, START_GAME } from '../../src/shared/events.ts'; // Use relative path
+import { initializeSocketHandlers } from './socketService.js';
+import * as state from './state.js';
+import * as uiManager from './uiManager.js';
+import { JOIN_GAME } from '../../src/shared/events.js';
 
 // Helper to safely get value from input elements
 function getInputValue(el: HTMLElement | null): string {
@@ -18,22 +18,28 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
   const silhouette = document.createElement('div');
   silhouette.className = `player-silhouette ${type}`;
   silhouette.setAttribute('data-index', index.toString());
-  
+
   // Add SVG icon
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '20');
   svg.setAttribute('height', '20');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('fill', 'currentColor');
-  
+
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  
+
   if (type === 'human') {
-    path.setAttribute('d', 'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5C14.7 6.9 14.1 6.5 13.5 6.5H10.5C9.9 6.5 9.3 6.9 9 7.5L3 7V9L9 8.5V10.5C9 11.6 9.4 12.6 10.1 13.3L9 20H11L11.8 15H12.2L13 20H15L13.9 13.3C14.6 12.6 15 11.6 15 10.5V8.5L21 9Z');
+    path.setAttribute(
+      'd',
+      'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5C14.7 6.9 14.1 6.5 13.5 6.5H10.5C9.9 6.5 9.3 6.9 9 7.5L3 7V9L9 8.5V10.5C9 11.6 9.4 12.6 10.1 13.3L9 20H11L11.8 15H12.2L13 20H15L13.9 13.3C14.6 12.6 15 11.6 15 10.5V8.5L21 9Z'
+    );
   } else {
     // CPU icon with circuit pattern
-    path.setAttribute('d', 'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5C14.7 6.9 14.1 6.5 13.5 6.5H10.5C9.9 6.5 9.3 6.9 9 7.5L3 7V9L9 8.5V10.5C9 11.6 9.4 12.6 10.1 13.3L9 20H11L11.8 15H12.2L13 20H15L13.9 13.3C14.6 12.6 15 11.6 15 10.5V8.5L21 9Z');
-    
+    path.setAttribute(
+      'd',
+      'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5C14.7 6.9 14.1 6.5 13.5 6.5H10.5C9.9 6.5 9.3 6.9 9 7.5L3 7V9L9 8.5V10.5C9 11.6 9.4 12.6 10.1 13.3L9 20H11L11.8 15H12.2L13 20H15L13.9 13.3C14.6 12.6 15 11.6 15 10.5V8.5L21 9Z'
+    );
+
     // Add CPU indicator circles
     const circle1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle1.setAttribute('cx', '12');
@@ -41,14 +47,14 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
     circle1.setAttribute('r', '1.5');
     circle1.setAttribute('fill', '#137a4b');
     svg.appendChild(circle1);
-    
+
     const circle2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle2.setAttribute('cx', '8');
     circle2.setAttribute('cy', '8');
     circle2.setAttribute('r', '1');
     circle2.setAttribute('fill', '#137a4b');
     svg.appendChild(circle2);
-    
+
     const circle3 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle3.setAttribute('cx', '16');
     circle3.setAttribute('cy', '8');
@@ -56,10 +62,10 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
     circle3.setAttribute('fill', '#137a4b');
     svg.appendChild(circle3);
   }
-  
+
   svg.appendChild(path);
   silhouette.appendChild(svg);
-  
+
   return silhouette;
 }
 
@@ -69,15 +75,15 @@ function updatePlayerSilhouettes() {
   const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
   const humanSilhouettesContainer = document.getElementById('human-silhouettes');
   const cpuSilhouettesContainer = document.getElementById('cpu-silhouettes');
-  
+
   if (!humanSilhouettesContainer || !cpuSilhouettesContainer) return;
-  
+
   const humanCount = parseInt(totalPlayersInput?.value || '1', 10);
   const cpuCount = parseInt(cpuPlayersInput?.value || '0', 10);
-  
+
   // Update human silhouettes
   updateSilhouettesInContainer(humanSilhouettesContainer, 'human', humanCount);
-  
+
   // Update CPU silhouettes
   updateSilhouettesInContainer(cpuSilhouettesContainer, 'cpu', cpuCount);
 }
@@ -90,7 +96,7 @@ function updateSilhouettesInContainer(
 ) {
   const currentSilhouettes = container.querySelectorAll('.player-silhouette');
   const currentCount = currentSilhouettes.length;
-  
+
   if (currentCount < targetCount) {
     // Add new silhouettes
     for (let i = currentCount; i < targetCount; i++) {
@@ -128,7 +134,7 @@ function initializeCounterButtons() {
     if (totalCountSpan) {
       totalCountSpan.textContent = total.toString();
     }
-    
+
     // Update button states
     updateButtonStates();
     // Update player silhouettes
@@ -195,23 +201,53 @@ function initializeCounterButtons() {
 
   // Initialize states
   updateTotalCount();
-  
+
   // Initialize player silhouettes on page load
   updatePlayerSilhouettes();
 }
 
-export function initializePageEventListeners() {
-  state.loadSession();
-  // Initialize socket handlers
-  initializeSocketHandlers();
+export async function initializePageEventListeners() {
+  console.log('🚀 [events.ts] initializePageEventListeners called!');
+  
+  // Only setup modal buttons now (header buttons removed)
+  const setupRulesButton = document.getElementById('setup-rules-button');
+  const setupDealButton = document.getElementById('setup-deal-button');
+  
+  if (setupRulesButton) {
+    setupRulesButton.addEventListener('click', handleRulesClick);
+    console.log('✅ Setup Rules button handler attached');
+  }
+
+  if (setupDealButton) {
+    setupDealButton.addEventListener('click', handleDealClick);
+    console.log('✅ Setup Deal button handler attached');
+  }
+
+  console.log('🔍 Button setup completed, proceeding with rest of initialization...');
+
+  try {
+    // Load state after handlers are attached
+    state.loadSession();
+    console.log('✅ State loaded');
+  } catch (stateError) {
+    console.error('❌ Error loading state:', stateError);
+  }
+  
+  try {
+    // Initialize socket handlers
+    initializeSocketHandlers();
+    console.log('✅ Socket handlers initialized');
+  } catch (socketError) {
+    console.error('❌ Error initializing socket handlers:', socketError);
+  }
+
   // UI hooks
   const createJoinBtn = uiManager.$('create-join');
   if (createJoinBtn) {
     createJoinBtn.onclick = () => {
-      const nameInput = uiManager.getNameInput(); // Get name input directly
-      const name = getInputValue(nameInput).trim(); // Get and trim value
+      const nameInput = uiManager.getNameInput();
+      const name = getInputValue(nameInput).trim();
       if (!name) {
-        // Optionally show an error to the user if name is invalid
         alert('Please enter a valid name.');
         return;
       }
@@ -219,26 +255,14 @@ export function initializePageEventListeners() {
       setButtonDisabled(createJoinBtn, true);
     };
   }
+
   const copyLinkBtn = uiManager.getCopyLinkBtn();
   if (copyLinkBtn) {
     copyLinkBtn.onclick = () => {
       navigator.clipboard.writeText(window.location.href);
     };
   }
-  const rulesButton = document.getElementById('header-rules-button');
-  if (rulesButton) {
-    rulesButton.onclick = () => {
-      const rulesModal = uiManager.getRulesModal();
-      if (rulesModal && typeof (window as any).openModal === 'function') {
-        (window as any).openModal(rulesModal);
-      }
-    };
-  }
-  document.querySelector('.modal-close-button')?.addEventListener('click', () => {
-    if (typeof (window as any).closeModal === 'function') {
-      (window as any).closeModal();
-    }
-  });
+
   const backToLobbyButton = uiManager.getBackToLobbyButton();
   if (backToLobbyButton) {
     backToLobbyButton.onclick = () => {
@@ -246,113 +270,35 @@ export function initializePageEventListeners() {
       uiManager.showLobbyForm();
     };
   }
-  const startGameBtn = document.getElementById('deal-button');
-  if (startGameBtn) {
-    startGameBtn.onclick = () => {
-      // Get the player name
-      const nameInput = document.getElementById('player-name-input') as HTMLInputElement;
-      const playerName = nameInput?.value?.trim() || '';
-      
-      // Validate player name
-      if (!playerName) {
-        alert('Please enter your name before starting the game.');
-        nameInput?.focus();
-        return;
-      }
-      
-      // Get the player count values from the form
-      const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-      const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-      
-      const totalPlayers = parseInt(totalPlayersInput?.value || '1', 10);
-      const computerCount = parseInt(cpuPlayersInput?.value || '1', 10);
-      
-      // Validate total player count
-      const totalPlayerCount = totalPlayers + computerCount;
-      if (totalPlayerCount < 2 || totalPlayerCount > 4) {
-        const errorDiv = document.getElementById('player-count-error');
-        if (errorDiv) {
-          errorDiv.textContent = 'Total players must be between 2 and 4';
-          errorDiv.classList.remove('hidden');
-        }
-        return;
-      }
-      
-      // Clear any error messages
-      const errorDiv = document.getElementById('player-count-error');
-      if (errorDiv) {
-        errorDiv.classList.add('hidden');
-      }
-      
-      console.log(
-        '!!!!!!!!!! CLIENT (events.js): CLICKED deal-button, ATTEMPTING TO EMIT START_GAME !!!!!!!!!!!',
-        { playerName, computerCount }
-      );
-      state.socket.emit(START_GAME, { playerName, computerCount });
-      setButtonDisabled(startGameBtn, true);
-    };
-  }
-  // Rules modal logic (robust)
-  const rulesBtn = document.getElementById('header-rules-button');
+
+  // === MODAL CLOSE HANDLERS ===
   const rulesModal = document.getElementById('rules-modal');
-  const closeBtn = rulesModal?.querySelector('.modal__close-button');
   const overlay = document.getElementById('modal-overlay');
-  if (rulesModal) rulesModal.classList.add('modal--hidden');
-  if (overlay) overlay.classList.add('modal__overlay--hidden');
-  // --- Toggle rules modal with How to Play button ---
-  if (rulesBtn && rulesModal && closeBtn && overlay) {
-    let rulesOpen = false;
-    rulesBtn.onclick = () => {
-      rulesOpen = !rulesModal.classList.contains('modal--hidden');
-      if (rulesOpen) {
-        rulesModal.classList.add('modal--hidden');
-        overlay.classList.add('modal__overlay--hidden');
-      } else {
-        rulesModal.classList.remove('modal--hidden');
-        overlay.classList.remove('modal__overlay--hidden');
-      }
-    };
-    closeBtn.addEventListener('click', () => {
-      rulesModal.classList.add('modal--hidden');
-      overlay.classList.add('modal__overlay--hidden');
-    });
+  
+  if (rulesModal && overlay) {
+    // Close button in rules modal
+    const closeBtn = rulesModal.querySelector('.modal__close-button');
+    if (closeBtn) {
+      closeBtn.onclick = hideRulesModalAndOverlay;
+    }
+
+    // Close modal when clicking overlay
     overlay.onclick = (e) => {
       if (e.target === overlay) {
-        rulesModal.classList.add('modal--hidden');
-        overlay.classList.add('modal__overlay--hidden');
+        hideRulesModalAndOverlay();
       }
     };
+
+    // "Got it!" button in rules modal
+    const gotItBtn = document.getElementById('rules-gotit-btn');
+    if (gotItBtn) {
+      gotItBtn.onclick = hideRulesModalAndOverlay;
+    }
   }
-  // --- Rules Modal: Close on Outside Click ---
-  const rulesModalOverlay = document.getElementById('modal-overlay');
-  if (rulesModalOverlay && rulesModal) {
-    rulesModalOverlay.addEventListener('click', function (event) {
-      const target = event.target;
-      if (target instanceof Node && !rulesModal.contains(target) && target === rulesModalOverlay) {
-        rulesModal.classList.add('modal--hidden');
-        rulesModalOverlay.classList.add('modal__overlay--hidden');
-      }
-    });
-  }
-  // --- Rules Modal: Close on Green Background (main-content) ---
-  const mainContent = document.getElementById('main-content');
-  if (mainContent && rulesModal && rulesModalOverlay) {
-    mainContent.addEventListener('click', function () {
-      if (!rulesModal.classList.contains('modal--hidden')) {
-        rulesModal.classList.add('modal--hidden');
-        rulesModalOverlay.classList.add('modal__overlay--hidden');
-      }
-    });
-  }
-  // Add event handler for the "Got it!" button in the rules modal
-  const gotItBtn = document.getElementById('rules-gotit-btn');
-  if (gotItBtn && rulesModal && overlay) {
-    gotItBtn.addEventListener('click', () => {
-      rulesModal.classList.add('modal--hidden');
-      overlay.classList.add('modal__overlay--hidden');
-    });
-  }
-  // --- Expand/Collapse All Rules Sections (including quick tips) ---
+
+  // === RULES MODAL FEATURES ===
+
+  // Expand/Collapse All Rules Sections
   const expandCollapseBtn = document.getElementById('expand-collapse-all-btn');
   if (expandCollapseBtn && rulesModal) {
     const getDetailsList = () =>
@@ -437,19 +383,7 @@ export function initializePageEventListeners() {
       );
     });
 
-    // Update label when modal is shown
-    const rulesBtn = document.getElementById('header-rules-button');
-    if (rulesBtn) {
-      rulesBtn.addEventListener('click', function () {
-        // Ensure the modal is actually visible and details are loaded before updating label
-        if (rulesModal && !rulesModal.classList.contains('modal--hidden')) {
-          console.log('[RulesButton] Clicked, modal is visible. Updating expand/collapse label.');
-          updateExpandCollapseLabel();
-        } else {
-          console.log('[RulesButton] Clicked, but modal not visible or not found.');
-        }
-      });
-    }
+    // Update label when modal is shown (handled by the main onclick handler above)
 
     // Also update label when any individual section is toggled by the user
     rulesModal.addEventListener(
@@ -479,100 +413,29 @@ export function initializePageEventListeners() {
     observer.observe(playerList, { childList: true, subtree: false });
   }
   // Lobby form validation and error handling (from reference Canvas)
-  const lobbyForm = document.getElementById('lobby-form');
-  const nameInput = document.getElementById('name-input');
-  const nameInputError = document.getElementById('name-input-error');
-  if (lobbyForm && nameInput && nameInputError) {
-    lobbyForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = getInputValue(nameInput).trim();
-      // --- Name validation ---
-      if (!name) {
-        nameInputError.textContent = 'Name is required';
-        nameInputError.classList.remove('hidden');
-        nameInput.focus();
-        return;
-      }
-      if (name.length < 2) {
-        nameInputError.textContent = 'Name must be at least 2 characters';
-        nameInputError.classList.remove('hidden');
-        nameInput.focus();
-        return;
-      }
-      nameInputError.classList.add('hidden');
-      // --- Retrieve Player and CPU Counts ---
-      const numHumansInput = document.getElementById('total-players-input');
-      let numHumans = 1;
-      if (numHumansInput instanceof HTMLInputElement) {
-        numHumans = parseInt(numHumansInput.value, 10);
-        if (isNaN(numHumans) || numHumans < 1) {
-          numHumans = 1;
-        }
-      }
-      const numCPUsInput = document.getElementById('cpu-players-input');
-      let numCPUs = 0;
-      if (numCPUsInput instanceof HTMLInputElement) {
-        numCPUs = parseInt(numCPUsInput.value, 10);
-        if (isNaN(numCPUs) || numCPUs < 0) {
-          numCPUs = 0;
-        }
-      }
-      // --- Client-side validation for player/CPU counts ---
-      const playerCountErrorDiv = document.getElementById('player-count-error');
-      if (numHumans < 1) {
-        if (playerCountErrorDiv) {
-          playerCountErrorDiv.textContent = 'At least one human player is required.';
-          playerCountErrorDiv.classList.remove('hidden');
-        }
-        console.debug('[LobbyForm] Blocked submit: not enough humans', { numHumans, numCPUs });
-        return;
-      }
-      if (numHumans + numCPUs < 2) {
-        if (playerCountErrorDiv) {
-          playerCountErrorDiv.textContent = 'A minimum of 2 total players is required.';
-          playerCountErrorDiv.classList.remove('hidden');
-        }
-        console.debug('[LobbyForm] Blocked submit: not enough total players', {
-          numHumans,
-          numCPUs,
-        });
-        return;
-      }
-      if (numHumans + numCPUs > 4) {
-        if (playerCountErrorDiv) {
-          playerCountErrorDiv.textContent = 'Total players cannot exceed 4.';
-          playerCountErrorDiv.classList.remove('hidden');
-        }
-        console.debug('[LobbyForm] Blocked submit: too many total players', {
-          numHumans,
-          numCPUs,
-        });
-        return;
-      }
-      if (playerCountErrorDiv) playerCountErrorDiv.classList.add('hidden');
-      // --- Emit the JOIN_GAME Event ---
-      const playerDataForEmit = {
-        name: name,
-        numHumans: numHumans,
-        numCPUs: numCPUs,
-      };
-      console.debug('[LobbyForm] Emitting JOIN_GAME', playerDataForEmit);
-      console.log('[Client events.ts] Attempting to emit JOIN_GAME with data:', playerDataForEmit);
-      state.socket.emit(JOIN_GAME, playerDataForEmit);
-      // --- Disable the Submit Button ---
-      const submitButton = lobbyForm.querySelector('#join-game-button');
-      if (submitButton instanceof HTMLButtonElement) {
-        submitButton.disabled = true;
-      }
-    });
+  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+  const playerCountErrorDisplay = document.getElementById('player-count-error');
+  // Remove the old lobby form submit handler - Deal button now handles game starting
+  // const lobbyForm = document.getElementById('lobby-form');
+  // if (lobbyForm && nameInput && playerCountErrorDisplay) {
+  //   lobbyForm.addEventListener('submit', (e) => {
+  //     // ... old submit handler code removed
+  //   });
+  // }
+
+  // Keep input validation for real-time feedback
+  const nameInput = document.getElementById('player-name-input') as HTMLInputElement;
+  if (nameInput && playerCountErrorDisplay) {
     nameInput.addEventListener('input', () => {
-      nameInputError.classList.add('hidden');
+      playerCountErrorDisplay.classList.add('hidden');
     });
   }
-  const totalPlayersInput = document.getElementById('total-players');
-  const cpuPlayersInput = document.getElementById('cpu-players');
-  const playerCountErrorDisplay = document.getElementById('player-count-error');
+
   function validatePlayerCounts() {
+    const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+    const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+    const playerCountErrorDisplay = document.getElementById('player-count-error');
     if (!totalPlayersInput || !cpuPlayersInput || !playerCountErrorDisplay) {
       console.error('Lobby input elements not found for validation.');
       return false;
@@ -599,20 +462,27 @@ export function initializePageEventListeners() {
     }
     return true;
   }
+  
   if (totalPlayersInput) {
     totalPlayersInput.addEventListener('input', validatePlayerCounts);
   }
   if (cpuPlayersInput) {
     cpuPlayersInput.addEventListener('input', validatePlayerCounts);
   }
-  // Initialize counter buttons
-  initializeCounterButtons();
+
+  try {
+    // Initialize counter buttons
+    initializeCounterButtons();
+    console.log('✅ Counter buttons initialized');
+  } catch (counterError) {
+    console.error('❌ Error initializing counter buttons:', counterError);
+  }
 }
-// Call the initialization function when the DOM is ready
-document.addEventListener('DOMContentLoaded', initializePageEventListeners);
+
 // —– UI helper functions —–
 function updateStartGameButton() {
-  const startGameBtn = document.getElementById('deal-button');
+  // Update to target the setup Deal button instead of header button
+  const startGameBtn = document.getElementById('setup-deal-button');
   if (startGameBtn) {
     const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
     const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
@@ -620,4 +490,128 @@ function updateStartGameButton() {
     const computerCount = parseInt(cpuPlayersInput?.value || '1', 10);
     setButtonDisabled(startGameBtn, !(humanCount > 0 && humanCount + computerCount >= 2));
   }
+}
+
+// Separate handler functions to prevent duplicate listeners
+function handleRulesClick() {
+  console.log('🎯 Rules button clicked!');
+  const rulesModal = document.getElementById('rules-modal');
+  const overlay = document.getElementById('modal-overlay');
+  
+  if (rulesModal && overlay) {
+    rulesModal.classList.remove('modal--hidden');
+    overlay.classList.remove('modal__overlay--hidden');
+    console.log('✅ Rules modal opened');
+  } else {
+    console.error('❌ Rules modal or overlay not found');
+  }
+}
+
+function handleDealClick() {
+  console.log('🎯 Deal button clicked!');
+  
+  // Check if we're already in a game room and game is started
+  if (state.currentRoom && state.myId) {
+    console.log('✅ Already in game room, checking game state...');
+    
+    // If we're in a room, try to start the game with current lobby settings
+    const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+    const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+    
+    const humanCount = totalPlayersInput ? parseInt(totalPlayersInput.value || '1', 10) : 1;
+    const computerCount = cpuPlayersInput ? parseInt(cpuPlayersInput.value || '0', 10) : 0;
+    
+    console.log(`🎯 Starting game with ${humanCount} human players and ${computerCount} CPU players`);
+    state.socket.emit('START_GAME', { computerCount });
+    
+  } else {
+    console.log('✅ Not in game room, need to join/create room first...');
+    
+    // Validate lobby form first
+    const nameInput = document.getElementById('player-name-input') as HTMLInputElement;
+    const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+    const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+    const playerCountErrorDisplay = document.getElementById('player-count-error');
+    
+    if (!nameInput || !totalPlayersInput || !cpuPlayersInput || !playerCountErrorDisplay) {
+      console.error('❌ Required form elements not found');
+      return;
+    }
+    
+    const name = nameInput.value.trim();
+    
+    // --- Name validation ---
+    if (!name) {
+      playerCountErrorDisplay.textContent = 'Name is required';
+      playerCountErrorDisplay.classList.remove('hidden');
+      nameInput.focus();
+      return;
+    }
+    if (name.length < 2) {
+      playerCountErrorDisplay.textContent = 'Name must be at least 2 characters';
+      playerCountErrorDisplay.classList.remove('hidden');
+      nameInput.focus();
+      return;
+    }
+    
+    // --- Get player counts ---
+    const numHumans = parseInt(totalPlayersInput.value, 10) || 1;
+    const numCPUs = parseInt(cpuPlayersInput.value, 10) || 0;
+    
+    // --- Validate player counts ---
+    if (numHumans < 1) {
+      playerCountErrorDisplay.textContent = 'At least one human player is required.';
+      playerCountErrorDisplay.classList.remove('hidden');
+      return;
+    }
+    if (numHumans + numCPUs < 2) {
+      playerCountErrorDisplay.textContent = 'A minimum of 2 total players is required.';
+      playerCountErrorDisplay.classList.remove('hidden');
+      return;
+    }
+    if (numHumans + numCPUs > 4) {
+      playerCountErrorDisplay.textContent = 'Total players cannot exceed 4.';
+      playerCountErrorDisplay.classList.remove('hidden');
+      return;
+    }
+    
+    // Clear any previous errors
+    playerCountErrorDisplay.classList.add('hidden');
+    
+    // --- Join game with player setup ---
+    const playerDataForEmit = {
+      name: name,
+      numHumans: numHumans,
+      numCPUs: numCPUs,
+    };
+    
+    console.log('🎯 Deal button: Joining game with data:', playerDataForEmit);
+    state.socket.emit(JOIN_GAME, playerDataForEmit);
+    
+    // Disable the Deal button temporarily to prevent multiple clicks
+    const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
+    if (dealButton) {
+      dealButton.disabled = true;
+      dealButton.textContent = 'Starting...';
+      
+      // Re-enable after a delay (will be overridden by game state updates)
+      setTimeout(() => {
+        if (dealButton) {
+          dealButton.disabled = false;
+          dealButton.textContent = 'Deal';
+        }
+      }, 3000);
+    }
+  }
+  
+  console.log('✅ Deal button action completed');
+}
+
+// Failsafe: Always hide overlay when hiding rules modal
+function hideRulesModalAndOverlay() {
+  const rulesModal = document.getElementById('rules-modal');
+  const overlay = document.getElementById('modal-overlay');
+  if (rulesModal) rulesModal.classList.add('modal--hidden');
+  if (overlay) overlay.classList.add('modal__overlay--hidden');
+  console.log('✅ Rules modal closed');
 }

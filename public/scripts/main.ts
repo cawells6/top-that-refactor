@@ -1,30 +1,41 @@
 // public/scripts/main.ts
-import { initializePageEventListeners } from './events.ts'; // Use .ts extension for Vite
-import { initializeSocketHandlers } from './socketService.ts';
-import { socket, socketReady } from './state.ts'; // Use shared socket
+import { initializePageEventListeners } from './events.js';
+import { initializeSocketHandlers } from './socketService.js';
+import { socket, socketReady } from './state.js';
 
-console.log('[Client] main.ts loaded successfully via Vite!');
+console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
 // Wait for DOMContentLoaded first, then socketReady, then initializePageEventListeners
 
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('[Client] DOM fully loaded and parsed (from main.ts)');
+  console.log('🚀 [Client] DOM fully loaded and parsed (from main.ts)');
 
-  // On refresh or reconnect, always clear session and show lobby (future-proof for multiplayer)
+  // Clear session on page load
   sessionStorage.removeItem('myId');
   sessionStorage.removeItem('currentRoom');
 
-  await socketReady;
-  // Attach socket event listeners after socket is ready
-  socket.on('connect', () => {
-    console.log('[Client] Socket.IO connected to backend via Vite proxy! Socket ID:', socket.id);
-  });
-  socket.on('connect_error', (err) => {
-    console.error('[Client] Socket.IO connection error:', err.message, err.cause || '');
-  });
-  socket.on('disconnect', (reason) => {
-    console.log('[Client] Socket.IO disconnected:', reason);
-  });
-  await initializePageEventListeners();
-  initializeSocketHandlers();
+  try {
+    await socketReady;
+
+    // Attach socket event listeners after socket is ready
+    socket.on('connect', () => {
+      console.log('[Client] Socket.IO connected to backend! Socket ID:', socket.id);
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('[Client] Socket.IO connection error:', err.message, err.cause || '');
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('[Client] Socket.IO disconnected:', reason);
+    });
+
+    await initializePageEventListeners();
+    console.log('🚀 [Client] initializePageEventListeners completed');
+
+    initializeSocketHandlers();
+    console.log('🚀 [Client] All initialization completed');
+  } catch (error) {
+    console.error('Error during initialization:', error);
+  }
 });

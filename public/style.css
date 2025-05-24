@@ -1,4 +1,5 @@
 /* style.css - Main entry point for styles */
+/* Hot reload test */
 @import 'styles/base.css';
 @import 'styles/cards.css';
 @import 'styles/layout.css';
@@ -43,7 +44,7 @@ body {
 
 /* New Game Setup Card Design */
 .game-setup-card {
-  background: #ffffff;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   color: #1b2e3c;
   padding: 2.5rem;
   border-radius: 24px;
@@ -57,6 +58,7 @@ body {
   animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
+  margin-top: 2.2rem; /* Added margin to move the game setup card down from the header */
 }
 
 @keyframes slideUpFadeIn {
@@ -71,6 +73,10 @@ body {
 }
 
 .setup-header {
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+  border-bottom: 2px solid #e9ecef;
+  border-radius: 15px 15px 0 0;
+  padding: 2rem 2rem 1.5rem 2rem;
   text-align: center;
   margin-bottom: 2rem;
 }
@@ -84,10 +90,10 @@ body {
 }
 
 .setup-header .requirement-text {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #000000;
-  margin: 0;
+  color: #6c757d;
+  font-style: italic;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
   text-align: center;
 }
 
@@ -115,20 +121,25 @@ body {
 }
 
 .section-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #ffc300; /* Use the Top That! accent color */
-  margin: 0 0 1rem 0;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.02em; /* Match Deal and Rules button spacing */
-  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif; /* Bolder, more distinct font */
-  text-shadow: 
-    -1px -1px 0 #000,
-     1px -1px 0 #000,
-    -1px  1px 0 #000,
-     1px  1px 0 #000,
-     0 2px 4px rgba(0, 0, 0, 0.3); /* Black outline + shadow for pop */
+  /* Restore previous styles except for text border */
+  color: #ffc300; /* Gold accent */
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  display: block;
+  margin-bottom: 1rem;
+  /* Add blue border to text (stroke) instead of black */
+  text-shadow:
+    -1px -1px 0 #1b2e3c,
+     1px -1px 0 #1b2e3c,
+    -1px  1px 0 #1b2e3c,
+     1px  1px 0 #1b2e3c,
+     0 2px 4px rgba(0, 0, 0, 0.3); /* Blue outline + shadow for pop */
+  font-size: 2.1rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
 }
 
 .player-counter {
@@ -303,6 +314,91 @@ body {
   margin-bottom: 1rem;
   text-align: center;
   font-weight: 500;
+}
+
+/* Enhanced Game Setup Modal Styling */
+.setup-title {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.title-highlight {
+  display: block;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #ffc300;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.title-subtitle {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #1b2e3c;
+  letter-spacing: 0.02em;
+  margin-top: 0.3rem;
+}
+
+.setup-action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.setup-btn {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.setup-btn-primary {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c;
+  border: 2px solid #ffc300;
+}
+
+.setup-btn-primary:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.setup-btn-primary:active {
+  transform: translateY(0);
+}
+
+.setup-btn-secondary {
+  background: #fff;
+  color: #1b2e3c;
+  border: 2px solid #1b2e3c;
+}
+
+.setup-btn-secondary:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.setup-btn-secondary:active {
+  transform: translateY(0);
 }
 
 /* Responsive design */
@@ -1231,22 +1327,25 @@ body {
 
 .header-btn {
   background: #ffc300;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
+  color: #000000 !important; /* Force black text */
+  border: 2px solid #ffc300;
   padding: 0.6rem 1rem;
+  border-radius: 8px;
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.02em;
+  font-family: inherit;
 }
 
 .header-btn:hover {
-  background: #e6b000;
+  background: #ffb000;
+  border-color: #ffb000;
+  color: #000000 !important; /* Maintain black text on hover */
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(255, 195, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
 }
 
 .header-btn:active {
