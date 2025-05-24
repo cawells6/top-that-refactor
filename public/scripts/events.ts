@@ -13,6 +13,104 @@ function setButtonDisabled(el: HTMLElement | null, disabled: boolean) {
   if (el && 'disabled' in el) (el as HTMLButtonElement).disabled = disabled;
 }
 
+// Create a player silhouette element
+function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLElement {
+  const silhouette = document.createElement('div');
+  silhouette.className = `player-silhouette ${type}`;
+  silhouette.setAttribute('data-index', index.toString());
+  
+  // Add SVG icon
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '20');
+  svg.setAttribute('height', '20');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'currentColor');
+  
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  
+  if (type === 'human') {
+    path.setAttribute('d', 'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5C14.7 6.9 14.1 6.5 13.5 6.5H10.5C9.9 6.5 9.3 6.9 9 7.5L3 7V9L9 8.5V10.5C9 11.6 9.4 12.6 10.1 13.3L9 20H11L11.8 15H12.2L13 20H15L13.9 13.3C14.6 12.6 15 11.6 15 10.5V8.5L21 9Z');
+  } else {
+    // CPU icon with circuit pattern
+    path.setAttribute('d', 'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5C14.7 6.9 14.1 6.5 13.5 6.5H10.5C9.9 6.5 9.3 6.9 9 7.5L3 7V9L9 8.5V10.5C9 11.6 9.4 12.6 10.1 13.3L9 20H11L11.8 15H12.2L13 20H15L13.9 13.3C14.6 12.6 15 11.6 15 10.5V8.5L21 9Z');
+    
+    // Add CPU indicator circles
+    const circle1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle1.setAttribute('cx', '12');
+    circle1.setAttribute('cy', '12');
+    circle1.setAttribute('r', '1.5');
+    circle1.setAttribute('fill', '#137a4b');
+    svg.appendChild(circle1);
+    
+    const circle2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle2.setAttribute('cx', '8');
+    circle2.setAttribute('cy', '8');
+    circle2.setAttribute('r', '1');
+    circle2.setAttribute('fill', '#137a4b');
+    svg.appendChild(circle2);
+    
+    const circle3 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle3.setAttribute('cx', '16');
+    circle3.setAttribute('cy', '8');
+    circle3.setAttribute('r', '1');
+    circle3.setAttribute('fill', '#137a4b');
+    svg.appendChild(circle3);
+  }
+  
+  svg.appendChild(path);
+  silhouette.appendChild(svg);
+  
+  return silhouette;
+}
+
+// Update player silhouettes based on current counts
+function updatePlayerSilhouettes() {
+  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+  const humanSilhouettesContainer = document.getElementById('human-silhouettes');
+  const cpuSilhouettesContainer = document.getElementById('cpu-silhouettes');
+  
+  if (!humanSilhouettesContainer || !cpuSilhouettesContainer) return;
+  
+  const humanCount = parseInt(totalPlayersInput?.value || '1', 10);
+  const cpuCount = parseInt(cpuPlayersInput?.value || '0', 10);
+  
+  // Update human silhouettes
+  updateSilhouettesInContainer(humanSilhouettesContainer, 'human', humanCount);
+  
+  // Update CPU silhouettes
+  updateSilhouettesInContainer(cpuSilhouettesContainer, 'cpu', cpuCount);
+}
+
+// Update silhouettes in a specific container
+function updateSilhouettesInContainer(
+  container: HTMLElement,
+  type: 'human' | 'cpu',
+  targetCount: number
+) {
+  const currentSilhouettes = container.querySelectorAll('.player-silhouette');
+  const currentCount = currentSilhouettes.length;
+  
+  if (currentCount < targetCount) {
+    // Add new silhouettes
+    for (let i = currentCount; i < targetCount; i++) {
+      const silhouette = createPlayerSilhouette(type, i);
+      container.appendChild(silhouette);
+    }
+  } else if (currentCount > targetCount) {
+    // Remove excess silhouettes with animation
+    for (let i = currentCount - 1; i >= targetCount; i--) {
+      const silhouette = currentSilhouettes[i] as HTMLElement;
+      silhouette.classList.add('removing');
+      setTimeout(() => {
+        if (silhouette.parentNode) {
+          silhouette.parentNode.removeChild(silhouette);
+        }
+      }, 300); // Match animation duration
+    }
+  }
+}
+
 // Initialize counter button functionality
 function initializeCounterButtons() {
   const humansMinusBtn = document.getElementById('humans-minus');
@@ -33,6 +131,8 @@ function initializeCounterButtons() {
     
     // Update button states
     updateButtonStates();
+    // Update player silhouettes
+    updatePlayerSilhouettes();
   }
 
   function updateButtonStates() {
@@ -95,6 +195,9 @@ function initializeCounterButtons() {
 
   // Initialize states
   updateTotalCount();
+  
+  // Initialize player silhouettes on page load
+  updatePlayerSilhouettes();
 }
 
 export function initializePageEventListeners() {
@@ -146,6 +249,17 @@ export function initializePageEventListeners() {
   const startGameBtn = document.getElementById('deal-button');
   if (startGameBtn) {
     startGameBtn.onclick = () => {
+      // Get the player name
+      const nameInput = document.getElementById('player-name-input') as HTMLInputElement;
+      const playerName = nameInput?.value?.trim() || '';
+      
+      // Validate player name
+      if (!playerName) {
+        alert('Please enter your name before starting the game.');
+        nameInput?.focus();
+        return;
+      }
+      
       // Get the player count values from the form
       const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
       const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
@@ -172,9 +286,9 @@ export function initializePageEventListeners() {
       
       console.log(
         '!!!!!!!!!! CLIENT (events.js): CLICKED deal-button, ATTEMPTING TO EMIT START_GAME !!!!!!!!!!!',
-        { computerCount }
+        { playerName, computerCount }
       );
-      state.socket.emit(START_GAME, { computerCount });
+      state.socket.emit(START_GAME, { playerName, computerCount });
       setButtonDisabled(startGameBtn, true);
     };
   }

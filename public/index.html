@@ -19,7 +19,10 @@
       >
         <!-- Game name and slogan on the left -->
         <div class="header-logo">
-          <span class="header-game-name">Top That!</span>
+          <div class="header-game-name">
+            <div>Top</div>
+            <div>That!</div>
+          </div>
           <span class="header-tagline">One Pile. One Winner. No Mercy.</span>
         </div>
         
@@ -53,47 +56,43 @@
       <div class="lobby" id="lobby-container">
         <div class="game-setup-card">
           <div class="setup-header">
-            <h2>Set Up Your Game</h2>
-            <p>Choose your players and start dealing cards</p>
+            <h2>Game Setup</h2>
+            <p class="requirement-text">(2-4 players required)</p>
           </div>
           
           <form id="lobby-form" autocomplete="off">
+            <!-- Player Name Input -->
+            <div class="name-input-section">
+              <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20" required />
+            </div>
+            
             <div class="player-selection">
               <!-- Human Players Section -->
               <div class="player-section">
-                <div class="section-icon">👥</div>
-                <h3>Human Players</h3>
+                <h3 class="section-title">Users</h3>
                 <div class="player-counter">
                   <button type="button" class="counter-btn" id="humans-minus" data-target="total-players-input">−</button>
-                  <div class="counter-display">
-                    <input type="number" id="total-players-input" min="1" max="4" value="1" readonly />
-                    <span class="counter-label">Players</span>
-                  </div>
+                  <input type="number" id="total-players-input" min="1" max="4" value="1" readonly />
                   <button type="button" class="counter-btn" id="humans-plus" data-target="total-players-input">+</button>
+                </div>
+                <!-- Dynamic Human Player Silhouettes -->
+                <div class="player-silhouettes" id="human-silhouettes">
+                  <!-- Silhouettes will be dynamically added/removed here -->
                 </div>
               </div>
 
               <!-- CPU Players Section -->
               <div class="player-section">
-                <div class="section-icon">🤖</div>
-                <h3>Computer Players</h3>
+                <h3 class="section-title">AI</h3>
                 <div class="player-counter">
                   <button type="button" class="counter-btn" id="cpus-minus" data-target="cpu-players-input">−</button>
-                  <div class="counter-display">
-                    <input type="number" id="cpu-players-input" min="0" max="3" value="1" readonly />
-                    <span class="counter-label">CPUs</span>
-                  </div>
+                  <input type="number" id="cpu-players-input" min="0" max="3" value="1" readonly />
                   <button type="button" class="counter-btn" id="cpus-plus" data-target="cpu-players-input">+</button>
                 </div>
-              </div>
-            </div>
-
-            <!-- Game Info -->
-            <div class="game-info">
-              <div class="total-players">
-                <span>Total Players: </span>
-                <span id="total-count" class="count-highlight">2</span>
-                <span class="players-range">(2-4 players)</span>
+                <!-- Dynamic CPU Player Silhouettes -->
+                <div class="player-silhouettes" id="cpu-silhouettes">
+                  <!-- Silhouettes will be dynamically added/removed here -->
+                </div>
               </div>
             </div>
 
@@ -101,8 +100,7 @@
             
             <!-- Deal button -->
             <button id="deal-button" class="deal-button" type="button">
-              <span class="button-icon">🃏</span>
-              <span>Deal Cards & Start</span>
+              Deal
             </button>
           </form>
         </div>
