@@ -29,7 +29,10 @@ export const getCopyLinkBtn = (): HTMLButtonElement | null =>
   document.getElementById('copy-link-button') as HTMLButtonElement | null;
 
 export const getRulesButton = (): HTMLButtonElement | null =>
-  document.getElementById('rules-button') as HTMLButtonElement | null;
+  document.getElementById('header-rules-button') as HTMLButtonElement | null;
+
+export const getDealButton = (): HTMLButtonElement | null =>
+  document.getElementById('deal-button') as HTMLButtonElement | null;
 
 export const getRulesModal = (): HTMLElement | null => document.getElementById('rules-modal');
 

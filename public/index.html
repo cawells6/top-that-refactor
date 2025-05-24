@@ -15,9 +15,18 @@
     <header class="header" id="main-header">
       <div
         class="header__content"
-        style="display: flex; align-items: center; justify-content: flex-end; padding: 0 2.5rem; background: #1b2e3c; min-height: 54px;"
+        style="display: flex; align-items: center; justify-content: space-between; padding: 0 2.5rem; background: #1b2e3c; min-height: 54px;"
       >
-        <!-- Only keep the right side (How to Play button removed) -->
+        <!-- Game name and slogan on the left -->
+        <div class="header-logo">
+          <span class="header-game-name">Top That!</span>
+          <span class="header-tagline">One Pile. One Winner. No Mercy.</span>
+        </div>
+        
+        <!-- Buttons on the right -->
+        <div class="header-buttons">
+          <button id="header-rules-button" class="header-btn" type="button">Rules</button>
+        </div>
       </div>
     </header>
 
@@ -41,38 +50,60 @@
       "
     >
       <!-- Lobby Screen -->
-      <div class="lobby" id="lobby-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-        <div class="lobby-card" id="lobby-form-card" style="margin-top: 0; padding-top: 1.2rem; position: relative; overflow: hidden;">
-          <!-- Game logo, name, and tagline -->
-          <div class="lobby-logo-title">
-            <span class="lobby-game-name">Top That!</span>
-            <span class="lobby-tagline">One Pile. One Winner. No Mercy.</span>
+      <div class="lobby" id="lobby-container">
+        <div class="game-setup-card">
+          <div class="setup-header">
+            <h2>Set Up Your Game</h2>
+            <p>Choose your players and start dealing cards</p>
           </div>
-          <div class="lobby-buttons-row">
-            <button id="rules-button" class="btn btn-primary lobby-rules-btn" type="button">How to Play</button>
-            <button id="join-game-button" class="btn btn-primary play-button" type="submit">Play Game</button>
-          </div>
-          <form id="lobby-form" autocomplete="off" style="display: flex; flex-direction: column; gap: 1.2rem; align-items: center; width: 100%;">
-            <!-- Enhanced participant setup with clear sections -->
-            <div class="player-setup-section horizontal">
-              <div class="player-type-group human-group">
-                <div class="player-type-header">
-                  <h4>Players</h4>
-                </div>
-                <div class="form-group">
-                  <input type="number" id="total-players-input" min="1" max="4" value="1" />
+          
+          <form id="lobby-form" autocomplete="off">
+            <div class="player-selection">
+              <!-- Human Players Section -->
+              <div class="player-section">
+                <div class="section-icon">👥</div>
+                <h3>Human Players</h3>
+                <div class="player-counter">
+                  <button type="button" class="counter-btn" id="humans-minus" data-target="total-players-input">−</button>
+                  <div class="counter-display">
+                    <input type="number" id="total-players-input" min="1" max="4" value="1" readonly />
+                    <span class="counter-label">Players</span>
+                  </div>
+                  <button type="button" class="counter-btn" id="humans-plus" data-target="total-players-input">+</button>
                 </div>
               </div>
-              <div class="player-type-group cpu-group">
-                <div class="player-type-header">
-                  <h4>CPU Opponents</h4>
-                </div>
-                <div class="form-group">
-                  <input type="number" id="cpu-players-input" min="0" max="3" value="1" />
+
+              <!-- CPU Players Section -->
+              <div class="player-section">
+                <div class="section-icon">🤖</div>
+                <h3>Computer Players</h3>
+                <div class="player-counter">
+                  <button type="button" class="counter-btn" id="cpus-minus" data-target="cpu-players-input">−</button>
+                  <div class="counter-display">
+                    <input type="number" id="cpu-players-input" min="0" max="3" value="1" readonly />
+                    <span class="counter-label">CPUs</span>
+                  </div>
+                  <button type="button" class="counter-btn" id="cpus-plus" data-target="cpu-players-input">+</button>
                 </div>
               </div>
             </div>
-            <div id="player-count-error" class="error-message hidden" style="margin-bottom: 0.2rem; text-align: center;"></div>
+
+            <!-- Game Info -->
+            <div class="game-info">
+              <div class="total-players">
+                <span>Total Players: </span>
+                <span id="total-count" class="count-highlight">2</span>
+                <span class="players-range">(2-4 players)</span>
+              </div>
+            </div>
+
+            <div id="player-count-error" class="error-message hidden"></div>
+            
+            <!-- Deal button -->
+            <button id="deal-button" class="deal-button" type="button">
+              <span class="button-icon">🃏</span>
+              <span>Deal Cards & Start</span>
+            </button>
           </form>
         </div>
         <div id="waiting-state" class="hidden" style="width: 100%; text-align: center;">

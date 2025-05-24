@@ -13,6 +13,90 @@ function setButtonDisabled(el: HTMLElement | null, disabled: boolean) {
   if (el && 'disabled' in el) (el as HTMLButtonElement).disabled = disabled;
 }
 
+// Initialize counter button functionality
+function initializeCounterButtons() {
+  const humansMinusBtn = document.getElementById('humans-minus');
+  const humansPlusBtn = document.getElementById('humans-plus');
+  const cpusMinusBtn = document.getElementById('cpus-minus');
+  const cpusPlusBtn = document.getElementById('cpus-plus');
+  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+  const totalCountSpan = document.getElementById('total-count');
+
+  function updateTotalCount() {
+    const humans = parseInt(totalPlayersInput?.value || '1', 10);
+    const cpus = parseInt(cpuPlayersInput?.value || '1', 10);
+    const total = humans + cpus;
+    if (totalCountSpan) {
+      totalCountSpan.textContent = total.toString();
+    }
+    
+    // Update button states
+    updateButtonStates();
+  }
+
+  function updateButtonStates() {
+    const humans = parseInt(totalPlayersInput?.value || '1', 10);
+    const cpus = parseInt(cpuPlayersInput?.value || '1', 10);
+    const total = humans + cpus;
+
+    // Human buttons
+    if (humansMinusBtn) (humansMinusBtn as HTMLButtonElement).disabled = humans <= 1;
+    if (humansPlusBtn) (humansPlusBtn as HTMLButtonElement).disabled = total >= 4;
+
+    // CPU buttons
+    if (cpusMinusBtn) (cpusMinusBtn as HTMLButtonElement).disabled = cpus <= 0;
+    if (cpusPlusBtn) (cpusPlusBtn as HTMLButtonElement).disabled = total >= 4;
+  }
+
+  // Human counter buttons
+  if (humansMinusBtn) {
+    humansMinusBtn.onclick = () => {
+      const current = parseInt(totalPlayersInput?.value || '1', 10);
+      if (current > 1) {
+        totalPlayersInput.value = (current - 1).toString();
+        updateTotalCount();
+      }
+    };
+  }
+
+  if (humansPlusBtn) {
+    humansPlusBtn.onclick = () => {
+      const current = parseInt(totalPlayersInput?.value || '1', 10);
+      const cpus = parseInt(cpuPlayersInput?.value || '1', 10);
+      if (current + cpus < 4) {
+        totalPlayersInput.value = (current + 1).toString();
+        updateTotalCount();
+      }
+    };
+  }
+
+  // CPU counter buttons
+  if (cpusMinusBtn) {
+    cpusMinusBtn.onclick = () => {
+      const current = parseInt(cpuPlayersInput?.value || '1', 10);
+      if (current > 0) {
+        cpuPlayersInput.value = (current - 1).toString();
+        updateTotalCount();
+      }
+    };
+  }
+
+  if (cpusPlusBtn) {
+    cpusPlusBtn.onclick = () => {
+      const current = parseInt(cpuPlayersInput?.value || '1', 10);
+      const humans = parseInt(totalPlayersInput?.value || '1', 10);
+      if (current + humans < 4) {
+        cpuPlayersInput.value = (current + 1).toString();
+        updateTotalCount();
+      }
+    };
+  }
+
+  // Initialize states
+  updateTotalCount();
+}
+
 export function initializePageEventListeners() {
   state.loadSession();
   // Initialize socket handlers
@@ -38,7 +122,7 @@ export function initializePageEventListeners() {
       navigator.clipboard.writeText(window.location.href);
     };
   }
-  const rulesButton = uiManager.getRulesButton();
+  const rulesButton = document.getElementById('header-rules-button');
   if (rulesButton) {
     rulesButton.onclick = () => {
       const rulesModal = uiManager.getRulesModal();
@@ -59,13 +143,35 @@ export function initializePageEventListeners() {
       uiManager.showLobbyForm();
     };
   }
-  const startGameBtn = document.getElementById('start-game-button');
+  const startGameBtn = document.getElementById('deal-button');
   if (startGameBtn) {
     startGameBtn.onclick = () => {
-      const computerInput = document.getElementById('computer-count');
-      const computerCount = parseInt(getInputValue(computerInput), 10) || 0;
+      // Get the player count values from the form
+      const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+      const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+      
+      const totalPlayers = parseInt(totalPlayersInput?.value || '1', 10);
+      const computerCount = parseInt(cpuPlayersInput?.value || '1', 10);
+      
+      // Validate total player count
+      const totalPlayerCount = totalPlayers + computerCount;
+      if (totalPlayerCount < 2 || totalPlayerCount > 4) {
+        const errorDiv = document.getElementById('player-count-error');
+        if (errorDiv) {
+          errorDiv.textContent = 'Total players must be between 2 and 4';
+          errorDiv.classList.remove('hidden');
+        }
+        return;
+      }
+      
+      // Clear any error messages
+      const errorDiv = document.getElementById('player-count-error');
+      if (errorDiv) {
+        errorDiv.classList.add('hidden');
+      }
+      
       console.log(
-        '!!!!!!!!!! CLIENT (events.js): CLICKED start-game-button, ATTEMPTING TO EMIT START_GAME !!!!!!!!!!!',
+        '!!!!!!!!!! CLIENT (events.js): CLICKED deal-button, ATTEMPTING TO EMIT START_GAME !!!!!!!!!!!',
         { computerCount }
       );
       state.socket.emit(START_GAME, { computerCount });
@@ -73,7 +179,7 @@ export function initializePageEventListeners() {
     };
   }
   // Rules modal logic (robust)
-  const rulesBtn = document.getElementById('rules-button');
+  const rulesBtn = document.getElementById('header-rules-button');
   const rulesModal = document.getElementById('rules-modal');
   const closeBtn = rulesModal?.querySelector('.modal__close-button');
   const overlay = document.getElementById('modal-overlay');
@@ -218,7 +324,7 @@ export function initializePageEventListeners() {
     });
 
     // Update label when modal is shown
-    const rulesBtn = document.getElementById('rules-button');
+    const rulesBtn = document.getElementById('header-rules-button');
     if (rulesBtn) {
       rulesBtn.addEventListener('click', function () {
         // Ensure the modal is actually visible and details are loaded before updating label
@@ -385,17 +491,19 @@ export function initializePageEventListeners() {
   if (cpuPlayersInput) {
     cpuPlayersInput.addEventListener('input', validatePlayerCounts);
   }
+  // Initialize counter buttons
+  initializeCounterButtons();
 }
 // Call the initialization function when the DOM is ready
 document.addEventListener('DOMContentLoaded', initializePageEventListeners);
 // —– UI helper functions —–
 function updateStartGameButton() {
-  const startGameBtn = document.getElementById('start-game-button');
+  const startGameBtn = document.getElementById('deal-button');
   if (startGameBtn) {
-    const playerList = document.getElementById('player-list');
-    const humanCount = playerList ? playerList.getElementsByTagName('li').length : 0;
-    const computerInput = document.getElementById('computer-count');
-    const computerCount = parseInt(getInputValue(computerInput), 10) || 0;
+    const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+    const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+    const humanCount = parseInt(totalPlayersInput?.value || '1', 10);
+    const computerCount = parseInt(cpuPlayersInput?.value || '1', 10);
     setButtonDisabled(startGameBtn, !(humanCount > 0 && humanCount + computerCount >= 2));
   }
 }
