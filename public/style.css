@@ -20,7 +20,7 @@
 }
 
 body {
-  background: linear-gradient(135deg, #0b5137 0%, #137a4b 100%);
+  background: #137a4b;
   min-height: 100vh;
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
@@ -33,26 +33,29 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center; /* Center vertically */
   min-height: 100vh;
+  min-width: 100vw;
+  position: fixed; /* Overlay the whole screen */
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 1000;
 }
 
 #lobby-form-card {
-  background: #fff !important;
-  color: #222;
-  padding: 2.2rem 2rem 2rem 2rem;
+  background: linear-gradient(135deg, #1b2e3c 0%, #243441 100%) !important;
+  color: #fff;
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
   border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(19, 122, 75, 0.13), 0 0 0 1px rgba(255, 195, 0, 0.1);
-  margin-top: 5vh;
-  min-width: 320px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 0 0 1px #ffc30033;
+  margin-top: 0;
   max-width: 400px;
-  width: 100%;
+  width: 95%;
   animation: fadeInCard 0.7s cubic-bezier(.4,0,.2,1);
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  border: 2px solid #ffc300;
+  border: 2px solid #137a4b;
   background-clip: padding-box;
 }
 
@@ -82,12 +85,12 @@ body {
   animation-duration: 8s;
 }
 
-/* Add a subtle hover effect to the lobby card */
+/* Remove glowing hover effect */
 #lobby-form-card:hover {
-  box-shadow: 0 12px 40px rgba(19, 122, 75, 0.18), 0 0 0 1px rgba(255, 195, 0, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Simplified hover shadow */
   transform: translateY(-2px);
   transition: all 0.3s cubic-bezier(.4,0,.2,1);
-  border-color: #ffb000;
+  border-color: #0f5d37; /* Darker border on hover */
 }
 
 #lobby-form-card h2,
@@ -97,9 +100,9 @@ body {
 
 .lobby-title {
   color: #137a4b;
-  font-size: 2.1rem;
-  font-weight: 800;
-  margin-bottom: 1.2rem;
+  font-size: 2.4rem;
+  font-weight: 900;
+  margin-bottom: 0.8rem; /* Further reduced spacing */
   text-align: center;
   letter-spacing: 0.01em;
 }
@@ -108,8 +111,9 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 0.7rem; /* Updated gap */
   align-items: stretch;
+  padding: 0 0.7rem 1rem 0.7rem !important; /* Updated padding */
 }
 
 .lobby-buttons {
@@ -118,8 +122,8 @@ body {
   justify-content: center;
   align-items: center;
   gap: 1.2rem;
-  margin: 1.2rem 0 0.7rem 0 !important;
   width: 100%;
+  margin: 0 !important;
 }
 
 .lobby-buttons button {
@@ -145,6 +149,13 @@ body {
   color: #fff;
   position: relative;
   overflow: hidden;
+  max-width: 180px; /* Updated max-width */
+  min-width: 0;
+  width: auto;
+  padding: 0.7rem 1.2rem; /* Updated padding */
+  font-size: 1.1rem; /* Updated font size */
+  margin: 0.5rem auto 0 auto; /* Updated margin */
+  align-self: center; /* Centered alignment */
 }
 
 #join-game-button::before {
@@ -170,9 +181,9 @@ body {
 }
 
 #new-game-button {
-  background: #fff;
-  color: #137a4b;
-  border: 1.5px solid #137a4b;
+  background: #1b2e3c;
+  color: #ffc300;
+  border: 1.5px solid #ffc300;
   position: relative;
   overflow: hidden;
 }
@@ -188,38 +199,59 @@ body {
 .player-setup-section {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  background: rgba(19, 122, 75, 0.03);
+  gap: 0.6rem; /* Further reduced gap */
+  margin-bottom: 0.8rem; /* Reduced bottom margin */
+  background: #1b2e3c; /* Match the rest of the lobby card */
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1rem; /* Further reduced padding */
   border: 1px solid rgba(19, 122, 75, 0.08);
   width: 100%;
+  align-items: center; /* Center all content */
 }
 
 .player-type-group {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.8rem;
-  padding: 1rem;
-  background: #f9fcfa;
+  gap: 0.3rem; /* Updated gap */
+  padding: 0.5rem 0.3rem 0.7rem 0.3rem; /* Updated padding for tighter spacing */
+  background: #f7faf9;
   border-radius: 8px;
-  border: 1px solid rgba(19, 122, 75, 0.1);
+  border: 2px solid #ffc300; /* Gold border for contrast */
+  box-shadow: 0 2px 8px rgba(255, 195, 0, 0.15); /* Gold shadow */
   transition: all 0.2s ease;
+  width: 100%; /* Full width within container */
+  text-align: center; /* Center text content */
+}
+
+.player-type-group.human-group {
+  background: #F1F8E9 !important; /* Updated background */
+}
+
+.player-type-group.cpu-group {
+  background: #FFF3E0 !important; /* Updated background */
 }
 
 .player-type-group:hover {
-  background: #f2f9f4;
-  border-color: rgba(19, 122, 75, 0.15);
+  background: rgba(27, 46, 60, 0.8);
+  border-color: #ffb000; /* Brighter gold on hover */
+  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.25); /* Enhanced gold shadow on hover */
   transform: translateY(-1px);
+}
+
+.player-type-group .form-group {
+  margin-top: 0.2rem; /* Updated margin */
+  margin-bottom: 0; /* Updated margin */
 }
 
 .player-type-header {
   display: flex;
   align-items: center;
+  justify-content: center; /* Center the header content */
   gap: 0.5rem;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.3rem; /* Updated margin */
+  padding-bottom: 0.1rem; /* Updated padding */
+  width: 100%; /* Full width for proper centering */
 }
 
 .player-icon {
@@ -227,18 +259,19 @@ body {
 }
 
 .player-type-header h4 {
-  color: #137a4b;
-  font-size: 1.05rem;
-  font-weight: 600;
+  color: #137a4b; /* Updated color */
+  font-size: 1.08rem; /* Updated size */
+  font-weight: 800; /* Updated weight */
   margin: 0;
   letter-spacing: 0.01em;
+  text-align: center; /* Updated alignment */
 }
 
 .vs-divider {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0.5rem 0;
+  margin: 0.1rem 0; /* Updated margin */
   position: relative;
 }
 
@@ -253,55 +286,61 @@ body {
 .vs-divider span {
   background: #ffc300;
   color: #222;
-  padding: 0.3rem 0.8rem;
+  padding: 0.25rem 0.7rem; /* Updated padding */
   border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 800; /* Bolder weight for emphasis */
+  font-size: 0.98rem; /* Updated size */
   margin: 0 1rem;
   box-shadow: 0 2px 8px rgba(255, 195, 0, 0.2);
+  text-transform: uppercase; /* Make it more prominent */
+  letter-spacing: 0.1em;
 }
 
 .player-setup-section .form-group {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center; /* Center vertically */
   gap: 0.4rem;
   margin-bottom: 0;
+  width: 100%; /* Full width for proper centering */
 }
 
 .player-setup-section input[type='number'] {
-  width: 80px;
+  width: 90px; /* Increased size */
   text-align: center;
   border-radius: 8px;
-  border: 2px solid #137a4b;
-  font-size: 1.2rem;
-  padding: 0.6rem;
-  background: #ffffff;
-  color: #137a4b;
+  border: 2px solid #ffc300;
+  font-size: 1.4rem; /* Larger font */
+  padding: 0.8rem; /* Increased padding */
+  background: #1b2e3c;
+  color: #ffc300;
   font-weight: 700;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(19, 122, 75, 0.08);
+  box-shadow: 0 3px 6px rgba(19, 122, 75, 0.12); /* More prominent shadow */
+  margin-top: 0.1rem; /* Updated margin */
+  margin-bottom: 0.1rem; /* Updated margin */
 }
 
 .player-setup-section input[type='number']:focus {
   border-color: #ffc300;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.15), 0 4px 8px rgba(19, 122, 75, 0.12);
+  box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.15), 0 4px 8px rgba(255, 195, 0, 0.12);
   transform: scale(1.05);
 }
 
 .player-setup-section input[type='number']:hover {
-  border-color: #17805a;
+  border-color: #ffb000;
   transform: scale(1.02);
-  box-shadow: 0 4px 8px rgba(19, 122, 75, 0.12);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.12);
 }
 
 .input-description {
-  font-size: 0.85rem;
-  color: #137a4b;
-  opacity: 0.8;
+  font-size: 1rem; /* Increased font size for better readability */
+  color: #ffc300; /* Gold color for better contrast with blue theme */
+  opacity: 1;
   text-align: center;
-  font-weight: 500;
+  font-weight: 700; /* Bolder weight for better emphasis */
 }
 
 input#total-players,
@@ -323,13 +362,13 @@ input#cpu-players-input {
 
 #name-input {
   width: 100%;
-  max-width: 220px;
+  max-width: 160px; /* Updated max-width */
   text-align: center;
   border-radius: 6px;
   border: 1.5px solid #137a4b;
-  font-size: 1.1rem;
-  padding: 0.5rem;
-  margin: 0 auto 0.5rem auto;
+  font-size: 1rem; /* Updated font size */
+  padding: 0.4rem 0.5rem; /* Updated padding */
+  margin: 0 auto 0.5rem auto; /* Updated margin */
   transition: border 0.2s, box-shadow 0.2s, transform 0.2s;
   background: #f7faf9;
   color: #137a4b;
@@ -350,7 +389,6 @@ input#cpu-players-input {
 /* Center the Play Game button */
 .lobby-buttons {
   text-align: center;
-  margin: 1.2rem 0 0.7rem 0 !important;
   align-self: center !important;
   display: flex;
   flex-direction: row;
@@ -410,7 +448,10 @@ input#cpu-players-input {
 .form-group {
   margin-bottom: 1.1rem !important;
   width: 100%;
-  text-align: left;
+  text-align: center; /* Center align text for better consistency */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center all form group content */
 }
 .form-group label {
   font-size: 0.95rem;
@@ -427,8 +468,8 @@ input#cpu-players-input {
   border: 1px solid var(--input-border);
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  color: var(--card-text);
-  background: #fff;
+  color: #ffc300;
+  background: #1b2e3c;
 }
 .error-message {
   color: #fff;
@@ -461,19 +502,27 @@ input#cpu-players-input {
   display: none !important;
 }
 .play-button {
-  width: 100%;
-  font-size: 1.1rem;
-  font-weight: 700;
-  padding: 0.7rem 0;
+  width: auto; /* Auto width instead of 100% */
+  min-width: 0; /* Updated min-width */
+  max-width: 180px; /* Updated max-width */
+  font-size: 1.1rem; /* Updated font size */
+  font-weight: 800;
+  padding: 0.7rem 1.2rem; /* Updated padding */
   background: #ffc300;
   color: #222;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
-  margin-top: 0.5rem;
-  transition: background 0.2s;
+  margin: 0.5rem auto 0 auto; /* Updated margin */
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  align-self: center; /* Center within flex container */
 }
 .play-button:hover {
   background: #ffb000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 195, 0, 0.4);
 }
 .rules-list li {
   margin-bottom: 0.7em;
@@ -484,30 +533,30 @@ input#cpu-players-input {
 }
 @media (max-width: 600px) {
   #lobby-form-card {
-    padding: 1.2rem 0.5rem 1.2rem 0.5rem;
-    min-width: 0;
+    padding: 1.2rem 0.6rem 1.2rem 0.6rem;
     max-width: 98vw;
   }
   .lobby-form-content {
-    padding: 0 0.2rem 0.7rem 0.2rem !important;
+    padding: 0 0.4rem 0.7rem 0.4rem !important;
+    gap: 0.8rem; /* Tighter spacing on mobile */
   }
   .player-setup-section {
     padding: 1rem;
-    gap: 0.8rem;
+    gap: 0.6rem;
   }
   .player-type-group {
-    padding: 0.8rem;
+    padding: 0.6rem;
   }
   .vs-divider {
-    margin: 0.3rem 0;
+    margin: 0.2rem 0;
   }
   .vs-divider span {
-    font-size: 0.8rem;
-    padding: 0.25rem 0.6rem;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.8rem;
   }
   .lobby-buttons {
     flex-direction: column;
-    gap: 0.7rem;
+    gap: 0.8rem;
   }
   .form-group input[type='text'],
   .form-group input[type='number'] {
@@ -515,10 +564,126 @@ input#cpu-players-input {
     padding: 0.7rem 0.5rem;
   }
   .play-button {
-    font-size: 1rem;
-    padding: 0.7rem 0;
+    font-size: 1.1rem;
+    padding: 0.9rem 0;
+  }
+  .lobby-title {
+    font-size: 2rem; /* Adjust title size for mobile */
+  }
+  .player-type-header h4 {
+    font-size: 1.1rem; /* Adjust section titles for mobile */
+  }
+  .lobby-game-name {
+    font-size: 1.3rem;
+  }
+  .lobby-tagline {
+    font-size: 0.95rem;
   }
 }
+
+/* --- Lobby logo, name, and tagline block (no crown) --- */
+.lobby-logo-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  margin-bottom: 0.7rem;
+  width: 100%;
+}
+.lobby-game-name {
+  font-size: 2.1rem;
+  font-weight: 900;
+  color: #ffc300;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 8px rgba(255, 195, 0, 0.18);
+  margin-bottom: 0.2rem;
+  text-align: center;
+  width: 100%;
+}
+.lobby-tagline {
+  font-size: 1.1rem;
+  color: #ffc300;
+  font-weight: 500;
+  opacity: 0.92;
+  letter-spacing: 0.01em;
+  margin-top: 0.1rem;
+  display: block;
+  text-align: center;
+  width: 100%;
+}
+/* Remove crown-over-title, crown-stack, .crown-over, .crown-top */
+.crown-over-title, .crown-stack, .lobby-crown-icon, .crown-top { display: none !important; }
+
+.player-setup-section.horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+  background: #1b2e3c;
+  border-radius: 12px;
+  padding: 0.7rem 0.5rem;
+  border: 1px solid rgba(19, 122, 75, 0.08);
+  margin-bottom: 0.8rem;
+}
+.player-setup-section.horizontal .player-type-group {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 48%;
+  margin: 0;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+/* Remove VS divider styles */
+.player-setup-section.horizontal .vs-divider { display: none !important; }
+
+/* --- Enhanced lobby logo, name, and tagline block (center crown higher) --- */
+.lobby-title, .lobby-card h2 { margin-bottom: 0 !important; }
+
+/* Side-by-side buttons row */
+.lobby-buttons-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  margin-bottom: 1.1rem;
+}
+.lobby-buttons-row .lobby-rules-btn,
+.lobby-buttons-row .play-button {
+  min-width: 90px;
+  max-width: 120px;
+  width: auto;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(255, 195, 0, 0.13);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  transition: all 0.2s cubic-bezier(.4,0,.2,1);
+}
+.lobby-buttons-row .lobby-rules-btn {
+  background: #ffc300;
+  color: #222;
+}
+.lobby-buttons-row .lobby-rules-btn:hover {
+  background: #ffb000;
+}
+.lobby-buttons-row .play-button {
+  background: linear-gradient(135deg, #137a4b 0%, #17805a 100%);
+  color: #fff;
+}
+.lobby-buttons-row .play-button:hover {
+  background: linear-gradient(135deg, #17805a 0%, #1a8660 100%);
+}
+/* Remove old .lobby-buttons margin overrides */
+.lobby-buttons { margin: 0 !important; }
 
 /* Collapsible Rules Styles */
 .rules-container {

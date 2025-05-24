@@ -21,6 +21,9 @@ body {
   font-family: sans-serif;
   color: var(--text);
   background-color: var(--bg);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .hidden {

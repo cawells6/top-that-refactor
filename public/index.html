@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Top That! – Card Game</title>
+    <title>Top That!           <form id="lobby-form" autocomplete="off" style="display: flex; flex-direction: column; gap: 1.2rem; align-items: center; width: 100%;">` Card Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Your CSS -->
@@ -15,48 +15,9 @@
     <header class="header" id="main-header">
       <div
         class="header__content"
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 2.5rem;
-          background: #1b2e3c;
-          min-height: 54px;
-        "
+        style="display: flex; align-items: center; justify-content: flex-end; padding: 0 2.5rem; background: #1b2e3c; min-height: 54px;"
       >
-        <div
-          class="header__brand"
-          style="display: flex; flex-direction: column; align-items: flex-start"
-        >
-          <h1
-            style="
-              color: #ffc300;
-              font-weight: bold;
-              font-size: 1.4rem;
-              letter-spacing: 0.01em;
-              margin: 0;
-            "
-          >
-            &#x1F451; Top That!
-          </h1>
-          <span style="color: #ffc300; font-size: 0.95rem; font-weight: 400; margin-top: -2px"
-            >One Pile. One Winner. No Mercy.</span
-          >
-        </div>
-        <button
-          id="rules-button"
-          class="btn btn-primary"
-          style="
-            font-size: 1rem;
-            font-weight: 600;
-            padding: 0.5rem 1.2rem;
-            border-radius: 6px;
-            background: #ffc300;
-            color: #222;
-          "
-        >
-          How to Play
-        </button>
+        <!-- Only keep the right side (How to Play button removed) -->
       </div>
     </header>
 
@@ -82,50 +43,34 @@
       <!-- Lobby Screen -->
       <div class="lobby" id="lobby-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
         <div class="lobby-card" id="lobby-form-card" style="margin-top: 0; padding-top: 1.2rem; position: relative; overflow: hidden;">
-          <!-- Add decorative elements -->
-          <div class="lobby-decoration" style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: linear-gradient(45deg, #ffc300, #ffb000); border-radius: 50%; opacity: 0.1; z-index: 0;"></div>
-          <div class="lobby-decoration" style="position: absolute; bottom: -15px; left: -15px; width: 80px; height: 80px; background: linear-gradient(135deg, #137a4b, #0b5137); border-radius: 50%; opacity: 0.08; z-index: 0;"></div>
-          
-          <h2 class="lobby-title" style="color: #ffc300; margin-bottom: 1.2rem; font-size: 1.4rem; letter-spacing: 0.01em; position: relative; z-index: 1;">
-            <span style="font-size: 1.6rem;">&#x1F451;</span> Game Setup
-          </h2>
-          <form id="lobby-form" autocomplete="off" style="display: flex; flex-direction: column; gap: 1.2rem;">
-            <div class="form-group">
-              <input type="text" id="name-input" name="playerName" placeholder="Your Name" value="CW" style="width: 100%; max-width: 220px; margin: 0 auto;" />
-            </div>
-            <div id="name-input-error" class="error-message hidden" style="margin-bottom: 0.2rem; text-align: center;">Name is required</div>
-            
+          <!-- Game logo, name, and tagline -->
+          <div class="lobby-logo-title">
+            <span class="lobby-game-name">Top That!</span>
+            <span class="lobby-tagline">One Pile. One Winner. No Mercy.</span>
+          </div>
+          <div class="lobby-buttons-row">
+            <button id="rules-button" class="btn btn-primary lobby-rules-btn" type="button">How to Play</button>
+            <button id="join-game-button" class="btn btn-primary play-button" type="submit">Play Game</button>
+          </div>
+          <form id="lobby-form" autocomplete="off" style="display: flex; flex-direction: column; gap: 1.2rem; align-items: center; width: 100%;">
             <!-- Enhanced participant setup with clear sections -->
-            <div class="player-setup-section">
-              <div class="player-type-group">
+            <div class="player-setup-section horizontal">
+              <div class="player-type-group human-group">
                 <div class="player-type-header">
-                  <span class="player-icon">👤</span>
-                  <h4>Human Players</h4>
+                  <h4>Players</h4>
                 </div>
                 <div class="form-group">
                   <input type="number" id="total-players-input" min="1" max="4" value="1" />
-                  <span class="input-description">Including you</span>
                 </div>
               </div>
-              
-              <div class="vs-divider">
-                <span>VS</span>
-              </div>
-              
-              <div class="player-type-group">
+              <div class="player-type-group cpu-group">
                 <div class="player-type-header">
-                  <span class="player-icon">🤖</span>
                   <h4>CPU Opponents</h4>
                 </div>
                 <div class="form-group">
                   <input type="number" id="cpu-players-input" min="0" max="3" value="1" />
-                  <span class="input-description">Computer players</span>
                 </div>
               </div>
-            </div>
-            <div class="lobby-buttons" style="justify-content: center;">
-              <button id="join-game-button" class="btn btn-primary play-button" type="submit" style="min-width: 7.5rem">Play Game</button>
-              <button id="new-game-button" class="btn btn-secondary" type="button" style="margin-left: 1rem; display: none;">New Game</button>
             </div>
             <div id="player-count-error" class="error-message hidden" style="margin-bottom: 0.2rem; text-align: center;"></div>
           </form>

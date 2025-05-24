@@ -384,6 +384,22 @@ export default class GameController {
       }
     });
 
+    // --- Ensure host/human is always first in player order ---
+    if (requestingSocket) {
+      const hostPlayerId = this.socketIdToPlayerId.get(requestingSocket.id);
+      if (hostPlayerId && this.gameState.players[0] !== hostPlayerId) {
+        // Move host to front, preserve order for others
+        this.gameState.players = [
+          hostPlayerId,
+          ...this.gameState.players.filter((id) => id !== hostPlayerId),
+        ];
+        this.log(
+          `Reordered players so host (${hostPlayerId}) is first: ${this.gameState.players.join(', ')}`
+        );
+      }
+    }
+    // --------------------------------------------------------
+
     const currentHumanPlayers = Array.from(this.players.values()).filter(
       (p: Player) => !p.isComputer
     ).length;

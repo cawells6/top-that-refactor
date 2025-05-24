@@ -21,9 +21,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding-top: 70px; /* Add space for header, adjust as needed */
-  height: 100%;
+  justify-content: center; /* Center vertically */
+  padding: 20px; /* Add some padding */
+  height: 100vh; /* Full viewport height */
   background: none !important;
   box-shadow: none !important;
 }
@@ -34,16 +34,21 @@
     'top top top'
     'left center right'
     'bottom bottom bottom';
-  grid-template-columns: auto 1fr auto; /* Center column takes available space */
-  grid-template-rows: minmax(160px, 1fr) minmax(120px, 1fr) minmax(160px, 1fr);
-  gap: 8px 8px; /* Reduced gap to bring quadrants closer */
-  width: 100vw;
-  height: 100vh;
-  align-items: center;
-  justify-items: center;
-  background: var(--table-bg, #137a4b); /* Updated default table background fallback to #137a4b */
-  box-shadow: none;
-  border: none;
+  grid-template-columns: 1fr 2fr 1fr; /* Better proportions */
+  grid-template-rows: 1fr 2fr 1fr;
+  gap: 12px; /* Restore some gap for visual separation */
+  width: min(90vw, 1400px); /* Increased max-width with responsive constraint */
+  height: min(90vh, 900px); /* Increased max-height with responsive constraint */
+  max-width: 90vw;
+  max-height: 90vh;
+  align-items: stretch;
+  justify-items: stretch;
+  background: transparent; /* Make background transparent to show body color */
+  box-shadow: 0 0 30px 5px rgba(0, 204, 204, 0.4); /* Blue glowing border */
+  border: 3px solid #00CCCC; /* Blue border */
+  border-radius: 20px;
+  margin: 0;
+  padding: 16px; /* Internal padding for content spacing */
 }
 
 body {
@@ -51,18 +56,19 @@ body {
 }
 
 .table-slot {
-  border: 2px solid #fff;
-  border-radius: 12px;
+  border: none;
+  border-radius: 0;
   min-height: 180px;
   min-width: 220px;
-  background: rgba(0, 0, 0, 0.08);
-  margin: 0px;
+  background: transparent;
+  margin: 0;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  justify-content: center; /* Center content */
+  box-shadow: none;
+  padding: 8px; /* Add some internal padding */
 }
 
 .table-slot-top {
@@ -72,32 +78,30 @@ body {
   justify-content: center;
   margin: 0;
   padding: 0;
-  min-width: 320px;
-  min-height: 140px;
-  max-width: 420px;
   width: 100%;
+  height: 100%;
 }
 
 .table-slot-left {
   grid-area: left;
   display: flex;
   align-items: center;
-  justify-content: center !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  max-width: 220px;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
   width: 100%;
+  height: 100%;
 }
 
 .table-slot-right {
   grid-area: right;
   display: flex;
   align-items: center;
-  justify-content: center !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  max-width: 220px;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
   width: 100%;
+  height: 100%;
 }
 
 .table-slot-bottom {
@@ -107,10 +111,8 @@ body {
   justify-content: center;
   margin: 0;
   padding: 0;
-  min-width: 320px;
-  min-height: 140px;
-  max-width: 420px;
   width: 100%;
+  height: 100%;
 }
 
 .table-center {
@@ -135,21 +137,26 @@ body {
 }
 
 .player-area {
-  background: #223344;
+  background: rgba(27, 46, 60, 0.9); /* Slightly more opaque for better visibility */
   border: 2.5px solid #fff;
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-  padding: 8px;
-  margin: 0 !important;
-  min-width: 200px !important;
-  min-height: 200px !important;
-  max-width: 320px;
+  padding: 12px; /* Slightly increased padding */
+  margin: 0 !important; /* Remove margin for efficient space usage */
+  min-width: 220px !important; /* Increased minimum sizes */
+  min-height: 220px !important;
+  max-width: 100%; /* Allow flexibility within grid constraints */
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   position: relative;
   gap: 8px;
   box-sizing: border-box;
+  overflow: hidden; /* Prevent content overflow */
 }
 
 .player-area.active, #my-area.active {
@@ -277,4 +284,75 @@ body {
   top: 0;
   left: 0;
   z-index: 2;
+}
+
+/* Responsive design for game board */
+@media (max-width: 1200px) {
+  .table {
+    width: 95vw;
+    height: 85vh;
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  .player-area {
+    min-width: 180px !important;
+    min-height: 180px !important;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 10px;
+  }
+  
+  .table {
+    width: 98vw;
+    height: 80vh;
+    gap: 6px;
+    padding: 8px;
+    border-width: 2px;
+    box-shadow: 0 0 20px 3px rgba(0, 204, 204, 0.3);
+  }
+  
+  .player-area {
+    min-width: 160px !important;
+    min-height: 160px !important;
+    padding: 6px;
+    gap: 6px;
+  }
+  
+  .player-name-header {
+    font-size: 1rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .table {
+    width: 99vw;
+    height: 75vh;
+    gap: 4px;
+    padding: 6px;
+    grid-template-rows: 0.8fr 2fr 0.8fr; /* Adjust proportions for mobile */
+  }
+  
+  .player-area {
+    min-width: 140px !important;
+    min-height: 140px !important;
+    padding: 4px;
+    gap: 4px;
+    border-width: 2px;
+  }
+  
+  .player-name-header {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.5rem;
+  }
+  
+  .table-center {
+    min-width: 120px;
+    min-height: 120px;
+  }
 }
