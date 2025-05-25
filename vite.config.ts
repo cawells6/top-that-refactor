@@ -15,8 +15,9 @@ export default defineConfig({
     proxy: {
       // Proxy WebSocket requests for Socket.IO to your backend Node.js server
       '/socket.io': {
-        target: 'http://localhost:3002', // Your backend server address (running on port 3002)
+        target: 'http://localhost:3000', // Fixed: Changed from 3002 to 3000 to match your running server
         ws: true, // IMPORTANT: Enable WebSocket proxying
+        changeOrigin: true, // Added for better compatibility
       },
       // Example for other backend API routes if you add them later:
       // '/api': {

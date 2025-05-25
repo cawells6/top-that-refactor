@@ -19,53 +19,37 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
   silhouette.className = `player-silhouette ${type}`;
   silhouette.setAttribute('data-index', index.toString());
 
-  // Add SVG icon
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('width', '20');
-  svg.setAttribute('height', '20');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('fill', 'currentColor');
+  const img = document.createElement('img');
 
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  // Optimized sizing for consistent layout
+  img.width = 64;
+  img.height = 64;
+  img.style.width = '64px';
+  img.style.height = '64px';
+  img.style.minWidth = '64px';
+  img.style.minHeight = '64px';
+  img.style.maxWidth = '64px';
+  img.style.maxHeight = '64px';
+  img.style.objectFit = 'contain';
 
   if (type === 'human') {
-    path.setAttribute(
-      'd',
-      'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5C14.7 6.9 14.1 6.5 13.5 6.5H10.5C9.9 6.5 9.3 6.9 9 7.5L3 7V9L9 8.5V10.5C9 11.6 9.4 12.6 10.1 13.3L9 20H11L11.8 15H12.2L13 20H15L13.9 13.3C14.6 12.6 15 11.6 15 10.5V8.5L21 9Z'
-    );
+    img.src = '/assets/Player.svg';
+    img.alt = 'User Icon';
+    img.className = 'user-icon';
+  } else if (type === 'cpu') {
+    img.src = '/assets/ROBOT.svg';
+    img.alt = 'Bot Icon';
+    img.className = 'robot-icon';
   } else {
-    // CPU icon with circuit pattern
-    path.setAttribute(
-      'd',
-      'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 7.5C14.7 6.9 14.1 6.5 13.5 6.5H10.5C9.9 6.5 9.3 6.9 9 7.5L3 7V9L9 8.5V10.5C9 11.6 9.4 12.6 10.1 13.3L9 20H11L11.8 15H12.2L13 20H15L13.9 13.3C14.6 12.6 15 11.6 15 10.5V8.5L21 9Z'
-    );
-
-    // Add CPU indicator circles
-    const circle1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle1.setAttribute('cx', '12');
-    circle1.setAttribute('cy', '12');
-    circle1.setAttribute('r', '1.5');
-    circle1.setAttribute('fill', '#137a4b');
-    svg.appendChild(circle1);
-
-    const circle2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle2.setAttribute('cx', '8');
-    circle2.setAttribute('cy', '8');
-    circle2.setAttribute('r', '1');
-    circle2.setAttribute('fill', '#137a4b');
-    svg.appendChild(circle2);
-
-    const circle3 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle3.setAttribute('cx', '16');
-    circle3.setAttribute('cy', '8');
-    circle3.setAttribute('r', '1');
-    circle3.setAttribute('fill', '#137a4b');
-    svg.appendChild(circle3);
+    img.alt = 'Player Icon';
   }
 
-  svg.appendChild(path);
-  silhouette.appendChild(svg);
+  img.onerror = function () {
+    img.style.display = 'none';
+    silhouette.textContent = type === 'cpu' ? '🤖' : '🙂';
+  };
 
+  silhouette.appendChild(img);
   return silhouette;
 }
 
@@ -117,6 +101,103 @@ function updateSilhouettesInContainer(
   }
 }
 
+// Helper function to update the contextual player requirement message
+function updatePlayerRequirementMessage() {
+  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+  const playerRequirementMessage = document.getElementById('player-requirement-message');
+
+  if (!totalPlayersInput || !cpuPlayersInput || !playerRequirementMessage) {
+    return;
+  }
+
+  const numHumans = parseInt(totalPlayersInput.value || '1', 10);
+  const numCPUs = parseInt(cpuPlayersInput.value || '0', 10);
+  const totalPlayers = numHumans + numCPUs;
+
+  // Show message only when player count is invalid
+  if (totalPlayers < 2) {
+    playerRequirementMessage.classList.remove('hidden');
+    const messageText = playerRequirementMessage.querySelector('p');
+    if (messageText) {
+      messageText.textContent = 'A minimum of 2 players are required.';
+    }
+  } else if (totalPlayers > 4) {
+    playerRequirementMessage.classList.remove('hidden');
+    const messageText = playerRequirementMessage.querySelector('p');
+    if (messageText) {
+      messageText.textContent = 'A maximum of 4 players are allowed.';
+    }
+  } else {
+    // Hide message when player count is valid (2-4 players)
+    playerRequirementMessage.classList.add('hidden');
+  }
+}
+
+// Helper function to update the contextual name validation message
+function updateNameValidationMessage(message: string = '', showDefault: boolean = false) {
+  const nameValidationMessage = document.getElementById('name-validation-message');
+
+  if (!nameValidationMessage) {
+    return;
+  }
+
+  // Use the same green style as the player requirement message
+  const greenBg = '#d4edda';
+  const greenBorder = '#137a4b';
+  const greenText = '#2d5a3d';
+
+  // Find the inner box and <p>
+  const box = nameValidationMessage.querySelector('div');
+  const messageText = nameValidationMessage.querySelector('p');
+
+  if (message) {
+    nameValidationMessage.classList.remove('hidden');
+    if (box) {
+      box.setAttribute(
+        'style',
+        'padding: 1rem; background-color: ' +
+          greenBg +
+          '; border: 2px solid ' +
+          greenBorder +
+          '; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center;'
+      );
+    }
+    if (messageText) {
+      messageText.setAttribute(
+        'style',
+        'margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: ' +
+          greenText +
+          ';'
+      );
+      messageText.textContent = message;
+    }
+  } else if (showDefault) {
+    nameValidationMessage.classList.remove('hidden');
+    if (box) {
+      box.setAttribute(
+        'style',
+        'padding: 1rem; background-color: ' +
+          greenBg +
+          '; border: 2px solid ' +
+          greenBorder +
+          '; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center;'
+      );
+    }
+    if (messageText) {
+      messageText.setAttribute(
+        'style',
+        'margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: ' +
+          greenText +
+          ';'
+      );
+      messageText.textContent = 'Please enter your name to start.';
+    }
+  } else {
+    nameValidationMessage.classList.add('hidden');
+  }
+}
+
 // Initialize counter button functionality
 function initializeCounterButtons() {
   const humansMinusBtn = document.getElementById('humans-minus');
@@ -129,7 +210,7 @@ function initializeCounterButtons() {
 
   function updateTotalCount() {
     const humans = parseInt(totalPlayersInput?.value || '1', 10);
-    const cpus = parseInt(cpuPlayersInput?.value || '1', 10);
+    const cpus = parseInt(cpuPlayersInput?.value || '0', 10);
     const total = humans + cpus;
     if (totalCountSpan) {
       totalCountSpan.textContent = total.toString();
@@ -139,20 +220,49 @@ function initializeCounterButtons() {
     updateButtonStates();
     // Update player silhouettes
     updatePlayerSilhouettes();
+    // Update player requirement message
+    updatePlayerRequirementMessage();
   }
 
   function updateButtonStates() {
     const humans = parseInt(totalPlayersInput?.value || '1', 10);
-    const cpus = parseInt(cpuPlayersInput?.value || '1', 10);
+    const cpus = parseInt(cpuPlayersInput?.value || '0', 10);
     const total = humans + cpus;
 
+    console.log('🔧 [updateButtonStates] humans:', humans, 'cpus:', cpus, 'total:', total);
+
+    // Update max attributes for inputs dynamically
+    if (totalPlayersInput) {
+      totalPlayersInput.max = (4 - cpus).toString(); // Max humans = 4 - current CPUs
+    }
+    if (cpuPlayersInput) {
+      cpuPlayersInput.max = (4 - humans).toString(); // Max CPUs = 4 - current humans
+      console.log('🔧 Updated CPU input max to:', cpuPlayersInput.max);
+    }
+
     // Human buttons
-    if (humansMinusBtn) (humansMinusBtn as HTMLButtonElement).disabled = humans <= 1;
-    if (humansPlusBtn) (humansPlusBtn as HTMLButtonElement).disabled = total >= 4;
+    if (humansMinusBtn) {
+      const shouldDisable = humans <= 1;
+      (humansMinusBtn as HTMLButtonElement).disabled = shouldDisable;
+      console.log('🔧 Human minus button disabled:', shouldDisable);
+    }
+    if (humansPlusBtn) {
+      const shouldDisable = total >= 4;
+      (humansPlusBtn as HTMLButtonElement).disabled = shouldDisable;
+      console.log('🔧 Human plus button disabled:', shouldDisable);
+    }
 
     // CPU buttons
-    if (cpusMinusBtn) (cpusMinusBtn as HTMLButtonElement).disabled = cpus <= 0;
-    if (cpusPlusBtn) (cpusPlusBtn as HTMLButtonElement).disabled = total >= 4;
+    if (cpusMinusBtn) {
+      const shouldDisable = cpus <= 0;
+      (cpusMinusBtn as HTMLButtonElement).disabled = shouldDisable;
+      console.log('🔧 CPU minus button disabled:', shouldDisable);
+    }
+    if (cpusPlusBtn) {
+      const shouldDisable = total >= 4;
+      (cpusPlusBtn as HTMLButtonElement).disabled = shouldDisable;
+      console.log('🔧 CPU plus button disabled:', shouldDisable, '(total >= 4)');
+    }
   }
 
   // Human counter buttons
@@ -169,7 +279,7 @@ function initializeCounterButtons() {
   if (humansPlusBtn) {
     humansPlusBtn.onclick = () => {
       const current = parseInt(totalPlayersInput?.value || '1', 10);
-      const cpus = parseInt(cpuPlayersInput?.value || '1', 10);
+      const cpus = parseInt(cpuPlayersInput?.value || '0', 10);
       if (current + cpus < 4) {
         totalPlayersInput.value = (current + 1).toString();
         updateTotalCount();
@@ -179,24 +289,44 @@ function initializeCounterButtons() {
 
   // CPU counter buttons
   if (cpusMinusBtn) {
+    console.log('✅ CPU minus button found and handler attached');
     cpusMinusBtn.onclick = () => {
-      const current = parseInt(cpuPlayersInput?.value || '1', 10);
+      console.log('🤖 CPU minus button clicked');
+      const current = parseInt(cpuPlayersInput?.value || '0', 10);
+      console.log('🤖 Current CPU count:', current);
       if (current > 0) {
         cpuPlayersInput.value = (current - 1).toString();
+        console.log('🤖 CPU count decreased to:', cpuPlayersInput.value);
         updateTotalCount();
+      } else {
+        console.log('🤖 Cannot decrease CPU count - already at minimum (0)');
       }
     };
+  } else {
+    console.error('❌ CPU minus button not found!');
   }
 
   if (cpusPlusBtn) {
+    console.log('✅ CPU plus button found and handler attached');
     cpusPlusBtn.onclick = () => {
-      const current = parseInt(cpuPlayersInput?.value || '1', 10);
+      console.log('🤖 CPU plus button clicked');
+      const current = parseInt(cpuPlayersInput?.value || '0', 10);
       const humans = parseInt(totalPlayersInput?.value || '1', 10);
+      const total = current + humans;
+      console.log('🤖 Current CPU count:', current);
+      console.log('🤖 Current human count:', humans);
+      console.log('🤖 Total players would be:', total);
+
       if (current + humans < 4) {
         cpuPlayersInput.value = (current + 1).toString();
+        console.log('🤖 CPU count increased to:', cpuPlayersInput.value);
         updateTotalCount();
+      } else {
+        console.log('🤖 Cannot add CPU - would exceed maximum of 4 players');
       }
     };
+  } else {
+    console.error('❌ CPU plus button not found!');
   }
 
   // Initialize states
@@ -208,11 +338,11 @@ function initializeCounterButtons() {
 
 export async function initializePageEventListeners() {
   console.log('🚀 [events.ts] initializePageEventListeners called!');
-  
+
   // Only setup modal buttons now (header buttons removed)
   const setupRulesButton = document.getElementById('setup-rules-button');
   const setupDealButton = document.getElementById('setup-deal-button');
-  
+
   if (setupRulesButton) {
     setupRulesButton.addEventListener('click', handleRulesClick);
     console.log('✅ Setup Rules button handler attached');
@@ -232,7 +362,7 @@ export async function initializePageEventListeners() {
   } catch (stateError) {
     console.error('❌ Error loading state:', stateError);
   }
-  
+
   try {
     // Initialize socket handlers
     initializeSocketHandlers();
@@ -246,11 +376,23 @@ export async function initializePageEventListeners() {
   if (createJoinBtn) {
     createJoinBtn.onclick = () => {
       const nameInput = uiManager.getNameInput();
-      const name = getInputValue(nameInput).trim();
-      if (!name) {
-        alert('Please enter a valid name.');
+      if (!nameInput) {
+        console.error('❌ Name input element not found');
         return;
       }
+      const name = getInputValue(nameInput).trim();
+      if (!name) {
+        nameInput.focus();
+        updateNameValidationMessage('Please enter a valid name.');
+        return;
+      }
+      if (name.length < 2) {
+        nameInput.focus();
+        updateNameValidationMessage('Name must be at least 2 characters.');
+        return;
+      }
+      // Clear any name validation message if name is valid
+      updateNameValidationMessage();
       state.socket.emit(JOIN_GAME, name);
       setButtonDisabled(createJoinBtn, true);
     };
@@ -274,10 +416,10 @@ export async function initializePageEventListeners() {
   // === MODAL CLOSE HANDLERS ===
   const rulesModal = document.getElementById('rules-modal');
   const overlay = document.getElementById('modal-overlay');
-  
+
   if (rulesModal && overlay) {
     // Close button in rules modal
-    const closeBtn = rulesModal.querySelector('.modal__close-button');
+    const closeBtn = rulesModal.querySelector('.modal__close-button') as HTMLButtonElement;
     if (closeBtn) {
       closeBtn.onclick = hideRulesModalAndOverlay;
     }
@@ -412,62 +554,20 @@ export async function initializePageEventListeners() {
   if (playerList) {
     observer.observe(playerList, { childList: true, subtree: false });
   }
-  // Lobby form validation and error handling (from reference Canvas)
+  // Lobby form validation and error handling
   const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
   const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-  const playerCountErrorDisplay = document.getElementById('player-count-error');
-  // Remove the old lobby form submit handler - Deal button now handles game starting
-  // const lobbyForm = document.getElementById('lobby-form');
-  // if (lobbyForm && nameInput && playerCountErrorDisplay) {
-  //   lobbyForm.addEventListener('submit', (e) => {
-  //     // ... old submit handler code removed
-  //   });
-  // }
 
-  // Keep input validation for real-time feedback
-  const nameInput = document.getElementById('player-name-input') as HTMLInputElement;
-  if (nameInput && playerCountErrorDisplay) {
-    nameInput.addEventListener('input', () => {
-      playerCountErrorDisplay.classList.add('hidden');
+  // Initialize input event listeners for real-time player count validation
+  if (totalPlayersInput) {
+    totalPlayersInput.addEventListener('input', () => {
+      updatePlayerRequirementMessage();
     });
   }
-
-  function validatePlayerCounts() {
-    const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-    const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-    const playerCountErrorDisplay = document.getElementById('player-count-error');
-    if (!totalPlayersInput || !cpuPlayersInput || !playerCountErrorDisplay) {
-      console.error('Lobby input elements not found for validation.');
-      return false;
-    }
-    const numTotalPlayers = parseInt(getInputValue(totalPlayersInput), 10);
-    const numCpuPlayers = parseInt(getInputValue(cpuPlayersInput), 10);
-    playerCountErrorDisplay.classList.add('hidden');
-    playerCountErrorDisplay.textContent = '';
-    if (isNaN(numTotalPlayers) || isNaN(numCpuPlayers)) {
-      playerCountErrorDisplay.textContent = 'Player and CPU counts must be numbers.';
-      playerCountErrorDisplay.classList.remove('hidden');
-      return false;
-    }
-    if (numTotalPlayers < 1) {
-      playerCountErrorDisplay.textContent = 'At least 1 human player is required.';
-      playerCountErrorDisplay.classList.remove('hidden');
-      return false;
-    }
-    const totalParticipants = numTotalPlayers + numCpuPlayers;
-    if (totalParticipants > 4) {
-      playerCountErrorDisplay.textContent = 'Total participants cannot exceed 4.';
-      playerCountErrorDisplay.classList.remove('hidden');
-      return false;
-    }
-    return true;
-  }
-  
-  if (totalPlayersInput) {
-    totalPlayersInput.addEventListener('input', validatePlayerCounts);
-  }
   if (cpuPlayersInput) {
-    cpuPlayersInput.addEventListener('input', validatePlayerCounts);
+    cpuPlayersInput.addEventListener('input', () => {
+      updatePlayerRequirementMessage();
+    });
   }
 
   try {
@@ -477,6 +577,12 @@ export async function initializePageEventListeners() {
   } catch (counterError) {
     console.error('❌ Error initializing counter buttons:', counterError);
   }
+
+  // Initialize player requirement message on page load
+  updatePlayerRequirementMessage();
+
+  // Do not show name validation message on page load
+  updateNameValidationMessage();
 }
 
 // —– UI helper functions —–
@@ -497,7 +603,7 @@ function handleRulesClick() {
   console.log('🎯 Rules button clicked!');
   const rulesModal = document.getElementById('rules-modal');
   const overlay = document.getElementById('modal-overlay');
-  
+
   if (rulesModal && overlay) {
     rulesModal.classList.remove('modal--hidden');
     overlay.classList.remove('modal__overlay--hidden');
@@ -509,91 +615,64 @@ function handleRulesClick() {
 
 function handleDealClick() {
   console.log('🎯 Deal button clicked!');
-  
+
   // Check if we're already in a game room and game is started
   if (state.currentRoom && state.myId) {
     console.log('✅ Already in game room, checking game state...');
-    
+
     // If we're in a room, try to start the game with current lobby settings
     const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
     const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-    
+
     const humanCount = totalPlayersInput ? parseInt(totalPlayersInput.value || '1', 10) : 1;
     const computerCount = cpuPlayersInput ? parseInt(cpuPlayersInput.value || '0', 10) : 0;
-    
-    console.log(`🎯 Starting game with ${humanCount} human players and ${computerCount} CPU players`);
+
+    console.log(
+      `🎯 Starting game with ${humanCount} human players and ${computerCount} CPU players`
+    );
     state.socket.emit('START_GAME', { computerCount });
-    
   } else {
     console.log('✅ Not in game room, need to join/create room first...');
-    
+
     // Validate lobby form first
-    const nameInput = document.getElementById('player-name-input') as HTMLInputElement;
     const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
     const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-    const playerCountErrorDisplay = document.getElementById('player-count-error');
-    
-    if (!nameInput || !totalPlayersInput || !cpuPlayersInput || !playerCountErrorDisplay) {
+
+    if (!totalPlayersInput || !cpuPlayersInput) {
       console.error('❌ Required form elements not found');
       return;
     }
-    
-    const name = nameInput.value.trim();
-    
-    // --- Name validation ---
-    if (!name) {
-      playerCountErrorDisplay.textContent = 'Name is required';
-      playerCountErrorDisplay.classList.remove('hidden');
-      nameInput.focus();
-      return;
-    }
-    if (name.length < 2) {
-      playerCountErrorDisplay.textContent = 'Name must be at least 2 characters';
-      playerCountErrorDisplay.classList.remove('hidden');
-      nameInput.focus();
-      return;
-    }
-    
+
     // --- Get player counts ---
     const numHumans = parseInt(totalPlayersInput.value, 10) || 1;
     const numCPUs = parseInt(cpuPlayersInput.value, 10) || 0;
-    
-    // --- Validate player counts ---
+
+    // --- Validate player counts using our contextual message system ---
     if (numHumans < 1) {
-      playerCountErrorDisplay.textContent = 'At least one human player is required.';
-      playerCountErrorDisplay.classList.remove('hidden');
+      alert('At least one human player is required.');
       return;
     }
-    if (numHumans + numCPUs < 2) {
-      playerCountErrorDisplay.textContent = 'A minimum of 2 total players is required.';
-      playerCountErrorDisplay.classList.remove('hidden');
+    if (numHumans + numCPUs < 2 || numHumans + numCPUs > 4) {
+      // The contextual message should already be showing, just prevent the action
       return;
     }
-    if (numHumans + numCPUs > 4) {
-      playerCountErrorDisplay.textContent = 'Total players cannot exceed 4.';
-      playerCountErrorDisplay.classList.remove('hidden');
-      return;
-    }
-    
-    // Clear any previous errors
-    playerCountErrorDisplay.classList.add('hidden');
-    
+
     // --- Join game with player setup ---
     const playerDataForEmit = {
-      name: name,
+      name: 'Player', // Use a default name for now
       numHumans: numHumans,
       numCPUs: numCPUs,
     };
-    
+
     console.log('🎯 Deal button: Joining game with data:', playerDataForEmit);
     state.socket.emit(JOIN_GAME, playerDataForEmit);
-    
+
     // Disable the Deal button temporarily to prevent multiple clicks
     const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
     if (dealButton) {
       dealButton.disabled = true;
       dealButton.textContent = 'Starting...';
-      
+
       // Re-enable after a delay (will be overridden by game state updates)
       setTimeout(() => {
         if (dealButton) {
@@ -603,7 +682,7 @@ function handleDealClick() {
       }, 3000);
     }
   }
-  
+
   console.log('✅ Deal button action completed');
 }
 

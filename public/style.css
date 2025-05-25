@@ -34,7 +34,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* Revert back to center */
   min-height: 100vh;
   min-width: 100vw;
   position: fixed;
@@ -46,7 +46,7 @@ body {
 .game-setup-card {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   color: #1b2e3c;
-  padding: 2.5rem;
+  padding: 1.5rem 2.5rem 2.5rem 2.5rem; /* Reduce top padding to move content closer to top */
   border-radius: 24px;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.15),
@@ -58,7 +58,7 @@ body {
   animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
-  margin-top: 2.2rem; /* Added margin to move the game setup card down from the header */
+  margin-top: 0.22rem; /* Keep reduced margin */
 }
 
 @keyframes slideUpFadeIn {
@@ -74,11 +74,11 @@ body {
 
 .setup-header {
   background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: none; /* Remove the bottom border */
   border-radius: 15px 15px 0 0;
-  padding: 2rem 2rem 1.5rem 2rem;
+  padding: 0.25rem 1rem; /* Reduced padding to make header smaller */
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.2rem; /* Reduced margin to bring content below closer */
 }
 
 .setup-header h2 {
@@ -121,25 +121,21 @@ body {
 }
 
 .section-title {
-  /* Restore previous styles except for text border */
-  color: #ffc300; /* Gold accent */
-  background: none;
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   border: none;
   border-radius: 0;
   padding: 0;
   box-shadow: none;
   display: block;
   margin-bottom: 1rem;
-  /* Add blue border to text (stroke) instead of black */
-  text-shadow:
-    -1px -1px 0 #1b2e3c,
-     1px -1px 0 #1b2e3c,
-    -1px  1px 0 #1b2e3c,
-     1px  1px 0 #1b2e3c,
-     0 2px 4px rgba(0, 0, 0, 0.3); /* Blue outline + shadow for pop */
-  font-size: 2.1rem;
+  font-size: 2.6rem; /* Increased from 2.1rem for better readability */
   font-weight: 900;
   letter-spacing: 0.03em;
+  /* Add stroke effect using -webkit-text-stroke for better readability */
+  -webkit-text-stroke: 1.2px #1b2e3c; /* Slightly thicker stroke for larger text */
 }
 
 .player-counter {
@@ -150,13 +146,13 @@ body {
 }
 
 .counter-btn {
-  width: 28px; /* Further reduced for 10% smaller */
-  height: 28px; /* Further reduced for 10% smaller */
+  width: 22px; /* Reduced from 28px for smaller buttons */
+  height: 22px; /* Reduced from 28px for smaller buttons */
   border: 2px solid #137a4b;
   background: white;
   color: #137a4b;
   border-radius: 50%;
-  font-size: 1.1rem; /* Further reduced for 10% smaller */
+  font-size: 0.9rem; /* Reduced from 1.1rem for smaller text */
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -190,11 +186,11 @@ body {
 .player-counter input {
   background: none;
   border: none;
-  font-size: 1.8rem; /* Further reduced for 10% smaller */
+  font-size: 1.4rem; /* Reduced from 1.8rem for smaller numbers */
   font-weight: 700;
   color: #1b2e3c;
   text-align: center;
-  width: 40px; /* Further reduced for 10% smaller */
+  width: 32px; /* Reduced from 40px for smaller input field */
   pointer-events: none;
   appearance: textfield; /* Standard property */
   -moz-appearance: textfield; /* Hide spinner in Firefox */
@@ -506,13 +502,6 @@ body {
   border: 1.5px solid #ffc300;
   position: relative;
   overflow: hidden;
-}
-
-#new-game-button:hover {
-  background: #e6f4ee;
-  color: #137a4b;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(19, 122, 75, 0.15);
 }
 
 /* Deal button in lobby form */
@@ -836,11 +825,11 @@ body {
   transition: all 0.2s cubic-bezier(.4,0,.2,1);
 }
 .lobby-buttons-row .lobby-rules-btn {
-  background: #ffc300;
+  background: #f5cf17;
   color: #222;
 }
 .lobby-buttons-row .lobby-rules-btn:hover {
-  background: #ffb000;
+  background: #e6bb0d;
 }
 .lobby-buttons-row .play-button {
   background: linear-gradient(135deg, #137a4b 0%, #17805a 100%);
@@ -1300,13 +1289,20 @@ body {
 }
 
 .header-game-name {
-  font-size: 2.8rem;
+  font-size: 3.5rem; /* Increased 25% from 2.8rem for modal */
   font-weight: 900;
   color: #ffc300;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.02em;
   margin: 0;
   line-height: 0.9;
+}
+
+/* Modal "Top That!" styling with tighter letter-spacing and colored shadows */
+.modal .header-game-name {
+  letter-spacing: -0.03em;
+  text-shadow: 2px 0 #ff6b6b, -2px 0 #ff6b6b, 0 2px #ff6b6b, 0 -2px #ff6b6b, 1px 1px #ff6b6b, -1px -1px #ff6b6b, 1px -1px #ff6b6b, -1px 1px #ff6b6b,
+               4px 0 #4ecdc4, -4px 0 #4ecdc4, 0 4px #4ecdc4, 0 -4px #4ecdc4, 3px 3px #4ecdc4, -3px -3px #4ecdc4, 3px -3px #4ecdc4, -3px 3px #4ecdc4;
 }
 
 .header-tagline {
@@ -1323,34 +1319,66 @@ body {
   display: flex;
   gap: 0.8rem;
   align-items: center;
+  pointer-events: auto !important;
+  z-index: 9998 !important;
 }
 
 .header-btn {
-  background: #ffc300;
-  color: #000000 !important; /* Force black text */
-  border: 2px solid #ffc300;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  font-size: 1rem;
+  border: 2px solid #f5cf17;
+  padding: 0.8rem 1.6rem; /* Increased padding for larger buttons */
+  border-radius: 12px; /* Slightly more rounded */
+  font-size: 1.3rem; /* Larger font */
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   font-family: inherit;
+  /* Ensure buttons are clickable */
+  pointer-events: auto !important;
+  z-index: 9999 !important;
+  position: relative !important;
+  min-width: 120px; /* Ensure consistent button widths */
+  text-align: center;
 }
 
+/* Default Deal button styling (golden gradient) */
+.header-btn {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #000000 !important; /* Force black text */
+}
+
+/* Rules button - bright blue styling */
+#setup-rules-button {
+  background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
+  color: #ffffff !important; /* White text for blue background */
+  border: none; /* Removed border to match Deal button */
+}
+
+#setup-rules-button:hover {
+  background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+#setup-rules-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(33, 150, 243, 0.2);
+}
+
+/* Deal button hover state */
 .header-btn:hover {
-  background: #ffb000;
-  border-color: #ffb000;
+  background: linear-gradient(135deg, #e6bb0d 0%, #ffdb4d 100%);
+  border-color: #e6bb0d;
   color: #000000 !important; /* Maintain black text on hover */
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+  box-shadow: 0 4px 8px rgba(245, 207, 23, 0.3);
 }
 
 .header-btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
+  box-shadow: 0 1px 4px rgba(245, 207, 23, 0.2);
 }
 
 /* Player count help text */
@@ -1397,53 +1425,83 @@ body {
 /* Dynamic Player Silhouettes */
 .player-silhouettes {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-height: 60px;
-  margin-top: 1rem;
-  padding: 0.5rem;
+  justify-content: flex-start; /* Align icons to the start */
+  flex-wrap: nowrap; /* Prevent wrapping to new line */
+  overflow-x: auto; /* Allow horizontal scrolling if needed */
+  gap: 4px; /* Reduced gap for tighter spacing */
+  height: 70px; /* Reduced height by 30% from 100px */
+  min-height: 70px;
+  max-height: 70px;
+  min-width: 255px; /* Accommodate 4 icons (58*4 + 4*3 + padding) */
+  margin-top: 0.5rem; /* Reduced margin */
+  padding: 0.25rem; /* Reduced padding */
   background: rgba(19, 122, 75, 0.1);
   border-radius: 8px;
   border: 2px dashed rgba(19, 122, 75, 0.3);
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
-.player-silhouettes:empty::before {
-  content: "Players will appear here";
-  color: #888;
-  font-size: 0.8rem;
-  font-style: italic;
+/* Ensure both containers have identical dimensions */
+#human-silhouettes,
+#cpu-silhouettes {
+  width: 100%; /* Take available width, min-width on .player-silhouettes will enforce minimum */
+  height: 70px;
+  min-height: 70px;
+  max-height: 70px;
 }
 
 .player-silhouette {
-  width: 32px;
-  height: 32px;
-  background: #137a4b;
-  border-radius: 50%;
+  width: 58px;  /* Scaled down to fit new container height */
+  height: 58px; /* Scaled down */
+  min-width: 58px;
+  min-height: 58px;
+  max-width: 58px;
+  max-height: 58px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  margin: 0; /* Ensure no extra margin */
+  padding: 0; /* Ensure no extra padding */
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
   position: relative;
   animation: silhouetteAppear 0.3s ease-out;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
-.player-silhouette.cpu {
-  background: #ffc300;
-  color: #137a4b;
+/* Icon styling - consistent size for all player icons */
+.player-silhouette img {
+  width: 50px !important;  /* Scaled down */
+  height: 50px !important; /* Scaled down */
+  object-fit: contain;
 }
 
-.player-silhouette.human {
-  background: #137a4b;
-  color: white;
+/* Ensure both human and CPU icons use the same size */
+.player-silhouette.cpu img,
+.player-silhouette.human img {
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+  min-height: 50px !important;
+  max-width: 50px !important;
+  max-height: 50px !important;
 }
 
-.player-silhouette svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
+/* Backup selectors for consistent sizing */
+.player-silhouette img[alt="Bot Icon"],
+.player-silhouette img[alt="User Icon"] {
+  width: 50px !important;
+  height: 50px !important;
+}
+
+/* Class-based selectors for consistent sizing */
+.player-silhouette img.robot-icon,
+.player-silhouette img.user-icon {
+  width: 50px !important;
+  height: 50px !important;
 }
 
 @keyframes silhouetteAppear {

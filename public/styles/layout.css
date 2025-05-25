@@ -51,36 +51,22 @@
   background: rgba(27, 46, 60, 0.95);
   border: 2px solid #fff;
   border-radius: 12px;
-  padding: 1rem 2rem 2rem 2rem; /* Reduced top padding even more */
+  padding: 0rem 2rem 2rem 2rem; /* Reduced top padding further */
   margin: 0 auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .setup-header {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0; /* Reduced margin-bottom */
+  border-bottom: none; /* Ensure no bottom border is present */
 }
 
-/* Copy the EXACT banner header styling to the setup modal */
-.setup-header .header-game-name {
-  /* Copy all properties from the banner's inline styles */
-  text-align: center !important; /* Override to center for modal */
-  font-size: 2.2rem !important; /* Match banner exactly */
-  font-weight: 900 !important; /* Match banner exactly */
-  color: #ffc300 !important; /* Match banner exactly */
-  letter-spacing: 0.04em !important; /* Match banner exactly */
-  margin-bottom: 0.1rem !important;
-  /* Let browser handle line height naturally like the banner */
+.setup-header hr { /* Target hr elements within setup-header */
+  display: none; /* Hide the horizontal rule */
 }
 
-.setup-header > p {
-  color: #fff !important;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-  margin-bottom: 0.5rem !important;
-  margin-top: 0.1rem !important; /* Small gap after Top That! */
-  text-align: center !important;
-}
+/* Copy exact banner styling for modal - using inline styles instead of CSS */
 
 /* Game table and layout styles */
 .table {
