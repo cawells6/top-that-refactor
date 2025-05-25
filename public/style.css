@@ -1422,110 +1422,35 @@ body {
   font-style: italic;
 }
 
-/* Dynamic Player Silhouettes */
-.player-silhouettes {
-  display: flex;
-  justify-content: flex-start; /* Align icons to the start */
-  flex-wrap: nowrap; /* Prevent wrapping to new line */
-  overflow-x: auto; /* Allow horizontal scrolling if needed */
-  gap: 4px; /* Reduced gap for tighter spacing */
-  height: 70px; /* Reduced height by 30% from 100px */
-  min-height: 70px;
-  max-height: 70px;
-  min-width: 255px; /* Accommodate 4 icons (58*4 + 4*3 + padding) */
-  margin-top: 0.5rem; /* Reduced margin */
-  padding: 0.25rem; /* Reduced padding */
-  background: rgba(19, 122, 75, 0.1);
-  border-radius: 8px;
-  border: 2px dashed rgba(19, 122, 75, 0.3);
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-}
-
-/* Ensure both containers have identical dimensions */
-#human-silhouettes,
-#cpu-silhouettes {
-  width: 100%; /* Take available width, min-width on .player-silhouettes will enforce minimum */
-  height: 70px;
-  min-height: 70px;
-  max-height: 70px;
-}
-
-.player-silhouette {
-  width: 58px;  /* Scaled down to fit new container height */
-  height: 58px; /* Scaled down */
-  min-width: 58px;
-  min-height: 58px;
-  max-width: 58px;
-  max-height: 58px;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  margin: 0; /* Ensure no extra margin */
-  padding: 0; /* Ensure no extra padding */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  position: relative;
-  animation: silhouetteAppear 0.3s ease-out;
-  flex-shrink: 0; /* Prevent shrinking */
-}
-
-/* Icon styling - consistent size for all player icons */
-.player-silhouette img {
-  width: 50px !important;  /* Scaled down */
-  height: 50px !important; /* Scaled down */
-  object-fit: contain;
-}
-
-/* Ensure both human and CPU icons use the same size */
-.player-silhouette.cpu img,
-.player-silhouette.human img {
+/* --- Player Silhouette Icon Sizing (authoritative) --- */
+.player-silhouette img,
+.player-silhouette img.robot-icon,
+.player-silhouette img.user-icon {
   width: 50px !important;
   height: 50px !important;
   min-width: 50px !important;
   min-height: 50px !important;
   max-width: 50px !important;
   max-height: 50px !important;
+  object-fit: contain;
 }
 
-/* Backup selectors for consistent sizing */
-.player-silhouette img[alt="Bot Icon"],
-.player-silhouette img[alt="User Icon"] {
-  width: 50px !important;
-  height: 50px !important;
-}
-
-/* Class-based selectors for consistent sizing */
-.player-silhouette img.robot-icon,
-.player-silhouette img.user-icon {
-  width: 50px !important;
-  height: 50px !important;
-}
-
-@keyframes silhouetteAppear {
-  from {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.player-silhouette.removing {
-  animation: silhouetteDisappear 0.3s ease-in forwards;
-}
-
-@keyframes silhouetteDisappear {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(0.5);
-  }
+/* --- Player Silhouettes Container Sizing & Packing --- */
+.player-silhouettes {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  overflow-x: hidden; /* Prevent scrollbars, icons will be packed left */
+  gap: 4px;
+  height: 70px;
+  min-height: 70px;
+  max-height: 70px;
+  min-width: 255px;
+  margin-top: 0.5rem;
+  padding: 0.25rem;
+  background: rgba(19, 122, 75, 0.1);
+  border-radius: 8px;
+  border: 2px dashed rgba(19, 122, 75, 0.3);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
 }
