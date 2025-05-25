@@ -44,12 +44,12 @@
 
 /* --- Make rules modal and content larger and more readable --- */
 .rules-modal-content {
-  font-size: 1.22rem !important;
+  font-size: 1.32rem !important; /* Slightly larger text for bigger modal */
   line-height: 1.75;
-  padding: 1.2rem 1.5rem 1.5rem 1.5rem !important;
-  max-width: 800px !important;
+  padding: 1.7rem 2.2rem 2.2rem 2.2rem !important;
+  max-width: 1200px !important; /* 50% bigger than 800px */
   min-width: 0 !important;
-  width: 90vw !important;
+  width: 95vw !important;
   max-height: 88vh !important;
   overflow-y: auto !important;
   box-sizing: border-box;
@@ -68,7 +68,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  margin: 0.2rem 0 0.3rem 0 !important;
+  margin: 0.1rem 0 0.3rem 0 !important; /* Tiny bit of padding above */
   padding: 0 !important;
   width: 100%;
   text-align: center;
@@ -85,10 +85,11 @@
 .modal-logo img {
   display: block;
   margin: 0 auto;
-  height: 120px !important;
+  height: 108px !important; /* 10% smaller than 120px */
   width: auto !important;
-  max-width: 90%;
+  max-width: 81% !important; /* 10% smaller than 90% */
   object-fit: contain;
+  margin-top: 0.1rem !important; /* Tiny bit of space above */
 }
 
 .rules-modal-title {

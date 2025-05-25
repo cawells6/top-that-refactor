@@ -116,7 +116,8 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
 
     mockIo.on.mockClear();
     mockIo.to.mockClear();
-    gameController = new GameController(mockIo as any);
+    // Pass a dummy roomId for tests (required by GameController constructor)
+    gameController = new GameController(mockIo as any, 'test-room');
   });
 
   test('Player joins, game auto-starts with 1 CPU, initial state is broadcast', () => {
@@ -213,7 +214,8 @@ describe('Game Flow - Manual Start by Host', () => {
     mockIo.on.mockClear();
     mockIo.to.mockClear();
     topLevelEmitMock.mockClear();
-    gameController = new GameController(mockIo as any);
+    // Pass a dummy roomId for tests (required by GameController constructor)
+    gameController = new GameController(mockIo as any, 'test-room');
   });
 
   test('Host joins (no auto-CPUs), Player2 joins, Host starts game (no explicit CPUs)', () => {
