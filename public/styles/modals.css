@@ -67,8 +67,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  margin: 0.1rem 0 0.3rem 0 !important; /* Tiny bit of padding above */
+  justify-content: center;
+  margin: 0 !important;
   padding: 0 !important;
   width: 100%;
   text-align: center;
@@ -78,18 +78,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 !important;
+  margin: 0 auto !important;
   width: 100%;
+  text-align: center;
 }
 
 .modal-logo img {
   display: block;
-  margin: 0 auto;
-  height: 108px !important; /* 10% smaller than 120px */
+  margin: 0 auto !important;
+  height: 200px !important; /* Match the inline style */
   width: auto !important;
-  max-width: 81% !important; /* 10% smaller than 90% */
+  max-width: 100% !important;
   object-fit: contain;
-  margin-top: 0.1rem !important; /* Tiny bit of space above */
 }
 
 .rules-modal-title {
