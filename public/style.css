@@ -145,66 +145,80 @@ body {
   -webkit-text-stroke: 1px #1b2e3c;
 }
 
+/* Player Counter Container - Adjust spacing if needed */
 .player-counter {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem; /* Much smaller gap to bring buttons closer to number */
+  gap: 0.5rem; /* Increased gap slightly for a less cramped look with new styles */
   margin-bottom: 0.75rem;
 }
 
+/* Style for the Plus/Minus Buttons */
 .counter-btn {
-  width: 22px; /* Reduced from 28px for smaller buttons */
-  height: 22px; /* Reduced from 28px for smaller buttons */
-  border: 2px solid #137a4b;
-  background: white;
-  color: #137a4b;
-  border-radius: 50%;
-  font-size: 0.9rem; /* Reduced from 1.1rem for smaller text */
-  font-weight: 700;
+  width: 40px; /* Slightly larger for a better click target */
+  height: 40px;
+  border: none; /* Remove default border */
+  background: var(--accent); /* Gold background */
+  color: var(--header-bg); /* Dark text for contrast on gold */
+  border-radius: 8px; /* Rounded corners, can be 50% for circular */
+  font-size: 1.4rem; /* Larger plus/minus symbols */
+  font-weight: 900; /* Bolder symbols */
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.1); /* Subtle shadow for a "button" feel */
 }
 
 .counter-btn:hover {
-  background: #137a4b;
-  color: white;
-  transform: scale(1.1);
+  background: #ffdb4d; /* Lighter gold on hover */
+  color: #1b2e3c; /* Ensure text remains dark */
+  transform: translateY(-1px); /* Slight lift effect */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
 }
 
 .counter-btn:active {
-  transform: scale(0.95);
+  transform: translateY(0px); /* Press down effect */
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .counter-btn:disabled {
-  opacity: 0.4;
+  background: #a0a0a0; /* Grey out when disabled */
+  color: #666666;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+  opacity: 0.7;
 }
 
 .counter-btn:disabled:hover {
-  background: white;
-  color: #137a4b;
+  background: #a0a0a0; /* Keep disabled style on hover */
+  color: #666666;
 }
 
-.player-counter input {
-  background: none;
-  border: none;
-  font-size: 1.4rem; /* Reduced from 1.8rem for smaller numbers */
+/* Style for the Number Display Input */
+.player-counter input[type="number"] {
+  background: var(--header-bg); /* Darker, thematic background */
+  border: 2px solid #2a4a5a !important; /* Subtle blue-gray complementing the background */
+  outline: none !important; /* Remove outline too */
+  color: var(--text); /* White text for contrast */
+  font-size: 1.6rem; /* Slightly larger for better visibility */
   font-weight: 700;
-  color: #1b2e3c;
   text-align: center;
-  width: 32px; /* Reduced from 40px for smaller input field */
+  width: 50px; /* Adjust width as needed */
+  height: 40px; /* Match button height for alignment */
+  border-radius: 8px; /* Rounded corners */
   pointer-events: none;
-  appearance: textfield; /* Standard property */
-  -moz-appearance: textfield; /* Hide spinner in Firefox */
+  appearance: textfield;
+  -moz-appearance: textfield;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 1px 1px rgba(255,255,255,0.1); /* Adjust shadow for definition */
+  transition: all 0.2s ease;
 }
 
-/* Hide spinner arrows in webkit browsers */
+/* Hide spinner arrows in webkit browsers (already present, but good to keep) */
 .player-counter input::-webkit-outer-spin-button,
 .player-counter input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -1419,7 +1433,7 @@ body {
 }
 
 .name-input-section input::placeholder {
-  color: #888;
+  color: #555;
   font-style: italic;
 }
 
@@ -1474,6 +1488,24 @@ body {
   border: 2px dashed rgba(19, 122, 75, 0.3) !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
+}
+
+/* Emoji fallback for player silhouettes when SVG fails to load */
+.silhouette-emoji-fallback {
+  /* Styles for the emoji if it needs to be centered or sized within the 75x75 area */
+  font-size: 48px; /* Adjust as needed */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 75px !important;
+  height: 75px !important;
+  min-width: 75px !important;
+  min-height: 75px !important;
+  max-width: 75px !important;
+  max-height: 75px !important;
+  box-sizing: border-box !important;
+  line-height: 1;
+  text-align: center;
 }
 
 /* Single outer container for lobby validation messages - always reserves space */

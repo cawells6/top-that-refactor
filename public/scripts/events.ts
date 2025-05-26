@@ -118,38 +118,38 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
   silhouette.setAttribute('data-index', index.toString());
 
   const img = document.createElement('img');
-
-  // Optimized sizing for consistent layout - REMOVED INLINE STYLES TO DEFER TO CSS
-  // img.width = 64;
-  // img.height = 64;
-  // img.style.width = '64px';
-  // img.style.height = '64px';
-  // img.style.minWidth = '64px';
-  // img.style.minHeight = '64px';
-  // img.style.maxWidth = '64px';
-  // img.style.maxHeight = '64px';
-  // img.style.objectFit = 'contain';
+  // Intentionally set alt to empty if you only want emoji on error,
+  // or set proper alt text for accessibility and ensure it's visually hidden if image loads.
+  img.alt = ''; // Prevents alt text from showing if image is slow to load but not erroring
 
   if (type === 'human') {
     img.src = '/assets/Player.svg';
-    img.alt = 'User Icon';
-    img.className = 'user-icon';
-  } else if (type === 'cpu') {
-    img.src = '/assets/ROBOT.svg';
-    img.alt = 'Bot Icon';
-    img.className = 'robot-icon';
+    img.className = 'user-icon'; // For specific styling if needed
   } else {
-    img.alt = 'Player Icon';
+    // 'cpu'
+    img.src = '/assets/ROBOT.svg';
+    img.className = 'robot-icon'; // For specific styling if needed
   }
 
+  const emojiFallback = document.createElement('span');
+  emojiFallback.className = 'silhouette-emoji-fallback';
+  emojiFallback.textContent = type === 'cpu' ? '🤖' : '🙂';
+  emojiFallback.style.display = 'none'; // Initially hidden
+
+  img.onload = function () {
+    // Image loaded successfully, ensure emoji is hidden and image is shown
+    img.style.display = '';
+    emojiFallback.style.display = 'none';
+  };
+
   img.onerror = function () {
-    // Add a class to hide the image via CSS instead of inline style
-    // Ensure you have a CSS rule like: .img-load-error { display: none; }
-    img.classList.add('img-load-error');
-    silhouette.textContent = type === 'cpu' ? '🤖' : '🙂';
+    // Image failed to load, hide img tag and show emoji
+    img.style.display = 'none'; // Hide the broken image element
+    emojiFallback.style.display = ''; // Show the emoji
   };
 
   silhouette.appendChild(img);
+  silhouette.appendChild(emojiFallback); // Add emoji fallback to the DOM but hidden
   return silhouette;
 }
 
@@ -643,12 +643,12 @@ export async function initializePageEventListeners() {
   if (nameInput) {
     nameInput.addEventListener('input', () => {
       const nameValidation = validateNameInput();
-      
+
       if (nameValidation.isValid) {
         // Name is now valid - remove any name errors from queue and hide if currently showing
         if (hasNameErrorInQueue() || isCurrentlyShowingNameError()) {
           removeNameErrorsFromQueue();
-          
+
           // If currently showing a name error, either hide it or show next message
           if (isCurrentlyShowingNameError()) {
             if (messageQueue.length > 0) {
