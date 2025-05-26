@@ -53,8 +53,8 @@ body {
     0 8px 25px rgba(0, 0, 0, 0.1),
     0 0 0 1px rgba(255, 195, 0, 0.2);
   border: 3px solid #ffc300;
-  max-width: 480px;
-  width: 90%;
+  max-width: 960px; /* Doubled from 480px */
+  width: 95%;       /* Slightly wider for large screens */
   animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
@@ -402,6 +402,8 @@ body {
   .game-setup-card {
     padding: 2rem 1.5rem;
     margin: 1rem;
+    max-width: 98vw; /* Ensure it doesn't overflow on mobile */
+    width: 100%;
   }
   
   .player-selection {
@@ -1282,32 +1284,11 @@ body {
 
 /* Header styling for new layout */
 .header-logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 100%;
-  text-align: center;
+  display: none;
 }
 
 .header-logo img {
-  display: block;
-  margin: 0 auto;
-  height: 200px;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
-}
-
-.header-game-name {
-  font-size: 3.5rem; /* Increased 25% from 2.8rem for modal */
-  font-weight: 900;
-  color: #ffc300;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.02em;
-  margin: 0;
-  line-height: 0.9;
+  display: none;
 }
 
 /* Modal "Top That!" styling with tighter letter-spacing and colored shadows */
@@ -1436,33 +1417,53 @@ body {
 
 /* --- Player Silhouette Icon Sizing (authoritative) --- */
 .player-silhouette img,
-.player-silhouette img.robot-icon,
-.player-silhouette img.user-icon {
-  width: 50px !important;
-  height: 50px !important;
-  min-width: 50px !important;
-  min-height: 50px !important;
-  max-width: 50px !important;
-  max-height: 50px !important;
-  object-fit: contain;
+.player-silhouette svg,
+.player-silhouette .robot-icon,
+.player-silhouette .user-icon {
+  width: 75px !important;
+  height: 75px !important;
+  min-width: 75px !important;
+  min-height: 75px !important;
+  max-width: 75px !important;
+  max-height: 75px !important;
+  object-fit: contain !important;
+  display: block !important;
 }
 
-/* --- Player Silhouettes Container Sizing & Packing --- */
+/* Strongest possible override for player icons */
+.player-silhouette img,
+.player-silhouette svg,
+.player-silhouette .robot-icon,
+.player-silhouette .user-icon,
+.player-silhouettes img,
+.player-silhouettes svg {
+  width: 75px !important;
+  height: 75px !important;
+  min-width: 75px !important;
+  min-height: 75px !important;
+  max-width: 75px !important;
+  max-height: 75px !important;
+  object-fit: contain !important;
+  display: block !important;
+  box-sizing: content-box !important;
+}
+
+/* Strongest possible override for container */
 .player-silhouettes {
-  display: flex;
-  justify-content: flex-start;
-  flex-wrap: nowrap;
-  overflow-x: hidden; /* Prevent scrollbars, icons will be packed left */
-  gap: 4px;
-  height: 70px;
-  min-height: 70px;
-  max-height: 70px;
-  min-width: 255px;
-  margin-top: 0.5rem;
-  padding: 0.25rem;
-  background: rgba(19, 122, 75, 0.1);
-  border-radius: 8px;
-  border: 2px dashed rgba(19, 122, 75, 0.3);
-  transition: all 0.3s ease;
-  box-sizing: border-box;
+  display: flex !important;
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+  overflow-x: hidden !important;
+  gap: 1.2px !important;
+  height: 85px !important;
+  min-height: 85px !important;
+  max-height: 85px !important;
+  min-width: 320px !important;
+  margin-top: 0.5rem !important;
+  padding: 0.25rem 0.5rem !important;
+  background: rgba(19, 122, 75, 0.1) !important;
+  border-radius: 8px !important;
+  border: 2px dashed rgba(19, 122, 75, 0.3) !important;
+  transition: all 0.3s ease !important;
+  box-sizing: border-box !important;
 }

@@ -21,16 +21,16 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
 
   const img = document.createElement('img');
 
-  // Optimized sizing for consistent layout
-  img.width = 64;
-  img.height = 64;
-  img.style.width = '64px';
-  img.style.height = '64px';
-  img.style.minWidth = '64px';
-  img.style.minHeight = '64px';
-  img.style.maxWidth = '64px';
-  img.style.maxHeight = '64px';
-  img.style.objectFit = 'contain';
+  // Optimized sizing for consistent layout - REMOVED INLINE STYLES TO DEFER TO CSS
+  // img.width = 64;
+  // img.height = 64;
+  // img.style.width = '64px';
+  // img.style.height = '64px';
+  // img.style.minWidth = '64px';
+  // img.style.minHeight = '64px';
+  // img.style.maxWidth = '64px';
+  // img.style.maxHeight = '64px';
+  // img.style.objectFit = 'contain';
 
   if (type === 'human') {
     img.src = '/assets/Player.svg';
@@ -45,7 +45,9 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
   }
 
   img.onerror = function () {
-    img.style.display = 'none';
+    // Add a class to hide the image via CSS instead of inline style
+    // Ensure you have a CSS rule like: .img-load-error { display: none; }
+    img.classList.add('img-load-error');
     silhouette.textContent = type === 'cpu' ? '🤖' : '🙂';
   };
 
@@ -142,55 +144,41 @@ function updateNameValidationMessage(message: string = '', showDefault: boolean 
     return;
   }
 
-  // Use the same green style as the player requirement message
-  const greenBg = '#d4edda';
-  const greenBorder = '#137a4b';
-  const greenText = '#2d5a3d';
+  // Styles for this message should be handled by CSS classes.
+  // e.g., in your CSS:
+  // #name-validation-message .message-box {
+  //   padding: 1rem;
+  //   background-color: #d4edda; /* greenBg */
+  //   border: 2px solid #137a4b; /* greenBorder */
+  //   border-radius: 0.5rem;
+  //   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  //   width: 280px;
+  //   text-align: center;
+  // }
+  // #name-validation-message .message-text {
+  //   margin: 0;
+  //   font-weight: 700;
+  //   font-size: 1.1rem;
+  //   line-height: 1.2;
+  //   color: #2d5a3d; /* greenText */
+  // }
 
-  // Find the inner box and <p>
-  const box = nameValidationMessage.querySelector('div');
-  const messageText = nameValidationMessage.querySelector('p');
+  const box = nameValidationMessage.querySelector('div'); // Assuming this is the message-box
+  const messageText = nameValidationMessage.querySelector('p'); // Assuming this is the message-text
 
   if (message) {
     nameValidationMessage.classList.remove('hidden');
-    if (box) {
-      box.setAttribute(
-        'style',
-        'padding: 1rem; background-color: ' +
-          greenBg +
-          '; border: 2px solid ' +
-          greenBorder +
-          '; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center;'
-      );
-    }
+    // Ensure the elements have appropriate classes if not already set in HTML
+    if (box) box.className = 'message-box'; // Or a more specific class
     if (messageText) {
-      messageText.setAttribute(
-        'style',
-        'margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: ' +
-          greenText +
-          ';'
-      );
+      messageText.className = 'message-text'; // Or a more specific class
       messageText.textContent = message;
     }
   } else if (showDefault) {
     nameValidationMessage.classList.remove('hidden');
-    if (box) {
-      box.setAttribute(
-        'style',
-        'padding: 1rem; background-color: ' +
-          greenBg +
-          '; border: 2px solid ' +
-          greenBorder +
-          '; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center;'
-      );
-    }
+    if (box) box.className = 'message-box';
     if (messageText) {
-      messageText.setAttribute(
-        'style',
-        'margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: ' +
-          greenText +
-          ';'
-      );
+      messageText.className = 'message-text';
       messageText.textContent = 'Please enter your name to start.';
     }
   } else {

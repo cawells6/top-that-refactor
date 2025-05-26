@@ -38,4 +38,48 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (error) {
     console.error('Error during initialization:', error);
   }
+
+  // Helper to remove inline styles from player icons
+  function removePlayerIconInlineStyles() {
+    const icons = document.querySelectorAll(
+      '.player-silhouette img, .player-silhouette .user-icon, .player-silhouette .robot-icon'
+    );
+    console.debug('[Silhouette] Found', icons.length, 'player icon(s) to clean up');
+    icons.forEach((img) => {
+      (img as HTMLElement).removeAttribute('style');
+      (img as HTMLElement).removeAttribute('width');
+      (img as HTMLElement).removeAttribute('height');
+    });
+  }
+
+  // Call once after initial render
+  removePlayerIconInlineStyles();
+
+  // Set up a MutationObserver on the whole body to catch any icon changes
+  const observer = new MutationObserver((mutations) => {
+    // Debug: log what mutations occurred
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'attributes') {
+        console.debug(
+          `[Silhouette] Attribute mutation: ${mutation.attributeName} on`,
+          mutation.target
+        );
+      } else if (mutation.type === 'childList') {
+        console.debug(
+          `[Silhouette] ChildList mutation: added ${mutation.addedNodes.length}, removed ${mutation.removedNodes.length}`
+        );
+      }
+    });
+    removePlayerIconInlineStyles();
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['style', 'width', 'height'], // Watch all relevant attributes
+  });
+
+  // Optionally, call after any known UI update (if you know where icons are rendered)
+  // removePlayerIconInlineStyles();
 });
