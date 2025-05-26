@@ -737,20 +737,6 @@ body {
   .lobby-tagline {
     font-size: 0.95rem;
   }
-  
-  /* Mobile responsive styles for player silhouettes */
-  .player-silhouettes {
-    gap: 6px;
-    padding: 0.3rem;
-  }
-  
-  .player-silhouette img,
-  .player-silhouette svg,
-  .player-silhouette .robot-icon,
-  .player-silhouette .user-icon {
-    width: 50px;
-    height: 50px;
-  }
 }
 
 /* --- Lobby logo, name, and tagline block (no crown) --- */
@@ -1429,64 +1415,55 @@ body {
   font-style: italic;
 }
 
-/* === Player Silhouettes - Clean Implementation === */
-
-/* Player silhouette container - adapts to content */
-.player-silhouettes {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.2s ease;
-  min-height: fit-content;
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Subtle hover effect for the container */
-.player-silhouettes:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Individual player silhouette styling */
-.player-silhouette {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
-}
-
-.player-silhouette:hover {
-  transform: scale(1.05);
-}
-
-/* Player icon sizing - clean and consistent */
+/* --- Player Silhouette Icon Sizing (authoritative) --- */
 .player-silhouette img,
 .player-silhouette svg,
 .player-silhouette .robot-icon,
 .player-silhouette .user-icon {
-  width: 60px;
-  height: 60px;
-  object-fit: contain;
-  display: block;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  width: 75px !important;
+  height: 75px !important;
+  min-width: 75px !important;
+  min-height: 75px !important;
+  max-width: 75px !important;
+  max-height: 75px !important;
+  object-fit: contain !important;
+  display: block !important;
 }
 
-/* Subtle glow effect on hover */
-.player-silhouette img:hover,
-.player-silhouette svg:hover {
-  box-shadow: 0 0 12px rgba(255, 195, 0, 0.3);
+/* Strongest possible override for player icons */
+.player-silhouette img,
+.player-silhouette svg,
+.player-silhouette .robot-icon,
+.player-silhouette .user-icon,
+.player-silhouettes img,
+.player-silhouettes svg {
+  width: 75px !important;
+  height: 75px !important;
+  min-width: 75px !important;
+  min-height: 75px !important;
+  max-width: 75px !important;
+  max-height: 75px !important;
+  object-fit: contain !important;
+  display: block !important;
+  box-sizing: content-box !important;
 }
 
-/* Hide images that fail to load */
-.img-load-error {
-  display: none;
+/* Strongest possible override for container */
+.player-silhouettes {
+  display: flex !important;
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+  overflow-x: hidden !important;
+  gap: 1.2px !important;
+  height: 85px !important;
+  min-height: 85px !important;
+  max-height: 85px !important;
+  min-width: 320px !important;
+  margin-top: 0.5rem !important;
+  padding: 0.25rem 0.5rem !important;
+  background: rgba(19, 122, 75, 0.1) !important;
+  border-radius: 8px !important;
+  border: 2px dashed rgba(19, 122, 75, 0.3) !important;
+  transition: all 0.3s ease !important;
+  box-sizing: border-box !important;
 }

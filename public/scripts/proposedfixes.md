@@ -743,7 +743,7 @@ describe('Lobby Form Submission', () => {
     expect(mockEmit).not.toHaveBeenCalled();
   });
 
-  it('shows error if total players (humans + CPUs) > 4', () => {
+  it('shows error if total players (humans + CPUs) > 3', () => {
     nameInput.value = 'Chris';
     numHumansInput.value = '3';
     numCPUsInput.value = '2'; // Total 5
