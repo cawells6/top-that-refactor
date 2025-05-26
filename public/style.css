@@ -1448,17 +1448,18 @@ body {
   box-sizing: content-box !important;
 }
 
-/* Strongest possible override for container */
+/* --- NEW: Always reserve space for 4 icons, evenly spaced --- */
 .player-silhouettes {
-  display: flex !important;
-  justify-content: flex-start !important;
-  flex-wrap: nowrap !important;
-  overflow-x: hidden !important;
-  gap: 1.2px !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, 75px);
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem !important;
   height: 85px !important;
   min-height: 85px !important;
   max-height: 85px !important;
-  min-width: 320px !important;
+  min-width: 340px !important; /* 4 * 75px + 3 * gap */
+  max-width: 400px !important;
   margin-top: 0.5rem !important;
   padding: 0.25rem 0.5rem !important;
   background: rgba(19, 122, 75, 0.1) !important;
@@ -1466,4 +1467,13 @@ body {
   border: 2px dashed rgba(19, 122, 75, 0.3) !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
+}
+
+.player-silhouette {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 75px;
+  height: 75px;
+  /* Optionally add a subtle background for empty slots if desired */
 }
