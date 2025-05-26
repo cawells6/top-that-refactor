@@ -113,76 +113,51 @@ function updatePlayerRequirementMessage() {
     return;
   }
 
+  const messageParagraph = playerRequirementMessage.querySelector('p');
+  if (!messageParagraph) {
+    return;
+  }
+
   const numHumans = parseInt(totalPlayersInput.value || '1', 10);
   const numCPUs = parseInt(cpuPlayersInput.value || '0', 10);
   const totalPlayers = numHumans + numCPUs;
 
-  // Show message only when player count is invalid
   if (totalPlayers < 2) {
-    playerRequirementMessage.classList.remove('hidden');
-    const messageText = playerRequirementMessage.querySelector('p');
-    if (messageText) {
-      messageText.textContent = 'A minimum of 2 players are required.';
-    }
+    playerRequirementMessage.classList.add('message-active');
+    messageParagraph.textContent = 'A minimum of 2 players are required.';
   } else if (totalPlayers > 4) {
-    playerRequirementMessage.classList.remove('hidden');
-    const messageText = playerRequirementMessage.querySelector('p');
-    if (messageText) {
-      messageText.textContent = 'A maximum of 4 players are allowed.';
-    }
+    playerRequirementMessage.classList.add('message-active');
+    messageParagraph.textContent = 'A maximum of 4 players are allowed.';
   } else {
-    // Hide message when player count is valid (2-4 players)
-    playerRequirementMessage.classList.add('hidden');
+    playerRequirementMessage.classList.remove('message-active');
+    // messageParagraph.textContent = '';
   }
 }
 
 // Helper function to update the contextual name validation message
 function updateNameValidationMessage(message: string = '', showDefault: boolean = false) {
   const nameValidationMessage = document.getElementById('name-validation-message');
-
   if (!nameValidationMessage) {
     return;
   }
+  const messageParagraph = nameValidationMessage.querySelector('p');
+  if (!messageParagraph) {
+    return;
+  }
 
-  // Styles for this message should be handled by CSS classes.
-  // e.g., in your CSS:
-  // #name-validation-message .message-box {
-  //   padding: 1rem;
-  //   background-color: #d4edda; /* greenBg */
-  //   border: 2px solid #137a4b; /* greenBorder */
-  //   border-radius: 0.5rem;
-  //   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  //   width: 280px;
-  //   text-align: center;
-  // }
-  // #name-validation-message .message-text {
-  //   margin: 0;
-  //   font-weight: 700;
-  //   font-size: 1.1rem;
-  //   line-height: 1.2;
-  //   color: #2d5a3d; /* greenText */
-  // }
-
-  const box = nameValidationMessage.querySelector('div'); // Assuming this is the message-box
-  const messageText = nameValidationMessage.querySelector('p'); // Assuming this is the message-text
-
+  let textToShow = '';
   if (message) {
-    nameValidationMessage.classList.remove('hidden');
-    // Ensure the elements have appropriate classes if not already set in HTML
-    if (box) box.className = 'message-box'; // Or a more specific class
-    if (messageText) {
-      messageText.className = 'message-text'; // Or a more specific class
-      messageText.textContent = message;
-    }
+    textToShow = message;
   } else if (showDefault) {
-    nameValidationMessage.classList.remove('hidden');
-    if (box) box.className = 'message-box';
-    if (messageText) {
-      messageText.className = 'message-text';
-      messageText.textContent = 'Please enter your name to start.';
-    }
+    textToShow = 'Please enter your name to start.';
+  }
+
+  if (textToShow) {
+    nameValidationMessage.classList.add('message-active');
+    messageParagraph.textContent = textToShow;
   } else {
-    nameValidationMessage.classList.add('hidden');
+    nameValidationMessage.classList.remove('message-active');
+    // messageParagraph.textContent = '';
   }
 }
 

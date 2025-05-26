@@ -1448,20 +1448,19 @@ body {
   box-sizing: content-box !important;
 }
 
-/* --- NEW: Always reserve space for 4 icons, evenly spaced --- */
+/* Strongest possible override for container */
 .player-silhouettes {
-  display: grid !important;
-  grid-template-columns: repeat(4, 75px);
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem !important;
+  display: flex !important;
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+  overflow-x: hidden !important;
+  gap: 1.2px !important;
   height: 85px !important;
   min-height: 85px !important;
   max-height: 85px !important;
-  min-width: 320px !important; /* reduced from 340px */
-  max-width: 380px !important; /* reduced from 400px */
+  min-width: 320px !important;
   margin-top: 0.5rem !important;
-  padding: 0 !important;
+  padding: 0.25rem 0.5rem !important;
   background: rgba(19, 122, 75, 0.1) !important;
   border-radius: 8px !important;
   border: 2px dashed rgba(19, 122, 75, 0.3) !important;
@@ -1469,11 +1468,27 @@ body {
   box-sizing: border-box !important;
 }
 
-.player-silhouette {
+/* Styles for the outer containers of validation messages */
+#name-validation-message,
+#player-requirement-message {
+  min-height: 5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 75px;
-  height: 75px;
-  /* Optionally add a subtle background for empty slots if desired */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Styles for the inner content box of the messages */
+.message-box-content {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* When the PARENT container has 'message-active', the inner box becomes visible */
+#name-validation-message.message-active .message-box-content,
+#player-requirement-message.message-active .message-box-content {
+  visibility: visible;
+  opacity: 1;
 }
