@@ -1458,10 +1458,10 @@ body {
   height: 85px !important;
   min-height: 85px !important;
   max-height: 85px !important;
-  min-width: 340px !important; /* 4 * 75px + 3 * gap */
-  max-width: 400px !important;
+  min-width: 320px !important; /* reduced from 340px */
+  max-width: 380px !important; /* reduced from 400px */
   margin-top: 0.5rem !important;
-  padding: 0.25rem 0.5rem !important;
+  padding: 0 !important;
   background: rgba(19, 122, 75, 0.1) !important;
   border-radius: 8px !important;
   border: 2px dashed rgba(19, 122, 75, 0.3) !important;
