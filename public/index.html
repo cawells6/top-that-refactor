@@ -38,15 +38,10 @@
           <form id="lobby-form" autocomplete="off">
             <!-- Player Name Input -->
             <div class="name-input-section">
-              <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20" required />
+              <input type="text" id="player-name-input" placeholder="Who's playing today?" maxlength="20" required />
             </div>
             
-            <!-- Name validation message - shown only when needed, centered between name input and player selection -->
-            <div id="name-validation-message" class="hidden" style="display: flex; justify-content: center; margin: 0.25rem 0 2.5rem 0;">
-              <div style="padding: 1rem; background-color: #f8d7da; border: 2px solid #dc3545; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center;">
-                <p style="margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: #721c24;"></p>
-              </div>
-            </div>
+
             
             <div class="player-selection">
               <!-- Human Players Section -->
@@ -78,17 +73,17 @@
               </div>
             </div>
 
-            <!-- Player requirement message - shown only when needed -->
-            <div id="player-requirement-message" class="hidden" style="display: flex; justify-content: center; margin: 1rem 0;">
-              <div style="padding: 1rem; background-color: #d4edda; border: 2px solid #137a4b; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center;">
-                <p style="margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: #2d5a3d;">A minimum of 2 players are required.</p>
+            <!-- Single lobby validation message area - always reserves space -->
+            <div id="lobby-validation-message" style="display: flex; justify-content: center; margin: 1rem 0;">
+              <div class="message-box-content" style="padding: 1rem; border: 2px solid transparent; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center; background-color: #f8d7da;">
+                <p style="margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: #721c24;"></p>
               </div>
             </div>
 
             <!-- Move Rules and Deal buttons to bottom with reduced spacing -->
             <div style="display: flex; gap: 0.7rem; justify-content: center; margin-top: 1rem;">
               <button id="setup-rules-button" class="header-btn" type="button">Rules</button>
-              <button id="setup-deal-button" class="header-btn" type="button">Deal</button>
+              <button id="setup-deal-button" class="header-btn" type="button">Let's Play</button>
             </div>
           </form>
         </div>

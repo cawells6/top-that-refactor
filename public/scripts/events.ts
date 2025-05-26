@@ -3,6 +3,104 @@ import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 import { JOIN_GAME } from '../../src/shared/events.js';
 
+// --- Message Queue Logic for Single Error Display ---
+let messageQueue: string[] = [];
+let isDisplayingMessage = false;
+let messageTimeoutId: number | null = null;
+
+const LOBBY_MESSAGE_CONTAINER_ID = 'lobby-validation-message';
+const MESSAGE_DISPLAY_DURATION = 2000; // 2 seconds
+
+function displayNextMessage() {
+  if (messageTimeoutId) {
+    clearTimeout(messageTimeoutId);
+    messageTimeoutId = null;
+  }
+
+  const outerContainer = document.getElementById(LOBBY_MESSAGE_CONTAINER_ID);
+  if (!outerContainer) return;
+  const innerMessageBox = outerContainer.querySelector(
+    '.message-box-content'
+  ) as HTMLElement | null;
+  const messageParagraph = outerContainer.querySelector('p');
+
+  if (!innerMessageBox || !messageParagraph) return;
+
+  if (messageQueue.length > 0) {
+    isDisplayingMessage = true;
+    const messageText = messageQueue.shift(); // Get the next message
+    messageParagraph.textContent = messageText || '';
+    innerMessageBox.classList.add('active');
+
+    messageTimeoutId = window.setTimeout(() => {
+      // If this was the last message, hide the box, otherwise show next
+      if (messageQueue.length === 0) {
+        innerMessageBox.classList.remove('active');
+        isDisplayingMessage = false;
+      } else {
+        // Briefly hide before showing next for a "blink" effect
+        innerMessageBox.classList.remove('active');
+        setTimeout(() => displayNextMessage(), 100); // Short delay for blink
+      }
+    }, MESSAGE_DISPLAY_DURATION);
+  } else {
+    innerMessageBox.classList.remove('active');
+    isDisplayingMessage = false;
+  }
+}
+
+function queueMessage(message: string) {
+  if (!message) return;
+  messageQueue.push(message);
+  if (!isDisplayingMessage) {
+    displayNextMessage();
+  }
+}
+
+function removeNameErrorsFromQueue() {
+  // Remove any name-related error messages from the queue
+  const nameErrorKeywords = ['name', 'Name'];
+  messageQueue = messageQueue.filter(
+    (msg) => !nameErrorKeywords.some((keyword) => msg.includes(keyword))
+  );
+}
+
+function hasNameErrorInQueue(): boolean {
+  const nameErrorKeywords = ['name', 'Name'];
+  return messageQueue.some((msg) => nameErrorKeywords.some((keyword) => msg.includes(keyword)));
+}
+
+function isCurrentlyShowingNameError(): boolean {
+  if (!isDisplayingMessage) return false;
+
+  const outerContainer = document.getElementById(LOBBY_MESSAGE_CONTAINER_ID);
+  if (!outerContainer) return false;
+
+  const messageParagraph = outerContainer.querySelector('p');
+  if (!messageParagraph) return false;
+
+  const currentText = messageParagraph.textContent || '';
+  const nameErrorKeywords = ['name', 'Name'];
+  return nameErrorKeywords.some((keyword) => currentText.includes(keyword));
+}
+
+function clearMessageQueueAndHide() {
+  messageQueue = [];
+  if (messageTimeoutId) {
+    clearTimeout(messageTimeoutId);
+    messageTimeoutId = null;
+  }
+  const outerContainer = document.getElementById(LOBBY_MESSAGE_CONTAINER_ID);
+  if (!outerContainer) return;
+  const innerMessageBox = outerContainer.querySelector(
+    '.message-box-content'
+  ) as HTMLElement | null;
+  if (innerMessageBox) {
+    innerMessageBox.classList.remove('active');
+  }
+  isDisplayingMessage = false;
+}
+
 // Helper to safely get value from input elements
 function getInputValue(el: HTMLElement | null): string {
   return el && 'value' in el ? (el as HTMLInputElement).value : '';
@@ -103,19 +201,13 @@ function updateSilhouettesInContainer(
   }
 }
 
-// Helper function to update the contextual player requirement message
-function updatePlayerRequirementMessage() {
+// Validation functions that only check, don't show messages
+function validatePlayerCounts(): { isValid: boolean; message: string } {
   const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
   const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-  const playerRequirementMessage = document.getElementById('player-requirement-message');
 
-  if (!totalPlayersInput || !cpuPlayersInput || !playerRequirementMessage) {
-    return;
-  }
-
-  const messageParagraph = playerRequirementMessage.querySelector('p');
-  if (!messageParagraph) {
-    return;
+  if (!totalPlayersInput || !cpuPlayersInput) {
+    return { isValid: false, message: 'Form inputs not found.' };
   }
 
   const numHumans = parseInt(totalPlayersInput.value || '1', 10);
@@ -123,42 +215,41 @@ function updatePlayerRequirementMessage() {
   const totalPlayers = numHumans + numCPUs;
 
   if (totalPlayers < 2) {
-    playerRequirementMessage.classList.add('message-active');
-    messageParagraph.textContent = 'A minimum of 2 players are required.';
-  } else if (totalPlayers > 4) {
-    playerRequirementMessage.classList.add('message-active');
-    messageParagraph.textContent = 'A maximum of 4 players are allowed.';
-  } else {
-    playerRequirementMessage.classList.remove('message-active');
-    // messageParagraph.textContent = '';
+    return { isValid: false, message: 'Minimum of 2 participants are required.' };
   }
+  if (totalPlayers > 4) {
+    return { isValid: false, message: 'Maximum of 4 players are allowed.' };
+  }
+  return { isValid: true, message: '' };
+}
+
+function validateNameInput(): { isValid: boolean; message: string; name: string } {
+  const nameInput = uiManager.getNameInput();
+  if (!nameInput) {
+    return { isValid: false, message: 'Name input not found.', name: '' };
+  }
+  const name = nameInput.value.trim();
+  if (!name) {
+    return { isValid: false, message: 'Please enter a valid name.', name };
+  }
+  if (name.length < 2) {
+    return { isValid: false, message: 'Name must be at least 2 characters.', name };
+  }
+  return { isValid: true, message: '', name };
+}
+
+// Helper function to update the contextual player requirement message
+function updatePlayerRequirementMessage() {
+  // This function is no longer needed since we're using the queue system
+  // All validation messages are now shown only when Deal button is clicked
+  // Keeping function for compatibility but it does nothing
 }
 
 // Helper function to update the contextual name validation message
-function updateNameValidationMessage(message: string = '', showDefault: boolean = false) {
-  const nameValidationMessage = document.getElementById('name-validation-message');
-  if (!nameValidationMessage) {
-    return;
-  }
-  const messageParagraph = nameValidationMessage.querySelector('p');
-  if (!messageParagraph) {
-    return;
-  }
-
-  let textToShow = '';
-  if (message) {
-    textToShow = message;
-  } else if (showDefault) {
-    textToShow = 'Please enter your name to start.';
-  }
-
-  if (textToShow) {
-    nameValidationMessage.classList.add('message-active');
-    messageParagraph.textContent = textToShow;
-  } else {
-    nameValidationMessage.classList.remove('message-active');
-    // messageParagraph.textContent = '';
-  }
+function updateNameValidationMessage(_message: string = '', _showDefault: boolean = false) {
+  // This function is no longer needed since we're using the queue system
+  // All validation messages are now shown only when Deal button is clicked
+  // Keeping function for compatibility but it does nothing
 }
 
 // Initialize counter button functionality
@@ -346,16 +437,13 @@ export async function initializePageEventListeners() {
       const name = getInputValue(nameInput).trim();
       if (!name) {
         nameInput.focus();
-        updateNameValidationMessage('Please enter a valid name.');
         return;
       }
       if (name.length < 2) {
         nameInput.focus();
-        updateNameValidationMessage('Name must be at least 2 characters.');
         return;
       }
-      // Clear any name validation message if name is valid
-      updateNameValidationMessage();
+      // Name is valid, proceed with join
       state.socket.emit(JOIN_GAME, name);
       setButtonDisabled(createJoinBtn, true);
     };
@@ -546,6 +634,41 @@ export async function initializePageEventListeners() {
 
   // Do not show name validation message on page load
   updateNameValidationMessage();
+
+  // Initialize the validation message queue system - hide any messages on page load
+  clearMessageQueueAndHide();
+
+  // Add real-time validation for the name input field
+  const nameInput = uiManager.getNameInput();
+  if (nameInput) {
+    nameInput.addEventListener('input', () => {
+      const nameValidation = validateNameInput();
+      
+      if (nameValidation.isValid) {
+        // Name is now valid - remove any name errors from queue and hide if currently showing
+        if (hasNameErrorInQueue() || isCurrentlyShowingNameError()) {
+          removeNameErrorsFromQueue();
+          
+          // If currently showing a name error, either hide it or show next message
+          if (isCurrentlyShowingNameError()) {
+            if (messageQueue.length > 0) {
+              // Skip to next message in queue
+              if (messageTimeoutId) {
+                clearTimeout(messageTimeoutId);
+                messageTimeoutId = null;
+              }
+              displayNextMessage();
+            } else {
+              // No more messages, hide the display
+              clearMessageQueueAndHide();
+            }
+          }
+        }
+      }
+      // Removed the else block - don't show errors during typing
+      // Errors will only be shown when "Let's Play" button is clicked
+    });
+  }
 }
 
 // —– UI helper functions —–
@@ -578,95 +701,57 @@ function handleRulesClick() {
 
 function handleDealClick() {
   console.log('🎯 Deal button clicked!');
+  clearMessageQueueAndHide(); // Clear any old messages first
 
-  // === Name validation (restored) ===
-  const nameInput = uiManager.getNameInput();
-  if (!nameInput) {
-    console.error('❌ Name input element not found');
-    return;
+  const nameValidation = validateNameInput();
+  const playerCountValidation = validatePlayerCounts();
+
+  let allValid = true;
+
+  if (!nameValidation.isValid) {
+    queueMessage(nameValidation.message);
+    allValid = false;
   }
-  const name = getInputValue(nameInput).trim();
-  if (!name) {
-    nameInput.focus();
-    updateNameValidationMessage('Please enter a valid name.');
-    return;
-  }
-  if (name.length < 2) {
-    nameInput.focus();
-    updateNameValidationMessage('Name must be at least 2 characters.');
-    return;
-  }
-  // Clear any name validation message if name is valid
-  updateNameValidationMessage();
-
-  // Check if we're already in a game room and game is started
-  if (state.currentRoom && state.myId) {
-    console.log('✅ Already in game room, checking game state...');
-
-    // If we're in a room, try to start the game with current lobby settings
-    const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-    const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-
-    const humanCount = totalPlayersInput ? parseInt(totalPlayersInput.value || '1', 10) : 1;
-    const computerCount = cpuPlayersInput ? parseInt(cpuPlayersInput.value || '0', 10) : 0;
-
-    console.log(
-      `🎯 Starting game with ${humanCount} human players and ${computerCount} CPU players`
-    );
-    state.socket.emit('START_GAME', { computerCount });
-  } else {
-    console.log('✅ Not in game room, need to join/create room first...');
-
-    // Validate lobby form first
-    const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-    const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-
-    if (!totalPlayersInput || !cpuPlayersInput) {
-      console.error('❌ Required form elements not found');
-      return;
-    }
-
-    // --- Get player counts ---
-    const numHumans = parseInt(totalPlayersInput.value, 10) || 1;
-    const numCPUs = parseInt(cpuPlayersInput.value, 10) || 0;
-
-    // --- Validate player counts using our contextual message system ---
-    if (numHumans < 1) {
-      alert('At least one human player is required.');
-      return;
-    }
-    if (numHumans + numCPUs < 2 || numHumans + numCPUs > 4) {
-      // The contextual message should already be showing, just prevent the action
-      return;
-    }
-
-    // --- Join game with player setup ---
-    const playerDataForEmit = {
-      name: name, // Use the validated name
-      numHumans: numHumans,
-      numCPUs: numCPUs,
-    };
-
-    console.log('🎯 Deal button: Joining game with data:', playerDataForEmit);
-    state.socket.emit(JOIN_GAME, playerDataForEmit);
-
-    // Disable the Deal button temporarily to prevent multiple clicks
-    const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
-    if (dealButton) {
-      dealButton.disabled = true;
-      dealButton.textContent = 'Starting...';
-
-      // Re-enable after a delay (will be overridden by game state updates)
-      setTimeout(() => {
-        if (dealButton) {
-          dealButton.disabled = false;
-          dealButton.textContent = 'Deal';
-        }
-      }, 3000);
-    }
+  if (!playerCountValidation.isValid) {
+    queueMessage(playerCountValidation.message);
+    allValid = false;
   }
 
-  console.log('✅ Deal button action completed');
+  if (!allValid) {
+    if (!nameValidation.isValid) {
+      const nameInput = uiManager.getNameInput();
+      if (nameInput) nameInput.focus();
+    }
+    return; // Stop processing if there are errors
+  }
+
+  // --- If all validations pass, proceed with game logic ---
+  const name = nameValidation.name;
+  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+  const numHumans = parseInt(totalPlayersInput.value, 10) || 1;
+  const numCPUs = parseInt(cpuPlayersInput.value, 10) || 0;
+
+  const playerDataForEmit = {
+    name: name,
+    numHumans: numHumans,
+    numCPUs: numCPUs,
+  };
+
+  console.log('🎯 Deal button: Validations passed. Joining game with data:', playerDataForEmit);
+  state.socket.emit(JOIN_GAME, playerDataForEmit);
+
+  const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
+  if (dealButton) {
+    dealButton.disabled = true;
+    dealButton.textContent = 'Starting...';
+    setTimeout(() => {
+      if (dealButton) {
+        dealButton.disabled = false;
+        dealButton.textContent = "Let's Play";
+      }
+    }, 3000);
+  }
 }
 
 // Failsafe: Always hide overlay when hiding rules modal

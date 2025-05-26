@@ -98,20 +98,27 @@ body {
 }
 
 .player-selection {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .player-section {
   background: #f8f9fa;
   border: 2px solid #e9ecef;
   border-radius: 16px;
-  padding: 1.5rem 1rem;
+  padding: 0.75rem;
   text-align: center;
   transition: all 0.3s ease;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 210px;
+  width: auto;
+  box-sizing: border-box;
 }
 
 .player-section:hover {
@@ -130,12 +137,12 @@ body {
   padding: 0;
   box-shadow: none;
   display: block;
-  margin-bottom: 1rem;
-  font-size: 2.6rem; /* Increased from 2.1rem for better readability */
+  margin-bottom: 0.75rem;
+  font-size: 2.2rem;
   font-weight: 900;
   letter-spacing: 0.03em;
   /* Add stroke effect using -webkit-text-stroke for better readability */
-  -webkit-text-stroke: 1.2px #1b2e3c; /* Slightly thicker stroke for larger text */
+  -webkit-text-stroke: 1px #1b2e3c;
 }
 
 .player-counter {
@@ -143,6 +150,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.3rem; /* Much smaller gap to bring buttons closer to number */
+  margin-bottom: 0.75rem;
 }
 
 .counter-btn {
@@ -1468,10 +1476,9 @@ body {
   box-sizing: border-box !important;
 }
 
-/* Styles for the outer containers of validation messages */
-#name-validation-message,
-#player-requirement-message {
-  min-height: 5rem;
+/* Single outer container for lobby validation messages - always reserves space */
+#lobby-validation-message {
+  min-height: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1479,16 +1486,31 @@ body {
   box-sizing: border-box;
 }
 
-/* Styles for the inner content box of the messages */
-.message-box-content {
+/* The actual styled message box */
+#lobby-validation-message .message-box-content {
   visibility: hidden;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.25s ease-in-out;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  width: 280px;
+  text-align: center;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  background-color: #f8d7da;
 }
 
-/* When the PARENT container has 'message-active', the inner box becomes visible */
-#name-validation-message.message-active .message-box-content,
-#player-requirement-message.message-active .message-box-content {
+#lobby-validation-message .message-box-content.active {
   visibility: visible;
   opacity: 1;
+  border-color: #dc3545 !important;
+}
+
+#lobby-validation-message .message-box-content p {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  color: #721c24;
 }
