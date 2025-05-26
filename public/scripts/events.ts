@@ -604,6 +604,26 @@ function handleRulesClick() {
 function handleDealClick() {
   console.log('🎯 Deal button clicked!');
 
+  // === Name validation (restored) ===
+  const nameInput = uiManager.getNameInput();
+  if (!nameInput) {
+    console.error('❌ Name input element not found');
+    return;
+  }
+  const name = getInputValue(nameInput).trim();
+  if (!name) {
+    nameInput.focus();
+    updateNameValidationMessage('Please enter a valid name.');
+    return;
+  }
+  if (name.length < 2) {
+    nameInput.focus();
+    updateNameValidationMessage('Name must be at least 2 characters.');
+    return;
+  }
+  // Clear any name validation message if name is valid
+  updateNameValidationMessage();
+
   // Check if we're already in a game room and game is started
   if (state.currentRoom && state.myId) {
     console.log('✅ Already in game room, checking game state...');
@@ -647,7 +667,7 @@ function handleDealClick() {
 
     // --- Join game with player setup ---
     const playerDataForEmit = {
-      name: 'Player', // Use a default name for now
+      name: name, // Use the validated name
       numHumans: numHumans,
       numCPUs: numCPUs,
     };
