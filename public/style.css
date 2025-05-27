@@ -21,7 +21,7 @@
 }
 
 body {
-  background: #137a4b;
+  background: #137a4b; /* This was --bg, but direct color is fine if intended */
   min-height: 100vh;
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
@@ -82,10 +82,10 @@ body {
 }
 
 .setup-header h2 {
-  font-size: 1.8rem;
+  font-size: 1.8rem; /* User's current preferred size */
   font-weight: 700;
   color: #1b2e3c;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.5rem 0; /* User's current preferred margin */
   text-align: center;
 }
 
@@ -97,44 +97,31 @@ body {
   text-align: center;
 }
 
-.setup-header .header-logo { /* New rules for the container */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 0.5rem; /* Space below logo, before title */
-}
-
-.setup-header .header-logo img {
-  display: block; /* Treat image as a block */
-  width: auto;
-  max-width: 75%; /* Set to 75% of the container's width */
-  object-fit: contain; /* Maintains aspect ratio */
-  margin: 0 auto; 
-}
-
 .player-selection {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  justify-content: center; /* User's current */
+  align-items: flex-start; /* User's current */
+  gap: 1rem; /* User's current */
+  margin-bottom: 1.5rem; /* User's current */
 }
 
 .player-section {
-  background: #f8f9fa;
-  border: 2px solid #e9ecef;
-  border-radius: 16px;
-  padding: 0.75rem;
-  text-align: center;
-  transition: all 0.3s ease;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 210px;
-  width: auto;
-  box-sizing: border-box;
+  background: #f8f9fa; /* User's current */
+  border: 2px solid #e9ecef; /* User's current */
+  border-radius: 12px; /* MODIFIED from 16px */
+  padding: 1.5rem;    /* MODIFIED from 0.75rem */
+  text-align: center; /* User's current */
+  transition: all 0.3s ease; /* User's current */
+  position: relative; /* User's current */
+  display: flex; /* User's current */
+  flex-direction: column; /* User's current */
+  align-items: center; /* User's current */
+  min-height: 210px; /* User's current */
+  width: auto; /* User's current */
+  box-sizing: border-box; /* User's current */
+  /* ADDED */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 1.5rem;
 }
 
 .player-section:hover {
@@ -153,12 +140,11 @@ body {
   padding: 0;
   box-shadow: none;
   display: block;
-  margin-bottom: 0.75rem;
-  font-size: 2.2rem;
-  font-weight: 900;
-  letter-spacing: 0.03em;
-  /* Add stroke effect using -webkit-text-stroke for better readability */
-  -webkit-text-stroke: 1px #1b2e3c;
+  margin-bottom: 0.75rem; /* User's current */
+  font-size: 2.2rem; /* User's current */
+  font-weight: 900; /* User's current */
+  letter-spacing: 0.03em; /* User's current */
+  -webkit-text-stroke: 1px #1b2e3c; /* User's current */
 }
 
 /* Player Counter Container - Adjust spacing if needed */
@@ -207,6 +193,7 @@ body {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+  opacity: 0.7;
 }
 
 .counter-btn:disabled:hover {
@@ -1321,11 +1308,19 @@ body {
 
 /* Header styling for new layout */
 .header-logo {
-  display: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0.25rem; /* Adjusted space below logo */
 }
 
 .header-logo img {
-  display: none;
+  max-width: 60%; /* Adjusted size */
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  width: auto;
 }
 
 /* Modal "Top That!" styling with tighter letter-spacing and colored shadows */
@@ -1373,10 +1368,7 @@ body {
 }
 
 /* Default Deal button styling (golden gradient) */
-.header-btn {
-  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
-  color: #000000 !important; /* Force black text */
-}
+/* .header-btn { } */ /* This was a duplicate comment, removing one */
 
 /* Rules button - bright blue styling */
 #setup-rules-button {
@@ -1397,18 +1389,34 @@ body {
   box-shadow: 0 1px 4px rgba(33, 150, 243, 0.2);
 }
 
-/* Deal button hover state */
-.header-btn:hover {
-  background: linear-gradient(135deg, #e6bb0d 0%, #ffdb4d 100%);
-  border-color: #e6bb0d;
-  color: #000000 !important; /* Maintain black text on hover */
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(245, 207, 23, 0.3);
+/* General button styling for .header-btn class */
+.header-btn {
+  background-color: #007bff; /* Default blue */
+  color: white;
+  border: none;
+  padding: 1rem 2rem; /* Increased padding */
+  font-size: 1.4rem; /* Increased font size */
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  text-transform: none; /* Ensure specific styling, not global */
+  letter-spacing: normal; /* Ensure specific styling, not global */
+}
+
+/* Deal button hover state & general .header-btn hover/focus */
+.header-btn:hover,
+.header-btn:focus {
+  background-color: #0056b3; /* Darker blue */
+  outline: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .header-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(245, 207, 23, 0.2);
+  background-color: #004da0; /* Even darker blue for active */
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+  transform: translateY(1px);
 }
 
 /* Player count help text */
@@ -1422,34 +1430,26 @@ body {
 
 /* Name Input Section */
 .name-input-section {
-  margin-bottom: 2rem;
-  width: 100%;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: center;
 }
 
-.name-input-section input {
-  width: 200px;
-  padding: 0.8rem 1rem;
-  border: 2px solid #ffc300;
+/* Styling for the actual input field, replacing .name-input-section input */
+#player-name-input {
+  font-size: 1.8rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #ccc;
   border-radius: 8px;
-  font-size: 1rem;
   text-align: center;
-  background: #ffffff;
-  color: #1b2e3c;
-  transition: all 0.2s ease;
+  width: 80%;
+  max-width: 400px;
   box-sizing: border-box;
 }
 
-.name-input-section input:focus {
-  outline: none;
-  border-color: #e6b000;
-  box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.2);
-}
-
-.name-input-section input::placeholder {
-  color: #555;
-  font-style: italic;
+#player-name-input::placeholder {
+  color: #999;
+  font-weight: normal;
 }
 
 /* --- Player Silhouette Icon Sizing (authoritative) --- */
@@ -1560,4 +1560,10 @@ body {
   font-size: 1.1rem;
   line-height: 1.2;
   color: #721c24;
+}
+
+/* Rule for the action buttons container gap */
+#lobby-form > div[style*="justify-content: center"][style*="gap: 0.7rem"] {
+  gap: 1.5rem !important;
+  margin-top: 1.5rem !important;
 }
