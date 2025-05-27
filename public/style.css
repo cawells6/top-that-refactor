@@ -1322,7 +1322,7 @@ body {
 }
 
 .header-logo img {
-  max-width: 60%; /* Adjusted size */
+  max-width: 51%; /* Reduced by 15% from 60% */
   object-fit: contain;
   display: block;
   margin: 0 auto;
