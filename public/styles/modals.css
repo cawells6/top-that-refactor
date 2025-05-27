@@ -46,7 +46,7 @@
 .rules-modal-content {
   /* Inherited from .game-setup-card */
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  color: #1b2e3c;
+  color: #333; /* Darker text for better contrast */
   border-radius: 24px;
   border: 3px solid #ffc300;
   box-shadow:
@@ -54,17 +54,17 @@
     0 8px 25px rgba(0, 0, 0, 0.1),
     0 0 0 1px rgba(255, 195, 0, 0.2);
 
-  /* Existing modal-specific styles (keep these or adjust) */
-  font-size: 1.1rem; /* Adjusted for better readability in the new design */
-  line-height: 1.6; /* Adjusted for better readability */
-  padding: 2rem 2.5rem; /* Consistent padding with game-setup-card */
-  max-width: 960px; /* Consistent with game-setup-card width */
-  width: 90vw; /* Responsive width */
-  max-height: 90vh; /* Limit height and enable scroll */
+  /* Improved typography and readability */
+  font-size: 1.1rem;
+  line-height: 1.5; /* Improved line spacing for better readability */
+  padding: 2rem 2.5rem;
+  max-width: 960px;
+  width: 90vw;
+  max-height: 90vh;
   overflow-y: auto;
   box-sizing: border-box;
-  position: relative; /* For absolute positioning of close button */
-  font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; /* More readable font stack */
+  position: relative;
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* Professional font stack */
 }
 
 /* Style the header within the rules modal like .setup-header */
@@ -92,19 +92,19 @@
 
 /* Common style for buttons inside .rules-modal-content, mirroring .header-btn */
 .rules-modal-content .btn {
-  padding: 1rem 2rem;         /* Match .header-btn */
-  border-radius: 8px;         /* Match .header-btn */
-  font-size: 1.4rem;          /* Match .header-btn */
-  font-weight: bold;          /* Match .header-btn */
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: none;       /* Match .header-btn */
-  letter-spacing: normal;     /* Match .header-btn */
-  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   border: none;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  display: inline-block;      /* Important for width: auto and text-align:center on parent */
-  width: auto;                /* Ensure width is based on content */
+  display: inline-block;
+  width: auto;
 }
 
 .rules-modal-content .btn:hover {
@@ -117,14 +117,21 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* "Expand All" Button - styled like Lobby's "RULES" button */
+/* "Expand All" Button - styled with gold theme to match branding */
 #expand-collapse-all-btn {
-  background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c;
   margin-bottom: 1.1rem;
   text-transform: uppercase;
-  /* Ensure other properties (width, display, padding, font styles) are inherited from .rules-modal-content .btn */
-  /* Any explicit overrides for these that were here should be removed or commented out. */
+  font-weight: bold;
+  border: 2px solid #e6af00;
+  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.3);
+}
+
+#expand-collapse-all-btn:hover {
+  background: linear-gradient(135deg, #e6af00 0%, #ffc300 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 195, 0, 0.4);
 }
 
 /* "Got It!" Button - styled like Lobby\'s "LET\'S PLAY" button */
@@ -143,8 +150,15 @@
   color: #1b2e3c; 
   margin-top: 1.2rem;
   text-transform: uppercase;
-  /* All other layout and font styles (width, display, font-size, padding, text-transform, etc.) */
-  /* should be inherited from .rules-modal-content .btn to match the "LET'S PLAY" button. */
+  font-weight: bold;
+  border: 2px solid #e6af00;
+  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.3);
+}
+
+#rules-gotit-btn:hover {
+  background: linear-gradient(135deg, #e6af00 0%, #ffc300 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 195, 0, 0.4);
 }
 
 /* Shared style for button size and alignment */
@@ -164,12 +178,33 @@
 
 /* Refined Rules Section Styling */
 .rules-container {
-  /* font-family: inherit; */ /* Ensure this inherits from .rules-modal-content or is set consistently */
-  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-  line-height: 1.7; 
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5; /* Improved line spacing */
   padding: 10px 0 0 0;
-  color: #333;
-  text-align: center; /* This centers inline-block children */
+  color: #333; /* Darker text for better contrast */
+  text-align: center;
+}
+
+/* Improved headings */
+.rules-container h1,
+.rules-container h2,
+.rules-container h3 {
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: bold;
+  color: #222; /* Even darker for headings */
+}
+
+.rules-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.025em; /* Improved letter spacing for slogan/titles */
+  color: #1b2e3c;
+}
+
+.rules-container h3 {
+  font-size: 1.2rem;
+  margin: 0;
+  display: inline;
 }
 
 .rules-section {
@@ -179,33 +214,38 @@
   margin-bottom: 1rem;
   overflow: hidden;
   transition: all 0.3s ease;
+  text-align: left; /* Left-align content within sections */
 }
 
 .rules-section:hover {
   border-color: #ffc300;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.15);
 }
 
 .rules-summary {
   padding: 1rem 1.25rem;
   font-weight: 600;
   cursor: pointer;
-  background-color: #e9ecef;
+  background-color: #e3e6ea; /* Darker grey for better contrast */
   outline: none;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #1b2e3c;
-  font-size: 1.15em; /* Slightly larger summary font */
+  color: #1b2e3c; /* Even darker text for better readability */
+  font-size: 1.15em;
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  border-bottom: 1px solid #d1d5db; /* Subtle border for definition */
 }
 
 .rules-summary:hover {
-  background-color: #dee2e6;
+  background-color: #d1d5db;
+  color: #0f1419; /* Very dark text on hover */
 }
 
 .rules-section[open] .rules-summary {
-  background-color: #d1d5db;
+  background-color: #c6cbd1; /* Darker when expanded */
   border-bottom: 1px solid #adb5bd;
+  color: #0f1419;
 }
 
 .rules-summary::after { /* Chevron styling */
@@ -227,18 +267,42 @@
   color: #212529;
 }
 
-.rules-details-content ul,
-.rules-details-content ol {
-  padding-left: 1.5rem;
-  margin-top: 0.5rem;
+/* Improved bullet points with gold styling */
+.rules-details-content ul {
+  list-style: none;
+  padding-left: 2rem; /* Increased indentation */
+  margin-top: 0.8rem;
 }
 
-.rules-details-content li {
-  margin-bottom: 0.6rem;
+.rules-details-content ol {
+  padding-left: 1.5rem;
+  margin-top: 0.8rem;
+}
+
+.rules-details-content ul li {
+  position: relative;
+  margin-bottom: 0.8rem; /* Increased spacing between items */
+  line-height: 1.6; /* Better line spacing */
+}
+
+.rules-details-content ul li::before {
+  content: "●"; /* Solid bullet */
+  color: #ffc300; /* Gold bullet matching the theme */
+  font-weight: bold;
+  font-size: 1.1em;
+  position: absolute;
+  left: -1.5rem;
+  top: 0;
+}
+
+.rules-details-content ol li {
+  margin-bottom: 0.8rem;
+  line-height: 1.6;
 }
 
 .rules-details-content strong {
-  color: #0056b3;
+  color: #1b2e3c; /* Dark color for better contrast */
+  font-weight: 700; /* Bolder weight for key points */
 }
 
 .rules-hr {
