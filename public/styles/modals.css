@@ -92,17 +92,19 @@
 
 /* Common style for buttons inside .rules-modal-content, mirroring .header-btn */
 .rules-modal-content .btn {
-  padding: 0.8rem 1.8rem;
-  border-radius: 10px;
-  font-size: 1.2rem;
-  font-weight: 700;
+  padding: 1rem 2rem;         /* Match .header-btn */
+  border-radius: 8px;         /* Match .header-btn */
+  font-size: 1.4rem;          /* Match .header-btn */
+  font-weight: bold;          /* Match .header-btn */
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-family: inherit;
+  text-transform: none;       /* Match .header-btn */
+  letter-spacing: normal;     /* Match .header-btn */
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
   border: none;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: inline-block;      /* Important for width: auto and text-align:center on parent */
+  width: auto;                /* Ensure width is based on content */
 }
 
 .rules-modal-content .btn:hover {
@@ -119,38 +121,38 @@
 #expand-collapse-all-btn {
   background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
   color: #ffffff;
-  width: auto; /* Make button width fit content */
   margin-bottom: 1.1rem;
-  display: inline-block; /* Adjust display for auto width */
-  padding-left: 2rem; /* Add some padding */
-  padding-right: 2rem; /* Add some padding */
+  /* Ensure other properties (width, display, padding, font styles) are inherited from .rules-modal-content .btn */
+  /* Any explicit overrides for these that were here should be removed or commented out. */
 }
 
-#expand-collapse-all-btn:hover {
-  background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
-}
+/* "Got It!" Button - styled like Lobby\'s "LET\'S PLAY" button */
+/* #rules-gotit-btn {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 1.2rem;
+  font-size: 1.1rem;
+  display: block;
+} */
 
-/* "Got It!" Button - styled like Lobby's "LET'S PLAY" button */
 #rules-gotit-btn {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
-  color: #1b2e3c;
-  width: auto; /* Make button width fit content */
+  color: #1b2e3c; 
   margin-top: 1.2rem;
-  display: inline-block; /* Adjust display for auto width */
-  padding-left: 2rem; /* Add some padding */
-  padding-right: 2rem; /* Add some padding */
-}
-
-#rules-gotit-btn:hover {
-  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  /* All other layout and font styles (width, display, font-size, padding, text-transform, etc.) */
+  /* should be inherited from .rules-modal-content .btn to match the "LET'S PLAY" button. */
 }
 
 /* Refined Rules Section Styling */
 .rules-container {
-  font-family: inherit; /* Inherit from .rules-modal-content for consistency */
-  line-height: 1.7; /* Slightly increased line-height for better readability */
+  /* font-family: inherit; */ /* Ensure this inherits from .rules-modal-content or is set consistently */
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  line-height: 1.7; 
   padding: 10px 0 0 0;
   color: #333;
+  text-align: center; /* This centers inline-block children */
 }
 
 .rules-section {

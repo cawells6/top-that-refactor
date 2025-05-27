@@ -18,13 +18,15 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 const DEFAULT_PORT: number = 3000;
-const MAX_RETRIES = 10;
+const MAX_RETRIES = 30; // Increased from 10 for more robust port selection
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : DEFAULT_PORT;
 
+let server: http.Server | null = null; // Define server variable here
+
 function startServer(port: number, retries = 0) {
-  // Create a single HTTP server
-  const server = http.createServer(app);
+  // Create a single HTTP server and assign to the outer server variable
+  server = http.createServer(app);
   // Attach Socket.IO to the same HTTP server
   const io: SocketIOServer = new SocketIOServer(server, { cors: { origin: '*' } });
   // Instantiate your game room manager (multi-room support)
@@ -48,3 +50,26 @@ function startServer(port: number, retries = 0) {
 }
 
 startServer(PORT);
+
+// Graceful shutdown logic
+const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGQUIT'];
+signals.forEach((signal) => {
+  process.on(signal, () => {
+    console.log(`\n${signal} signal received: closing HTTP server...`);
+    if (server) {
+      server.close((err) => {
+        if (err) {
+          console.error('Error closing server:', err);
+          process.exit(1); // Exit with error
+        }
+        console.log('HTTP server closed.');
+        process.exit(0); // Exit gracefully
+      });
+    } else {
+      console.log('HTTP server not initialized or already closed.');
+      process.exit(0);
+    }
+  });
+});
+
+// Another test comment to trigger reload

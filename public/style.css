@@ -670,16 +670,6 @@ body {
   display: block;
 }
 
-#rules-gotit-btn {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  box-sizing: border-box;
-  margin-top: 1.2rem;
-  font-size: 1.1rem;
-  display: block;
-}
-
 /* --- Card Layout for Game Table --- */
 .player-area .hand,
 .player-area .opp-hand,
