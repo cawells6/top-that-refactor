@@ -43,8 +43,20 @@ function startServer(port: number, retries = 0) {
     }
   });
 
+  // Log every port attempt
+  const logMsg = `Attempting to start server on port ${port}...`;
+  // Print a clear separator for visibility
+  console.log('\n==============================');
+  console.log(logMsg);
+  console.log('==============================\n');
+  fs.appendFileSync('server.log', logMsg + '\n', 'utf-8');
   server.listen(port, () => {
-    console.log(`🃏 Top That! server running at http://localhost:${port}`);
+    const successMsg = `🃏 Top That! server running at http://localhost:${port}`;
+    // Print a clear separator for visibility
+    console.log('\n==============================');
+    console.log(successMsg);
+    console.log('==============================\n');
+    fs.appendFileSync('server.log', successMsg + '\n', 'utf-8');
     fs.writeFileSync('current-port.txt', port.toString(), 'utf-8');
   });
 }
@@ -52,7 +64,7 @@ function startServer(port: number, retries = 0) {
 startServer(PORT);
 
 // Graceful shutdown logic
-const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGQUIT'];
+const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGQUIT', 'SIGUSR2'];
 signals.forEach((signal) => {
   process.on(signal, () => {
     console.log(`\n${signal} signal received: closing HTTP server...`);
@@ -63,13 +75,22 @@ signals.forEach((signal) => {
           process.exit(1); // Exit with error
         }
         console.log('HTTP server closed.');
-        process.exit(0); // Exit gracefully
+        if (signal === 'SIGUSR2') {
+          // Nodemon expects the process to exit and will restart it
+          process.kill(process.pid, 'SIGUSR2');
+        } else {
+          process.exit(0); // Exit gracefully
+        }
       });
     } else {
       console.log('HTTP server not initialized or already closed.');
-      process.exit(0);
+      if (signal === 'SIGUSR2') {
+        process.kill(process.pid, 'SIGUSR2');
+      } else {
+        process.exit(0);
+      }
     }
   });
 });
 
-// Another test comment to trigger reload
+// Test: innocuous change to trigger Nodemon restart
