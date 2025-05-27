@@ -64,6 +64,7 @@
   overflow-y: auto;
   box-sizing: border-box;
   position: relative; /* For absolute positioning of close button */
+  font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; /* More readable font stack */
 }
 
 /* Style the header within the rules modal like .setup-header */
@@ -118,9 +119,11 @@
 #expand-collapse-all-btn {
   background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
   color: #ffffff;
-  width: 100%;
+  width: auto; /* Make button width fit content */
   margin-bottom: 1.1rem;
-  display: block;
+  display: inline-block; /* Adjust display for auto width */
+  padding-left: 2rem; /* Add some padding */
+  padding-right: 2rem; /* Add some padding */
 }
 
 #expand-collapse-all-btn:hover {
@@ -131,9 +134,11 @@
 #rules-gotit-btn {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c;
-  width: 100%;
+  width: auto; /* Make button width fit content */
   margin-top: 1.2rem;
-  display: block;
+  display: inline-block; /* Adjust display for auto width */
+  padding-left: 2rem; /* Add some padding */
+  padding-right: 2rem; /* Add some padding */
 }
 
 #rules-gotit-btn:hover {
@@ -142,8 +147,8 @@
 
 /* Refined Rules Section Styling */
 .rules-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
+  font-family: inherit; /* Inherit from .rules-modal-content for consistency */
+  line-height: 1.7; /* Slightly increased line-height for better readability */
   padding: 10px 0 0 0;
   color: #333;
 }
@@ -172,7 +177,7 @@
   justify-content: space-between;
   align-items: center;
   color: #1b2e3c;
-  font-size: 1.1em;
+  font-size: 1.15em; /* Slightly larger summary font */
 }
 
 .rules-summary:hover {
@@ -198,7 +203,8 @@
 .rules-details-content {
   padding: 1.25rem;
   border-top: none;
-  font-size: 1rem;
+  font-size: 1.05rem; /* Slightly larger detail font */
+  line-height: 1.7; /* Ensure consistent line height */
   color: #212529;
 }
 
