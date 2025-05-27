@@ -23,7 +23,7 @@
     "dev:multi": "concurrently \"cross-env PORT=3000 node --loader ts-node/esm ./server.ts\" \"cross-env PORT=8080 node --loader ts-node/esm ./server.ts\"",
     "dev:server": "nodemon --watch ./ --ext ts --exec \"node --loader ts-node/esm ./server.ts\"",
     "dev:all": "chokidar \"src/**/*\" \"public/**/*\" -c \"npm run dev:all:raw\" --initial",
-    "dev:all:raw": "concurrently -k -s first \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:all:raw": "concurrently --kill-others-on-fail --raw -k -s first \"npm run dev:server\" \"npm run dev:client\"",
     "dev:all:clean": "npm run wait && concurrently -k -s first \"npm run dev:server\" \"npm run dev:client\"",
     "wait": "node wait.js",
     "dev:all:watch": "chokidar \"src/**/*\" \"public/**/*\" -c \"npm run dev:all\" --initial"

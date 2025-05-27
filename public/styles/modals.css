@@ -44,191 +44,199 @@
 
 /* --- Make rules modal and content larger and more readable --- */
 .rules-modal-content {
-  font-size: 1.32rem !important; /* Slightly larger text for bigger modal */
-  line-height: 1.75;
-  padding: 1.7rem 2.2rem 2.2rem 2.2rem !important;
-  max-width: 1200px !important; /* 50% bigger than 800px */
-  min-width: 0 !important;
-  width: 95vw !important;
-  max-height: 88vh !important;
-  overflow-y: auto !important;
-  box-sizing: border-box;
-  background: #1b2e3c;
-  color: #fff;
-  border-radius: 14px;
-  border: 2px solid #ffc300;
+  /* Inherited from .game-setup-card */
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  color: #1b2e3c;
+  border-radius: 24px;
+  border: 3px solid #ffc300;
   box-shadow:
-    0 8px 32px 0 rgba(0, 0, 0, 0.25),
-    0 1.5px 6px 0 #ffc30044;
-  position: relative;
+    0 20px 60px rgba(0, 0, 0, 0.15),
+    0 8px 25px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 195, 0, 0.2);
+
+  /* Existing modal-specific styles (keep these or adjust) */
+  font-size: 1.1rem; /* Adjusted for better readability in the new design */
+  line-height: 1.6; /* Adjusted for better readability */
+  padding: 2rem 2.5rem; /* Consistent padding with game-setup-card */
+  max-width: 960px; /* Consistent with game-setup-card width */
+  width: 90vw; /* Responsive width */
+  max-height: 90vh; /* Limit height and enable scroll */
+  overflow-y: auto;
+  box-sizing: border-box;
+  position: relative; /* For absolute positioning of close button */
 }
 
-.modal-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100%;
+/* Style the header within the rules modal like .setup-header */
+.rules-modal-content .modal-header {
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+  padding: 0.5rem 1rem; /* Adjusted padding for a slightly more spacious header */
   text-align: center;
+  margin-bottom: 1rem; /* Increased margin for better separation */
+  border-radius: 18px 18px 0 0; /* Rounded top corners, matching the card */
+  width: calc(100% + 5rem); /* Extend to full width considering parent padding */
+  margin-left: -2.5rem; /* Counteract parent padding */
+  margin-right: -2.5rem; /* Counteract parent padding */
+  margin-top: -2rem; /* Pull header to the top of the card */
+  border-bottom: 2px solid #ffc300; /* Accent border at the bottom of the header */
 }
 
-.modal-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto !important;
-  width: 100%;
-  text-align: center;
-}
-
-.modal-logo img {
-  display: block;
-  margin: 0 auto !important;
-  height: 200px !important; /* Match the inline style */
-  width: auto !important;
-  max-width: 100% !important;
+/* Style the logo within the rules modal header like .header-logo img */
+.rules-modal-content .modal-logo img {
+  max-width: 45%; /* Adjusted from 51% for visual balance in modal */
+  height: auto; /* Maintain aspect ratio */
   object-fit: contain;
+  display: block;
+  margin: 0.5rem auto; /* Center logo and add some vertical spacing */
 }
 
-.rules-modal-title {
-  color: #ffc300;
-  font-size: 2.4rem !important;
-  margin-bottom: 1.7rem;
-  text-align: center;
-  letter-spacing: 0.01em;
-  border-bottom: 1px solid #ffc30044;
-  padding-bottom: 0.5rem;
-}
-
-.rules-section {
-  margin-bottom: 1.3rem;
-}
-
-.rules-section-title {
-  color: #ffc300;
-  font-size: 1.32rem !important;
-  margin-bottom: 0.8rem;
+/* Common style for buttons inside .rules-modal-content, mirroring .header-btn */
+.rules-modal-content .btn {
+  padding: 0.8rem 1.8rem;
+  border-radius: 10px;
+  font-size: 1.2rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
-}
-
-.rules-list {
-  list-style: disc outside;
-  padding-left: 1.5em;
-  margin-bottom: 0;
-  font-size: 1.18rem !important;
-}
-
-.rules-list > li:not(:last-child) {
-  border-bottom: none;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0;
-  box-shadow: none;
-}
-
-.rules-list > li {
-  position: relative;
-  text-indent: 0;
-  padding-left: 0.2em;
-}
-
-.rules-list > li > ul {
-  margin-top: 0.4rem;
-  margin-bottom: 0.2rem;
-}
-
-.rules-list li,
-.rules-sublist li {
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
-  text-indent: 0;
-}
-
-.rules-sublist {
-  list-style: circle outside;
-  margin-left: 2em;
-  color: #fff;
-  font-size: 1.18rem !important;
-  margin-top: 0.2rem;
-  padding-left: 0.5em;
-}
-
-.rules-special {
-  color: #ffc300;
-  font-weight: bold;
-  font-size: 1.08em;
-}
-
-/* --- Emoji and label styling for rules modal --- */
-.rules-emoji {
-  font-size: 1.25em;
-  vertical-align: middle;
-  margin-right: 0.25em;
-  display: inline-block;
-  width: 1.3em;
-  text-align: center;
-}
-
-.rules-label {
-  color: #ffc300;
-  font-size: 0.98em;
-  font-weight: 600;
-  margin-right: 0.3em;
-  margin-left: 0.1em;
-  letter-spacing: 0.01em;
-}
-
-.rules-modal-content img.rules-icon {
-  width: 2.2em !important;
-  height: 2.2em !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  max-width: 2.2em !important;
-  max-height: 2.2em !important;
-  vertical-align: middle;
-  margin-right: 0.5em;
-  border: 2px solid #ffc300;
-  border-radius: 7px;
-  padding: 3px;
-  background: #fff;
-  box-shadow: 0 0 8px #ffc30055;
-}
-
-#expand-collapse-all-btn {
-  margin-bottom: 1.1rem;
-  font-size: 1.08rem;
-  font-weight: 600;
-  background: #ffc300;
-  color: #222;
-  border: none;
-  border-radius: 7px;
-  box-shadow: 0 2px 8px #ffc30033;
-  transition: background 0.2s;
   cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-family: inherit;
+  border: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.rules-modal-content .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.rules-modal-content .btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* "Expand All" Button - styled like Lobby's "RULES" button */
+#expand-collapse-all-btn {
+  background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
+  color: #ffffff;
+  width: 100%;
+  margin-bottom: 1.1rem;
+  display: block;
 }
 
 #expand-collapse-all-btn:hover {
-  background: #ffb000;
+  background: linear-gradient(135deg, #1976D2 0%, #42A5F5 100%);
 }
 
-@media (max-width: 600px) {
-  .rules-modal-content {
-    max-width: 99vw !important;
-    max-height: 94vh !important;
-    padding: 1.2rem 0.5rem 1.2rem 0.5rem !important;
-    font-size: 1.09rem !important;
-  }
-
-  .rules-modal-title {
-    font-size: 1.6rem !important;
-  }
-
-  .rules-modal-content img.rules-icon {
-    width: 1.5em !important;
-    height: 1.5em !important;
-    max-width: 1.5em !important;
-    max-height: 1.5em !important;
-  }
+/* "Got It!" Button - styled like Lobby's "LET'S PLAY" button */
+#rules-gotit-btn {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c;
+  width: 100%;
+  margin-top: 1.2rem;
+  display: block;
 }
+
+#rules-gotit-btn:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+}
+
+/* Refined Rules Section Styling */
+.rules-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  padding: 10px 0 0 0;
+  color: #333;
+}
+
+.rules-section {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.rules-section:hover {
+  border-color: #ffc300;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.rules-summary {
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #e9ecef;
+  outline: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #1b2e3c;
+  font-size: 1.1em;
+}
+
+.rules-summary:hover {
+  background-color: #dee2e6;
+}
+
+.rules-section[open] .rules-summary {
+  background-color: #d1d5db;
+  border-bottom: 1px solid #adb5bd;
+}
+
+.rules-summary::after { /* Chevron styling */
+  content: '\25B6'; /* Right-pointing triangle (CSS escaped) */
+  font-size: 0.8em;
+  transition: transform 0.2s ease-in-out;
+  color: #1b2e3c;
+}
+
+.rules-section[open] .rules-summary::after {
+  transform: rotate(90deg);
+}
+
+.rules-details-content {
+  padding: 1.25rem;
+  border-top: none;
+  font-size: 1rem;
+  color: #212529;
+}
+
+.rules-details-content ul,
+.rules-details-content ol {
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.rules-details-content li {
+  margin-bottom: 0.6rem;
+}
+
+.rules-details-content strong {
+  color: #0056b3;
+}
+
+.rules-hr {
+  display: none; /* Hide <hr> if sections are visually distinct enough */
+}
+
+.rules-modal-content .modal__close-button {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: #1b2e3c;
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.rules-modal-content .modal__close-button:hover {
+  opacity: 1;
+}
+
+/* ... any other existing modal styles ... */
