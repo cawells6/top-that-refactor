@@ -25,68 +25,70 @@
       <!-- Lobby Screen -->
       <div class="lobby" id="lobby-container">
         <div class="game-setup-card">
-          <div class="setup-header">
-            <!-- Logo using logo and slogan.svg -->
-            <div class="header-logo">
-              <img 
-                src="/assets/logo and slogan.svg?v=2024" 
-                alt="Top That! Logo and Slogan" 
-                onload="console.log('Logo loaded successfully:', this.src);"
-                onerror="console.error('Logo failed to load:', this.src);" />
+          <div class="game-setup-content">
+            <div class="setup-header">
+              <!-- Logo using logo and slogan.svg -->
+              <div class="header-logo">
+                <img 
+                  src="/assets/logo and slogan.svg?v=2024" 
+                  alt="Top That! Logo and Slogan" 
+                  onload="console.log('Logo loaded successfully:', this.src);"
+                  onerror="console.error('Logo failed to load:', this.src);" />
+              </div>
             </div>
+            
+            <form id="lobby-form" autocomplete="off">
+              <!-- Player Name Input -->
+              <div class="name-input-section">
+                <input type="text" id="player-name-input" placeholder="Who's playing today?" maxlength="20" required />
+              </div>
+              
+
+              
+              <div class="player-selection">
+                <!-- Human Players Section -->
+                <div class="player-section">
+                  <h3 class="section-title">Users</h3>
+                  <div class="player-counter">
+                    <button type="button" class="counter-btn" id="humans-minus" data-target="total-players-input">−</button>
+                    <input type="number" id="total-players-input" min="1" max="4" value="1" readonly />
+                    <button type="button" class="counter-btn" id="humans-plus" data-target="total-players-input">+</button>
+                  </div>
+                  <!-- Dynamic Human Player Silhouettes -->
+                  <div class="player-silhouettes" id="human-silhouettes">
+                    <!-- Silhouettes will be dynamically added/removed here -->
+                  </div>
+                </div>
+
+                <!-- Bots Players Section -->
+                <div class="player-section">
+                  <h3 class="section-title">Bots</h3>
+                  <div class="player-counter">
+                    <button type="button" class="counter-btn" id="cpus-minus" data-target="cpu-players-input">−</button>
+                    <input type="number" id="cpu-players-input" min="0" value="0" readonly />
+                    <button type="button" class="counter-btn" id="cpus-plus" data-target="cpu-players-input">+</button>
+                  </div>
+                  <!-- Dynamic Bots Player Silhouettes -->
+                  <div class="player-silhouettes" id="cpu-silhouettes">
+                    <!-- Silhouettes will be dynamically added/removed here -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Single lobby validation message area - always reserves space -->
+              <div id="lobby-validation-message" style="display: flex; justify-content: center; margin: 1rem 0;">
+                <div class="message-box-content" style="padding: 1rem; border: 2px solid transparent; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center; background-color: #f8d7da;">
+                  <p style="margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: #721c24;"></p>
+                </div>
+              </div>
+
+              <!-- Move Rules and Deal buttons to bottom with reduced spacing -->
+              <div class="lobby-buttons-row">
+                <button id="setup-rules-button" class="header-btn" type="button">RULES</button>
+                <button id="setup-deal-button" class="header-btn" type="button">LET'S PLAY</button>
+              </div>
+            </form>
           </div>
-          
-          <form id="lobby-form" autocomplete="off">
-            <!-- Player Name Input -->
-            <div class="name-input-section">
-              <input type="text" id="player-name-input" placeholder="Who's playing today?" maxlength="20" required />
-            </div>
-            
-
-            
-            <div class="player-selection">
-              <!-- Human Players Section -->
-              <div class="player-section">
-                <h3 class="section-title">Users</h3>
-                <div class="player-counter">
-                  <button type="button" class="counter-btn" id="humans-minus" data-target="total-players-input">−</button>
-                  <input type="number" id="total-players-input" min="1" max="4" value="1" readonly />
-                  <button type="button" class="counter-btn" id="humans-plus" data-target="total-players-input">+</button>
-                </div>
-                <!-- Dynamic Human Player Silhouettes -->
-                <div class="player-silhouettes" id="human-silhouettes">
-                  <!-- Silhouettes will be dynamically added/removed here -->
-                </div>
-              </div>
-
-              <!-- Bots Players Section -->
-              <div class="player-section">
-                <h3 class="section-title">Bots</h3>
-                <div class="player-counter">
-                  <button type="button" class="counter-btn" id="cpus-minus" data-target="cpu-players-input">−</button>
-                  <input type="number" id="cpu-players-input" min="0" value="0" readonly />
-                  <button type="button" class="counter-btn" id="cpus-plus" data-target="cpu-players-input">+</button>
-                </div>
-                <!-- Dynamic Bots Player Silhouettes -->
-                <div class="player-silhouettes" id="cpu-silhouettes">
-                  <!-- Silhouettes will be dynamically added/removed here -->
-                </div>
-              </div>
-            </div>
-
-            <!-- Single lobby validation message area - always reserves space -->
-            <div id="lobby-validation-message" style="display: flex; justify-content: center; margin: 1rem 0;">
-              <div class="message-box-content" style="padding: 1rem; border: 2px solid transparent; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center; background-color: #f8d7da;">
-                <p style="margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: #721c24;"></p>
-              </div>
-            </div>
-
-            <!-- Move Rules and Deal buttons to bottom with reduced spacing -->
-            <div class="lobby-buttons-row">
-              <button id="setup-rules-button" class="header-btn" type="button">RULES</button>
-              <button id="setup-deal-button" class="header-btn" type="button">LET'S PLAY</button>
-            </div>
-          </form>
         </div>
         <div id="waiting-state" class="hidden" style="width: 100%; text-align: center;">
           <h3 id="waiting-heading">Waiting for players...</h3>

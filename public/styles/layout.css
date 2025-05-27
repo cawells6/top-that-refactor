@@ -47,14 +47,7 @@
   padding: 0;
 }
 
-.game-setup-card {
-  background: rgba(27, 46, 60, 0.95);
-  border: 2px solid #fff;
-  border-radius: 12px;
-  padding: 0rem 2rem 2rem 2rem; /* Reduced top padding further */
-  margin: 0 auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
+/* .game-setup-card styling moved to style.css to match rules modal blue background */
 
 .setup-header {
   text-align: center;

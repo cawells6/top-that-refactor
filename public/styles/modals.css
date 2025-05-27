@@ -43,6 +43,7 @@
 }
 
 /* --- Make rules modal and content larger and more readable --- */
+
 .rules-modal-content {
   /* Inherited from .game-setup-card */
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -67,9 +68,9 @@
   font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* Professional font stack */
 }
 
-/* Style the header within the rules modal like .setup-header */
+/* Style the header within the rules modal with white background like lobby */
 .rules-modal-content .modal-header {
-  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%); /* White background like lobby header */
   padding: 0.5rem 1rem; /* Adjusted padding for a slightly more spacious header */
   text-align: center;
   margin-bottom: 1rem; /* Increased margin for better separation */
@@ -81,13 +82,25 @@
   border-bottom: 2px solid #ffc300; /* Accent border at the bottom of the header */
 }
 
+/* Style the logo container within the rules modal header to have white background */
+.rules-modal-content .modal-logo {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 0.5rem auto;
+  display: block;
+  width: 70%;
+  text-align: center;
+}
+
 /* Style the logo within the rules modal header like .header-logo img */
 .rules-modal-content .modal-logo img {
-  max-width: 45%; /* Adjusted from 51% for visual balance in modal */
+  max-width: 85%; /* Generous width within the white container */
   height: auto; /* Maintain aspect ratio */
   object-fit: contain;
   display: block;
-  margin: 0.5rem auto; /* Center logo and add some vertical spacing */
+  margin: 0 auto; /* Center logo within the white container */
+  width: auto;
 }
 
 /* Common style for buttons inside .rules-modal-content, mirroring .header-btn */
