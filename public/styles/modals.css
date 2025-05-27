@@ -23,7 +23,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: transparent;
   z-index: 999;
 }
 
@@ -169,11 +169,11 @@
   border-radius: 8px;
   font-size: 1.4rem;
   font-weight: bold;
-  display: inline-block;
+  display: block;
   width: auto;
   text-align: center;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Refined Rules Section Styling */
@@ -292,7 +292,13 @@
   font-size: 1.1em;
   position: absolute;
   left: -1.5rem;
-  top: 0;
+  top: -0.05em; /* Slight upward adjustment for better alignment */
+  line-height: 1.6; /* Match the line-height of the text */
+  text-shadow: 
+    -1px -1px 0 #000,  
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000; /* Black outline for better readability */
 }
 
 .rules-details-content ol li {
