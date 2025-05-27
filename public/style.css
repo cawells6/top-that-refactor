@@ -97,6 +97,22 @@ body {
   text-align: center;
 }
 
+.setup-header .header-logo { /* New rules for the container */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0.5rem; /* Space below logo, before title */
+}
+
+.setup-header .header-logo img {
+  display: block; /* Treat image as a block */
+  width: auto;
+  max-width: 75%; /* Set to 75% of the container's width */
+  object-fit: contain; /* Maintains aspect ratio */
+  margin: 0 auto; 
+}
+
 .player-selection {
   display: flex;
   justify-content: center;
@@ -191,7 +207,6 @@ body {
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
-  opacity: 0.7;
 }
 
 .counter-btn:disabled:hover {
