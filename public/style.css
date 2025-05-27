@@ -837,7 +837,7 @@ body {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 0.7rem;
+  gap: 1.5rem;
   width: 100%;
   margin-bottom: 1.1rem;
 }
@@ -1356,9 +1356,9 @@ body {
 
 .header-btn {
   border: 2px solid #f5cf17;
-  padding: 0.8rem 1.6rem; /* Increased padding for larger buttons */
+  padding: 1rem 2rem; /* Increased padding for even larger buttons */
   border-radius: 12px; /* Slightly more rounded */
-  font-size: 1.3rem; /* Larger font */
+  font-size: 1.5rem; /* Larger font size */
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1369,7 +1369,7 @@ body {
   pointer-events: auto !important;
   z-index: 9999 !important;
   position: relative !important;
-  min-width: 120px; /* Ensure consistent button widths */
+  min-width: 140px; /* Increased minimum width for larger buttons */
   text-align: center;
 }
 
@@ -1393,6 +1393,25 @@ body {
 #setup-rules-button:active {
   transform: translateY(0);
   box-shadow: 0 1px 4px rgba(33, 150, 243, 0.2);
+}
+
+/* Deal button (Let's Play) - goldish color scheme styling */
+#setup-deal-button {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c !important; /* Dark text for gold background */
+  border: none;
+}
+
+#setup-deal-button:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  color: #1b2e3c !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+}
+
+#setup-deal-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
 }
 
 /* General button styling for .header-btn class */
