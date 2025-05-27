@@ -147,6 +147,12 @@ body {
   -webkit-text-stroke: 1px #1b2e3c; /* User's current */
 }
 
+.player-selection .player-section .section-title {
+  font-size: 2.86rem; /* 30% larger than original 2.2rem */
+  text-transform: uppercase;
+  /* Ensure other styles from .section-title are inherited or explicitly set if needed */
+}
+
 /* Player Counter Container - Adjust spacing if needed */
 .player-counter {
   display: flex;
