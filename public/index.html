@@ -8,13 +8,12 @@
     <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/styles/modals.css" />
-
     <!-- Header button styles are now in style.css -->
 
     <!-- Entry‑point for your client modules -->
     <script type="module" src="/scripts/main.ts"></script>
   </head>
-  <body style="min-height: 100vh; display: flex; flex-direction: column">
+  <body class="body-loading" style="min-height: 100vh; display: flex; flex-direction: column">
     <!-- Header removed per user request -->
 
     <!-- <div class="notice notice--hidden" id="notice-banner"></div> -->
@@ -261,14 +260,5 @@
     </div>
 
     <div class="toast-container" id="toast-container"></div>
-    <script>
-      // Ensure lobby is visible on load if it starts hidden
-      document.addEventListener('DOMContentLoaded', function () {
-        var lobby = document.getElementById('lobby-container');
-        if (lobby && lobby.classList.contains('lobby--hidden')) {
-          lobby.classList.remove('lobby--hidden');
-        }
-      });
-    </script>
   </body>
 </html>

@@ -8,6 +8,7 @@ console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 // Wait for DOMContentLoaded first, then socketReady, then initializePageEventListeners
 
 document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('main-content')?.classList.remove('preload-hidden');
   console.log('🚀 [Client] DOM fully loaded and parsed (from main.ts)');
 
   // Clear session on page load
@@ -82,4 +83,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Optionally, call after any known UI update (if you know where icons are rendered)
   // removePlayerIconInlineStyles();
+
+  // === Unhide lobby and remove loading class ===
+  document.body.classList.remove('body-loading');
+  const lobbyContainer = document.getElementById('lobby-container');
+  if (lobbyContainer) {
+    lobbyContainer.classList.remove('hidden');
+    lobbyContainer.classList.remove('lobby--hidden');
+    lobbyContainer.style.visibility = 'visible';
+    lobbyContainer.style.opacity = '1';
+  }
+  console.log('🚀 [Client] Lobby explicitly made visible.');
 });

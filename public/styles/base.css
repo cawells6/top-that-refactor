@@ -39,3 +39,9 @@ body {
 .notice.hidden {
   display: none;
 }
+
+.body-loading #lobby-container {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s;
+}

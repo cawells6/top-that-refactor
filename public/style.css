@@ -21,13 +21,13 @@
 }
 
 body {
-  background: #137a4b; /* This was --bg, but direct color is fine if intended */
+  background: var(--bg, #137a4b); /* Ensure the page background is blue */
   min-height: 100vh;
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
 
 #lobby-container {
-  background: transparent;
+  background: none; /* Remove blue background from the container itself */
   padding: 0;
   border-radius: 0;
   box-shadow: none;
@@ -42,40 +42,23 @@ body {
   z-index: 1000;
 }
 
-/* New Game Setup Card Design with blue background matching rules modal */
+/* New Game Setup Card Design */
 .game-setup-card {
-  /* Blue outer container like rules modal - exact same styling as .modal */
-  background-color: var(--header-bg);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  /* No border on outer container */
-  border: none;
-  
-  /* Original positioning and sizing */
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 960px;
-  width: 95%;
-  z-index: 1000;
-  animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
-}
-
-/* White inner content wrapper matching rules modal style */
-.game-setup-content {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  color: #333;
+  color: #1b2e3c;
+  padding: 1.5rem 2.5rem 2.5rem 2.5rem; /* Reduce top padding to move content closer to top */
   border-radius: 24px;
-  border: 3px solid #ffc300;
-  box-shadow:
+  box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.15),
     0 8px 25px rgba(0, 0, 0, 0.1),
     0 0 0 1px rgba(255, 195, 0, 0.2);
-  padding: 2rem;
-  margin: 0;
+  border: 3px solid #ffc300;
+  max-width: 960px; /* Doubled from 480px */
+  width: 90vw;         /* Match modal width for consistency */
+  margin: 0 auto;      /* Center horizontally if needed */
+  position: relative;  /* Ensure not fixed */
+  overflow: hidden;
+  margin-top: 0.22rem; /* Keep reduced margin */
 }
 
 @keyframes slideUpFadeIn {
@@ -547,7 +530,23 @@ body {
 /* Remove old .lobby-buttons margin overrides */
 .lobby-buttons { margin: 0 !important; }
 
-/* Rules styling moved to /styles/modals.css for better organization */
+/* Collapsible Rules Styles */
+.rules-container {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  padding: 10px;
+  color: #333;
+}
+.rules-container h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 15px;
+}
+.rules-container h3 {
+  margin: 0;
+  font-size: 1.1em;
+  display: inline;
+}
 .quick-tips {
   background-color: #f9f9f9;
   border: 1px solid #ddd;
@@ -595,7 +594,57 @@ body {
   transition: transform 0.2s;
   color: #222;
 }
-/* Rules styling moved to /styles/modals.css for better organization */
+.rules-section {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.rules-summary {
+  padding: 12px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #eee;
+  outline: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.rules-summary:hover {
+  background-color: #e0e0e0;
+}
+.rules-section[open] .rules-summary {
+  background-color: #d6d6d6;
+  border-bottom: 1px solid #ccc;
+}
+.rules-summary::after {
+  content: '\25B6';
+  font-size: 0.8em;
+  transition: transform 0.2s ease-in-out;
+}
+.rules-section[open] .rules-summary::after {
+  transform: rotate(90deg);
+}
+.rules-details-content {
+  padding: 15px;
+  border-top: 1px solid #ddd;
+  font-size: 0.95em;
+}
+.rules-details-content ul,
+.rules-details-content ol {
+  padding-left: 20px;
+  margin-top: 5px;
+}
+.rules-details-content li {
+  margin-bottom: 8px;
+}
+.rules-details-content strong {
+  color: #444;
+}
+.rules-details-content em {
+  color: #555;
+}
 .rules-hr {
   border: 0;
   height: 1px;
