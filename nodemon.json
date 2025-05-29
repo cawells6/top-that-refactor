@@ -1,0 +1,9 @@
+{
+  "verbose": true,
+  "watch": ["src", "server.ts", "controllers", "models"],
+  "ext": "ts,js,json",
+  "events": {
+    "restart": "node ./scripts/nodemon-restart.js"
+  },
+  "delay": "500"
+}

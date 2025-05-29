@@ -1,5 +1,6 @@
 /* modals.css - Modal styles */
-.modal {
+.modal,
+.rules-modal {
   position: fixed;
   top: 50%;
   left: 50%;
@@ -10,6 +11,8 @@
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
+  animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Now matching exactly the styling of lobby-modal-container */
 }
 
 .modal--hidden {
@@ -45,7 +48,7 @@
 /* --- Make rules modal and content larger and more readable --- */
 
 .rules-modal-content {
-  /* Inherited from .game-setup-card */
+  /* Match game-setup-content class for consistency */
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   color: #333; /* Darker text for better contrast */
   border-radius: 24px;
@@ -55,17 +58,21 @@
     0 8px 25px rgba(0, 0, 0, 0.1),
     0 0 0 1px rgba(255, 195, 0, 0.2);
 
-  /* Improved typography and readability */
-  font-size: 1.1rem;
-  line-height: 1.5; /* Improved line spacing for better readability */
+  /* Matched with game-setup-content */
   padding: 2rem 2.5rem;
   max-width: 960px;
   width: 90vw;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  
+  /* Additional styling specific to rules modal */
+  font-size: 1.1rem;
+  line-height: 1.5;
   max-height: 90vh;
   overflow-y: auto;
   box-sizing: border-box;
-  position: relative;
-  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* Professional font stack */
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Style the header within the rules modal with white background like lobby */
@@ -79,7 +86,7 @@
   margin-left: -2.5rem; /* Counteract parent padding */
   margin-right: -2.5rem; /* Counteract parent padding */
   margin-top: -2rem; /* Pull header to the top of the card */
-  border-bottom: 2px solid #ffc300; /* Accent border at the bottom of the header */
+  border-bottom: none; /* Removed yellow border line for consistency with Lobby */
 }
 
 /* Style the logo container within the rules modal header to have white background */
@@ -95,7 +102,7 @@
 
 /* Style the logo within the rules modal header like .header-logo img */
 .rules-modal-content .modal-logo img {
-  max-width: 85%; /* Generous width within the white container */
+  max-width: 51%; /* Adjusted to match the lobby logo size */
   height: auto; /* Maintain aspect ratio */
   object-fit: contain;
   display: block;

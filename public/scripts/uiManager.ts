@@ -55,7 +55,7 @@ export function showLobbyForm(): void {
   const waitingStateDiv = getWaitingStateDiv();
   const table = getGameTable();
   const mainContent = document.getElementById('main-content');
-  
+
   if (lobbyContainer) lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
@@ -73,12 +73,12 @@ export function showWaitingState(
   const lobbyFormContent = getLobbyFormContent();
   const waitingStateDiv = getWaitingStateDiv();
   const mainContent = document.getElementById('main-content');
-  
+
   if (lobbyContainer) lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
   if (mainContent) mainContent.classList.remove('game-active'); // Ensure lobby layout
-  
+
   // Update waiting heading
   const waitingHeading = document.getElementById('waiting-heading');
   if (waitingHeading) {
@@ -107,7 +107,7 @@ export function showGameTable(): void {
   const lobbyContainer = getLobbyContainer();
   const table = getGameTable();
   const mainContent = document.getElementById('main-content');
-  
+
   if (lobbyContainer) lobbyContainer.classList.add('hidden');
   if (table) table.classList.remove('table--hidden', 'hidden');
   if (mainContent) mainContent.classList.add('game-active'); // Add class for game layout

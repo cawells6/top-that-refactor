@@ -4,6 +4,7 @@
 @import 'styles/cards.css';
 @import 'styles/layout.css';
 @import 'styles/modals.css';
+@import 'styles/modal-containers.css';
 @import 'styles/animations.css';
 
 :root {
@@ -64,11 +65,11 @@ body {
 @keyframes slideUpFadeIn {
   from { 
     opacity: 0; 
-    transform: translateY(40px) scale(0.96); 
+    transform: translate(-50%, -30%) scale(0.96); 
   }
   to { 
     opacity: 1; 
-    transform: translateY(0) scale(1); 
+    transform: translate(-50%, -50%) scale(1); 
   }
 }
 

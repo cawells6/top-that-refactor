@@ -173,10 +173,10 @@ export default class GameController {
 
   public attachSocketEventHandlers(socket: Socket): void {
     this.log(`Attaching event handlers for socket ${socket.id}`);
-    
+
     // Remove ALL listeners first to prevent duplicates
     socket.removeAllListeners();
-    
+
     socket.on(START_GAME, (opts: Pick<StartGameOptions, 'computerCount'> = {}) =>
       this.handleStartGame({ ...opts, socket })
     );
