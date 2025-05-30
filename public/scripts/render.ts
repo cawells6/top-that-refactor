@@ -1,7 +1,7 @@
 import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js'; // Corrected import path
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
-function code(card: CardType): string {
+export function code(card: CardType): string {
   if (
     card.value === null ||
     card.value === undefined ||
@@ -35,8 +35,8 @@ export function cardImg(
   img.className = 'card-img';
   img.style.visibility = 'hidden';
   img.src = card.back
-    ? 'https://deckofcardsapi.com/static/img/back.png'
-    : `https://deckofcardsapi.com/static/img/${code(card)}.png`;
+    ? '/cards-api/images/back.png'
+    : `/cards-api/images/cards/${code(card)}.png`;
   img.alt = card.back ? 'Card back' : `${card.value} of ${card.suit}`;
   img.onload = () => {
     img.style.visibility = 'visible';

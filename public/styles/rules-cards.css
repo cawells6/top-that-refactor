@@ -1,0 +1,54 @@
+/* Additional styling for card symbols in rules */
+.card-symbol {
+  border: 1px solid #000;
+  border-radius: 5px;
+  padding: 8px;
+  background-color: white;
+  color: black;
+  font-weight: bold;
+  display: inline-block;
+  min-width: 25px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* Style the hearts and diamonds in red - used for text fallback */
+.card-symbol span.red {
+  color: #cc0000;
+}
+
+/* For card images in rules */
+.rule-card-img {
+  height: 60px;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin: 2px;
+  transition: transform 0.2s ease;
+}
+
+.rule-card-img:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.four-kind-indicator {
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+
+/* Responsive styling for smaller screens */
+@media (max-width: 768px) {
+  .rule-card-img {
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rule-card-img {
+    height: 40px;
+  }
+}

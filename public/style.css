@@ -702,10 +702,20 @@ body {
   margin: 15px 0;
 }
 .rules-icon {
+  width: 2.875em; /* Increased by 15% from 2.5em */
+  height: 2.875em; /* Increased by 15% from 2.5em */
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: inline-block;
   vertical-align: middle;
-  width: 2.2em;
-  height: 2.2em;
-  margin-left: 8px;
+  cursor: pointer; /* Indicate it's clickable */
+}
+
+/* Add a hover effect to make icons slightly larger when hovered and indicate they're clickable */
+.rules-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px #ffc300, 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 #rules-modal-title {

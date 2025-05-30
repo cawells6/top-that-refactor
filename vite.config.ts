@@ -25,6 +25,19 @@ export default defineConfig({
         secure: false, // Disable SSL certificate validation for dev
         rewrite: (path) => path, // Keep paths as-is
       },
+      // Proxy for the Deck of Cards API
+      '/cards-api': {
+        target: 'https://deckofcardsapi.com',
+        changeOrigin: true,
+        rewrite: (path) => {
+          // Handle specific paths first
+          if (path === '/cards-api/images/back.png') {
+            return '/static/img/back.png';
+          }
+          // Handle card images with pattern '/cards-api/images/cards/XX.png'
+          return path.replace(/^\/cards-api\/images\/cards\/(.+)\.png$/, '/static/img/$1.png');
+        },
+      },
       // Example for other backend API routes if you add them later:
       // '/api': {
       //   target: 'http://localhost:3000',

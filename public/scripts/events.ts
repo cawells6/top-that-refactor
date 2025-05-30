@@ -127,7 +127,7 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
     img.className = 'user-icon'; // For specific styling if needed
   } else {
     // 'cpu'
-    img.src = '/assets/ROBOT.svg';
+    img.src = '/assets/robot.svg'; // Fixed capitalization to match actual file name
     img.className = 'robot-icon'; // For specific styling if needed
   }
 
@@ -699,6 +699,18 @@ function handleRulesClick() {
     
     rulesModal.classList.remove('modal--hidden');
     overlay.classList.remove('modal__overlay--hidden');
+
+    // Trigger card image updates by dispatching a custom event
+    setTimeout(() => {
+      try {
+        // Dispatch a custom event that rules-cards.ts will listen for
+        const cardUpdateEvent = new CustomEvent('update-rule-cards');
+        document.dispatchEvent(cardUpdateEvent);
+      } catch (e) {
+        console.error('Failed to dispatch card update event:', e);
+      }
+    }, 100);
+    
     console.log('✅ Rules modal opened, lobby hidden');
   } else {
     console.error('❌ Rules modal or overlay not found');

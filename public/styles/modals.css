@@ -49,9 +49,8 @@
 
 /* The rules modal will inherit the lobby modal container styles */
 .rules-modal-content {  
-  /* Match the exact dimensions of the game-setup-content */
-  max-width: 960px;
-  width: 90vw;
+  /* Inherit all styles from game-setup-content to ensure exact matching */
+  /* No explicit width/max-width here to avoid overriding game-setup-content */
   
   /* Additional styling specific to rules modal content */
   font-size: 1.15rem; /* Slightly increased from 1.1rem for better readability */
@@ -60,19 +59,46 @@
   overflow-y: auto;
   box-sizing: border-box;
   font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  padding: 2rem 2.5rem; /* Match the game-setup-content padding */
+}
+
+/* Ensure rules modal and lobby modal have consistent sizing */
+.lobby-modal-container {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Override any specific size settings for rules modal content */
+.rules-modal-content {
+  /* Ensure it inherits styles correctly from game-setup-content */
+  box-sizing: border-box;
+  
+  /* Don't explicitly set width/max-width as they should inherit from game-setup-content */
+  
+  /* Maintain other styling specific to rules content */
+  font-size: 1.15rem; /* Slightly increased from 1.1rem for better readability */
+  line-height: 1.7; /* Increased from 1.6 for better spacing */
+  max-height: 85vh; /* Ensure it fits on screen */
+  overflow-y: auto;
 }
 
 /* Style for the rules title */
 .rules-title {
   text-align: center;
-  font-size: 2.2rem;
-  font-weight: 700;
+  font-size: 2.8rem;
+  font-weight: 800;
   color: #1b2e3c;
-  margin: 0 0 1.5rem 0;
-  padding-bottom: 0.8rem;
-  border-bottom: 2px solid #ffc300;
+  margin: 0 0 0.75rem 0; /* Reduced bottom margin to position closer to the border */
+  padding: 0.5rem 1rem 0.75rem; /* Reduced bottom padding */
+  border-bottom: 3px solid #ffc300;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to bottom, transparent, rgba(255, 195, 0, 0.1));
 }
+
+/* Button container styling */
 
 /* Style for the button container */
 .button-container {
@@ -196,14 +222,13 @@
   width: 100%; /* Ensure it fills the modal content area */
   overflow-y: auto; /* Enable scrolling inside the container */
   overflow-x: hidden; /* Prevent horizontal scrolling */
+  box-sizing: border-box;
 }
 
 /* Responsive design for rules modal */
 @media (max-width: 600px) {
   .rules-modal-content {
     padding: 1.5rem 1rem;
-    max-width: 98vw;
-    width: 98vw;
     border-radius: 16px;
   }
   
@@ -314,22 +339,21 @@
   border-bottom: 1px solid #ffc300; /* Gold underline for emphasis */
 }
 
-/* Special card styling */
-.special-card {
-  font-weight: 600;
-  background-color: rgba(255, 195, 0, 0.15); /* Slightly more vibrant */
-  padding: 0.2em 0.5em; /* More padding for better appearance */
-  border-radius: 4px; /* Slightly larger radius */
-  margin: 0 0.1em;
-  border: 1px solid rgba(255, 195, 0, 0.3); /* Subtle border */
-  display: inline-block; /* Prevents breaking across lines */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+/* Number with dash styling */
+.number-dash {
+  font-weight: 700;
+  font-size: 1.3em; /* Slightly increased font size */
+  color: #1b2e3c;
+  margin: 0 0.6em 0 0; /* Increased right margin for more space between number and icon */
+  display: inline-block;
+  vertical-align: middle;
+  padding-bottom: 0.1em; /* Slight adjustment to vertical alignment */
 }
 
 /* Improved bullet points with gold styling */
 .rules-details-content ul {
   list-style: none;
-  padding-left: 2.25rem; /* Further increased indentation */
+  padding-left: 2.5rem; /* Increased indentation to move text further from bullet */
   margin-top: 1.2rem; /* More top margin for better section spacing */
 }
 
@@ -339,6 +363,55 @@
   margin-bottom: 1.5rem; /* Further increased spacing between list items */
   line-height: 1.9; /* Increased line height for better readability */
   padding-bottom: 0.25rem; /* Extra padding at bottom */
+}
+
+/* Improved styling for list items with card icons */
+.rules-details-content ul li {
+  position: relative;
+  text-align: left; /* Left-align content for special card list items */
+}
+
+/* Card description styling */
+.card-description {
+  margin-top: 0.5rem; /* Reduced to account for increased card-header margin-bottom */
+  display: block;
+  text-align: left;
+  line-height: 1.7; /* Increased for better readability */
+  padding: 0 0.5rem 0 0.2rem; /* Adjusted left padding */
+  color: #1f2937; /* Slightly darker text for better contrast */
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.7rem; /* Increased bottom margin for better spacing */
+  line-height: 1.5; /* Slightly increased line height for taller content */
+  position: relative;
+  min-height: 3em; /* Ensures consistent height for all card headers */
+}
+
+.card-header::before {
+  content: "●"; /* Solid bullet */
+  color: #ffc300; /* Gold bullet matching the theme */
+  font-weight: bold;
+  font-size: 1.1em;
+  position: absolute;
+  left: -1.65rem; /* Same left position as standard bullets */
+  top: 0.16em; /* Adjusted to match with the number and icon */
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+/* Display icon and number on same line, even on smaller screens */
+@media (max-width: 600px) {
+  .card-header {
+    display: flex;
+    align-items: center;
+  }
+  
+  .rules-icon {
+    display: inline-block;
+    margin: 0 0 0 0.5rem;
+  }
 }
 
 /* Styling for nested lists */
@@ -356,10 +429,11 @@
 /* Style for nested list item bullets */
 .rules-details-content ul li ul li::before {
   content: "○"; /* Open circle for sub-items */
-  font-size: 0.9em; /* Smaller bullet */
-  color: #ffc300; /* Gold color */
-  text-shadow: none; /* Remove text shadow for cleaner appearance */
-  left: -1.3rem; /* Adjust position */
+  font-size: 0.9em;
+  color: #ffc300;
+  text-shadow: none;
+  left: -1.4rem; /* Increased spacing between bullet and text */
+  top: 0.293em; /* Moved up by ~7% from 0.315em */
 }
 .rules-details-content ol {
   padding-left: 1.5rem;
@@ -372,14 +446,28 @@
   font-weight: bold;
   font-size: 1.1em;
   position: absolute;
-  left: -1.5rem;
-  top: -0.05em; /* Slight upward adjustment for better alignment */
-  line-height: 1.6; /* Match the line-height of the text */
-  text-shadow: 
-    -1px -1px 0 #000,  
-     1px -1px 0 #000,
-    -1px  1px 0 #000,
-     1px  1px 0 #000; /* Black outline for better readability */
+  left: -1.65rem; /* Shifted more to the left to create more space between bullet and text */
+  top: 0.215em; /* Standard bullet positioning */
+  line-height: 1.6;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+/* Special card list items styling */
+.card-list-item {
+  padding-left: 0;
+  list-style: none;
+  margin-bottom: 3rem !important; /* Further increased bottom margin for better spacing between cards */
+  border-bottom: 1px solid rgba(255, 195, 0, 0.2); /* Subtle separator between cards */
+  padding-bottom: 1.5rem; /* Add padding at bottom before separator */
+}
+
+.card-list-item:last-child {
+  border-bottom: none;
+  margin-bottom: 1rem !important;
+}
+
+.card-list-item::before {
+  display: none; /* Hide the default bullet for card items */
 }
 
 .rules-details-content ol li {
@@ -418,6 +506,55 @@
 
 .rules-modal-content .modal__close-button:hover {
   opacity: 1;
+}
+
+/* Full-size icon modal */
+.fullsize-icon-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1500;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.fullsize-icon-container {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+}
+
+.fullsize-icon {
+  max-width: 100%;
+  max-height: 80vh;
+  border: 4px solid #ffc300;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  background-color: white;
+}
+
+.fullsize-icon-close {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  background: #ffc300;
+  color: #1b2e3c;
+  border: 3px solid white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
 /* ... any other existing modal styles ... */

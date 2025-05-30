@@ -8,10 +8,13 @@
     <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/styles/modals.css" />
+    <link rel="stylesheet" href="/styles/rules-cards.css" />
     <!-- Header button styles are now in style.css -->
 
     <!-- Entry‑point for your client modules -->
     <script type="module" src="/scripts/main.ts"></script>
+    <!-- Rules cards script for card API integration -->
+    <script type="module" src="/scripts/rules-cards.ts"></script>
   </head>
   <body class="body-loading" style="min-height: 100vh; display: flex; flex-direction: column">
     <!-- Header removed per user request -->
@@ -119,7 +122,7 @@
         <div class="game-setup-content rules-modal-content">
           <button class="modal__close-button" aria-label="Close">&times;</button>
           <div class="rules-container">
-            <h2 class="rules-title">Game Rules</h2>
+            <h2 class="rules-title">THE OFFICIAL RULES</h2>
             <div class="button-container">
               <button
                 id="expand-collapse-all-btn"
@@ -129,114 +132,115 @@
               </button>
             </div>
           <details class="rules-section">
-            <summary class="rules-summary"><h3>1. Getting Started (Game Setup)</h3></summary>
+            <summary class="rules-summary"><h3>1. Getting Started</h3></summary>
             <div class="rules-details-content">
               <ul>
                 <li>
-                  <strong>Players & Decks:</strong>
+                  <strong>Players:</strong> 2-4 players using one standard deck of 52 cards.
+                </li>
+                <li>
+                  <strong>Setup (9 cards each):</strong>
                   <ul>
-                    <li>1-4 Players: Use 1 standard deck of 52 cards.</li>
-                    <li>5-8 Players: Use 2 standard decks of 52 cards (Note: Current game supports 2-4 players).</li>
+                    <li>3 face-down cards in a row (don't look at these)</li>
+                    <li>3 face-up cards placed on top of the face-down cards</li>
+                    <li>3 cards in your hand</li>
                   </ul>
                 </li>
                 <li>
-                  <strong>Dealing the Cards (9 per player):</strong>
-                  <ul>
-                    <li>
-                      <strong>Three Face-Down Cards:</strong> Place 3 cards per player in a row, face-down. <em>Do not look at these.</em>
-                    </li>
-                    <li>
-                      <strong>Three Face-Up Cards:</strong> Place 3 cards per player face-up, directly on top of their face-down cards.
-                    </li>
-                    <li>
-                      <strong>Three Hand Cards:</strong> Deal 3 cards to each player for their starting hand.
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <strong>The Draw Pile:</strong> Place remaining cards face-down in the center.
-                </li>
-                <li>
-                  <strong>The Discard Pile:</strong> Flip the top card of the Draw Pile face-up next to it to start.
+                  <strong>Center Area:</strong> Remaining cards form the Draw Pile. Flip the top card to create the Discard Pile.
                 </li>
               </ul>
             </div>
           </details>
           <details class="rules-section">
-            <summary class="rules-summary"><h3>2. How to Play Your Turn</h3></summary>
+            <summary class="rules-summary"><h3>2. Playing Your Turn</h3></summary>
             <div class="rules-details-content">
               <ul>
                 <li>
-                  <strong>Playing from Your Hand:</strong> You can play one card, or multiple cards <em>of the same value</em> (e.g., two 8s, three Kings). The card(s) played must normally be <strong>higher</strong> than the current top card of the Discard Pile. <em>Example:</em> If a 7 is on top, you can play an 8, a Jack, or multiple 9s. See "Special Cards" and "Four of a Kind" for exceptions.
+                  <strong>Card Play:</strong> Play a card (or multiple cards of same value) <strong>higher</strong> than the top Discard Pile card. If you can't, pick up the entire Discard Pile.
                 </li>
                 <li>
-                  <strong>Draw Back Up:</strong> If you played from your hand and have fewer than 3 cards, draw from the Draw Pile until you have 3 cards again (if cards remain in Draw Pile).
+                  <strong>Draw:</strong> After playing, draw back up to 3 cards if needed (while Draw Pile has cards).
                 </li>
                 <li>
-                  <strong>Can't Play? Pick Up!</strong> If you cannot make a legal play (higher card or special card), you must pick up the <strong>entire Discard Pile</strong>. These cards are added to your hand. This ends your turn.
-                </li>
-                <li><strong>Turn Ends:</strong> After playing and drawing (if applicable), or after picking up the Discard Pile.</li>
-              </ul>
-            </div>
-          </details>
-          <details class="rules-section">
-            <summary class="rules-summary"><h3>3. Special Cards & Their Powers!</h3></summary>
-            <div class="rules-details-content">
-              <ul>
-                <li>
-                  <strong class="special-card">2 (Reset Card)</strong>
-                  <img src="src/shared/Reset-icon.png" alt="Reset" class="rules-icon" style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px" />
-                  Can be played on <strong>any card</strong>. <strong>Resets</strong> the Discard Pile (clears it). The next player starts a new Discard Pile with any card.
-                </li>
-                <li>
-                  <strong class="special-card">5 (Copy Card)</strong>
-                  <img src="src/shared/Copy-icon.png" alt="Copy" class="rules-icon" style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px" />
-                  <strong>Copies the value</strong> of the card directly underneath it on the Discard Pile. <em>Example:</em> If a Jack is showing, playing a 5 makes it act like a Jack. The next player must beat a Jack. If played on an empty/reset Discard Pile, it's just a 5.
-                </li>
-                <li>
-                  <strong class="special-card">10 (Burn Card)</strong>
-                  <img src="src/shared/Burn-icon.png" alt="Burn" class="rules-icon" style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px" />
-                  Can be played on <strong>any card</strong>. The <strong>entire Discard Pile is "burned"</strong> (removed from the game). The player who burned the pile plays again to start a new Discard Pile. If they have no cards, the next player starts.
-                </li>
-                <li>
-                  <strong class="special-card">Four of a Kind (Burn & Play Again)</strong>
-                  <img src="src/shared/4ofakind-icon.png" alt="Four-of-a-kind" class="rules-icon" style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px" />
-                  Playing four cards of the same value at once (e.g., four 7s) also <strong>burns the Discard Pile</strong>. Can be played even if its value is <strong>not higher</strong> than the top card. The Discard Pile (including the four-of-a-kind) is removed from the game. The player who burned the pile plays again to start a new Discard Pile. If they have no cards, the next player starts.
+                  <strong>Play Order:</strong> Use Hand cards first. When Hand and Draw Pile are empty, play Face-Up cards, then Face-Down cards.
                 </li>
               </ul>
             </div>
           </details>
           <details class="rules-section">
-            <summary class="rules-summary"><h3>4. Playing Your Face-Up & Face-Down Cards</h3></summary>
+            <summary class="rules-summary"><h3>3. Special Cards</h3></summary>
             <div class="rules-details-content">
               <ul>
-                <li>Move to these cards only when your <strong>hand is empty</strong> AND the <strong>Draw Pile is empty</strong>.</li>
-                <li>
-                  <strong>Playing Face-Up Cards:</strong> Play one face-up card per turn. It must be a legal play. <strong>If you can't play any face-up card:</strong> Choose one face-up card to add to your hand, then pick up the <strong>entire Discard Pile</strong>. Play from your hand on subsequent turns until it's empty again.
+                <li class="card-list-item">
+                  <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="src/shared/Reset-icon.png" alt="Reset" class="rules-icon" data-fullsize="src/shared/Reset-icon.png" onclick="showFullSizeIcon(this)" />
+                  </div>
+                  <div class="card-header">
+                    <div class="card-symbol">2♣ 2♠ <span class="red">2♥ 2♦</span></div>
+                  </div>
+                  <div class="card-description">Play on <strong>any card</strong>. Resets the pile, allowing the next player to play any card.</div>
                 </li>
-                <li>
-                  <strong>Playing Face-Down Cards (Final Stage!):</strong> Play these when your hand AND all face-up cards are gone. Choose <strong>one</strong> face-down card per turn <em>without looking at it first</em>. Flip it over. <strong>If it's a legal play:</strong> Played on the Discard Pile. <strong>If it's not a legal play:</strong> Add the revealed card to your hand AND pick up the <strong>entire Discard Pile</strong>. Play from your hand until empty again.
+                <li class="card-list-item">
+                  <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="src/shared/Copy-icon.png" alt="Copy" class="rules-icon" data-fullsize="src/shared/Copy-icon.png" onclick="showFullSizeIcon(this)" />
+                  </div>
+                  <div class="card-header">
+                    <div class="card-symbol">5♣ 5♠ <span class="red">5♥ 5♦</span></div>
+                  </div>
+                  <div class="card-description">Copies the value of the card below it. If played on an empty pile, counts as just a 5.</div>
+                </li>
+                <li class="card-list-item">
+                  <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="src/shared/Burn-icon.png" alt="Burn" class="rules-icon" data-fullsize="src/shared/Burn-icon.png" onclick="showFullSizeIcon(this)" />
+                  </div>
+                  <div class="card-header">
+                    <div class="card-symbol">10♣ 10♠ <span class="red">10♥ 10♦</span></div>
+                  </div>
+                  <div class="card-description">Play on <strong>any card</strong>. Burns (removes) the entire Discard Pile from the game. Play passes to the next player who can play any card on the blank pile.</div>
+                </li>
+                <li class="card-list-item">
+                  <div style="text-align: center; margin-bottom: 15px;">
+                    <img src="src/shared/4ofakind-icon.png" alt="Four-of-a-kind" class="rules-icon" data-fullsize="src/shared/4ofakind-icon.png" onclick="showFullSizeIcon(this)" />
+                  </div>
+                  <div class="card-header">
+                    <div class="card-symbol">A♣ A♠ <span class="red">A♥ A♦</span></div>
+                  </div>
+                  <div class="card-description">Playing four cards of the same value burns the Discard Pile, even if they're lower than the top card. Play passes to the next player who can play any card on the blank pile.</div>
                 </li>
               </ul>
             </div>
           </details>
           <details class="rules-section">
-            <summary class="rules-summary"><h3>5. Winning the Game!</h3></summary>
+            <summary class="rules-summary"><h3>4. Face-Up & Face-Down Cards</h3></summary>
             <div class="rules-details-content">
               <ul>
-                <li>The first player to successfully play all of their cards (Hand, then Face-Up, then Face-Down) is the <strong>WINNER!</strong></li>
+                <li>
+                  <strong>Face-Up:</strong> When your hand is empty and Draw Pile is empty, play one Face-Up card per turn. If none can be played legally, take one Face-Up card plus the entire Discard Pile into your hand.
+                </li>
+                <li>
+                  <strong>Face-Down:</strong> After all Face-Up cards are gone, blindly select one Face-Down card per turn. If it's not playable, add it plus the entire Discard Pile to your hand.
+                </li>
+              </ul>
+            </div>
+          </details>
+          <details class="rules-section">
+            <summary class="rules-summary"><h3>5. How to Win</h3></summary>
+            <div class="rules-details-content">
+              <ul>
+                <li>First player to successfully play all their cards (Hand → Face-Up → Face-Down) wins!</li>
               </ul>
             </div>
           </details>
           <details class="rules-section" id="quick-tips-section">
-            <summary class="rules-summary"><h3>6. Quick Tips for New Players</h3></summary>
+            <summary class="rules-summary"><h3>6. Quick Tips & Strategy</h3></summary>
             <div class="rules-details-content">
               <ul>
-                <li><strong>Play Higher:</strong> Generally, play a card higher than the Discard Pile's top card.</li>
-                <li><strong>Special Cards are Key:</strong> Use 2s, 5s, 10s, and Four-of-a-Kind strategically.</li>
-                <li><strong>Can't Play? Pick Up:</strong> If you can't make a legal play, pick up the Discard Pile.</li>
-                <li><strong>Card Order:</strong> Hand &rarr; Face-Up &rarr; Face-Down.</li>
-                <li><strong>Empty Hand & Draw Pile:</strong> You only move to face-up/face-down cards when your hand AND the draw pile are empty.</li>
+                <li><strong>Save Special Cards:</strong> Hold onto 2s and 10s for when you're stuck with low cards.</li>
+                <li><strong>Multiple Plays:</strong> When possible, play multiple cards of the same value to reduce your hand size.</li>
+                <li><strong>Watch Opponents:</strong> Pay attention to which Face-Up cards others struggle to play.</li>
+                <li><strong>Face-Down Risk:</strong> Face-Down cards are pure luck - get to them as quickly as possible.</li>
+                <li><strong>Forced Pickup:</strong> Sometimes forcing an opponent to pick up a large pile is the best strategy.</li>
               </ul>
             </div>
           </details>
@@ -252,5 +256,32 @@
   </div>
 
     <div class="toast-container" id="toast-container"></div>
+    
+    <!-- Full-size icon modal -->
+    <div class="fullsize-icon-modal" id="fullsize-icon-modal" onclick="closeFullSizeIcon()">
+      <div class="fullsize-icon-container">
+        <img src="" alt="Full-size icon" class="fullsize-icon" id="fullsize-icon">
+        <div class="fullsize-icon-close" onclick="closeFullSizeIcon(event)">&times;</div>
+      </div>
+    </div>
+    
+    <script>
+      function showFullSizeIcon(iconElement) {
+        const modal = document.getElementById('fullsize-icon-modal');
+        const fullsizeIcon = document.getElementById('fullsize-icon');
+        fullsizeIcon.src = iconElement.getAttribute('data-fullsize');
+        fullsizeIcon.alt = iconElement.alt;
+        modal.style.display = 'flex';
+        event.stopPropagation(); // Prevent event from bubbling to the details element
+      }
+      
+      function closeFullSizeIcon(event) {
+        const modal = document.getElementById('fullsize-icon-modal');
+        modal.style.display = 'none';
+        if (event) {
+          event.stopPropagation();
+        }
+      }
+    </script>
   </body>
 </html>
