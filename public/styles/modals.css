@@ -47,67 +47,39 @@
 
 /* --- Make rules modal and content larger and more readable --- */
 
-.rules-modal-content {
-  /* Exactly match game-setup-content class for consistency */
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  color: #333; /* Darker text for better contrast */
-  border-radius: 24px;
-  border: 3px solid #ffc300;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.15),
-    0 8px 25px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 195, 0, 0.2);
-
-  /* Exactly match game-setup-content dimensions */
-  padding: 2rem 2.5rem;
+/* The rules modal will inherit the lobby modal container styles */
+.rules-modal-content {  
+  /* Match the exact dimensions of the game-setup-content */
   max-width: 960px;
   width: 90vw;
-  margin: 0;
-  position: relative;
-  overflow-x: hidden;
   
-  /* Additional styling specific to rules modal */
-  font-size: 1.1rem;
-  line-height: 1.5;
-  max-height: 85vh; /* Slightly reduced to ensure it fits on screen */
+  /* Additional styling specific to rules modal content */
+  font-size: 1.15rem; /* Slightly increased from 1.1rem for better readability */
+  line-height: 1.7; /* Increased from 1.6 for better spacing */
+  max-height: 85vh; /* Ensure it fits on screen */
   overflow-y: auto;
   box-sizing: border-box;
   font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding: 2rem 2.5rem; /* Match the game-setup-content padding */
 }
 
-/* Style the header within the rules modal with white background like lobby */
-.rules-modal-content .modal-header {
-  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%); /* White background like lobby header */
-  padding: 0.5rem 1rem; /* Adjusted padding for a slightly more spacious header */
+/* Style for the rules title */
+.rules-title {
   text-align: center;
-  margin-bottom: 1rem; /* Increased margin for better separation */
-  border-radius: 18px 18px 0 0; /* Rounded top corners, matching the card */
-  width: calc(100% + 5rem); /* Extend to full width considering parent padding */
-  margin-left: -2.5rem; /* Counteract parent padding */
-  margin-right: -2.5rem; /* Counteract parent padding */
-  margin-top: -2rem; /* Pull header to the top of the card */
-  border-bottom: none; /* Removed yellow border line for consistency with Lobby */
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1b2e3c;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid #ffc300;
 }
 
-/* Style the logo container within the rules modal header to have white background */
-.rules-modal-content .modal-logo {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 12px;
-  padding: 1rem;
-  margin: 0.5rem auto;
-  display: block;
-  width: 100%; /* Match the full width like in the lobby */
-  text-align: center;
-}
-
-/* Style the logo within the rules modal header like .header-logo img */
-.rules-modal-content .modal-logo img {
-  max-width: 51%; /* Exactly match the lobby logo size from header-logo img */
-  height: auto; /* Maintain aspect ratio */
-  object-fit: contain;
-  display: block;
-  margin: 0 auto; /* Center logo within the white container */
-  width: auto;
+/* Style for the button container */
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+  width: 100%;
 }
 
 /* Common style for buttons inside .rules-modal-content, mirroring .header-btn */
@@ -141,17 +113,29 @@
 #expand-collapse-all-btn {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c;
-  margin-bottom: 1.1rem;
+  margin-top: 1rem; /* Increased from 0.5rem */
+  margin-bottom: 2rem; /* Increased from 1.5rem */
   text-transform: uppercase;
   font-weight: bold;
   border: 2px solid #e6af00;
   box-shadow: 0 4px 12px rgba(255, 195, 0, 0.3);
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+  position: relative; /* For z-index control */
+  z-index: 1; /* Ensure button is above other elements */
+}
+
+/* Additional styling for the expand button with expand-btn class */
+.expand-btn {
+  font-size: 1.1rem;
+  padding: 0.75rem 1.5rem;
+  min-width: 160px;
+  text-align: center;
 }
 
 #expand-collapse-all-btn:hover {
   background: linear-gradient(135deg, #e6af00 0%, #ffc300 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(255, 195, 0, 0.4);
+  transform: translateY(-2px); /* Increased from -1px */
+  box-shadow: 0 8px 20px rgba(255, 195, 0, 0.5); /* Enhanced shadow */
 }
 
 /* "Got It!" Button - styled like Lobby\'s "LET\'S PLAY" button */
@@ -168,17 +152,23 @@
 #rules-gotit-btn {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c; 
-  margin-top: 1.2rem;
+  margin-top: 2.5rem; /* Increased from 2rem */
+  margin-bottom: 1rem; /* Increased from 0.5rem */
   text-transform: uppercase;
   font-weight: bold;
   border: 2px solid #e6af00;
   box-shadow: 0 4px 12px rgba(255, 195, 0, 0.3);
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+  letter-spacing: 0.5px; /* Slightly increased letter spacing */
+  cursor: pointer;
+  min-width: 200px; /* Slightly wider button */
 }
 
 #rules-gotit-btn:hover {
   background: linear-gradient(135deg, #e6af00 0%, #ffc300 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(255, 195, 0, 0.4);
+  transform: translateY(-2px); /* Increased from -1px */
+  box-shadow: 0 8px 20px rgba(255, 195, 0, 0.5); /* Enhanced shadow */
+  letter-spacing: 1px; /* Slightly spread out letters on hover */
 }
 
 /* Shared style for button size and alignment */
@@ -199,11 +189,13 @@
 /* Refined Rules Section Styling */
 .rules-container {
   font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  line-height: 1.5; /* Improved line spacing */
-  padding: 10px 0 0 0;
+  line-height: 1.7; /* Improved line spacing */
+  padding: 0 0 20px 0; /* Reduced top padding since we removed the logo */
   color: #333; /* Darker text for better contrast */
-  text-align: center;
+  text-align: left; /* Left-align content for better readability */
   width: 100%; /* Ensure it fills the modal content area */
+  overflow-y: auto; /* Enable scrolling inside the container */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Responsive design for rules modal */
@@ -249,32 +241,39 @@
 .rules-section {
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
-  border-radius: 12px;
-  margin-bottom: 1rem;
+  border-radius: 15px; /* Increased border radius */
+  margin-bottom: 3rem; /* Increased spacing between sections after removing separators */
   overflow: hidden;
   transition: all 0.3s ease;
   text-align: left; /* Left-align content within sections */
   width: 100%; /* Ensure full width */
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); /* Enhanced shadow for more depth */
 }
 
 .rules-section:hover {
   border-color: #ffc300;
-  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.25); /* Increased shadow opacity */
 }
 
 .rules-summary {
-  padding: 1rem 1.25rem;
-  font-weight: 600;
+  padding: 1.5rem 1.75rem; /* Increased padding for more space */
+  font-weight: 700; /* Bold for better emphasis */
   cursor: pointer;
-  background-color: #e3e6ea; /* Darker grey for better contrast */
+  background: linear-gradient(135deg, #e3e6ea 0%, #d1d5db 100%); /* Gradient background */
   outline: none;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #1b2e3c; /* Even darker text for better readability */
-  font-size: 1.15em;
+  color: #1a1a1a; /* Darker text for better contrast */
+  font-size: 1.3em; /* Increased for more visual impact */
   font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   border-bottom: 1px solid #d1d5db; /* Subtle border for definition */
+  border-left: 5px solid #ffc300; /* Thicker gold accent border on the left */
+  position: relative; /* For potential decorative elements */
+  text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8); /* Subtle text shadow for "pop" */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+  margin: 0; /* Reset any default margins */
+  transition: all 0.3s ease; /* Smooth transitions for interactions */
 }
 
 .rules-summary:hover {
@@ -300,44 +299,71 @@
 }
 
 .rules-details-content {
-  padding: 1.25rem;
+  padding: 2rem; /* Further increased for more breathing room */
   border-top: none;
-  font-size: 1.05rem; /* Slightly larger detail font */
-  line-height: 1.7; /* Ensure consistent line height */
+  font-size: 1.2rem; /* Increased from 1.15rem for better readability */
+  line-height: 1.8; /* Maintained good line height */
   color: #212529;
+  background-color: #fdfdfd; /* Slightly off-white background for better contrast */
+}
+
+/* Styling for key terms */
+.rules-details-content strong {
+  font-weight: 600;
+  color: #000000;
+  border-bottom: 1px solid #ffc300; /* Gold underline for emphasis */
+}
+
+/* Special card styling */
+.special-card {
+  font-weight: 600;
+  background-color: rgba(255, 195, 0, 0.15); /* Slightly more vibrant */
+  padding: 0.2em 0.5em; /* More padding for better appearance */
+  border-radius: 4px; /* Slightly larger radius */
+  margin: 0 0.1em;
+  border: 1px solid rgba(255, 195, 0, 0.3); /* Subtle border */
+  display: inline-block; /* Prevents breaking across lines */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
 }
 
 /* Improved bullet points with gold styling */
 .rules-details-content ul {
   list-style: none;
-  padding-left: 2rem; /* Increased indentation */
-  margin-top: 0.8rem;
+  padding-left: 2.25rem; /* Further increased indentation */
+  margin-top: 1.2rem; /* More top margin for better section spacing */
 }
 
 /* Make list items stand out with custom gold bullets */
 .rules-details-content ul li {
   position: relative;
-  margin-bottom: 0.7rem; /* Spacing between list items */
+  margin-bottom: 1.5rem; /* Further increased spacing between list items */
+  line-height: 1.9; /* Increased line height for better readability */
+  padding-bottom: 0.25rem; /* Extra padding at bottom */
 }
 
-.rules-details-content ul li::before {
-  content: "•";
-  color: #ffc300; /* Gold bullet points */
-  font-weight: bold;
-  font-size: 1.2em;
-  position: absolute;
-  left: -1.2rem;
+/* Styling for nested lists */
+.rules-details-content ul li ul {
+  padding-left: 1.5rem; /* Indentation for nested lists */
+  margin-top: 1.2rem; /* Spacing after parent bullet */
+  margin-bottom: 1rem; /* Space after nested list */
 }
 
+.rules-details-content ul li ul li {
+  margin-bottom: 1rem; /* Slightly less spacing between sub-items */
+  line-height: 1.8; /* Slightly reduced line height for sub-items */
+}
+
+/* Style for nested list item bullets */
+.rules-details-content ul li ul li::before {
+  content: "○"; /* Open circle for sub-items */
+  font-size: 0.9em; /* Smaller bullet */
+  color: #ffc300; /* Gold color */
+  text-shadow: none; /* Remove text shadow for cleaner appearance */
+  left: -1.3rem; /* Adjust position */
+}
 .rules-details-content ol {
   padding-left: 1.5rem;
-  margin-top: 0.8rem;
-}
-
-.rules-details-content ul li {
-  position: relative;
-  margin-bottom: 0.8rem; /* Increased spacing between items */
-  line-height: 1.6; /* Better line spacing */
+  margin-top: 1.2rem; /* Increased from 0.8rem */
 }
 
 .rules-details-content ul li::before {
@@ -364,10 +390,15 @@
 .rules-details-content strong {
   color: #1b2e3c; /* Dark color for better contrast */
   font-weight: 700; /* Bolder weight for key points */
+  border-bottom: 2px solid rgba(255, 195, 0, 0.6); /* Gold underline for emphasis */
+  padding-bottom: 1px; /* Small padding to separate text from underline */
 }
 
 .rules-hr {
-  display: none; /* Hide <hr> if sections are visually distinct enough */
+  border: 0;
+  height: 2px; /* Thicker line */
+  background-image: linear-gradient(to right, rgba(255, 195, 0, 0), rgba(255, 195, 0, 0.7), rgba(255, 195, 0, 0)); /* Stronger gold gradient */
+  margin: 2rem 0 2.5rem 0; /* Further increased spacing before and after the divider */
 }
 
 .rules-modal-content .modal__close-button {

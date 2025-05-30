@@ -115,23 +115,19 @@
       aria-modal="true"
       aria-labelledby="rules-modal-title"
     >
-      <div class="modal__content rules-modal-content">
-        <button class="modal__close-button" aria-label="Close">&times;</button>
-        <div class="rules-container">
-          <!-- Modal Header with Logo and Slogan - Centered at top with minimal spacing -->
-          <div class="modal-header">
-            <div class="modal-logo">
-              <img 
-                src="/assets/logo and slogan.svg?v=2024" 
-                alt="Top That! Logo and Slogan" />
+      <div class="lobby-modal-container">
+        <div class="game-setup-content rules-modal-content">
+          <button class="modal__close-button" aria-label="Close">&times;</button>
+          <div class="rules-container">
+            <h2 class="rules-title">Game Rules</h2>
+            <div class="button-container">
+              <button
+                id="expand-collapse-all-btn"
+                class="btn expand-btn"
+              >
+                Expand All
+              </button>
             </div>
-          </div>
-          <button
-            id="expand-collapse-all-btn"
-            class="btn" 
-          >
-            Expand All
-          </button>
           <details class="rules-section">
             <summary class="rules-summary"><h3>1. Getting Started (Game Setup)</h3></summary>
             <div class="rules-details-content">
@@ -166,7 +162,6 @@
               </ul>
             </div>
           </details>
-          <hr class="rules-hr" />
           <details class="rules-section">
             <summary class="rules-summary"><h3>2. How to Play Your Turn</h3></summary>
             <div class="rules-details-content">
@@ -184,35 +179,33 @@
               </ul>
             </div>
           </details>
-          <hr class="rules-hr" />
           <details class="rules-section">
             <summary class="rules-summary"><h3>3. Special Cards & Their Powers!</h3></summary>
             <div class="rules-details-content">
               <ul>
                 <li>
-                  <strong>2 (Reset Card):</strong>
+                  <strong class="special-card">2 (Reset Card)</strong>
                   <img src="src/shared/Reset-icon.png" alt="Reset" class="rules-icon" style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px" />
                   Can be played on <strong>any card</strong>. <strong>Resets</strong> the Discard Pile (clears it). The next player starts a new Discard Pile with any card.
                 </li>
                 <li>
-                  <strong>5 (Copy Card):</strong>
+                  <strong class="special-card">5 (Copy Card)</strong>
                   <img src="src/shared/Copy-icon.png" alt="Copy" class="rules-icon" style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px" />
                   <strong>Copies the value</strong> of the card directly underneath it on the Discard Pile. <em>Example:</em> If a Jack is showing, playing a 5 makes it act like a Jack. The next player must beat a Jack. If played on an empty/reset Discard Pile, it's just a 5.
                 </li>
                 <li>
-                  <strong>10 (Burn Card):</strong>
+                  <strong class="special-card">10 (Burn Card)</strong>
                   <img src="src/shared/Burn-icon.png" alt="Burn" class="rules-icon" style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px" />
                   Can be played on <strong>any card</strong>. The <strong>entire Discard Pile is "burned"</strong> (removed from the game). The player who burned the pile plays again to start a new Discard Pile. If they have no cards, the next player starts.
                 </li>
                 <li>
-                  <strong>Four of a Kind (Burn & Play Again):</strong>
+                  <strong class="special-card">Four of a Kind (Burn & Play Again)</strong>
                   <img src="src/shared/4ofakind-icon.png" alt="Four-of-a-kind" class="rules-icon" style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px" />
                   Playing four cards of the same value at once (e.g., four 7s) also <strong>burns the Discard Pile</strong>. Can be played even if its value is <strong>not higher</strong> than the top card. The Discard Pile (including the four-of-a-kind) is removed from the game. The player who burned the pile plays again to start a new Discard Pile. If they have no cards, the next player starts.
                 </li>
               </ul>
             </div>
           </details>
-          <hr class="rules-hr" />
           <details class="rules-section">
             <summary class="rules-summary"><h3>4. Playing Your Face-Up & Face-Down Cards</h3></summary>
             <div class="rules-details-content">
@@ -227,7 +220,6 @@
               </ul>
             </div>
           </details>
-          <hr class="rules-hr" />
           <details class="rules-section">
             <summary class="rules-summary"><h3>5. Winning the Game!</h3></summary>
             <div class="rules-details-content">
@@ -236,7 +228,6 @@
               </ul>
             </div>
           </details>
-          <hr class="rules-hr" />
           <details class="rules-section" id="quick-tips-section">
             <summary class="rules-summary"><h3>6. Quick Tips for New Players</h3></summary>
             <div class="rules-details-content">
@@ -258,6 +249,7 @@
         </div>
       </div>
     </div>
+  </div>
 
     <div class="toast-container" id="toast-container"></div>
   </body>

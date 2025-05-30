@@ -689,11 +689,17 @@ function handleRulesClick() {
   console.log('🎯 Rules button clicked!');
   const rulesModal = document.getElementById('rules-modal');
   const overlay = document.getElementById('modal-overlay');
+  const lobbyContainer = document.getElementById('lobby-container');
 
   if (rulesModal && overlay) {
+    // Hide the lobby container when showing the rules modal
+    if (lobbyContainer) {
+      lobbyContainer.style.display = 'none';
+    }
+    
     rulesModal.classList.remove('modal--hidden');
     overlay.classList.remove('modal__overlay--hidden');
-    console.log('✅ Rules modal opened');
+    console.log('✅ Rules modal opened, lobby hidden');
   } else {
     console.error('❌ Rules modal or overlay not found');
   }
@@ -758,7 +764,15 @@ function handleDealClick() {
 function hideRulesModalAndOverlay() {
   const rulesModal = document.getElementById('rules-modal');
   const overlay = document.getElementById('modal-overlay');
+  const lobbyContainer = document.getElementById('lobby-container');
+  
   if (rulesModal) rulesModal.classList.add('modal--hidden');
   if (overlay) overlay.classList.add('modal__overlay--hidden');
-  console.log('✅ Rules modal closed');
+  
+  // Show the lobby container again when hiding the rules modal
+  if (lobbyContainer) {
+    lobbyContainer.style.display = '';  // Resets to default display value
+  }
+  
+  console.log('✅ Rules modal closed, lobby restored');
 }
