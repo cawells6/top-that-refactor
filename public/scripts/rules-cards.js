@@ -16,8 +16,10 @@ export function createRuleCardImage(value, suit, options = {}) {
   const card = { value, suit };
   const cardCode = code(card);
   
-  // Use the Deck of Cards API via our proxy
-  img.src = `/cards-api/images/cards/${cardCode}.png`;
+  console.log(`Creating card image for ${value} of ${suit}, code=${cardCode}`);
+  
+  // Use the direct URL to the Deck of Cards API instead of proxy
+  img.src = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
   img.alt = `${value} of ${suit}`;
   
   // Apply styling

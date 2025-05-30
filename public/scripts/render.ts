@@ -34,9 +34,15 @@ export function cardImg(
   const img = new Image();
   img.className = 'card-img';
   img.style.visibility = 'hidden';
-  img.src = card.back
-    ? '/cards-api/images/back.png'
-    : `/cards-api/images/cards/${code(card)}.png`;
+  
+  const cardCode = card.back ? 'back' : code(card);
+  console.log(`Creating card image: ${card.back ? 'back' : `${card.value} of ${card.suit}`}, code=${cardCode}`);
+  
+  // Try using direct URLs instead of the proxy
+  const imgSrc = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
+  console.log(`Card image src: ${imgSrc}`);
+  
+  img.src = imgSrc;
   img.alt = card.back ? 'Card back' : `${card.value} of ${card.suit}`;
   img.onload = () => {
     img.style.visibility = 'visible';

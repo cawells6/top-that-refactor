@@ -29,14 +29,7 @@ export default defineConfig({
       '/cards-api': {
         target: 'https://deckofcardsapi.com',
         changeOrigin: true,
-        rewrite: (path) => {
-          // Handle specific paths first
-          if (path === '/cards-api/images/back.png') {
-            return '/static/img/back.png';
-          }
-          // Handle card images with pattern '/cards-api/images/cards/XX.png'
-          return path.replace(/^\/cards-api\/images\/cards\/(.+)\.png$/, '/static/img/$1.png');
-        },
+        rewrite: (path) => path.replace(/^\/cards-api/, ''),
       },
       // Example for other backend API routes if you add them later:
       // '/api': {

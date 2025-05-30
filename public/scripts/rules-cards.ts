@@ -25,9 +25,34 @@ export function createRuleCardImage(
   const card: Card = { value, suit };
   const cardCode = code(card);
   
-  // Use the Deck of Cards API via our proxy
-  img.src = `/cards-api/images/cards/${cardCode}.png`;
+  console.log(`Creating card image for ${value} of ${suit}, code=${cardCode}`);
+  
+  // Use direct URL to the Deck of Cards API instead of proxy
+  const imgSrc = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
+  console.log(`Card image src: ${imgSrc}`);
+  img.src = imgSrc;
   img.alt = `${value} of ${suit}`;
+  
+  // Add error and load handlers for debugging
+  img.onerror = () => {
+    console.error(`Failed to load card image: ${img.src}`);
+    img.style.border = '1px dashed red';
+    img.style.width = '40px';
+    img.style.height = '60px';
+    img.style.display = 'flex';
+    img.style.justifyContent = 'center';
+    img.style.alignItems = 'center';
+    
+    // Add fallback text
+    const fallback = document.createElement('span');
+    fallback.textContent = `${value}${suit === 'hearts' || suit === 'diamonds' ? '♥' : '♠'}`;
+    fallback.style.color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
+    img.appendChild(fallback);
+  };
+  
+  img.onload = () => {
+    console.log(`Successfully loaded card image: ${img.src}`);
+  };
   
   // Apply styling
   img.style.height = options.height || '60px';
