@@ -6,16 +6,8 @@
  */
  
 /* eslint-disable no-undef */
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-import { createRequire } from 'module';
-
-// Get the directory name of the current module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Create a require function for the current module
-const require = createRequire(import.meta.url);
+const path = require('path');
+const fs = require('fs');
 
 // Set a timeout to avoid hanging the restart process
 const EXECUTION_TIMEOUT = 5000; // 5 seconds max execution time
@@ -23,12 +15,13 @@ const timeoutPromise = new Promise((_, reject) => {
   setTimeout(() => reject(new Error('Script execution timed out')), EXECUTION_TIMEOUT);
 });
 
+// Import helper functions from port-cleanup.cjs
+let portCleanup;
 try {
-  // Import helper functions from port-cleanup.cjs
-  const portCleanupPath = resolve(__dirname, './port-cleanup.cjs');
+  const portCleanupPath = path.resolve(__dirname, './port-cleanup.cjs');
   console.log(`📂 Loading port cleanup module from: ${portCleanupPath}`);
   
-  const portCleanup = require(portCleanupPath);
+  portCleanup = require(portCleanupPath);
 
   // Validate that the cleanupPorts function is available
   if (!portCleanup.cleanupPorts) {
@@ -52,11 +45,11 @@ const SERVER_PORT = 3000;
  */
 function getCurrentServerPort() {
   try {
-    const fs = require('fs');
-    const path = resolve(__dirname, '../current-port.txt');
+    // We already have fs imported at the top
+    const portPath = path.resolve(__dirname, '../current-port.txt');
     
-    if (fs.existsSync(path)) {
-      const port = parseInt(fs.readFileSync(path, 'utf-8').trim(), 10);
+    if (fs.existsSync(portPath)) {
+      const port = parseInt(fs.readFileSync(portPath, 'utf-8').trim(), 10);
       if (!isNaN(port) && port > 0) {
         console.log(`📌 Found server running on port ${port} (from current-port.txt)`);
         return port;
@@ -80,10 +73,6 @@ async function cleanupServerPort() {
   const port = getCurrentServerPort();
   
   try {
-    // Import helper functions from port-cleanup.cjs
-    const portCleanupPath = resolve(__dirname, './port-cleanup.cjs');
-    const portCleanup = require(portCleanupPath);
-    
     // Use Promise.race to implement timeout
     await Promise.race([
       (async () => {

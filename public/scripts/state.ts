@@ -11,33 +11,41 @@ function getSocketURL(port: string): string {
 }
 
 async function initSocket(): Promise<Socket> {
+  const socketOptions = {
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 10000,
+  };
+
+  // Special handling for Vite development server
+  // When running on port 5173 (Vite's default), connect directly to port 3000
+  if (window.location.port === '5173') {
+    console.log(
+      '🔌 [Client] Detected Vite dev server, connecting directly to game server on port 3000'
+    );
+    return io('http://localhost:3000', socketOptions);
+  }
+
+  // For production or other cases, try to use current-port.txt for dynamic server detection
   try {
     const resp = await fetch('/current-port.txt', { cache: 'no-store' });
     if (resp.ok) {
       const port = (await resp.text()).trim();
+      console.log(`🔌 [Client] Using detected server port: ${port}`);
+      
       // If the port matches the current location, use default (relative) connection
       if (window.location.port === port) {
-        return io({
-          reconnection: true,
-          reconnectionDelay: 1000,
-          reconnectionDelayMax: 10000,
-        });
+        return io(socketOptions);
       }
-      return io(getSocketURL(port), {
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 10000,
-      });
+      return io(getSocketURL(port), socketOptions);
     }
-  } catch {
-    // Ignore and fallback
+  } catch (error) {
+    console.warn('📣 [Client] Failed to fetch current-port.txt:', error);
   }
+  
   // Fallback: connect to same origin
-  return io({
-    reconnection: true,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 10000,
-  });
+  console.log('🔌 [Client] Using fallback connection to same origin');
+  return io(socketOptions);
 }
 
 socketReady = initSocket().then((s) => {

@@ -1,0 +1,12 @@
+#!/bin/bash
+# Bash aliases for the Top-That-Refactor project
+# Usage: source scripts/bash_aliases from your bash terminal
+
+# Define the absolute path to the project directory
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Create a gpush alias that uses the project's gpush.sh script
+alias gpush="${PROJECT_DIR}/scripts/gpush.sh"
+
+echo "✅ Top-That-Refactor aliases loaded!"
+echo "You can now use 'gpush \"Your commit message\"' directly"

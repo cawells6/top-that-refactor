@@ -2,22 +2,24 @@
 // Cross-platform Node.js script to kill lingering node and vite processes before dev start
 // Windows: kills node.exe and vite.exe; other OS: prints a warning (customize as needed)
 
-const { execSync } = require('child_process');
+const path = require('path');
 const os = require('os');
 
 function killWindowsProcesses() {
+  // IMPORTANT: Instead of killing all node processes (which is too aggressive),
+  // we'll leverage the port-cleanup.cjs script to target only the processes on our specific ports
   try {
-    // /F: force, /IM: image name, /T: kill child processes
-    execSync('taskkill /F /IM node.exe /T', { stdio: 'ignore' });
-  } catch {
-    // Ignore errors if no node.exe processes found
+    console.log('🔍 Looking for processes on game server ports...');
+    const portCleanupPath = path.resolve(__dirname, './port-cleanup.cjs');
+    const portCleanup = require(portCleanupPath);
+    
+    // Only clean up the server port 3000, leave Vite port alone (5173)
+    portCleanup.cleanupPorts([3000]);
+    
+    console.log('✅ Cleaned up server port processes.');
+  } catch (error) {
+    console.log(`⚠️ Port cleanup failed: ${error.message}. Continuing anyway.`);
   }
-  try {
-    execSync('taskkill /F /IM vite.exe /T', { stdio: 'ignore' });
-  } catch {
-    // Ignore errors if no vite.exe processes found
-  }
-  console.log('✅ Killed lingering node.exe and vite.exe processes (if any).');
 }
 
 function main() {

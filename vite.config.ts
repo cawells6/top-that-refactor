@@ -10,14 +10,20 @@ export default defineConfig({
 
   // Configure the development server
   server: {
-    port: 5173, // Port for the Vite client-side dev server (changed from 8080 to 5173)
+    port: 5173, // Port for the Vite client-side dev server
     open: false, // Set to true if you want Vite to open the browser automatically
+    cors: true, // Enable CORS for all origins
+    hmr: {
+      clientPort: 5173, // Ensure HMR uses the correct client port
+    },
     proxy: {
-      // Proxy WebSocket requests for Socket.IO to your backend Node.js server
+      // Enhanced Socket.IO proxy configuration
       '/socket.io': {
-        target: 'http://localhost:3000', // Fixed: Changed from 3002 to 3000 to match your running server
-        ws: true, // IMPORTANT: Enable WebSocket proxying
-        changeOrigin: true, // Added for better compatibility
+        target: 'ws://localhost:3000', // Use WebSocket protocol explicitly
+        ws: true, // Enable WebSocket proxying
+        changeOrigin: true, // For virtual hosted sites
+        secure: false, // Disable SSL certificate validation for dev
+        rewrite: (path) => path, // Keep paths as-is
       },
       // Example for other backend API routes if you add them later:
       // '/api': {

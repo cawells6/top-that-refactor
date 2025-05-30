@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
+    "gpush": "bash scripts/gpush.sh",
     "dev": "nodemon --watch ./ --ext ts --exec \"node --loader ts-node/esm ./server.ts\"",
     "force": "node --loader ts-node/esm ./scripts/force-dev-start.ts",
     "dev:force": "node --loader ts-node/esm ./scripts/force-dev-start.ts",
@@ -21,7 +22,7 @@
     "postbuild": "find dist -name '*.js' -exec sed -i 's/\\.ts/\\.js/g' {} +",
     "start:multi": "concurrently \"PORT=3000 node --loader ts-node/esm ./server.ts\" \"PORT=8080 node --loader ts-node/esm ./server.ts\"",
     "dev:multi": "concurrently \"cross-env PORT=3000 node --loader ts-node/esm ./server.ts\" \"cross-env PORT=8080 node --loader ts-node/esm ./server.ts\"",
-    "dev:server": "nodemon --config nodemon.json --exec \"node --loader ts-node/esm ./server.ts\"",
+    "dev:server": "node scripts/clean-start.cjs && nodemon --config nodemon.json --exec \"node --loader ts-node/esm ./server.ts\"",
     "dev:all": "node scripts/port-cleanup.cjs cleanup && concurrently -k -s first \"npm run dev:server\" \"npm run dev:client\"",
     "dev:all:raw": "concurrently --kill-others-on-fail -k -s first \"npm run dev:server\" \"npm run dev:client\"",
     "dev:all:clean": "npm run wait && concurrently -k -s first \"npm run dev:server\" \"npm run dev:client\"",
@@ -30,7 +31,7 @@
     "dev:all:watch": "chokidar \"src/**/*\" \"public/**/*\" -c \"npm run dev:all\" --initial",
     "wait": "node wait.js",
     "clean:ports": "node scripts/port-cleanup.cjs cleanup",
-    "show:ports": "node scripts/port-cleanup.cjs status",
+    "show:ports": "node scripts/simplified-port-status.cjs",
     "monitor:ports": "node scripts/port-cleanup.cjs monitor",
     "test:ports": "npm run clean:ports && echo 'Cleanup complete. Starting dev servers...' && npm run dev:all:enhanced",
     "clean-dev": "bash scripts/clean-start.bat"

@@ -314,6 +314,21 @@
   margin-top: 0.8rem;
 }
 
+/* Make list items stand out with custom gold bullets */
+.rules-details-content ul li {
+  position: relative;
+  margin-bottom: 0.7rem; /* Spacing between list items */
+}
+
+.rules-details-content ul li::before {
+  content: "•";
+  color: #ffc300; /* Gold bullet points */
+  font-weight: bold;
+  font-size: 1.2em;
+  position: absolute;
+  left: -1.2rem;
+}
+
 .rules-details-content ol {
   padding-left: 1.5rem;
   margin-top: 0.8rem;
