@@ -1,0 +1,132 @@
+/* Enhanced rules-cards.css - Improved styling for card symbols in rules */
+
+/* Container for card symbols */
+.card-symbol {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px 8px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-width: 120px;
+  margin: 0 auto;
+}
+
+/* Container for card images with better layout */
+.card-image-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  margin: 0 auto;
+  max-width: 210px;
+}
+
+/* For card images in rules */
+.rule-card-img {
+  height: 70px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.rule-card-img:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+/* Four of a kind indicator */
+.four-kind-indicator {
+  margin-top: 8px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  background-color: #f8f8f8;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Improved style for card list items */
+.card-list-item {
+  display: grid;
+  grid-template-columns: 60px 150px 1fr;
+  grid-gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Style for the card header containing the card symbol */
+.card-header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+/* Style for the rules icon */
+.rules-icon {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.rules-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Card description text */
+.card-description {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* Loading indicator for card images */
+.card-loading {
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  height: 70px;
+  width: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #999;
+  font-size: 12px;
+  margin: 0 2px;
+}
+
+/* Responsive styling for smaller screens */
+@media (max-width: 768px) {
+  .card-list-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  
+  .rules-icon {
+    margin-bottom: 10px;
+  }
+  
+  .rule-card-img {
+    height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rule-card-img {
+    height: 50px;
+  }
+  
+  .card-image-container {
+    max-width: 160px;
+  }
+}

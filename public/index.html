@@ -9,14 +9,19 @@
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/styles/modals.css" />
     <link rel="stylesheet" href="/styles/rules-cards.css" />
+    <link rel="stylesheet" href="/styles/enhanced-rules-cards.css" />
     <!-- Header button styles are now in style.css -->
 
     <!-- Entry‑point for your client modules -->
     <script type="module" src="/scripts/main.ts"></script>
     <!-- Rules cards script for card API integration -->
     <script type="module" src="/scripts/rules-cards.ts"></script>
-    <!-- Card debugging helper -->
-    <script type="module" src="/scripts/card-debug.js"></script>
+    <!-- Fixed card loader with improved reliability -->
+    <script type="module" src="/scripts/fixed-card-loader.js"></script>
+    <!-- Event trigger for card updates -->
+    <script type="module" src="/scripts/trigger-cards-update.js"></script>
+    <!-- Icon viewer for fullsize icon display -->
+    <script src="/scripts/icon-viewer.js"></script>
   </head>
   <body class="body-loading" style="min-height: 100vh; display: flex; flex-direction: column">
     <!-- Header removed per user request -->
@@ -173,44 +178,44 @@
           <details class="rules-section">
             <summary class="rules-summary"><h3>3. Special Cards</h3></summary>
             <div class="rules-details-content">
-              <ul>
-                <li class="card-list-item">
-                  <div style="text-align: center; margin-bottom: 15px;">
+              <div class="special-cards-list">
+                <div class="card-list-item">
+                  <div class="rule-icon-container">
                     <img src="src/shared/Reset-icon.png" alt="Reset" class="rules-icon" data-fullsize="src/shared/Reset-icon.png" onclick="showFullSizeIcon(this)" />
                   </div>
                   <div class="card-header">
-                    <div class="card-symbol">2♣ 2♠ <span class="red">2♥ 2♦</span></div>
+                    <div class="card-symbol" data-card-value="2">2♣ 2♠ <span class="red">2♥ 2♦</span></div>
                   </div>
                   <div class="card-description">Play on <strong>any card</strong>. Resets the pile, allowing the next player to play any card.</div>
-                </li>
-                <li class="card-list-item">
-                  <div style="text-align: center; margin-bottom: 15px;">
+                </div>
+                <div class="card-list-item">
+                  <div class="rule-icon-container">
                     <img src="src/shared/Copy-icon.png" alt="Copy" class="rules-icon" data-fullsize="src/shared/Copy-icon.png" onclick="showFullSizeIcon(this)" />
                   </div>
                   <div class="card-header">
-                    <div class="card-symbol">5♣ 5♠ <span class="red">5♥ 5♦</span></div>
+                    <div class="card-symbol" data-card-value="5">5♣ 5♠ <span class="red">5♥ 5♦</span></div>
                   </div>
                   <div class="card-description">Copies the value of the card below it. If played on an empty pile, counts as just a 5.</div>
-                </li>
-                <li class="card-list-item">
-                  <div style="text-align: center; margin-bottom: 15px;">
+                </div>
+                <div class="card-list-item">
+                  <div class="rule-icon-container">
                     <img src="src/shared/Burn-icon.png" alt="Burn" class="rules-icon" data-fullsize="src/shared/Burn-icon.png" onclick="showFullSizeIcon(this)" />
                   </div>
                   <div class="card-header">
-                    <div class="card-symbol">10♣ 10♠ <span class="red">10♥ 10♦</span></div>
+                    <div class="card-symbol" data-card-value="10">10♣ 10♠ <span class="red">10♥ 10♦</span></div>
                   </div>
                   <div class="card-description">Play on <strong>any card</strong>. Burns (removes) the entire Discard Pile from the game. Play passes to the next player who can play any card on the blank pile.</div>
-                </li>
-                <li class="card-list-item">
-                  <div style="text-align: center; margin-bottom: 15px;">
+                </div>
+                <div class="card-list-item">
+                  <div class="rule-icon-container">
                     <img src="src/shared/4ofakind-icon.png" alt="Four-of-a-kind" class="rules-icon" data-fullsize="src/shared/4ofakind-icon.png" onclick="showFullSizeIcon(this)" />
                   </div>
                   <div class="card-header">
-                    <div class="card-symbol">A♣ A♠ <span class="red">A♥ A♦</span></div>
+                    <div class="card-symbol" data-card-value="A">A♣ A♠ <span class="red">A♥ A♦</span></div>
                   </div>
                   <div class="card-description">Playing four cards of the same value burns the Discard Pile, even if they're lower than the top card. Play passes to the next player who can play any card on the blank pile.</div>
-                </li>
-              </ul>
+                </div>
+              </div>
             </div>
           </details>
           <details class="rules-section">
