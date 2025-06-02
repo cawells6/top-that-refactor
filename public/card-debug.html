@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Loading Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .card-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+    .card-img {
+      height: 100px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .card-img:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      z-index: 2;
+    }
+    .debug-console {
+      font-family: monospace;
+      background-color: #222;
+      color: #0f0;
+      padding: 10px;
+      border-radius: 5px;
+      height: 150px;
+      overflow: auto;
+      margin: 20px 0;
+    }
+    .debug-entry {
+      margin: 3px 0;
+      border-bottom: 1px solid #444;
+      padding-bottom: 3px;
+    }
+    .success { color: #8f8; }
+    .error { color: #f88; }
+    .warn { color: #ff8; }
+    .loading { color: #8cf; }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>Card Loading Test</h1>
+    
+    <div class="debug-console" id="debug-console">
+      <!-- Debug logs will appear here -->
+    </div>
+    
+    <h2>Direct API Loading Test</h2>
+    <div class="card-group" id="direct-test">
+      <!-- Cards loaded directly -->
+    </div>
+    
+    <h2>Proxy Loading Test</h2>
+    <div class="card-group" id="proxy-test">
+      <!-- Cards loaded through proxy -->
+    </div>
+    
+    <h2>Fallback Test</h2>
+    <div class="card-group" id="fallback-test">
+      <!-- Canvas fallback cards -->
+    </div>
+  </div>
+  
+  <script>
+    // Helper function to log to debug console
+    function debugLog(message, type = 'info') {
+      const console = document.getElementById('debug-console');
+      const entry = document.createElement('div');
+      entry.className = `debug-entry ${type}`;
+      entry.textContent = message;
+      console.appendChild(entry);
+      console.scrollTop = console.scrollHeight;
+      
+      // Also log to browser console
+      window.console.log(message);
+    }
+    
+    // Create a card with direct API URL
+    function createDirectCard(value, suit) {
+      debugLog(`Creating direct card: ${value} of ${suit}`, 'loading');
+      
+      // Convert to card code format
+      const v = value === '10' ? '0' : String(value).toUpperCase();
+      const suitMap = {
+        'hearts': 'H', 
+        'diamonds': 'D', 
+        'clubs': 'C', 
+        'spades': 'S'
+      };
+      const s = suitMap[suit.toLowerCase()];
+      const cardCode = v + s;
+      
+      // Create the image
+      const img = document.createElement('img');
+      img.className = 'card-img';
+      img.alt = `${value} of ${suit}`;
+      
+      // Set direct API URL
+      const apiUrl = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
+      img.src = apiUrl;
+      
+      // Event handlers
+      img.onload = () => {
+        debugLog(`✅ Direct loaded: ${value} of ${suit}`, 'success');
+      };
+      
+      img.onerror = () => {
+        debugLog(`❌ Direct failed: ${value} of ${suit}`, 'error');
+        img.style.border = '2px solid red';
+      };
+      
+      // Add to container
+      document.getElementById('direct-test').appendChild(img);
+    }
+    
+    // Create a card with proxy URL
+    function createProxyCard(value, suit) {
+      debugLog(`Creating proxy card: ${value} of ${suit}`, 'loading');
+      
+      // Convert to card code format
+      const v = value === '10' ? '0' : String(value).toUpperCase();
+      const suitMap = {
+        'hearts': 'H', 
+        'diamonds': 'D', 
+        'clubs': 'C', 
+        'spades': 'S'
+      };
+      const s = suitMap[suit.toLowerCase()];
+      const cardCode = v + s;
+      
+      // Create the image
+      const img = document.createElement('img');
+      img.className = 'card-img';
+      img.alt = `${value} of ${suit}`;
+      
+      // Set proxy URL
+      const proxyUrl = `/cards-api/static/img/${cardCode}.png`;
+      img.src = proxyUrl;
+      
+      // Event handlers
+      img.onload = () => {
+        debugLog(`✅ Proxy loaded: ${value} of ${suit}`, 'success');
+      };
+      
+      img.onerror = () => {
+        debugLog(`❌ Proxy failed: ${value} of ${suit}`, 'error');
+        img.style.border = '2px solid orange';
+      };
+      
+      // Add to container
+      document.getElementById('proxy-test').appendChild(img);
+    }
+    
+    // Create a fallback canvas card
+    function createFallbackCard(value, suit) {
+      debugLog(`Creating fallback card: ${value} of ${suit}`, 'loading');
+      
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = 80;
+      canvas.height = 120;
+      canvas.className = 'card-img';
+      
+      // Get context and draw card
+      const ctx = canvas.getContext('2d');
+      
+      // Fill background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, 80, 120);
+      
+      // Draw border
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(2, 2, 76, 116);
+      
+      // Set color based on suit
+      const isRed = suit === 'hearts' || suit === 'diamonds';
+      ctx.fillStyle = isRed ? 'red' : 'black';
+      
+      // Draw value at top
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(String(value), 40, 30);
+      
+      // Draw suit symbol
+      const suitSymbols = {
+        'hearts': '♥',
+        'diamonds': '♦',
+        'clubs': '♣',
+        'spades': '♠'
+      };
+      const symbol = suitSymbols[suit.toLowerCase()];
+      
+      ctx.font = '40px Arial';
+      ctx.fillText(symbol, 40, 80);
+      
+      // Add to container
+      document.getElementById('fallback-test').appendChild(canvas);
+      debugLog(`✅ Fallback created: ${value} of ${suit}`, 'success');
+    }
+    
+    // Test with various cards
+    const testCards = [
+      // Some easy cards
+      {value: 'A', suit: 'hearts'},
+      {value: 'K', suit: 'spades'},
+      {value: 'Q', suit: 'diamonds'},
+      {value: 'J', suit: 'clubs'},
+      // Number cards
+      {value: '2', suit: 'hearts'},
+      {value: '5', suit: 'spades'},
+      {value: '10', suit: 'diamonds'},
+      {value: '7', suit: 'clubs'}
+    ];
+    
+    // Run the tests
+    window.onload = function() {
+      debugLog('Starting card loading tests...');
+      
+      // Test each card
+      testCards.forEach(card => {
+        createDirectCard(card.value, card.suit);
+        createProxyCard(card.value, card.suit);
+        createFallbackCard(card.value, card.suit);
+      });
+    };
+  </script>
+</body>
+</html>

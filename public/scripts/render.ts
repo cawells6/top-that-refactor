@@ -1,6 +1,4 @@
 import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js'; // Corrected import path
-import { enhanceCardImage } from './cards-enhanced.js'; // Import enhanced card loader
-import { enhanceCardImage } from './cards-enhanced.js'; // Import enhanced card loader
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 export function code(card: CardType): string {
@@ -36,38 +34,41 @@ export function cardImg(
   const img = new Image();
   img.className = 'card-img';
   img.style.visibility = 'hidden';
-  
+
   const cardCode = card.back ? 'back' : code(card);
-  console.log(`Creating card image: ${card.back ? 'back' : `${card.value} of ${card.suit}`}, code=${cardCode}`);
-  
+  console.log(
+    `Creating card image: ${card.back ? 'back' : `${card.value} of ${card.suit}`}, code=${cardCode}`
+  );
+
   // Try using direct URLs instead of the proxy
   const imgSrc = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
   console.log(`Card image src: ${imgSrc}`);
-  
+
   img.src = imgSrc;
   img.alt = card.back ? 'Card back' : `${card.value} of ${card.suit}`;
-  
+
   // Set up onload and error handling
   img.onload = () => {
     img.style.visibility = 'visible';
-    console.log(`✅ Card loaded successfully: ${img.src}`);        if (onLoad) onLoad(img);
+    console.log(`✅ Card loaded successfully: ${img.src}`);
+    if (onLoad) onLoad(img);
   };
-  
+
   // Improved error handling with retry
   img.onerror = () => {
     console.error(`⚠️ Failed to load card image: ${img.src}`);
-    
+
     // Try an alternative URL with slight delay
     setTimeout(() => {
       // Try different source paths as fallback
       const fallbacks = [
         `/cards-api/static/img/${cardCode}.png`, // Try proxy
-        `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png` // GitHub hosted fallback
+        `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png`, // GitHub hosted fallback
       ];
-      
+
       // If we've already tried all fallbacks, show a placeholder
       const currentSrcIndex = fallbacks.indexOf(img.src);
-      
+
       if (currentSrcIndex < fallbacks.length - 1) {
         console.log(`🔄 Trying alternative source: ${fallbacks[currentSrcIndex + 1]}`);
         img.src = fallbacks[currentSrcIndex + 1];
@@ -83,26 +84,28 @@ export function cardImg(
         container.style.alignItems = 'center';
         container.style.flexDirection = 'column';
         container.style.padding = '5px';
-        
+
         // Display the value and suit as text
         if (!card.back) {
           const valueDisplay = document.createElement('div');
           valueDisplay.style.fontSize = '18px';
           valueDisplay.style.fontWeight = 'bold';
-          valueDisplay.style.color = (card.suit === 'hearts' || card.suit === 'diamonds') ? 'red' : 'black';
+          valueDisplay.style.color =
+            card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : 'black';
           valueDisplay.textContent = String(card.value);
-          
+
           const suitDisplay = document.createElement('div');
           suitDisplay.style.fontSize = '24px';
-          suitDisplay.style.color = (card.suit === 'hearts' || card.suit === 'diamonds') ? 'red' : 'black';
+          suitDisplay.style.color =
+            card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : 'black';
           const suitMap: Record<string, string> = {
-            'hearts': '♥',
-            'diamonds': '♦',
-            'clubs': '♣',
-            'spades': '♠'
+            hearts: '♥',
+            diamonds: '♦',
+            clubs: '♣',
+            spades: '♠',
           };
           suitDisplay.textContent = suitMap[card.suit as keyof typeof suitMap] || '';
-          
+
           container.appendChild(valueDisplay);
           container.appendChild(suitDisplay);
         } else {
@@ -111,7 +114,7 @@ export function cardImg(
           container.style.fontSize = '32px';
           container.style.color = '#444';
         }
-        
+
         if (onLoad) onLoad(img);
       }
     }, 500); // Delay retry to avoid rapid retries

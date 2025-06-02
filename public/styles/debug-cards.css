@@ -1,0 +1,45 @@
+/* debug-cards.css - Additional styling for debugging card display issues */
+
+/* Ensure card symbols have proper size */
+.card-symbol {
+  min-height: 100px;
+  padding: 15px !important;
+}
+
+/* Make the card image container more visible */
+.card-image-container {
+  border: 1px dashed #ccc;
+  padding: 8px;
+  min-height: 80px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+/* Card images with clear borders */
+.rule-card-img {
+  height: 70px !important;
+  border: 1px solid #aaa !important;
+  border-radius: 4px !important;
+  background-color: white !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  transition: transform 0.2s ease !important;
+  display: block !important;
+}
+
+/* Show loading state */
+.rule-card-img.loading {
+  background-color: #f0f0f0 !important;
+}
+
+/* Add clear hover state */
+.rule-card-img:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3) !important;
+  z-index: 10 !important;
+}
