@@ -55,7 +55,8 @@
   border-bottom: none; /* Ensure no bottom border is present */
 }
 
-.setup-header hr { /* Target hr elements within setup-header */
+.setup-header hr {
+  /* Target hr elements within setup-header */
   display: none; /* Hide the horizontal rule */
 }
 
@@ -79,7 +80,7 @@
   justify-items: stretch;
   background: transparent;
   box-shadow: 0 0 30px 5px rgba(0, 204, 204, 0.4);
-  border: 3px solid #00CCCC;
+  border: 3px solid #00cccc;
   border-radius: 20px;
   margin: 0;
   padding: 16px;
@@ -174,7 +175,7 @@ body {
   background: rgba(27, 46, 60, 0.9);
   border: 2.5px solid #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
   padding: 12px;
   margin: 0 !important;
   min-width: 220px !important;
@@ -193,16 +194,23 @@ body {
   overflow: hidden;
 }
 
-.player-area.active, #my-area.active {
-  border-color: #00CCCC;
-  box-shadow: 0 0 20px 5px rgba(0,204,204,0.4);
+.player-area.active,
+#my-area.active {
+  border-color: #00cccc;
+  box-shadow: 0 0 20px 5px rgba(0, 204, 204, 0.4);
   animation: activePulse 1s infinite;
 }
 
 @keyframes activePulse {
-  0% { box-shadow: 0 0 0 0 #00CCCC; }
-  50% { box-shadow: 0 0 20px 5px #00CCCC; }
-  100% { box-shadow: 0 0 0 0 #00CCCC; }
+  0% {
+    box-shadow: 0 0 0 0 #00cccc;
+  }
+  50% {
+    box-shadow: 0 0 20px 5px #00cccc;
+  }
+  100% {
+    box-shadow: 0 0 0 0 #00cccc;
+  }
 }
 
 .player-name-header {
@@ -281,7 +289,8 @@ body {
 }
 
 /* Hand and stack rows layout */
-.hand, .opp-hand {
+.hand,
+.opp-hand {
   display: flex;
   flex-direction: row;
   gap: 8px;
@@ -328,7 +337,7 @@ body {
     gap: 8px;
     padding: 12px;
   }
-  
+
   .player-area {
     min-width: 180px !important;
     min-height: 180px !important;
@@ -340,11 +349,11 @@ body {
   .main-content {
     padding: 0.125rem 10px !important; /* Even tighter on mobile */
   }
-  
+
   .game-setup-card {
     padding: 0.75rem 1.5rem 1.5rem 1.5rem; /* Reduced top padding on mobile */
   }
-  
+
   .table {
     width: 98vw;
     height: 80vh;
@@ -353,14 +362,14 @@ body {
     border-width: 2px;
     box-shadow: 0 0 20px 3px rgba(0, 204, 204, 0.3);
   }
-  
+
   .player-area {
     min-width: 160px !important;
     min-height: 160px !important;
     padding: 6px;
     gap: 6px;
   }
-  
+
   .player-name-header {
     font-size: 1rem;
     padding: 0.4rem 0.6rem;
@@ -375,7 +384,7 @@ body {
     padding: 6px;
     grid-template-rows: 0.8fr 2fr 0.8fr;
   }
-  
+
   .player-area {
     min-width: 140px !important;
     min-height: 140px !important;
@@ -383,12 +392,12 @@ body {
     gap: 4px;
     border-width: 2px;
   }
-  
+
   .player-name-header {
     font-size: 0.9rem;
     padding: 0.3rem 0.5rem;
   }
-  
+
   .table-center {
     min-width: 120px;
     min-height: 120px;

@@ -1,13 +1,11 @@
-// @ts-nocheck
 // socketHandlers.ts
 // Handles socket events and communication
 
-import { GameState } from '@models/GameState'; // Use path alias
-
-import { renderGameState } from './render'; // Removed .js
-import * as state from './state'; // Removed .js
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager'; // Removed .js
+import { renderGameState } from './render.js';
+import * as state from './state.js';
+import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
 import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
+import { GameStateData } from '../../src/shared/types.js';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
@@ -34,9 +32,9 @@ export async function initializeSocketHandlers(): Promise<void> {
     showWaitingState(roomId, players.length, maxPlayers, players);
   });
 
-  state.socket.on(STATE_UPDATE, (s: GameState) => {
+  state.socket.on(STATE_UPDATE, (s: GameStateData) => {
     console.log('Received STATE_UPDATE:', s); // Added for debugging
-    renderGameState(s);
+    renderGameState(s, state.myId);
     if (s.started) showGameTable();
   });
 

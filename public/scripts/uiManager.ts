@@ -1,6 +1,7 @@
 import { renderGameState } from './render.js';
 import * as state from './state.js';
 import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
+import { GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
 
 export const getLobbyContainer = (): HTMLElement | null =>
   document.getElementById('lobby-container');
@@ -67,7 +68,7 @@ export function showWaitingState(
   roomId: string,
   currentPlayers: number,
   maxPlayers: number,
-  players: any[]
+  players: Pick<ClientStatePlayer, 'name' | 'disconnected'>[] // More specific type for players in lobby
 ): void {
   const lobbyContainer = getLobbyContainer();
   const lobbyFormContent = getLobbyFormContent();
@@ -96,7 +97,7 @@ export function showWaitingState(
     if (waitingStateDiv) waitingStateDiv.appendChild(playerList);
   }
   playerList.innerHTML = '';
-  players.forEach((p: any) => {
+  players.forEach((p) => {
     const li = document.createElement('li');
     li.textContent = p.name + (p.disconnected ? ' (disconnected)' : '');
     playerList.appendChild(li);
@@ -117,6 +118,10 @@ export function showError(msg: string): void {
   alert(msg);
 }
 
+/**
+ * Initializes socket event handlers.
+ * NOTE: This function appears to be unused as `main.ts` imports `initializeSocketHandlers` from `socketService.ts`.
+ */
 export function initializeSocketHandlers(): void {
   if (!state.socket) {
     console.error('Socket not available for handlers');
@@ -149,12 +154,19 @@ export function initializeSocketHandlers(): void {
     // Handle player joined logic
   });
 
-  state.socket.on(LOBBY, (data: { roomId: string; players: any[]; maxPlayers: number }) => {
-    const { roomId, players, maxPlayers } = data;
-    showWaitingState(roomId, players.length, maxPlayers, players);
-  });
+  state.socket.on(
+    LOBBY,
+    (data: {
+      roomId: string;
+      players: Pick<ClientStatePlayer, 'name' | 'disconnected'>[];
+      maxPlayers: number;
+    }) => {
+      const { roomId, players, maxPlayers } = data;
+      showWaitingState(roomId, players.length, maxPlayers, players);
+    }
+  );
 
-  state.socket.on(STATE_UPDATE, (s: any) => {
+  state.socket.on(STATE_UPDATE, (s: GameStateData) => {
     console.log('Received STATE_UPDATE:', s);
     renderGameState(s, state.myId);
     if (s.started) showGameTable();

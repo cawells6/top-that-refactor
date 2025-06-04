@@ -1,4 +1,3 @@
-// public/scripts/state.ts
 import { io, Socket } from 'socket.io-client';
 
 let socket: Socket;
@@ -32,7 +31,7 @@ async function initSocket(): Promise<Socket> {
     if (resp.ok) {
       const port = (await resp.text()).trim();
       console.log(`🔌 [Client] Using detected server port: ${port}`);
-      
+
       // If the port matches the current location, use default (relative) connection
       if (window.location.port === port) {
         return io(socketOptions);
@@ -42,7 +41,7 @@ async function initSocket(): Promise<Socket> {
   } catch (error) {
     console.warn('📣 [Client] Failed to fetch current-port.txt:', error);
   }
-  
+
   // Fallback: connect to same origin
   console.log('🔌 [Client] Using fallback connection to same origin');
   return io(socketOptions);
@@ -57,10 +56,10 @@ export { socket };
 export let myId: string | null = null;
 export let currentRoom: string | null = null;
 export let pileTransition: boolean = false;
-export let specialEffectsQueue: any[] = []; // Consider defining a type for effects
+export let specialEffectsQueue: any[] = []; // TODO: Consider defining a specific type for effects, e.g., SpecialEffect[]
 export let processingEffects: boolean = false;
 
-export const stateHistory: any[] = []; // Consider defining a type for state history items
+export const stateHistory: any[] = []; // TODO: Consider defining a specific type for state history items, e.g., GameStateSnapshot[]
 export let stateIndex: number = -1;
 
 export function loadSession(): void {

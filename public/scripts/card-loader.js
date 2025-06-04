@@ -30,23 +30,23 @@ export function cardToCode(value, suit) {
 export async function loadCardImage(value, suit, options = {}) {
   const cardCode = cardToCode(value, suit);
   const cacheKey = `card-${cardCode}`;
-  
+
   // Check if image is already in cache
   if (cardImageCache.has(cacheKey)) {
     console.log(`🔄 Using cached image for ${value} of ${suit} (${cardCode})`);
     return cardImageCache.get(cacheKey).cloneNode(true);
   }
-  
+
   const img = document.createElement('img');
   img.className = 'rule-card-img';
   img.alt = `${value} of ${suit}`;
-  
+
   // Apply styling
   img.style.height = options.height || '60px';
   img.style.borderRadius = '3px';
   img.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
   img.style.margin = '0 2px';
-  
+
   // Try loading from different sources
   const sources = [
     // First try the VITE proxy
@@ -54,9 +54,9 @@ export async function loadCardImage(value, suit, options = {}) {
     // Then try direct URL
     `https://deckofcardsapi.com/static/img/${cardCode}.png`,
     // Fallback to a common CDN serving card images
-    `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png`
+    `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png`,
   ];
-  
+
   // Create a fallback element for text representation
   const createFallbackDisplay = () => {
     console.warn(`⚠️ Using text fallback for ${value} of ${suit}`);
@@ -67,81 +67,82 @@ export async function loadCardImage(value, suit, options = {}) {
     img.style.display = 'flex';
     img.style.justifyContent = 'center';
     img.style.alignItems = 'center';
-    
+
     // Create a canvas for the fallback card
     const canvas = document.createElement('canvas');
     canvas.width = 40;
     canvas.height = 60;
     const ctx = canvas.getContext('2d');
-    
+
     // Draw card background
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, 40, 60);
-    
+
     // Draw border
     ctx.strokeStyle = '#888';
     ctx.lineWidth = 1;
     ctx.strokeRect(0, 0, 40, 60);
-    
+
     // Draw value and suit
-    ctx.fillStyle = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+    ctx.fillStyle = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
     ctx.font = '14px Arial';
     ctx.textAlign = 'center';
-    
+
     // Draw value at top
     ctx.fillText(String(value), 20, 15);
-    
+
     // Draw suit symbol in middle
-    const suitSymbol = {
-      'hearts': '♥',
-      'diamonds': '♦',
-      'clubs': '♣',
-      'spades': '♠'
-    }[suit] || '?';
-    
+    const suitSymbol =
+      {
+        hearts: '♥',
+        diamonds: '♦',
+        clubs: '♣',
+        spades: '♠',
+      }[suit] || '?';
+
     ctx.font = '24px Arial';
     ctx.fillText(suitSymbol, 20, 40);
-    
+
     // Use the canvas as image source
     img.src = canvas.toDataURL('image/png');
     return img;
   };
-  
+
   // Function to attempt loading from a source
   const trySource = (src) => {
     return new Promise((resolve, reject) => {
       console.log(`🔍 Trying to load ${value} of ${suit} from ${src}`);
-      
+
       const tempImg = new Image();
       tempImg.crossOrigin = 'anonymous'; // Enable CORS for the image
-      
+
       const timeoutId = setTimeout(() => {
         console.warn(`⏱️ Timeout loading ${src}`);
         reject(new Error('Timeout'));
       }, 3000);
-      
+
       tempImg.onload = () => {
         clearTimeout(timeoutId);
         console.log(`✅ Successfully loaded ${value} of ${suit} from ${src}`);
-        
+
         // Store in cache
         cardImageCache.set(cacheKey, tempImg);
-        
+
         // Update the original image
         img.src = tempImg.src;
         resolve(img);
       };
-      
+
       tempImg.onerror = () => {
         clearTimeout(timeoutId);
         console.warn(`❌ Failed to load from ${src}`);
         reject(new Error(`Failed to load ${src}`));
       };
-      
+
       tempImg.src = src;
     });
   };
-  
+
   // Try each source in sequence
   for (const src of sources) {
     try {
@@ -152,7 +153,7 @@ export async function loadCardImage(value, suit, options = {}) {
       console.warn(`Retrying with alternate source for ${value} of ${suit}`);
     }
   }
-  
+
   // If all sources fail, use the fallback
   return createFallbackDisplay();
 }
@@ -166,7 +167,7 @@ export async function loadCardImage(value, suit, options = {}) {
  */
 export function createEnhancedCardImage(value, suit, options = {}) {
   console.log(`🃏 Creating enhanced card image for ${value} of ${suit}`);
-  
+
   // Create placeholder while the image loads
   const img = document.createElement('img');
   img.className = 'rule-card-img';
@@ -177,24 +178,24 @@ export function createEnhancedCardImage(value, suit, options = {}) {
   img.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.2)';
   img.style.margin = '0 2px';
   img.style.background = '#f0f0f0';
-  
+
   // Show loading indication
   img.style.border = '1px dashed #ccc';
-  
+
   // Start loading the actual image
   loadCardImage(value, suit, options)
-    .then(loadedImg => {
+    .then((loadedImg) => {
       // Replace properties from the loaded image
       img.src = loadedImg.src;
       img.style.border = '';
       img.style.width = ''; // Let it size naturally
       img.style.background = '';
     })
-    .catch(err => {
+    .catch((err) => {
       console.error(`Failed to load card image for ${value} of ${suit}:`, err);
       // The fallback is already applied by loadCardImage
     });
-  
+
   return img;
 }
 
@@ -203,20 +204,20 @@ export function createEnhancedCardImage(value, suit, options = {}) {
  */
 export function enhanceRulesCards() {
   console.log('🎲 Enhancing rules cards with improved loader');
-  
+
   // Select all card-symbol elements in the rules
   const cardSymbols = document.querySelectorAll('.card-symbol');
-  
+
   cardSymbols.forEach((symbolElement) => {
     // Get the original text representation
     const originalText = symbolElement.textContent || '';
-    
+
     // Skip if already processed
     if (symbolElement.dataset.enhanced === 'true') return;
-    
+
     // Clear the container
     symbolElement.innerHTML = '';
-    
+
     // Create a flex container for better layout
     const cardContainer = document.createElement('div');
     cardContainer.className = 'card-image-container';
@@ -224,12 +225,12 @@ export function enhanceRulesCards() {
     cardContainer.style.flexWrap = 'wrap';
     cardContainer.style.justifyContent = 'center';
     cardContainer.style.gap = '5px';
-    
+
     // Parse the original text to identify the cards
     // Format is typically like "2♣ 2♠ 2♥ 2♦" or "10♣ 10♠ 10♥ 10♦"
     const cardPattern = /(\d+|[AKQJ])([♣♠♥♦])/g;
     const matches = Array.from(originalText.matchAll(cardPattern));
-    
+
     // Map symbols to suit names
     const suitMap = {
       '♣': 'clubs',
@@ -237,26 +238,26 @@ export function enhanceRulesCards() {
       '♥': 'hearts',
       '♦': 'diamonds',
     };
-    
+
     // Process each card match and create image elements
     matches.forEach((match) => {
       const value = match[1]; // Card value
       const suitSymbol = match[2]; // Suit symbol
       const suit = suitMap[suitSymbol];
-      
+
       if (suit) {
         // Create and add the enhanced card image
         const cardImg = createEnhancedCardImage(value, suit);
         cardContainer.appendChild(cardImg);
       }
     });
-    
+
     // Add the container to the symbol element
     symbolElement.appendChild(cardContainer);
-    
+
     // Mark as enhanced
     symbolElement.dataset.enhanced = 'true';
-    
+
     // Add a visual indicator for "Four of a Kind" special case
     if (originalText.includes('A♣ A♠') && originalText.includes('A♥ A♦')) {
       const fourKindIndicator = document.createElement('div');
@@ -274,16 +275,16 @@ export function enhanceRulesCards() {
 // Initialize when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🃏 Enhanced Card Loader module loaded');
-  
+
   // Listen for custom event from events.ts
   document.addEventListener('update-rule-cards', () => {
     console.log('🃏 Received update-rule-cards event, enhancing card images');
     enhanceRulesCards();
   });
-  
+
   // Run once on load with a slight delay to ensure DOM is ready
   setTimeout(enhanceRulesCards, 300);
-  
+
   // Attach to rules modal events
   const rulesModal = document.getElementById('rules-modal');
   if (rulesModal) {
@@ -294,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(enhanceRulesCards, 100);
       });
     });
-    
+
     // Update when expand/collapse button is clicked
     const expandBtn = document.getElementById('expand-collapse-all-btn');
     if (expandBtn) {

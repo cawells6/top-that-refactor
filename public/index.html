@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,20 +11,32 @@
     <link rel="stylesheet" href="/styles/rules-cards.css" />
     <link rel="stylesheet" href="/styles/enhanced-rules-cards.css" />
     <link rel="stylesheet" href="/styles/debug-cards.css" />
+    <link rel="stylesheet" href="/styles/fixed-cards-override.css" />
+    <link rel="stylesheet" href="/styles/rules-modal-cleanup.css" />
     <!-- Header button styles are now in style.css -->
 
     <!-- Entry‑point for your client modules -->
     <script type="module" src="/scripts/main.ts"></script>
-    <!-- Rules cards script for card API integration -->
-    <script type="module" src="/scripts/rules-cards.ts"></script>
-    <!-- Debug card loader with visual feedback -->
-    <script type="module" src="/scripts/debug-card-loader.js"></script>
+    
+    <!-- Fixed card loader for improved card rendering -->
+    <script type="module" src="/scripts/fixed-card-loader.js"></script>
+    
+    <!-- DISABLED SCRIPTS -->
+    <!-- <script type="module" src="/scripts/rules-cards.ts"></script> -->
+    <!-- <script type="module" src="/scripts/debug-card-loader.js"></script> -->
+    <!-- <script src="/scripts/trigger-cards-update.js"></script> -->
+    
     <!-- DOM inspector for analyzing card elements -->
     <script src="/scripts/dom-inspector.js"></script>
-    <!-- Card update trigger -->
-    <script src="/scripts/trigger-cards-update.js"></script>
     <!-- Icon viewer for fullsize icon display -->
     <script src="/scripts/icon-viewer.js"></script>
+    
+    <!-- Diagnostic and troubleshooting tools -->
+    <script src="/scripts/card-loader-diagnostic.js"></script>
+    <script src="/scripts/force-card-update.js"></script>
+    
+    <!-- Style and layout enhancer -->
+    <script src="/scripts/style-enforcer.js"></script>
   </head>
   <body class="body-loading" style="min-height: 100vh; display: flex; flex-direction: column">
     <!-- Header removed per user request -->
@@ -41,30 +53,56 @@
             <div class="setup-header">
               <!-- Logo using logo and slogan.svg -->
               <div class="header-logo">
-                <img 
-                  src="/assets/logo and slogan.svg?v=2024" 
-                  alt="Top That! Logo and Slogan" 
+                <img
+                  src="/assets/logo and slogan.svg?v=2024"
+                  alt="Top That! Logo and Slogan"
                   onload="console.log('Logo loaded successfully:', this.src);"
-                  onerror="console.error('Logo failed to load:', this.src);" />
+                  onerror="console.error('Logo failed to load:', this.src);"
+                />
               </div>
             </div>
-            
+
             <form id="lobby-form" autocomplete="off">
               <!-- Player Name Input -->
               <div class="name-input-section">
-                <input type="text" id="player-name-input" placeholder="Who's playing today?" maxlength="20" required />
+                <input
+                  type="text"
+                  id="player-name-input"
+                  placeholder="Who's playing today?"
+                  maxlength="20"
+                  required
+                />
               </div>
-              
 
-              
               <div class="player-selection">
                 <!-- Human Players Section -->
                 <div class="player-section">
                   <h3 class="section-title">Users</h3>
                   <div class="player-counter">
-                    <button type="button" class="counter-btn" id="humans-minus" data-target="total-players-input">−</button>
-                    <input type="number" id="total-players-input" min="1" max="4" value="1" readonly />
-                    <button type="button" class="counter-btn" id="humans-plus" data-target="total-players-input">+</button>
+                    <button
+                      type="button"
+                      class="counter-btn"
+                      id="humans-minus"
+                      data-target="total-players-input"
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      id="total-players-input"
+                      min="1"
+                      max="4"
+                      value="1"
+                      readonly
+                    />
+                    <button
+                      type="button"
+                      class="counter-btn"
+                      id="humans-plus"
+                      data-target="total-players-input"
+                    >
+                      +
+                    </button>
                   </div>
                   <!-- Dynamic Human Player Silhouettes -->
                   <div class="player-silhouettes" id="human-silhouettes">
@@ -76,9 +114,23 @@
                 <div class="player-section">
                   <h3 class="section-title">Bots</h3>
                   <div class="player-counter">
-                    <button type="button" class="counter-btn" id="cpus-minus" data-target="cpu-players-input">−</button>
+                    <button
+                      type="button"
+                      class="counter-btn"
+                      id="cpus-minus"
+                      data-target="cpu-players-input"
+                    >
+                      −
+                    </button>
                     <input type="number" id="cpu-players-input" min="0" value="0" readonly />
-                    <button type="button" class="counter-btn" id="cpus-plus" data-target="cpu-players-input">+</button>
+                    <button
+                      type="button"
+                      class="counter-btn"
+                      id="cpus-plus"
+                      data-target="cpu-players-input"
+                    >
+                      +
+                    </button>
                   </div>
                   <!-- Dynamic Bots Player Silhouettes -->
                   <div class="player-silhouettes" id="cpu-silhouettes">
@@ -88,9 +140,31 @@
               </div>
 
               <!-- Single lobby validation message area - always reserves space -->
-              <div id="lobby-validation-message" style="display: flex; justify-content: center; margin: 1rem 0;">
-                <div class="message-box-content" style="padding: 1rem; border: 2px solid transparent; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 280px; text-align: center; background-color: #f8d7da;">
-                  <p style="margin: 0; font-weight: 700; font-size: 1.1rem; line-height: 1.2; color: #721c24;"></p>
+              <div
+                id="lobby-validation-message"
+                style="display: flex; justify-content: center; margin: 1rem 0"
+              >
+                <div
+                  class="message-box-content"
+                  style="
+                    padding: 1rem;
+                    border: 2px solid transparent;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    width: 280px;
+                    text-align: center;
+                    background-color: #f8d7da;
+                  "
+                >
+                  <p
+                    style="
+                      margin: 0;
+                      font-weight: 700;
+                      font-size: 1.1rem;
+                      line-height: 1.2;
+                      color: #721c24;
+                    "
+                  ></p>
                 </div>
               </div>
 
@@ -102,14 +176,14 @@
             </form>
           </div>
         </div>
-        <div id="waiting-state" class="hidden" style="width: 100%; text-align: center;">
+        <div id="waiting-state" class="hidden" style="width: 100%; text-align: center">
           <h3 id="waiting-heading">Waiting for players...</h3>
         </div>
       </div>
 
       <!-- Game Table -->
-      <div id="game-table" class="hidden" style="width: 100%; height: 100%;">
-        <div class="table" style="width: 100%; height: 100%;">
+      <div id="game-table" class="hidden" style="width: 100%; height: 100%">
+        <div class="table" style="width: 100%; height: 100%">
           <div class="table-slot-top" id="opponent-area-top"></div>
           <div class="table-slot-left" id="opponent-area-left"></div>
           <div class="table-center" id="center-area"></div>
@@ -134,147 +208,210 @@
           <div class="rules-container">
             <h2 class="rules-title">THE OFFICIAL RULES</h2>
             <div class="button-container">
-              <button
-                id="expand-collapse-all-btn"
-                class="btn expand-btn"
-              >
-                Expand All
-              </button>
+              <button id="expand-collapse-all-btn" class="btn expand-btn">Expand All</button>
             </div>
-          <details class="rules-section">
-            <summary class="rules-summary"><h3>1. Getting Started</h3></summary>
-            <div class="rules-details-content">
-              <ul>
-                <li>
-                  <strong>Players:</strong> 2-4 players using one standard deck of 52 cards.
-                </li>
-                <li>
-                  <strong>Setup (9 cards each):</strong>
-                  <ul>
-                    <li>3 face-down cards in a row (don't look at these)</li>
-                    <li>3 face-up cards placed on top of the face-down cards</li>
-                    <li>3 cards in your hand</li>
-                  </ul>
-                </li>
-                <li>
-                  <strong>Center Area:</strong> Remaining cards form the Draw Pile. Flip the top card to create the Discard Pile.
-                </li>
-              </ul>
-            </div>
-          </details>
-          <details class="rules-section">
-            <summary class="rules-summary"><h3>2. Playing Your Turn</h3></summary>
-            <div class="rules-details-content">
-              <ul>
-                <li>
-                  <strong>Card Play:</strong> Play a card (or multiple cards of same value) <strong>higher</strong> than the top Discard Pile card. If you can't, pick up the entire Discard Pile.
-                </li>
-                <li>
-                  <strong>Draw:</strong> After playing, draw back up to 3 cards if needed (while Draw Pile has cards).
-                </li>
-                <li>
-                  <strong>Play Order:</strong> Use Hand cards first. When Hand and Draw Pile are empty, play Face-Up cards, then Face-Down cards.
-                </li>
-              </ul>
-            </div>
-          </details>
-          <details class="rules-section">
-            <summary class="rules-summary"><h3>3. Special Cards</h3></summary>
-            <div class="rules-details-content">
-              <div class="special-cards-list">
-                <div class="card-list-item">
-                  <div class="rule-icon-container">
-                    <img src="src/shared/Reset-icon.png" alt="Reset" class="rules-icon" data-fullsize="src/shared/Reset-icon.png" onclick="showFullSizeIcon(this)" />
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>1. Getting Started</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>
+                    <strong>Players:</strong> 2-4 players using one standard deck of 52 cards.
+                  </li>
+                  <li>
+                    <strong>Setup (9 cards each):</strong>
+                    <ul>
+                      <li>3 face-down cards in a row (don't look at these)</li>
+                      <li>3 face-up cards placed on top of the face-down cards</li>
+                      <li>3 cards in your hand</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Center Area:</strong> Remaining cards form the Draw Pile. Flip the top
+                    card to create the Discard Pile.
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>2. Playing Your Turn</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>
+                    <strong>Card Play:</strong> Play a card (or multiple cards of same value)
+                    <strong>higher</strong> than the top Discard Pile card. If you can't, pick up
+                    the entire Discard Pile.
+                  </li>
+                  <li>
+                    <strong>Draw:</strong> After playing, draw back up to 3 cards if needed (while
+                    Draw Pile has cards).
+                  </li>
+                  <li>
+                    <strong>Play Order:</strong> Use Hand cards first. When Hand and Draw Pile are
+                    empty, play Face-Up cards, then Face-Down cards.
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>3. Special Cards</h3></summary>
+              <div class="rules-details-content">
+                <div class="special-cards-list">
+                  <div class="card-list-item">
+                    <div class="rule-icon-container">
+                      <img
+                        src="src/shared/Reset-icon.png"
+                        alt="Reset"
+                        class="rules-icon"
+                        data-fullsize="src/shared/Reset-icon.png"
+                        onclick="showFullSizeIcon(this)"
+                      />
+                    </div>
+                    <div class="card-header">
+                      <div class="card-symbol" data-card-value="2">
+                        2♣ 2♠ <span class="red">2♥ 2♦</span>
+                      </div>
+                    </div>
+                    <div class="card-description">
+                      Play on <strong>any card</strong>. Resets the pile, allowing the next player
+                      to play any card.
+                    </div>
                   </div>
-                  <div class="card-header">
-                    <div class="card-symbol" data-card-value="2">2♣ 2♠ <span class="red">2♥ 2♦</span></div>
+                  <div class="card-list-item">
+                    <div class="rule-icon-container">
+                      <img
+                        src="src/shared/Copy-icon.png"
+                        alt="Copy"
+                        class="rules-icon"
+                        data-fullsize="src/shared/Copy-icon.png"
+                        onclick="showFullSizeIcon(this)"
+                      />
+                    </div>
+                    <div class="card-header">
+                      <div class="card-symbol" data-card-value="5">
+                        5♣ 5♠ <span class="red">5♥ 5♦</span>
+                      </div>
+                    </div>
+                    <div class="card-description">
+                      Copies the value of the card below it. If played on an empty pile, counts as
+                      just a 5.
+                    </div>
                   </div>
-                  <div class="card-description">Play on <strong>any card</strong>. Resets the pile, allowing the next player to play any card.</div>
-                </div>
-                <div class="card-list-item">
-                  <div class="rule-icon-container">
-                    <img src="src/shared/Copy-icon.png" alt="Copy" class="rules-icon" data-fullsize="src/shared/Copy-icon.png" onclick="showFullSizeIcon(this)" />
+                  <div class="card-list-item">
+                    <div class="rule-icon-container">
+                      <img
+                        src="src/shared/Burn-icon.png"
+                        alt="Burn"
+                        class="rules-icon"
+                        data-fullsize="src/shared/Burn-icon.png"
+                        onclick="showFullSizeIcon(this)"
+                      />
+                    </div>
+                    <div class="card-header">
+                      <div class="card-symbol" data-card-value="10">
+                        10♣ 10♠ <span class="red">10♥ 10♦</span>
+                      </div>
+                    </div>
+                    <div class="card-description">
+                      Play on <strong>any card</strong>. Burns (removes) the entire Discard Pile
+                      from the game. Play passes to the next player who can play any card on the
+                      blank pile.
+                    </div>
                   </div>
-                  <div class="card-header">
-                    <div class="card-symbol" data-card-value="5">5♣ 5♠ <span class="red">5♥ 5♦</span></div>
+                  <div class="card-list-item">
+                    <div class="rule-icon-container">
+                      <img
+                        src="src/shared/4ofakind-icon.png"
+                        alt="Four-of-a-kind"
+                        class="rules-icon"
+                        data-fullsize="src/shared/4ofakind-icon.png"
+                        onclick="showFullSizeIcon(this)"
+                      />
+                    </div>
+                    <div class="card-header">
+                      <div class="card-symbol" data-card-value="A">
+                        A♣ A♠ <span class="red">A♥ A♦</span>
+                      </div>
+                    </div>
+                    <div class="card-description">
+                      Playing four cards of the same value burns the Discard Pile, even if they're
+                      lower than the top card. Play passes to the next player who can play any card
+                      on the blank pile.
+                    </div>
                   </div>
-                  <div class="card-description">Copies the value of the card below it. If played on an empty pile, counts as just a 5.</div>
-                </div>
-                <div class="card-list-item">
-                  <div class="rule-icon-container">
-                    <img src="src/shared/Burn-icon.png" alt="Burn" class="rules-icon" data-fullsize="src/shared/Burn-icon.png" onclick="showFullSizeIcon(this)" />
-                  </div>
-                  <div class="card-header">
-                    <div class="card-symbol" data-card-value="10">10♣ 10♠ <span class="red">10♥ 10♦</span></div>
-                  </div>
-                  <div class="card-description">Play on <strong>any card</strong>. Burns (removes) the entire Discard Pile from the game. Play passes to the next player who can play any card on the blank pile.</div>
-                </div>
-                <div class="card-list-item">
-                  <div class="rule-icon-container">
-                    <img src="src/shared/4ofakind-icon.png" alt="Four-of-a-kind" class="rules-icon" data-fullsize="src/shared/4ofakind-icon.png" onclick="showFullSizeIcon(this)" />
-                  </div>
-                  <div class="card-header">
-                    <div class="card-symbol" data-card-value="A">A♣ A♠ <span class="red">A♥ A♦</span></div>
-                  </div>
-                  <div class="card-description">Playing four cards of the same value burns the Discard Pile, even if they're lower than the top card. Play passes to the next player who can play any card on the blank pile.</div>
                 </div>
               </div>
-            </div>
-          </details>
-          <details class="rules-section">
-            <summary class="rules-summary"><h3>4. Face-Up & Face-Down Cards</h3></summary>
-            <div class="rules-details-content">
-              <ul>
-                <li>
-                  <strong>Face-Up:</strong> When your hand is empty and Draw Pile is empty, play one Face-Up card per turn. If none can be played legally, take one Face-Up card plus the entire Discard Pile into your hand.
-                </li>
-                <li>
-                  <strong>Face-Down:</strong> After all Face-Up cards are gone, blindly select one Face-Down card per turn. If it's not playable, add it plus the entire Discard Pile to your hand.
-                </li>
-              </ul>
-            </div>
-          </details>
-          <details class="rules-section">
-            <summary class="rules-summary"><h3>5. How to Win</h3></summary>
-            <div class="rules-details-content">
-              <ul>
-                <li>First player to successfully play all their cards (Hand → Face-Up → Face-Down) wins!</li>
-              </ul>
-            </div>
-          </details>
-          <details class="rules-section" id="quick-tips-section">
-            <summary class="rules-summary"><h3>6. Quick Tips & Strategy</h3></summary>
-            <div class="rules-details-content">
-              <ul>
-                <li><strong>Save Special Cards:</strong> Hold onto 2s and 10s for when you're stuck with low cards.</li>
-                <li><strong>Multiple Plays:</strong> When possible, play multiple cards of the same value to reduce your hand size.</li>
-                <li><strong>Watch Opponents:</strong> Pay attention to which Face-Up cards others struggle to play.</li>
-                <li><strong>Face-Down Risk:</strong> Face-Down cards are pure luck - get to them as quickly as possible.</li>
-                <li><strong>Forced Pickup:</strong> Sometimes forcing an opponent to pick up a large pile is the best strategy.</li>
-              </ul>
-            </div>
-          </details>
-          <button
-            class="btn rules-gotit-btn"
-            id="rules-gotit-btn"
-          >
-            Got it!
-          </button>
+            </details>
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>4. Face-Up & Face-Down Cards</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>
+                    <strong>Face-Up:</strong> When your hand is empty and Draw Pile is empty, play
+                    one Face-Up card per turn. If none can be played legally, take one Face-Up card
+                    plus the entire Discard Pile into your hand.
+                  </li>
+                  <li>
+                    <strong>Face-Down:</strong> After all Face-Up cards are gone, blindly select one
+                    Face-Down card per turn. If it's not playable, add it plus the entire Discard
+                    Pile to your hand.
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>5. How to Win</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>
+                    First player to successfully play all their cards (Hand → Face-Up → Face-Down)
+                    wins!
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <details class="rules-section" id="quick-tips-section">
+              <summary class="rules-summary"><h3>6. Quick Tips & Strategy</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>
+                    <strong>Save Special Cards:</strong> Hold onto 2s and 10s for when you're stuck
+                    with low cards.
+                  </li>
+                  <li>
+                    <strong>Multiple Plays:</strong> When possible, play multiple cards of the same
+                    value to reduce your hand size.
+                  </li>
+                  <li>
+                    <strong>Watch Opponents:</strong> Pay attention to which Face-Up cards others
+                    struggle to play.
+                  </li>
+                  <li>
+                    <strong>Face-Down Risk:</strong> Face-Down cards are pure luck - get to them as
+                    quickly as possible.
+                  </li>
+                  <li>
+                    <strong>Forced Pickup:</strong> Sometimes forcing an opponent to pick up a large
+                    pile is the best strategy.
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <button class="btn rules-gotit-btn" id="rules-gotit-btn">Got it!</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
     <div class="toast-container" id="toast-container"></div>
-    
+
     <!-- Full-size icon modal -->
     <div class="fullsize-icon-modal" id="fullsize-icon-modal" onclick="closeFullSizeIcon()">
       <div class="fullsize-icon-container">
-        <img src="" alt="Full-size icon" class="fullsize-icon" id="fullsize-icon">
+        <img src="" alt="Full-size icon" class="fullsize-icon" id="fullsize-icon" />
         <div class="fullsize-icon-close" onclick="closeFullSizeIcon(event)">&times;</div>
       </div>
     </div>
-    
+
     <script>
       function showFullSizeIcon(iconElement) {
         const modal = document.getElementById('fullsize-icon-modal');
@@ -284,7 +421,7 @@
         modal.style.display = 'flex';
         event.stopPropagation(); // Prevent event from bubbling to the details element
       }
-      
+
       function closeFullSizeIcon(event) {
         const modal = document.getElementById('fullsize-icon-modal');
         modal.style.display = 'none';

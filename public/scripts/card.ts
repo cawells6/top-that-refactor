@@ -1,5 +1,5 @@
 // card.ts - Handles card rendering logic
-import { Card } from '../../src/types.js'; // Use path alias, no .js extension
+import { Card } from '../../src/types.js';
 
 /**
  * Creates a card element with appropriate styling and behavior

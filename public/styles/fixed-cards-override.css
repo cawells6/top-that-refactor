@@ -1,0 +1,89 @@
+/* fixed-cards-override.css - Override styles to ensure cards remain visible and clean-looking */
+
+/* Base card image styles */
+.rule-card-img[data-fixed-loader="true"],
+img.rule-card-img.fixed-card-permanent {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: 70px !important;
+  width: auto !important;
+  min-width: 40px !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+  margin: 0 2px !important;
+  border: 1px solid #eee !important;
+  background-color: transparent !important;
+  /* Remove hover effects */
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Explicitly override rule-card-img:hover */
+.rule-card-img:hover,
+.rule-card-img[data-fixed-loader="true"]:hover,
+img.rule-card-img.fixed-card-permanent:hover {
+  transform: none !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+  z-index: 1 !important;
+}
+
+/* Remove dotted lines and other containers */
+.card-image-container.fixed-card-container-permanent {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 5px !important;
+  width: 100% !important;
+  min-height: 80px !important;
+  /* Remove borders and padding */
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Clean up card symbol containers */
+.card-symbol {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  padding: 8px 0 !important;
+  min-width: auto !important;
+}
+
+/* Make sure Four of a Kind indicator stays visible but cleaner */
+.four-kind-indicator {
+  display: block !important;
+  visibility: visible !important;
+  margin-top: 8px !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  width: 100% !important;
+  color: #333 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Stronger overrides to prevent conflicts */
+div[data-fixed-loader-container="true"] {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove hover effects from card-list-item */
+.card-list-item {
+  transform: none !important;
+  transition: none !important;
+}
+
+.card-list-item:hover {
+  transform: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}

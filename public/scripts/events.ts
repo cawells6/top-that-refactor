@@ -443,7 +443,11 @@ export async function initializePageEventListeners() {
         nameInput.focus();
         return;
       }
-      // Name is valid, proceed with join
+      // TODO: CRITICAL - Inconsistent JOIN_GAME payload.
+      // handleDealClick emits an object: { name, numHumans, numCPUs }.
+      // This emits only the name. This needs to be reconciled with server expectations.
+      // If this is for joining an existing game by room ID (not creating),
+      // the event name or payload might need to differ from the game creation event.
       state.socket.emit(JOIN_GAME, name);
       setButtonDisabled(createJoinBtn, true);
     };
@@ -696,7 +700,7 @@ function handleRulesClick() {
     if (lobbyContainer) {
       lobbyContainer.style.display = 'none';
     }
-    
+
     rulesModal.classList.remove('modal--hidden');
     overlay.classList.remove('modal__overlay--hidden');
 
@@ -710,7 +714,7 @@ function handleRulesClick() {
         console.error('Failed to dispatch card update event:', e);
       }
     }, 100);
-    
+
     console.log('✅ Rules modal opened, lobby hidden');
   } else {
     console.error('❌ Rules modal or overlay not found');
@@ -777,14 +781,14 @@ function hideRulesModalAndOverlay() {
   const rulesModal = document.getElementById('rules-modal');
   const overlay = document.getElementById('modal-overlay');
   const lobbyContainer = document.getElementById('lobby-container');
-  
+
   if (rulesModal) rulesModal.classList.add('modal--hidden');
   if (overlay) overlay.classList.add('modal__overlay--hidden');
-  
+
   // Show the lobby container again when hiding the rules modal
   if (lobbyContainer) {
-    lobbyContainer.style.display = '';  // Resets to default display value
+    lobbyContainer.style.display = ''; // Resets to default display value
   }
-  
+
   console.log('✅ Rules modal closed, lobby restored');
 }

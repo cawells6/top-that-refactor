@@ -1,13 +1,9 @@
-import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js'; // Corrected import path
+import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 export function code(card: CardType): string {
-  if (
-    card.value === null ||
-    card.value === undefined ||
-    card.suit === null ||
-    card.suit === undefined
-  ) {
+  if (card.value == null || card.suit == null) {
+    // Simplified null/undefined check
     return 'ERR';
   }
   const v = String(card.value).toUpperCase() === '10' ? '0' : String(card.value).toUpperCase();
@@ -312,7 +308,7 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
     stackRow.style.gap = '5px';
 
     if (player.upCards && player.upCards.length > 0) {
-      player.upCards.forEach((c, i) => {
+      player.upCards.forEach((c: CardType, i: number) => {
         const col = document.createElement('div');
         col.className = 'stack';
         col.style.position = 'relative';

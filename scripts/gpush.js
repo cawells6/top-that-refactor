@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /* eslint-env node */
 /* global process */
 /**
@@ -6,9 +5,9 @@
  * Usage: node scripts/gpush.js "Your commit message"
  */
 
-const { exec } = require('child_process');
-const util = require('util');
-const execAsync = util.promisify(exec);
+import { exec } from 'child_process';
+import { promisify } from 'util';
+const execAsync = promisify(exec);
 
 /**
  * Execute a git command and log the output
@@ -18,10 +17,10 @@ async function runGitCommand(command) {
   try {
     console.log(`🔄 Running: git ${command}`);
     const { stdout, stderr } = await execAsync(`git ${command}`);
-    
+
     if (stdout) console.log(stdout);
     if (stderr) console.error(`⚠️ ${stderr}`);
-    
+
     return { success: true, output: stdout };
   } catch (error) {
     console.error(`❌ Error executing git ${command}:`);
@@ -36,7 +35,7 @@ async function runGitCommand(command) {
 async function gitCommitAndPush() {
   // Get commit message from command line arguments
   const commitMessage = process.argv.slice(2).join(' ') || 'Update files';
-  
+
   if (commitMessage.length < 3) {
     console.error('❌ Please provide a meaningful commit message (at least 3 characters)');
     process.exit(1);
@@ -62,14 +61,16 @@ async function gitCommitAndPush() {
   const commitResult = await runGitCommand(`commit -m "${commitMessage}"`);
   if (!commitResult.success) {
     console.error('❌ Failed to commit changes.');
-    console.log('💡 There might not be any changes to commit, or there might be an issue with git configuration.');
+    console.log(
+      '💡 There might not be any changes to commit, or there might be an issue with git configuration.'
+    );
     process.exit(1);
   }
 
   // Push to remote
   console.log('🚀 Pushing changes to remote repository...');
   const pushResult = await runGitCommand('push');
-  
+
   if (pushResult.success) {
     console.log('✅ Successfully pushed changes to remote repository!');
   } else {
@@ -80,7 +81,7 @@ async function gitCommitAndPush() {
 }
 
 // Run the main function
-gitCommitAndPush().catch(error => {
+gitCommitAndPush().catch((error) => {
   console.error('❌ Unexpected error:', error);
   process.exit(1);
 });

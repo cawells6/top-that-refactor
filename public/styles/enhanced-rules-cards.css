@@ -9,7 +9,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   min-width: 120px;
   margin: 0 auto;
 }
@@ -29,7 +29,9 @@
   height: 70px;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   flex-shrink: 0;
 }
 
@@ -49,7 +51,7 @@
   text-align: center;
   background-color: #f8f8f8;
   border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Improved style for card list items */
@@ -62,7 +64,7 @@
   padding: 10px;
   border-radius: 8px;
   background-color: #f9f9f9;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* Style for the card header containing the card symbol */
@@ -111,11 +113,11 @@
     grid-template-columns: 1fr;
     text-align: center;
   }
-  
+
   .rules-icon {
     margin-bottom: 10px;
   }
-  
+
   .rule-card-img {
     height: 60px;
   }
@@ -125,7 +127,7 @@
   .rule-card-img {
     height: 50px;
   }
-  
+
   .card-image-container {
     max-width: 160px;
   }

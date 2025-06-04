@@ -48,7 +48,8 @@ export function enhanceCardImage(
       console.log(`Trying proxy URL: ${proxyUrl}`);
       img.src = proxyUrl;
       return;
-    } else if (img.src.includes('/cards-api/')) {
+    }
+    if (img.src.includes('/cards-api/')) {
       // Second fallback: Try GitHub hosted cards
       const githubUrl = `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png`;
       console.log(`Trying GitHub URL: ${githubUrl}`);

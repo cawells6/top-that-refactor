@@ -48,17 +48,23 @@
 /* --- Make rules modal and content larger and more readable --- */
 
 /* The rules modal will inherit the lobby modal container styles */
-.rules-modal-content {  
+.rules-modal-content {
   /* Inherit all styles from game-setup-content to ensure exact matching */
   /* No explicit width/max-width here to avoid overriding game-setup-content */
-  
+
   /* Additional styling specific to rules modal content */
   font-size: 1.15rem; /* Slightly increased from 1.1rem for better readability */
   line-height: 1.7; /* Increased from 1.6 for better spacing */
   max-height: 85vh; /* Ensure it fits on screen */
   overflow-y: auto;
   box-sizing: border-box;
-  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Inter',
+    'Roboto',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
 /* Ensure rules modal and lobby modal have consistent sizing */
@@ -73,9 +79,9 @@
 .rules-modal-content {
   /* Ensure it inherits styles correctly from game-setup-content */
   box-sizing: border-box;
-  
+
   /* Don't explicitly set width/max-width as they should inherit from game-setup-content */
-  
+
   /* Maintain other styling specific to rules content */
   font-size: 1.15rem; /* Slightly increased from 1.1rem for better readability */
   line-height: 1.7; /* Increased from 1.6 for better spacing */
@@ -118,7 +124,13 @@
   transition: all 0.2s ease;
   text-transform: none;
   letter-spacing: normal;
-  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Inter',
+    'Roboto',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   border: none;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   display: inline-block;
@@ -177,7 +189,7 @@
 
 #rules-gotit-btn {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
-  color: #1b2e3c; 
+  color: #1b2e3c;
   margin-top: 2.5rem; /* Increased from 2rem */
   margin-bottom: 1rem; /* Increased from 0.5rem */
   text-transform: uppercase;
@@ -214,7 +226,13 @@
 
 /* Refined Rules Section Styling */
 .rules-container {
-  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Inter',
+    'Roboto',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   line-height: 1.7; /* Improved line spacing */
   padding: 0 0 20px 0; /* Reduced top padding since we removed the logo */
   color: #333; /* Darker text for better contrast */
@@ -231,11 +249,11 @@
     padding: 1.5rem 1rem;
     border-radius: 16px;
   }
-  
+
   .rules-container h2 {
     font-size: 1.6rem;
   }
-  
+
   .rules-container h3 {
     font-size: 1.1rem;
   }
@@ -245,7 +263,13 @@
 .rules-container h1,
 .rules-container h2,
 .rules-container h3 {
-  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Inter',
+    'Roboto',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   font-weight: bold;
   color: #222; /* Even darker for headings */
 }
@@ -291,7 +315,13 @@
   align-items: center;
   color: #1a1a1a; /* Darker text for better contrast */
   font-size: 1.3em; /* Increased for more visual impact */
-  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Inter',
+    'Roboto',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   border-bottom: 1px solid #d1d5db; /* Subtle border for definition */
   border-left: 5px solid #ffc300; /* Thicker gold accent border on the left */
   position: relative; /* For potential decorative elements */
@@ -312,7 +342,8 @@
   color: #0f1419;
 }
 
-.rules-summary::after { /* Chevron styling */
+.rules-summary::after {
+  /* Chevron styling */
   content: '\25B6'; /* Right-pointing triangle (CSS escaped) */
   font-size: 0.8em;
   transition: transform 0.2s ease-in-out;
@@ -391,14 +422,18 @@
 }
 
 .card-header::before {
-  content: "●"; /* Solid bullet */
+  content: '●'; /* Solid bullet */
   color: #ffc300; /* Gold bullet matching the theme */
   font-weight: bold;
   font-size: 1.1em;
   position: absolute;
   left: -1.65rem; /* Same left position as standard bullets */
   top: 0.16em; /* Adjusted to match with the number and icon */
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 
 /* Display icon and number on same line, even on smaller screens */
@@ -407,7 +442,7 @@
     display: flex;
     align-items: center;
   }
-  
+
   .rules-icon {
     display: inline-block;
     margin: 0 0 0 0.5rem;
@@ -428,7 +463,7 @@
 
 /* Style for nested list item bullets */
 .rules-details-content ul li ul li::before {
-  content: "○"; /* Open circle for sub-items */
+  content: '○'; /* Open circle for sub-items */
   font-size: 0.9em;
   color: #ffc300;
   text-shadow: none;
@@ -441,7 +476,7 @@
 }
 
 .rules-details-content ul li::before {
-  content: "●"; /* Solid bullet */
+  content: '●'; /* Solid bullet */
   color: #ffc300; /* Gold bullet matching the theme */
   font-weight: bold;
   font-size: 1.1em;
@@ -449,7 +484,11 @@
   left: -1.65rem; /* Shifted more to the left to create more space between bullet and text */
   top: 0.215em; /* Standard bullet positioning */
   line-height: 1.6;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 
 /* Special card list items styling */
@@ -485,7 +524,12 @@
 .rules-hr {
   border: 0;
   height: 2px; /* Thicker line */
-  background-image: linear-gradient(to right, rgba(255, 195, 0, 0), rgba(255, 195, 0, 0.7), rgba(255, 195, 0, 0)); /* Stronger gold gradient */
+  background-image: linear-gradient(
+    to right,
+    rgba(255, 195, 0, 0),
+    rgba(255, 195, 0, 0.7),
+    rgba(255, 195, 0, 0)
+  ); /* Stronger gold gradient */
   margin: 2rem 0 2.5rem 0; /* Further increased spacing before and after the divider */
 }
 
@@ -554,7 +598,7 @@
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 /* ... any other existing modal styles ... */

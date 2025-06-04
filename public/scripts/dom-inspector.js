@@ -2,7 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🔍 DOM Inspector loaded');
-  
+
   // Create inspector button
   const inspectButton = document.createElement('button');
   inspectButton.textContent = '🔍 Inspect Card Elements';
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   inspectButton.style.border = 'none';
   inspectButton.style.borderRadius = '5px';
   inspectButton.style.cursor = 'pointer';
-  
+
   // Create results modal
   const resultsModal = document.createElement('div');
   resultsModal.style.display = 'none';
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   resultsModal.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
   resultsModal.style.zIndex = '10000';
   resultsModal.style.borderRadius = '5px';
-  
+
   // Close button
   const closeButton = document.createElement('button');
   closeButton.textContent = 'Close';
@@ -42,48 +42,50 @@ document.addEventListener('DOMContentLoaded', () => {
   closeButton.addEventListener('click', () => {
     resultsModal.style.display = 'none';
   });
-  
+
   // Results container
   const resultsContainer = document.createElement('div');
   resultsContainer.id = 'inspector-results';
-  
+
   resultsModal.appendChild(resultsContainer);
   resultsModal.appendChild(closeButton);
-  
+
   // Add elements to DOM
   document.body.appendChild(inspectButton);
   document.body.appendChild(resultsModal);
-  
+
   // Run inspection when button is clicked
   inspectButton.addEventListener('click', () => {
     inspectCardElements();
     resultsModal.style.display = 'block';
   });
-  
+
   // Function to inspect card elements
   function inspectCardElements() {
     const results = document.getElementById('inspector-results');
     results.innerHTML = '<h2>Card Element Inspection</h2>';
-    
+
     // Find all card symbols
     const cardSymbols = document.querySelectorAll('.card-symbol');
     results.innerHTML += `<p>Found ${cardSymbols.length} card symbol elements</p>`;
-    
+
     // Inspect each card symbol
     cardSymbols.forEach((symbol, index) => {
       const section = document.createElement('div');
       section.style.marginBottom = '20px';
       section.style.borderBottom = '1px solid #ccc';
       section.style.paddingBottom = '10px';
-      
+
       section.innerHTML += `<h3>Card Symbol ${index + 1}</h3>`;
       section.innerHTML += `<p>Dimensions: ${symbol.offsetWidth}x${symbol.offsetHeight}px</p>`;
       section.innerHTML += `<p>CSS Classes: ${symbol.className}</p>`;
-      section.innerHTML += `<p>Data attributes: ${Array.from(symbol.attributes)
-        .filter(attr => attr.name.startsWith('data-'))
-        .map(attr => `${attr.name}="${attr.value}"`)
-        .join(', ') || 'none'}</p>`;
-      
+      section.innerHTML += `<p>Data attributes: ${
+        Array.from(symbol.attributes)
+          .filter((attr) => attr.name.startsWith('data-'))
+          .map((attr) => `${attr.name}="${attr.value}"`)
+          .join(', ') || 'none'
+      }</p>`;
+
       // Check for visibility issues
       const style = window.getComputedStyle(symbol);
       section.innerHTML += `<p>Computed style:</p>
@@ -95,17 +97,17 @@ document.addEventListener('DOMContentLoaded', () => {
           <li>Z-index: ${style.zIndex}</li>
           <li>Overflow: ${style.overflow}</li>
         </ul>`;
-      
+
       // Check card images within this symbol
       const cardImages = symbol.querySelectorAll('img');
       section.innerHTML += `<p>Contains ${cardImages.length} card images:</p>`;
-      
+
       if (cardImages.length) {
         const imageList = document.createElement('ul');
-        
+
         cardImages.forEach((img, imgIndex) => {
           const imgItem = document.createElement('li');
-          
+
           imgItem.innerHTML = `
             <p>Image ${imgIndex + 1}:</p>
             <ul>
@@ -119,16 +121,16 @@ document.addEventListener('DOMContentLoaded', () => {
               <li>Style.display: ${window.getComputedStyle(img).display}</li>
             </ul>
           `;
-          
+
           imageList.appendChild(imgItem);
         });
-        
+
         section.appendChild(imageList);
       }
-      
+
       results.appendChild(section);
     });
-    
+
     // Add helpful information
     results.innerHTML += `
       <div style="margin-top: 20px; padding: 10px; background-color: #f8f8f8; border-left: 4px solid #2196F3;">

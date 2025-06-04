@@ -12,10 +12,10 @@ function killWindowsProcesses() {
     console.log('🔍 Looking for processes on game server ports...');
     const portCleanupPath = path.resolve(__dirname, './port-cleanup.cjs');
     const portCleanup = require(portCleanupPath);
-    
+
     // Only clean up the server port 3000, leave Vite port alone (5173)
     portCleanup.cleanupPorts([3000]);
-    
+
     console.log('✅ Cleaned up server port processes.');
   } catch (error) {
     console.log(`⚠️ Port cleanup failed: ${error.message}. Continuing anyway.`);

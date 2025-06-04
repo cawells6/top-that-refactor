@@ -342,14 +342,14 @@ export default class GameController {
 
     if (
       autoStartEnabled &&
-      this.players.size === 1 &&
       desiredNumHumans === 1 &&
-      1 + desiredNumCPUs >= 2 &&
+      desiredNumCPUs >= 1 &&
+      desiredNumHumans + desiredNumCPUs >= 2 &&
       !this.gameState.started
     ) {
       this.log(
         `Auto-starting game. Player: ${name} (the only human), CPUs: ${desiredNumCPUs}. Total players: ${
-          1 + desiredNumCPUs
+          desiredNumHumans + desiredNumCPUs
         }`
       );
       this.handleStartGame({ computerCount: desiredNumCPUs, socket });

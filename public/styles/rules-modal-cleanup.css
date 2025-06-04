@@ -1,0 +1,63 @@
+/* Additional CSS for cleaning up the rules modal display */
+
+/* Ensure the rules modal content is clean and well-formatted */
+#rules-modal-content {
+  padding: 20px !important;
+}
+
+/* Make .card-symbol containers in the rules modal clean and borderless */
+#rules-modal .card-symbol {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 5px 0 !important;
+  background-color: transparent !important;
+  margin: 0 !important;
+  min-width: auto !important;
+}
+
+/* Remove any dotted lines in the rules modal */
+#rules-modal .card-list-item {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 10px 5px !important;
+  background-color: transparent !important;
+  border-bottom: 1px solid #eee !important;
+}
+
+/* Force-hide any dotted outlines */
+#rules-modal *[style*="border"]:not(.rule-card-img):not(table):not(th):not(td) {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Better spacing in the card grid */
+#rules-modal .card-list-item {
+  display: grid !important;
+  grid-template-columns: 50px auto 1fr !important;
+  grid-gap: 15px !important;
+  align-items: center !important;
+}
+
+/* Clean up text descriptions */
+#rules-modal .card-description {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  padding-left: 0 !important;
+}
+
+/* Make cards stand out better without hover effects */
+#rules-modal .rule-card-img {
+  border: 1px solid #ccc !important;
+  margin: 2px !important;
+}
+
+/* Four-kind display */
+#rules-modal .four-kind-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}

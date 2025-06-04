@@ -20,6 +20,7 @@
   },
   "include": [
     "./**/*.ts", // Include all .ts files within public/scripts
+    "./socketHandlers.ts", // Explicitly include socketHandlers.ts for ESLint/TS
     "../../models/**/*.ts", // Corrected path for models
     "../../src/shared/**/*.ts", // Corrected path for shared files
     "../../src/types.ts" // Corrected path for the main types file

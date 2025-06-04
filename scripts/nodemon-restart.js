@@ -4,7 +4,7 @@
  * This script performs port cleanup specifically for server port (3000)
  * It ignores the Vite port to avoid disrupting the client
  */
- 
+
 /* eslint-disable no-undef */
 const path = require('path');
 const fs = require('fs');
@@ -20,7 +20,7 @@ let portCleanup;
 try {
   const portCleanupPath = path.resolve(__dirname, './port-cleanup.cjs');
   console.log(`📂 Loading port cleanup module from: ${portCleanupPath}`);
-  
+
   portCleanup = require(portCleanupPath);
 
   // Validate that the cleanupPorts function is available
@@ -47,7 +47,7 @@ function getCurrentServerPort() {
   try {
     // We already have fs imported at the top
     const portPath = path.resolve(__dirname, '../current-port.txt');
-    
+
     if (fs.existsSync(portPath)) {
       const port = parseInt(fs.readFileSync(portPath, 'utf-8').trim(), 10);
       if (!isNaN(port) && port > 0) {
@@ -58,7 +58,7 @@ function getCurrentServerPort() {
   } catch (error) {
     console.log(`⚠️ Could not read current-port.txt: ${error.message}`);
   }
-  
+
   console.log(`📌 Using default server port: ${SERVER_PORT}`);
   return SERVER_PORT;
 }
@@ -68,10 +68,10 @@ function getCurrentServerPort() {
  */
 async function cleanupServerPort() {
   console.log('🔄 Nodemon restart triggered - cleaning up server port...');
-  
+
   // Get the server port - could be different from default if port was in use
   const port = getCurrentServerPort();
-  
+
   try {
     // Use Promise.race to implement timeout
     await Promise.race([
@@ -80,9 +80,9 @@ async function cleanupServerPort() {
         // Important: Only pass the server port, not the default array which includes the Vite port
         await portCleanup.cleanupPorts([port]);
       })(),
-      timeoutPromise
+      timeoutPromise,
     ]);
-    
+
     console.log('✅ Port cleanup complete - proceeding with server restart');
     return true;
   } catch (error) {
@@ -103,7 +103,7 @@ async function main() {
   } catch (error) {
     console.error('❌ Fatal error during port cleanup:', error);
     // Exit with success code anyway to allow nodemon to continue
-    process.exit(0); 
+    process.exit(0);
   }
 }
 

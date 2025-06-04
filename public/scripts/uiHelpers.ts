@@ -1,7 +1,7 @@
 // uiHelpers.ts
 // Contains UI-related helper functions
-
-import { $, getNameInput } from './uiManager.js';
+import { $ } from './uiManager.js'; // getNameInput is also from uiManager, but $ is more generic
+import { getNameInput } from './uiManager.js';
 
 export function showGameOverMessage(didWin: boolean, winnerName: string): void {
   const over = document.createElement('div');

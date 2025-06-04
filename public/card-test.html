@@ -1,146 +1,147 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Card Image Test Page</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    
-    h1 {
-      color: #333;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 10px;
-    }
-    
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 15px;
-      margin: 20px 0;
-    }
-    
-    .card-container {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 10px;
-      text-align: center;
-    }
-    
-    .card-img {
-      height: 80px;
-      border-radius: 3px;
-    }
-    
-    .status {
-      font-size: 12px;
-      margin-top: 5px;
-      height: 30px;
-    }
-    
-    .success {
-      color: green;
-    }
-    
-    .error {
-      color: red;
-    }
-    
-    .loading {
-      color: blue;
-    }
-  </style>
-</head>
-<body>
-  <h1>Card Image Test Page</h1>
-  <p>This page tests loading card images directly from the Deck of Cards API.</p>
-  
-  <div class="results">
-    <h2>Direct URL Results</h2>
-    <div id="direct-cards" class="card-grid"></div>
-    
-    <h2>Proxy URL Results</h2>
-    <div id="proxy-cards" class="card-grid"></div>
-  </div>
-  
-  <script>
-    // Test card values and suits
-    const cardValues = ['A', '2', '5', '10', 'J', 'Q', 'K'];
-    const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
-    
-    // Convert card value and suit to card code
-    function cardToCode(value, suit) {
-      const v = String(value).toUpperCase() === '10' ? '0' : String(value).toUpperCase();
-      const suitMap = {
-        hearts: 'H',
-        diamonds: 'D',
-        clubs: 'C',
-        spades: 'S',
-      };
-      return v + suitMap[suit.toLowerCase()];
-    }
-    
-    // Create a card element in the appropriate container
-    function createCardElement(container, value, suit, urlType) {
-      const cardCode = cardToCode(value, suit);
-      const cardContainer = document.createElement('div');
-      cardContainer.className = 'card-container';
-      
-      const name = document.createElement('div');
-      name.textContent = `${value} of ${suit}`;
-      cardContainer.appendChild(name);
-      
-      const img = document.createElement('img');
-      img.className = 'card-img';
-      img.alt = `${value} of ${suit}`;
-      
-      const status = document.createElement('div');
-      status.className = 'status loading';
-      status.textContent = 'Loading...';
-      
-      // Set the image URL based on type
-      const url = urlType === 'direct' 
-        ? `https://deckofcardsapi.com/static/img/${cardCode}.png`
-        : `/cards-api/static/img/${cardCode}.png`;
-      
-      img.src = url;
-      
-      img.onload = () => {
-        status.textContent = 'Loaded ✓';
-        status.className = 'status success';
-      };
-      
-      img.onerror = () => {
-        status.textContent = 'Failed to load ✗';
-        status.className = 'status error';
-        img.style.display = 'none';
-      };
-      
-      cardContainer.appendChild(img);
-      cardContainer.appendChild(status);
-      container.appendChild(cardContainer);
-    }
-    
-    // Create all test cards
-    function createAllCards() {
-      const directContainer = document.getElementById('direct-cards');
-      const proxyContainer = document.getElementById('proxy-cards');
-      
-      cardValues.forEach(value => {
-        suits.forEach(suit => {
-          createCardElement(directContainer, value, suit, 'direct');
-          createCardElement(proxyContainer, value, suit, 'proxy');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Card Image Test Page</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      h1 {
+        color: #333;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 10px;
+      }
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .card-container {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        text-align: center;
+      }
+
+      .card-img {
+        height: 80px;
+        border-radius: 3px;
+      }
+
+      .status {
+        font-size: 12px;
+        margin-top: 5px;
+        height: 30px;
+      }
+
+      .success {
+        color: green;
+      }
+
+      .error {
+        color: red;
+      }
+
+      .loading {
+        color: blue;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Card Image Test Page</h1>
+    <p>This page tests loading card images directly from the Deck of Cards API.</p>
+
+    <div class="results">
+      <h2>Direct URL Results</h2>
+      <div id="direct-cards" class="card-grid"></div>
+
+      <h2>Proxy URL Results</h2>
+      <div id="proxy-cards" class="card-grid"></div>
+    </div>
+
+    <script>
+      // Test card values and suits
+      const cardValues = ['A', '2', '5', '10', 'J', 'Q', 'K'];
+      const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+
+      // Convert card value and suit to card code
+      function cardToCode(value, suit) {
+        const v = String(value).toUpperCase() === '10' ? '0' : String(value).toUpperCase();
+        const suitMap = {
+          hearts: 'H',
+          diamonds: 'D',
+          clubs: 'C',
+          spades: 'S',
+        };
+        return v + suitMap[suit.toLowerCase()];
+      }
+
+      // Create a card element in the appropriate container
+      function createCardElement(container, value, suit, urlType) {
+        const cardCode = cardToCode(value, suit);
+        const cardContainer = document.createElement('div');
+        cardContainer.className = 'card-container';
+
+        const name = document.createElement('div');
+        name.textContent = `${value} of ${suit}`;
+        cardContainer.appendChild(name);
+
+        const img = document.createElement('img');
+        img.className = 'card-img';
+        img.alt = `${value} of ${suit}`;
+
+        const status = document.createElement('div');
+        status.className = 'status loading';
+        status.textContent = 'Loading...';
+
+        // Set the image URL based on type
+        const url =
+          urlType === 'direct'
+            ? `https://deckofcardsapi.com/static/img/${cardCode}.png`
+            : `/cards-api/static/img/${cardCode}.png`;
+
+        img.src = url;
+
+        img.onload = () => {
+          status.textContent = 'Loaded ✓';
+          status.className = 'status success';
+        };
+
+        img.onerror = () => {
+          status.textContent = 'Failed to load ✗';
+          status.className = 'status error';
+          img.style.display = 'none';
+        };
+
+        cardContainer.appendChild(img);
+        cardContainer.appendChild(status);
+        container.appendChild(cardContainer);
+      }
+
+      // Create all test cards
+      function createAllCards() {
+        const directContainer = document.getElementById('direct-cards');
+        const proxyContainer = document.getElementById('proxy-cards');
+
+        cardValues.forEach((value) => {
+          suits.forEach((suit) => {
+            createCardElement(directContainer, value, suit, 'direct');
+            createCardElement(proxyContainer, value, suit, 'proxy');
+          });
         });
-      });
-    }
-    
-    // Initialize when the page loads
-    document.addEventListener('DOMContentLoaded', createAllCards);
-  </script>
-</body>
+      }
+
+      // Initialize when the page loads
+      document.addEventListener('DOMContentLoaded', createAllCards);
+    </script>
+  </body>
 </html>

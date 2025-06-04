@@ -2,6 +2,7 @@ import { renderGameState } from './render.js';
 import * as state from './state.js';
 import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
 import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
+import { GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
@@ -20,11 +21,18 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(PLAYER_JOINED, () => {
     // Handle player joined logic
   });
-  state.socket.on(LOBBY, (data: { roomId: string; players: any[]; maxPlayers: number }) => {
-    const { roomId, players, maxPlayers } = data;
-    showWaitingState(roomId, players.length, maxPlayers, players);
-  });
-  state.socket.on(STATE_UPDATE, (s: any) => {
+  state.socket.on(
+    LOBBY,
+    (data: {
+      roomId: string;
+      players: Pick<ClientStatePlayer, 'name' | 'disconnected'>[];
+      maxPlayers: number;
+    }) => {
+      const { roomId, players, maxPlayers } = data;
+      showWaitingState(roomId, players.length, maxPlayers, players);
+    }
+  );
+  state.socket.on(STATE_UPDATE, (s: GameStateData) => {
     console.log('Received STATE_UPDATE payload:', JSON.stringify(s, null, 2));
     renderGameState(s, state.myId);
     if (s.started) showGameTable();
