@@ -46,7 +46,11 @@
     "scripts/**/*.ts",
     "public/scripts/**/*.ts",
     "tests/**/*.ts",
-    "jest-globals.d.ts"
+    "jest-globals.d.ts",
+    "src",
+    "tests",
+    "public/scripts",
+    "*.ts"
   ],
   "exclude": ["node_modules", "dist", "public/scripts/tsconfig.json"]
 }

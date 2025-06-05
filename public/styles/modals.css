@@ -421,19 +421,9 @@
   min-height: 3em; /* Ensures consistent height for all card headers */
 }
 
+/* Bullet point removed for cleaner appearance */
 .card-header::before {
-  content: '●'; /* Solid bullet */
-  color: #ffc300; /* Gold bullet matching the theme */
-  font-weight: bold;
-  font-size: 1.1em;
-  position: absolute;
-  left: -1.65rem; /* Same left position as standard bullets */
-  top: 0.16em; /* Adjusted to match with the number and icon */
-  text-shadow:
-    -1px -1px 0 #000,
-    1px -1px 0 #000,
-    -1px 1px 0 #000,
-    1px 1px 0 #000;
+  content: none; /* Removing the bullet */
 }
 
 /* Display icon and number on same line, even on smaller screens */
@@ -441,11 +431,13 @@
   .card-header {
     display: flex;
     align-items: center;
+    font-weight: 600;
+    padding: 6px 0;
   }
 
   .rules-icon {
     display: inline-block;
-    margin: 0 0 0 0.5rem;
+    margin: 0 0 0 0.75rem;
   }
 }
 
@@ -601,4 +593,57 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-/* ... any other existing modal styles ... */
+/* --- Four-of-a-kind fan layout --- */
+.foak-fan {
+  position: relative;
+  display: inline-block;
+  width: 4em;
+  height: 2.75em;
+  margin-left: 0.5em;
+}
+
+.foak-fan .foak-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: bottom left;
+}
+
+.foak-fan .foak-card:nth-child(1) {
+  transform: rotate(-15deg) translateX(-35%);
+}
+
+.foak-fan .foak-card:nth-child(2) {
+  transform: rotate(-5deg) translateX(-15%);
+}
+
+.foak-fan .foak-card:nth-child(3) {
+  transform: rotate(5deg) translateX(15%);
+}
+
+.foak-fan .foak-card:nth-child(4) {
+  transform: rotate(15deg) translateX(35%);
+}
+
+.special-card-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #ffc30044;
+}
+
+.rules-icon {
+  width: 60px;
+  height: 60px;
+  vertical-align: middle;
+  margin-right: 0.4em;
+  margin-bottom: 0.1em;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  display: inline-block;
+  image-rendering: auto;
+}
+
+/* ...existing code... */

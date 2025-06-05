@@ -10,6 +10,7 @@ jest.mock(
     setMyId: jest.fn(),
     setCurrentRoom: jest.fn(),
     saveSession: jest.fn(),
+    socketReady: Promise.resolve(),
   }),
   { virtual: true }
 );
@@ -53,6 +54,10 @@ describe('Client Main Script (main.ts)', () => {
     jest.resetModules();
     const stateModule = await import('./state.js');
     await import('./main.js');
+    // Manually dispatch DOMContentLoaded to trigger initialization
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    // Allow queued promises to resolve
+    await Promise.resolve();
     const { socket } = stateModule;
     expect(socket.on).toHaveBeenCalledWith('connect', expect.any(Function));
   });

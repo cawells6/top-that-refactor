@@ -42,34 +42,6 @@ export default [
 
   js.configs.recommended, // General JS recommendations
 
-  // Special rule for scripts/test.ts that's causing issues
-  {
-    files: ['scripts/test.ts'],
-    languageOptions: {
-      parser,
-      parserOptions: {
-        // No project specified - this avoids the typed linting error
-        sourceType: 'module',
-        ecmaVersion: 'latest',
-      },
-      globals: {
-        ...globals.node,
-        ...globals.es2021,
-        ...globals.jest,
-      },
-    },
-    plugins: {
-      '@typescript-eslint': tsPlugin,
-      prettier: prettierPlugin,
-    },
-    rules: {
-      // More lenient rules since we're not using typed linting for this file
-      'prettier/prettier': 'error',
-      'no-unused-vars': 'warn',
-      '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
-
   // 2. Main TypeScript Configuration (Server, Scripts, Root TS files, Non-client Tests)
   {
     files: [
@@ -79,7 +51,6 @@ export default [
     ignores: [ // Exclude files handled by more specific configurations
       'public/scripts/**/*.ts',
       'public/scripts/**/*.tsx',
-      'scripts/test.ts', // Exclude the file we're handling specially
     ],
     languageOptions: {
       parser,

@@ -26,24 +26,27 @@
 /* For card images in rules */
 .rule-card-img {
   height: 70px;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: auto;
+  min-width: 50px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease;
   cursor: pointer;
   display: inline-block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  margin: 3px !important;
+  margin: 4px !important;
   background-color: white;
-  border: none !important;
-  width: auto;
-  min-width: 40px;
+  border: 1px solid #ccc !important;
+  object-fit: contain; /* Ensures proportions are maintained */
+  padding: 2px;
 }
 
 .rule-card-img:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-  z-index: 5;
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+  border-color: #aaa !important;
 }
 
 .four-kind-indicator {
@@ -67,13 +70,13 @@
 .card-list-item {
   display: grid;
   grid-template-columns: auto auto 1fr;
-  grid-gap: 15px;
+  grid-gap: 24px;  /* Further increased gap for better spacing */
   align-items: center;
   margin-bottom: 0; /* Remove bottom margin since we use gap now */
-  padding: 12px;
-  border-radius: 8px;
+  padding: 20px;   /* More padding for breathing room */
+  border-radius: 12px;
   background-color: #f9f9f9;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.1);  /* Enhanced shadow */
   transition: transform 0.2s ease;
 }
 
@@ -90,15 +93,21 @@
 
 /* Modernize the rule icons */
 .rules-icon {
-  width: 40px;
-  height: 40px;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
   transition: transform 0.2s ease;
+  padding: 5px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid #e0e0e0;
 }
 
 .rules-icon:hover {
   transform: scale(1.2);
   cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
 }
 
 /* Ensure proper card layout */
@@ -106,26 +115,31 @@
   display: flex !important;
   flex-wrap: wrap !important;
   justify-content: center !important;
-  gap: 8px;
-  margin: 5px auto;
+  gap: 12px;
+  margin: 8px auto;
   width: 100%;
-  min-height: 80px;
-  padding: 8px;
-  border: 1px dashed #eee;
-  border-radius: 4px;
+  min-height: 85px;
+  padding: 12px;
+  border: 1px dashed #e0e0e0;
+  border-radius: 8px;
+  background-color: rgba(250, 250, 250, 0.5);
 }
 
-/* DEBUG: Force all rule card images to be visible and sized */
+/* Ensure all rule card images are visible and properly sized */
 .rule-card-img {
   display: inline-block !important;
   visibility: visible !important;
   opacity: 1 !important;
   height: 70px !important;
   width: auto !important;
-  min-width: 40px !important;
-  min-height: 60px !important;
+  min-width: 45px !important;
+  min-height: 65px !important;
   background: #fff !important;
-  border: 1px solid #888 !important;
+  border: 1px solid #ccc !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  padding: 2px !important;
+  margin: 4px !important;
 }
 
 /* Responsive styling for smaller screens */

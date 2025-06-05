@@ -45,10 +45,14 @@
   padding-left: 0 !important;
 }
 
-/* Make cards stand out better without hover effects */
-#rules-modal .rule-card-img {
+/* Make cards stand out better without hover effects - applied everywhere */
+.rule-card-img {
   border: 1px solid #ccc !important;
-  margin: 2px !important;
+  margin: 4px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  padding: 2px !important;
+  object-fit: contain !important;
 }
 
 /* Four-kind display */
@@ -56,8 +60,10 @@
   display: flex !important;
   flex-wrap: wrap !important;
   justify-content: center !important;
-  gap: 5px !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  gap: 8px !important;
+  margin: 5px auto !important;
+  padding: 8px !important;
   border: none !important;
+  background-color: rgba(250, 250, 250, 0.5) !important;
+  border-radius: 8px !important;
 }
