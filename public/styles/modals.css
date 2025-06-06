@@ -460,7 +460,7 @@
   color: #ffc300;
   text-shadow: none;
   left: -1.4rem; /* Increased spacing between bullet and text */
-  top: 0.293em; /* Moved up by ~7% from 0.315em */
+  top: 0.3em; /* Align bullet with text */
 }
 .rules-details-content ol {
   padding-left: 1.5rem;
@@ -474,7 +474,7 @@
   font-size: 1.1em;
   position: absolute;
   left: -1.65rem; /* Shifted more to the left to create more space between bullet and text */
-  top: 0.215em; /* Standard bullet positioning */
+  top: 0.3em; /* Align bullet with text */
   line-height: 1.6;
   text-shadow:
     -1px -1px 0 #000,
@@ -632,12 +632,13 @@
 }
 
 .rules-icon {
-  width: 7.5em !important;
-  height: 7.5em !important;
+  /* Enlarged to make special cards stand out */
+  width: 9.375em !important;
+  height: 9.375em !important;
   min-width: 0 !important;
   min-height: 0 !important;
-  max-width: 7.5em !important;
-  max-height: 7.5em !important;
+  max-width: 9.375em !important;
+  max-height: 9.375em !important;
   vertical-align: middle;
   margin: 0 auto 0.5em auto !important;
   border: 2px solid #ffc300;
@@ -655,9 +656,10 @@
 
 @media (max-width: 600px) {
   .rules-icon {
-    width: 5.5em !important;
-    height: 5.5em !important;
-    max-width: 5.5em !important;
-    max-height: 5.5em !important;
+    /* Slightly larger on small screens as well */
+    width: 6.9em !important;
+    height: 6.9em !important;
+    max-width: 6.9em !important;
+    max-height: 6.9em !important;
   }
 }
