@@ -792,3 +792,5 @@ function hideRulesModalAndOverlay() {
 
   console.log('✅ Rules modal closed, lobby restored');
 }
+
+export { handleRulesClick, hideRulesModalAndOverlay };
