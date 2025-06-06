@@ -632,18 +632,32 @@
 }
 
 .rules-icon {
-  width: 60px;
-  height: 60px;
+  width: 7.5em !important;
+  height: 7.5em !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 7.5em !important;
+  max-height: 7.5em !important;
   vertical-align: middle;
-  margin-right: 0.4em;
-  margin-bottom: 0.1em;
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-  padding: 0 !important;
-  display: inline-block;
-  image-rendering: auto;
+  margin: 0 auto 0.5em auto !important;
+  border: 2px solid #ffc300;
+  border-radius: 7px;
+  padding: 3px;
+  background: #fff;
+  box-shadow: 0 0 8px #ffc30055;
+  display: block !important;
 }
 
-/* ...existing code... */
+.rules-icon-block {
+  text-align: center;
+  margin: 0.5em 0;
+}
+
+@media (max-width: 600px) {
+  .rules-icon {
+    width: 5.5em !important;
+    height: 5.5em !important;
+    max-width: 5.5em !important;
+    max-height: 5.5em !important;
+  }
+}

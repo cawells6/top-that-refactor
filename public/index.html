@@ -176,8 +176,16 @@
             </form>
           </div>
         </div>
-        <div id="waiting-state" class="hidden" style="width: 100%; text-align: center">
+
+        <!-- Waiting Room / Invite Link Section (restored) -->
+        <div id="waiting-state" class="hidden" style="width: 100%; text-align: center; margin-top: 2rem;">
           <h3 id="waiting-heading">Waiting for players...</h3>
+          <div id="share-link-message" style="margin: 1em 0;">
+            <span>Share this link to invite friends:</span>
+            <input id="invite-link" type="text" readonly style="width: 60%; max-width: 400px; margin: 0 0.5em;" />
+            <button id="copy-link-button" class="header-btn" type="button">Copy Link</button>
+          </div>
+          <button id="start-game-button" class="header-btn" type="button" style="margin-top: 1em;">Start Game</button>
         </div>
       </div>
 
@@ -256,14 +264,16 @@
               <summary class="rules-summary"><h3>3. Special Cards</h3></summary>
               <div class="rules-details-content">
                 <ul>
-                  <li class="special-card-section">
+                  <li>
                     <strong>2 (Reset Card):</strong>
-                    <img
-                      src="src/shared/Reset-icon.png"
-                      alt="Reset"
-                      class="rules-icon"
-                      style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px"
-                    />
+                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0;">
+                      <img
+                        src="src/shared/Reset-icon.png"
+                        alt="Reset"
+                        class="rules-icon"
+                        style="width: 3.75em !important; height: 3.75em !important; margin: 0 auto; display: block"
+                      />
+                    </div>
                     <ul>
                       <li>A 2 can be played on <strong>any card</strong>, no matter its value.</li>
                       <li>
@@ -272,14 +282,16 @@
                       </li>
                     </ul>
                   </li>
-                  <li class="special-card-section">
+                  <li>
                     <strong>5 (Copy Card):</strong>
-                    <img
-                      src="src/shared/Copy-icon.png"
-                      alt="Copy"
-                      class="rules-icon"
-                      style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px"
-                    />
+                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0;">
+                      <img
+                        src="src/shared/Copy-icon.png"
+                        alt="Copy"
+                        class="rules-icon"
+                        style="width: 3.75em !important; height: 3.75em !important; margin: 0 auto; display: block"
+                      />
+                    </div>
                     <ul>
                       <li>
                         A 5 <strong>copies the value</strong> of the card directly underneath it on
@@ -295,14 +307,16 @@
                       </li>
                     </ul>
                   </li>
-                  <li class="special-card-section">
+                  <li>
                     <strong>10 (Burn Card):</strong>
-                    <img
-                      src="src/shared/Burn-icon.png"
-                      alt="Burn"
-                      class="rules-icon"
-                      style="vertical-align: middle; width: 1.5em; height: 1.5em; margin-left: 8px"
-                    />
+                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0;">
+                      <img
+                        src="src/shared/Burn-icon.png"
+                        alt="Burn"
+                        class="rules-icon"
+                        style="width: 3.75em !important; height: 3.75em !important; margin: 0 auto; display: block"
+                      />
+                    </div>
                     <ul>
                       <li>A 10 can be played on <strong>any card</strong>.</li>
                       <li>
@@ -315,14 +329,16 @@
                       </li>
                     </ul>
                   </li>
-                  <li class="special-card-section">
+                  <li>
                     <strong>Four of a Kind (Burn & Play Any Value):</strong>
-                    <span class="foak-fan">
-                      <img src="src/shared/4ofakind-icon.png" alt="Four-of-a-kind" class="rules-icon foak-card" />
-                      <img src="src/shared/4ofakind-icon.png" alt="" aria-hidden="true" class="rules-icon foak-card" />
-                      <img src="src/shared/4ofakind-icon.png" alt="" aria-hidden="true" class="rules-icon foak-card" />
-                      <img src="src/shared/4ofakind-icon.png" alt="" aria-hidden="true" class="rules-icon foak-card" />
-                    </span>
+                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0;">
+                      <img
+                        src="src/shared/4ofakind-icon.png"
+                        alt="Four-of-a-kind"
+                        class="rules-icon"
+                        style="width: 3.75em !important; height: 3.75em !important; margin: 0 auto; display: block"
+                      />
+                    </div>
                     <ul>
                       <li>
                         If you play four cards of the same value at once (e.g., four 7s), this also

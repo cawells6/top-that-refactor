@@ -320,6 +320,7 @@ export default class GameController {
     socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
     if (ack) ack({ roomId: this.roomId, playerId: player.id });
 
+    // --- After adding the player, update lobby and check for auto-start ---
     const currentLobbyPlayers = this.getLobbyPlayerList();
     this.log(
       `Emitting PLAYER_JOINED and LOBBY to room '${this.roomId}'. Players:`,
@@ -332,30 +333,29 @@ export default class GameController {
       maxPlayers: this.gameState.maxPlayers,
     });
 
-    const autoStartEnabled = true;
-    const desiredNumHumans = playerData.numHumans || 1;
-    const desiredNumCPUs = playerData.numCPUs || 0;
+    // --- Refined auto-start logic: count actual humans/CPUs in the room ---
+    const allPlayers = Array.from(this.players.values());
+    const numHumansInRoom = allPlayers.filter((p) => !p.isComputer).length;
+    const numCPUsInRoom = allPlayers.filter((p) => p.isComputer).length;
+    const totalPlayersInRoom = allPlayers.length;
 
     this.log(
-      `Checking auto-start conditions: autoStartEnabled=${autoStartEnabled}, players.size=${this.players.size}, desiredNumHumans=${desiredNumHumans}, desiredNumCPUs=${desiredNumCPUs}, gameState.started=${this.gameState.started}`
+      `[Auto-Start Check] numHumansInRoom=${numHumansInRoom}, numCPUsInRoom=${numCPUsInRoom}, totalPlayersInRoom=${totalPlayersInRoom}, gameState.started=${this.gameState.started}`
     );
 
     if (
-      autoStartEnabled &&
-      desiredNumHumans === 1 &&
-      desiredNumCPUs >= 1 &&
-      desiredNumHumans + desiredNumCPUs >= 2 &&
+      numHumansInRoom === 1 &&
+      numCPUsInRoom >= 1 &&
+      totalPlayersInRoom >= 2 &&
       !this.gameState.started
     ) {
       this.log(
-        `Auto-starting game. Player: ${name} (the only human), CPUs: ${desiredNumCPUs}. Total players: ${
-          desiredNumHumans + desiredNumCPUs
-        }`
+        `Auto-starting game: 1 human + ${numCPUsInRoom} CPU(s). Total players: ${totalPlayersInRoom}`
       );
-      this.handleStartGame({ computerCount: desiredNumCPUs, socket });
+      this.handleStartGame({ computerCount: numCPUsInRoom, socket });
     } else {
       this.log(
-        `Not auto-starting. Conditions not met or game configured for multiple humans (desiredNumHumans=${desiredNumHumans}). Transitioning to lobby/waiting state.`
+        `Not auto-starting. Waiting for more players or manual start. (numHumansInRoom=${numHumansInRoom})`
       );
       this.pushState();
     }

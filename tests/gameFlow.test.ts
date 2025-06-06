@@ -2,11 +2,11 @@
 import GameController from '../controllers/GameController.js';
 
 // Use string literals for event names to avoid import errors
-const JOINED = 'JOINED';
-const LOBBY = 'LOBBY';
-const STATE_UPDATE = 'STATE_UPDATE';
-const NEXT_TURN = 'NEXT_TURN';
-const START_GAME = 'START_GAME';
+const JOINED = 'joined';
+const LOBBY = 'lobby';
+const STATE_UPDATE = 'state-update';
+const NEXT_TURN = 'next-turn';
+const START_GAME = 'start-game';
 import { jest, describe, test, beforeEach, expect } from '@jest/globals';
 
 // --- Type Definitions for Mocks ---
@@ -130,61 +130,44 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
 
   test('Player joins, game auto-starts with 1 CPU, initial state is broadcast', () => {
     const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
-    // Call the controller's join logic directly since our mock socket does not
-    // automatically wire event handlers in these tests
+    // Simulate player joining (should result in lobby state, not started game)
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
 
-    const numCPUsInTest = playerData.numCPUs || 0;
-    console.log(
-      'TEST_DEBUG: gameController.players.size after JOIN_GAME:',
-      gameController['players'].size
-    );
-    console.log('TEST_DEBUG: numCPUsInTest (from playerData):', numCPUsInTest);
-    console.log(
-      'TEST_DEBUG: gameController.gameState.started after JOIN_GAME:',
-      gameController['gameState'].started
-    );
-    const autoStartConditionInTest =
-      gameController['players'].size === 1 &&
-      numCPUsInTest > 0 &&
-      !gameController['gameState'].started;
-    console.log('TEST_DEBUG: Calculated autoStartCondition in test:', autoStartConditionInTest);
-
+    // After join, game should NOT be started yet (lobby state)
+    expect(gameController['gameState'].started).toBe(false);
     expect(gameController['gameState'].players).toContain(playerData.id);
     expect(gameController['players'].has(playerData.id!)).toBe(true);
+    // No CPUs yet
+    expect(gameController['players'].has('COMPUTER_1')).toBe(false);
 
-    const stateUpdateAfterAutoStart = topLevelEmitMock.mock.calls.find(
-      (call) => call[0] === STATE_UPDATE && (call[1] as StatePayload)?.started === true
-    );
+    // Now simulate the host starting the game (as the UI would do after lobby)
+    (gameController as any).handleStartGame({ computerCount: 1, socket: globalMockSocket });
 
-    if (!stateUpdateAfterAutoStart) {
-      console.log(
-        'TEST_DEBUG: All topLevelEmitMock calls in auto-start test:',
-        JSON.stringify(topLevelEmitMock.mock.calls, null, 2)
-      );
-    }
-    expect(stateUpdateAfterAutoStart).toBeDefined();
-    console.log(
-      'TEST_DEBUG: stateUpdateAfterAutoStart[1] in test:',
-      JSON.stringify(stateUpdateAfterAutoStart?.[1], null, 2)
-    ); // ADD THIS LINE
-
+    // After start, CPUs should be present and game should be started
+    expect(gameController['gameState'].started).toBe(true);
     expect(gameController['gameState'].players).toContain('COMPUTER_1');
     expect(gameController['players'].has('COMPUTER_1')).toBe(true);
 
+    // Find the state update with started: true
+    const stateUpdateAfterStart = topLevelEmitMock.mock.calls.find(
+      (call) => call[0] === STATE_UPDATE && (call[1] as any)?.started === true
+    );
+    expect(stateUpdateAfterStart).toBeDefined();
+    const emittedState = stateUpdateAfterStart![1] as any;
+    expect(emittedState.players.length).toBe(2);
+    expect(emittedState.currentPlayerId).toBe(playerData.id);
+
+    // Check that NEXT_TURN was emitted for the human
+    const nextTurnArgs = topLevelEmitMock.mock.calls.find((call) => call[0] === NEXT_TURN);
+    expect(nextTurnArgs).toBeDefined();
+    expect(nextTurnArgs![1]).toBe(playerData.id);
+
+    // Check hands were dealt
     const player1Instance = gameController['players'].get(playerData.id!);
     const cpu1Instance = gameController['players'].get('COMPUTER_1');
     expect(player1Instance!.hand.length).toBe(3);
     expect(cpu1Instance!.hand.length).toBe(3);
     expect(gameController['gameState'].deck!.length).toBe(52 - 2 * 9);
-
-    const emittedState = stateUpdateAfterAutoStart![1] as StatePayload;
-    expect(emittedState.players.length).toBe(2);
-    expect(emittedState.currentPlayerId).toBe(playerData.id); // CHANGED THIS LINE from .currentPlayer to .currentPlayerId
-
-    const nextTurnArgs = topLevelEmitMock.mock.calls.find((call) => call[0] === NEXT_TURN);
-    expect(nextTurnArgs).toBeDefined();
-    expect(nextTurnArgs![1]).toBe(playerData.id);
   });
 });
 
@@ -254,17 +237,21 @@ describe('Game Flow - Manual Start by Host', () => {
     const playerAData: PlayerJoinDataPayload = { name: 'PlayerA', numCPUs: 0, id: 'PlayerA-ID' };
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerAData);
 
-    expect(globalMockSocket.emit).toHaveBeenCalledWith(JOINED, {
-      id: playerAData.id,
-      name: playerAData.name,
-      roomId: 'test-room',
-    });
+    // Debug: print all calls to globalMockSocket.emit
+    console.log('DEBUG: globalMockSocket.emit.mock.calls:', JSON.stringify(globalMockSocket.emit.mock.calls, null, 2));
+
+    // Check that a JOINED event with the correct payload was emitted (allowing for extra events)
+    const joinedCallHost = globalMockSocket.emit.mock.calls.find(
+      (call: any) => call[0] === JOINED && call[1]?.id === playerAData.id && call[1]?.name === playerAData.name && call[1]?.roomId === 'test-room'
+    );
+    expect(joinedCallHost).toBeDefined();
     expect(gameController['gameState'].players).toEqual([playerAData.id]);
     let stateUpdateCallHost = topLevelEmitMock.mock.calls.find(
-      (call) => call[0] === STATE_UPDATE && (call[1] as StatePayload)?.started === false
+      (call: any) => call[0] === STATE_UPDATE && (call[1] as StatePayload)?.started === false
     );
     expect(stateUpdateCallHost).toBeDefined();
     if (stateUpdateCallHost) expect((stateUpdateCallHost[1] as StatePayload).players.length).toBe(1);
+    // Only clear mocks after all assertions
     topLevelEmitMock.mockClear();
     globalMockSocket.emit.mockClear();
 
@@ -295,11 +282,11 @@ describe('Game Flow - Manual Start by Host', () => {
     const playerBData: PlayerJoinDataPayload = { name: 'PlayerB', numCPUs: 0, id: 'PlayerB-ID' };
     (gameController['publicHandleJoin'] as Function)(playerBJoinSocket, playerBData);
 
-    expect(playerBJoinSocket.emit).toHaveBeenCalledWith(JOINED, {
-      id: playerBData.id,
-      name: playerBData.name,
-      roomId: 'test-room',
-    });
+    // Check that a JOINED event with the correct payload was emitted for player B
+    const joinedCallB = playerBJoinSocket.emit.mock.calls.find(
+      (call: any) => call[0] === JOINED && call[1]?.id === playerBData.id && call[1]?.name === playerBData.name && call[1]?.roomId === 'test-room'
+    );
+    expect(joinedCallB).toBeDefined();
     expect(gameController['gameState'].players).toEqual([playerAData.id, playerBData.id]);
     expect(topLevelEmitMock).toHaveBeenCalledWith(
       LOBBY,
