@@ -441,24 +441,29 @@
   }
 }
 
-/* Styling for nested lists */
+/* Styling for nested lists
+   Remove the browser bullet so only the custom gold bullet with
+   white center appears, matching other indented items. */
 .rules-details-content ul li ul {
-  padding-left: 1.5rem; /* Indentation for nested lists */
+  list-style: none !important; /* Prevent the default bullet */
+  padding-left: 1.5rem; /* Indentation for sub-lists */
   margin-top: 1.2rem; /* Spacing after parent bullet */
   margin-bottom: 1rem; /* Space after nested list */
 }
 
 .rules-details-content ul li ul li {
+  list-style: none; /* Ensure no default bullet on nested items */
+  position: relative;
   margin-bottom: 1rem; /* Slightly less spacing between sub-items */
   line-height: 1.8; /* Slightly reduced line height for sub-items */
 }
 
 /* Style for nested list item bullets */
 .rules-details-content ul li ul li::before {
-  content: '○'; /* Open circle for sub-items */
+  content: '○'; /* Gold bullet with white center */
   font-size: 0.9em;
   color: #ffc300;
-  text-shadow: none;
+  text-shadow: 0 0 0 #fff; /* Ensure clean center */
   left: -1.4rem; /* Increased spacing between bullet and text */
   top: 0.293em; /* Moved up by ~7% from 0.315em */
 }
