@@ -1,7 +1,7 @@
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
-import { JOIN_GAME } from '../../src/shared/events.js';
+import { JOIN_GAME, START_GAME } from '../../src/shared/events.js';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -458,6 +458,15 @@ export async function initializePageEventListeners() {
     copyLinkBtn.onclick = () => {
       navigator.clipboard.writeText(window.location.href);
     };
+  }
+
+  const startGameBtn = document.getElementById('start-game-button');
+  if (startGameBtn) {
+    startGameBtn.addEventListener('click', () => {
+      const cpuInput = document.getElementById('cpu-players-input') as HTMLInputElement | null;
+      const computerCount = parseInt(cpuInput?.value || '0', 10);
+      state.socket.emit(START_GAME, { computerCount });
+    });
   }
 
   const backToLobbyButton = uiManager.getBackToLobbyButton();
