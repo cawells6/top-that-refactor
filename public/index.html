@@ -17,24 +17,24 @@
 
     <!-- Entry‑point for your client modules -->
     <script type="module" src="/scripts/main.ts"></script>
-    
+
     <!-- Fixed card loader for improved card rendering -->
     <script type="module" src="/scripts/fixed-card-loader.js"></script>
-    
+
     <!-- DISABLED SCRIPTS -->
     <!-- <script type="module" src="/scripts/rules-cards.ts"></script> -->
     <!-- <script type="module" src="/scripts/debug-card-loader.js"></script> -->
     <!-- <script src="/scripts/trigger-cards-update.js"></script> -->
-    
+
     <!-- DOM inspector for analyzing card elements -->
     <script src="/scripts/dom-inspector.js"></script>
     <!-- Icon viewer for fullsize icon display -->
     <script src="/scripts/icon-viewer.js"></script>
-    
+
     <!-- Diagnostic and troubleshooting tools -->
     <script src="/scripts/card-loader-diagnostic.js"></script>
     <script src="/scripts/force-card-update.js"></script>
-    
+
     <!-- Style and layout enhancer -->
     <script src="/scripts/style-enforcer.js"></script>
   </head>
@@ -178,14 +178,29 @@
         </div>
 
         <!-- Waiting Room / Invite Link Section (restored) -->
-        <div id="waiting-state" class="hidden" style="width: 100%; text-align: center; margin-top: 2rem;">
+        <div
+          id="waiting-state"
+          class="hidden"
+          style="width: 100%; text-align: center; margin-top: 2rem"
+        >
           <h3 id="waiting-heading">Waiting for players...</h3>
-          <div id="share-link-message" style="margin: 1em 0;">
+          <div id="share-link-message">
             <span>Share this link to invite friends:</span>
-            <input id="invite-link" type="text" readonly style="width: 60%; max-width: 400px; margin: 0 0.5em;" />
+            <input
+              id="invite-link"
+              type="text"
+              readonly
+              style="width: 60%; max-width: 400px; margin: 0 0.5em"
+            />
             <button id="copy-link-button" class="header-btn" type="button">Copy Link</button>
+            <span id="copy-link-feedback" class="copy-feedback">Link copied!</span>
+            <img
+              id="qr-code-image"
+              alt="Invite QR Code"
+              style="margin-top: 0.5em; width: 150px; height: 150px; display: none"
+            />
           </div>
-          <button id="start-game-button" class="header-btn" type="button" style="margin-top: 1em;">Start Game</button>
+          <button id="start-game-button" class="header-btn" type="button">Start Game</button>
         </div>
       </div>
 
@@ -266,30 +281,40 @@
                 <ul>
                   <li>
                     <strong>2 (Reset Card):</strong>
-                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0;">
+                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0">
                       <img
                         src="src/shared/Reset-icon.png"
                         alt="Reset"
                         class="rules-icon"
-                        style="width: 3.75em !important; height: 3.75em !important; margin: 0 auto; display: block"
+                        style="
+                          width: 3.75em !important;
+                          height: 3.75em !important;
+                          margin: 0 auto;
+                          display: block;
+                        "
                       />
                     </div>
                     <ul>
                       <li>A 2 can be played on <strong>any card</strong>, no matter its value.</li>
                       <li>
-                        It <strong>resets</strong> the Discard Pile. The pile is cleared, and the next
-                        player can start a new Discard Pile by playing any card they wish.
+                        It <strong>resets</strong> the Discard Pile. The pile is cleared, and the
+                        next player can start a new Discard Pile by playing any card they wish.
                       </li>
                     </ul>
                   </li>
                   <li>
                     <strong>5 (Copy Card):</strong>
-                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0;">
+                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0">
                       <img
                         src="src/shared/Copy-icon.png"
                         alt="Copy"
                         class="rules-icon"
-                        style="width: 3.75em !important; height: 3.75em !important; margin: 0 auto; display: block"
+                        style="
+                          width: 3.75em !important;
+                          height: 3.75em !important;
+                          margin: 0 auto;
+                          display: block;
+                        "
                       />
                     </div>
                     <ul>
@@ -302,19 +327,24 @@
                         acts like a Jack. The next player must beat a Jack.
                       </li>
                       <li>
-                        If a 5 is played on an empty (or just reset) Discard Pile, it just counts as a
-                        normal 5.
+                        If a 5 is played on an empty (or just reset) Discard Pile, it just counts as
+                        a normal 5.
                       </li>
                     </ul>
                   </li>
                   <li>
                     <strong>10 (Burn Card):</strong>
-                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0;">
+                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0">
                       <img
                         src="src/shared/Burn-icon.png"
                         alt="Burn"
                         class="rules-icon"
-                        style="width: 3.75em !important; height: 3.75em !important; margin: 0 auto; display: block"
+                        style="
+                          width: 3.75em !important;
+                          height: 3.75em !important;
+                          margin: 0 auto;
+                          display: block;
+                        "
                       />
                     </div>
                     <ul>
@@ -331,12 +361,17 @@
                   </li>
                   <li>
                     <strong>Four of a Kind (Burn & Play Any Value):</strong>
-                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0;">
+                    <div class="rules-icon-block" style="text-align: center; margin: 0.5em 0">
                       <img
                         src="src/shared/4ofakind-icon.png"
                         alt="Four-of-a-kind"
                         class="rules-icon"
-                        style="width: 3.75em !important; height: 3.75em !important; margin: 0 auto; display: block"
+                        style="
+                          width: 3.75em !important;
+                          height: 3.75em !important;
+                          margin: 0 auto;
+                          display: block;
+                        "
                       />
                     </div>
                     <ul>
@@ -345,18 +380,18 @@
                         <strong>burns the Discard Pile</strong>.
                         <ul>
                           <li>
-                            <em>Multi-Deck Note:</em> If using multiple decks, you can play more than
-                            four (e.g., five or six of the same card) to activate this burn.
+                            <em>Multi-Deck Note:</em> If using multiple decks, you can play more
+                            than four (e.g., five or six of the same card) to activate this burn.
                           </li>
                         </ul>
                       </li>
                       <li>
-                        <strong>Important:</strong> Four-of-a-Kind can be played even if its value is
-                        <strong>not higher</strong> than the top card of the Discard Pile.
+                        <strong>Important:</strong> Four-of-a-Kind can be played even if its value
+                        is <strong>not higher</strong> than the top card of the Discard Pile.
                       </li>
                       <li>
-                        The Discard Pile (including the cards that made the Four-of-a-Kind) is removed
-                        from the game.
+                        The Discard Pile (including the cards that made the Four-of-a-Kind) is
+                        removed from the game.
                       </li>
                       <li>
                         If there are no cards left to start a new Discard Pile, the next player may

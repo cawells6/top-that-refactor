@@ -85,6 +85,25 @@ export function showWaitingState(
   if (waitingHeading) {
     waitingHeading.textContent = `Room: ${roomId} (${currentPlayers}/${maxPlayers})`;
   }
+
+  // Determine the invite URL. When running via a dev server the port may differ
+  // from the backend (which listens on 3000). Replace any non‑‎3000 port so
+  // the copied link and QR code point to the actual game server.
+  const inviteUrl =
+    window.location.port && window.location.port !== '3000'
+      ? `${window.location.protocol}//${window.location.hostname}:3000${window.location.pathname}${window.location.search}${window.location.hash}`
+      : window.location.href;
+
+  // Update invite link and QR code
+  const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
+  if (inviteInput) {
+    inviteInput.value = inviteUrl;
+  }
+  const qrImg = document.getElementById('qr-code-image') as HTMLImageElement | null;
+  if (qrImg) {
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(inviteUrl)}`;
+    qrImg.style.display = 'inline-block';
+  }
   // Render player list
   let playerList = document.getElementById('player-list');
   if (!playerList) {

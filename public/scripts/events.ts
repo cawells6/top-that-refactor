@@ -1,7 +1,7 @@
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
-import { JOIN_GAME } from '../../src/shared/events.js';
+import { JOIN_GAME, START_GAME } from '../../src/shared/events.js';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -455,9 +455,35 @@ export async function initializePageEventListeners() {
 
   const copyLinkBtn = uiManager.getCopyLinkBtn();
   if (copyLinkBtn) {
-    copyLinkBtn.onclick = () => {
-      navigator.clipboard.writeText(window.location.href);
+    const feedback = document.getElementById('copy-link-feedback');
+    copyLinkBtn.onclick = async () => {
+      // When running via a dev server (e.g. Vite) the port will not be 3000.
+      // Replace whatever dev port is being used with 3000 so the copied link
+      // points to the actual game server.
+      const inviteUrl =
+        window.location.port && window.location.port !== '3000'
+          ? `${window.location.protocol}//${window.location.hostname}:3000${window.location.pathname}${window.location.search}${window.location.hash}`
+          : window.location.href;
+      try {
+        await navigator.clipboard.writeText(inviteUrl);
+        if (feedback) {
+          feedback.classList.add('visible');
+          setTimeout(() => feedback.classList.remove('visible'), 2000);
+        }
+      } catch (err) {
+        console.error('Failed to copy link', err);
+        alert('Failed to copy link');
+      }
     };
+  }
+
+  const startGameBtn = document.getElementById('start-game-button');
+  if (startGameBtn) {
+    startGameBtn.addEventListener('click', () => {
+      const cpuInput = document.getElementById('cpu-players-input') as HTMLInputElement | null;
+      const computerCount = parseInt(cpuInput?.value || '0', 10);
+      state.socket.emit(START_GAME, { computerCount });
+    });
   }
 
   const backToLobbyButton = uiManager.getBackToLobbyButton();

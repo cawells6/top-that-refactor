@@ -1147,37 +1147,47 @@ body {
   box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
 }
 
-/* General button styling for .header-btn class */
-.header-btn {
-  background-color: #007bff; /* Default blue */
-  color: white;
+/* Copy Link and Start Game buttons - gold gradient styling */
+#copy-link-button,
+#start-game-button {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c !important;
   border: none;
-  padding: 1rem 2rem; /* Increased padding */
-  font-size: 1.4rem; /* Increased font size */
-  border-radius: 8px;
-  cursor: pointer;
-  transition:
-    background-color 0.2s ease-in-out,
-    box-shadow 0.2s ease-in-out,
-    transform 0.1s ease-in-out;
+}
+
+#copy-link-button:hover,
+#start-game-button:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+}
+
+#copy-link-button:active,
+#start-game-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
+}
+
+/* Share link container layout */
+#share-link-message {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Copy link feedback text */
+#copy-link-feedback {
+  margin-left: 0.5rem;
+  color: #ffc300;
   font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  text-transform: none; /* Ensure specific styling, not global */
-  letter-spacing: normal; /* Ensure specific styling, not global */
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* Deal button hover state & general .header-btn hover/focus */
-.header-btn:hover,
-.header-btn:focus {
-  background-color: #0056b3; /* Darker blue */
-  outline: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.header-btn:active {
-  background-color: #004da0; /* Even darker blue for active */
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-  transform: translateY(1px);
+#copy-link-feedback.visible {
+  opacity: 1;
 }
 
 /* Player count help text */
