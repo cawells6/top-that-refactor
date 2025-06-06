@@ -85,6 +85,17 @@ export function showWaitingState(
   if (waitingHeading) {
     waitingHeading.textContent = `Room: ${roomId} (${currentPlayers}/${maxPlayers})`;
   }
+
+  // Update invite link and QR code
+  const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
+  if (inviteInput) {
+    inviteInput.value = window.location.href;
+  }
+  const qrImg = document.getElementById('qr-code-image') as HTMLImageElement | null;
+  if (qrImg) {
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}`;
+    qrImg.style.display = 'inline-block';
+  }
   // Render player list
   let playerList = document.getElementById('player-list');
   if (!playerList) {
