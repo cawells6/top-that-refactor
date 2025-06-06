@@ -443,6 +443,7 @@
 
 /* Styling for nested lists */
 .rules-details-content ul li ul {
+  list-style: none; /* Remove default bullet to avoid double bullets */
   padding-left: 1.5rem; /* Indentation for nested lists */
   margin-top: 1.2rem; /* Spacing after parent bullet */
   margin-bottom: 1rem; /* Space after nested list */
