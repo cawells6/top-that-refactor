@@ -393,6 +393,7 @@
   position: relative;
   margin-bottom: 1.5rem; /* Further increased spacing between list items */
   line-height: 1.9; /* Increased line height for better readability */
+  padding-bottom: 0.25rem; /* Extra padding at bottom */
 }
 
 /* Improved styling for list items with card icons */
@@ -459,7 +460,7 @@
   color: #ffc300;
   text-shadow: none;
   left: -1.4rem; /* Increased spacing between bullet and text */
-  top: 0.05em; /* Raised bullet for better alignment */
+  top: 0.293em; /* Moved up by ~7% from 0.315em */
 }
 .rules-details-content ol {
   padding-left: 1.5rem;
@@ -473,7 +474,7 @@
   font-size: 1.1em;
   position: absolute;
   left: -1.65rem; /* Shifted more to the left to create more space between bullet and text */
-  top: 0.05em; /* Raised bullet for better alignment */
+  top: 0.215em; /* Standard bullet positioning */
   line-height: 1.6;
   text-shadow:
     -1px -1px 0 #000,
@@ -631,13 +632,13 @@
 }
 
 .rules-icon {
-  /* Doubled size for extra emphasis */
-  width: 18.75em !important;
-  height: 18.75em !important;
+  width: 7.5em !important;
+  height: 7.5em !important;
   min-width: 0 !important;
   min-height: 0 !important;
-  max-width: 18.75em !important;
-  max-height: 18.75em !important;
+  max-width: 7.5em !important;
+  max-height: 7.5em !important;
+  vertical-align: middle;
   margin: 0 auto 0.5em auto !important;
   border: 2px solid #ffc300;
   border-radius: 7px;
@@ -647,61 +648,16 @@
   display: block !important;
 }
 
-/* Remove bullet from special icon description bullet */
-.rules-icon-desc {
-  position: relative;
-  margin-left: 0;
-  padding-left: 0;
-  margin-top: 0.1em;
-  margin-bottom: 0.5em;
-  font-size: 1.2rem;
-  color: #212529;
-  font-family: inherit;
-  font-style: italic;
-  display: list-item;
-  line-height: 1.9;
-}
-
-.rules-icon-desc::before {
-  content: '';
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  border-radius: 50%;
-  border: 2.5px solid #ffc300;
-  background: #fff;
-  box-shadow:
-    0 0 0 1.5px #ffc300,
-    0 0 2px 0 #0002;
-  position: absolute;
-  left: -1.65rem;
-  top: 0.32em;
-  vertical-align: middle;
-}
-
 .rules-icon-block {
   text-align: center;
-  margin: 0.5em 0 0.2em 0;
-}
-
-.rules-details-content > ul > li {
-  margin-bottom: 1.2em;
-}
-
-.rules-details-content > ul > li > ul {
-  margin-bottom: 0.2em;
-}
-
-.rules-details-content > ul {
-  margin-top: 0.5em;
+  margin: 0.5em 0;
 }
 
 @media (max-width: 600px) {
   .rules-icon {
-    /* Doubled size for small screens as well */
-    width: 13.8em !important;
-    height: 13.8em !important;
-    max-width: 13.8em !important;
-    max-height: 13.8em !important;
+    width: 5.5em !important;
+    height: 5.5em !important;
+    max-width: 5.5em !important;
+    max-height: 5.5em !important;
   }
 }
