@@ -6,11 +6,10 @@
  */
 
 try {
-  const { exec } = require('child_process');
   const path = require('path');
 
   console.log('Current directory:', __dirname);
-  
+
   // Import the port-cleanup.cjs module
   const portCleanupPath = path.resolve(__dirname, './port-cleanup.cjs');
   console.log('Loading module from:', portCleanupPath);
@@ -37,7 +36,7 @@ try {
       console.error('❌ Error during server port cleanup:', err);
     }
   }
-  
+
   // Run the test
   testCleanupServerPort();
 } catch (error) {

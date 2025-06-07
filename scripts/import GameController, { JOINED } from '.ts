@@ -1,4 +1,4 @@
-import GameController from './controllers/GameController.js';
+import GameController, { JOINED } from './controllers/GameController.js';
 import { LOBBY, STATE_UPDATE, NEXT_TURN, START_GAME } from './shared/events.js';
 
 // --- Type Definitions for Mocks ---
@@ -334,3 +334,4 @@ describe('Game Flow - Manual Start by Host', () => {
     if (nextTurnCall) expect(nextTurnCall[1]).toBe(playerAData.id);
   });
 });
+// No code changes needed. Move this file to your project's test directory and ensure tsconfig includes it.
