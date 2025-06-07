@@ -694,9 +694,11 @@ body {
 .rules-details-content ol {
   padding-left: 20px;
   margin-top: 5px;
+  list-style-position: outside;
 }
 .rules-details-content li {
   margin-bottom: 8px;
+  line-height: 1.4;
 }
 .rules-details-content strong {
   color: #444;
