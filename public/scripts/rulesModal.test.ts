@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 import '@testing-library/jest-dom';
 // Importing but not using fireEvent yet - will be used in future tests
-import { fireEvent } from '@testing-library/dom';
+// fireEvent is not used yet but may be needed in future tests
 
 const realLog = console.log;
 const realError = console.error;

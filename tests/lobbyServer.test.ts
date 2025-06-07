@@ -2,7 +2,7 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 
 import GameController from '../controllers/GameController.js';
-import { JOINED, LOBBY, ERROR, START_GAME } from '../src/shared/events.js';
+import { JOINED, LOBBY, ERROR } from '../src/shared/events.js';
 
 interface MockSocket {
   id: string;
@@ -13,10 +13,6 @@ interface MockSocket {
   eventHandlers: Record<string, (data?: any, ack?: Function) => void>;
   simulateIncomingEvent: (event: string, data?: any, ack?: Function) => void;
   disconnect: jest.Mock<any>;
-}
-
-interface MockIOWithEmit {
-  emit: jest.Mock<any>;
 }
 
 interface MockIO {
@@ -55,7 +51,7 @@ beforeEach(() => {
   topLevelEmitMock = jest.fn();
   mockIo = {
     on: jest.fn(),
-    to: jest.fn((id: string) => {
+    to: jest.fn((_id: string) => {
       return { emit: jest.fn((event: string, payload?: any) => topLevelEmitMock(event, payload)) };
     }),
     emit: jest.fn((event: string, payload?: any) => topLevelEmitMock(event, payload)),
