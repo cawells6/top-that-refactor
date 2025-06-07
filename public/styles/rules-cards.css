@@ -70,13 +70,13 @@
 .card-list-item {
   display: grid;
   grid-template-columns: auto auto 1fr;
-  grid-gap: 24px;  /* Further increased gap for better spacing */
+  grid-gap: 24px; /* Further increased gap for better spacing */
   align-items: center;
   margin-bottom: 0; /* Remove bottom margin since we use gap now */
-  padding: 20px;   /* More padding for breathing room */
+  padding: 20px; /* More padding for breathing room */
   border-radius: 12px;
   background-color: #f9f9f9;
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.1);  /* Enhanced shadow */
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
   transition: transform 0.2s ease;
 }
 
@@ -93,8 +93,8 @@
 
 /* Modernize the rule icons */
 .rules-icon {
-  width: 48px;
-  height: 48px;
+  width: 60px;
+  height: 60px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));

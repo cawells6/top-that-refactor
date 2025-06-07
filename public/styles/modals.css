@@ -467,6 +467,17 @@
   left: -1.4rem; /* Increased spacing between bullet and text */
   top: 0.215em; /* Match main bullet vertical alignment */
 }
+
+/* Ensure icon description bullets match nested style */
+.rules-details-content li.rules-icon-desc::before {
+  content: '○';
+  font-size: 0.9em;
+  color: #ffc300;
+  text-shadow: 0 0 0 #fff;
+  position: absolute;
+  left: -1.4rem;
+  top: 0.215em;
+}
 .rules-details-content ol {
   padding-left: 1.5rem;
   margin-top: 1.2rem; /* Increased from 0.8rem */
@@ -479,7 +490,7 @@
   font-size: 1.1em;
   position: absolute;
   left: -1.65rem; /* Shifted more to the left to create more space between bullet and text */
-  top: 0.215em; /* Standard bullet positioning */
+  top: 0.215em; /* Align bullet with text baseline */
   line-height: 1.6;
   text-shadow:
     -1px -1px 0 #000,
@@ -637,12 +648,12 @@
 }
 
 .rules-icon {
-  width: 7.5em !important;
-  height: 7.5em !important;
+  width: 9.375em !important;
+  height: 9.375em !important;
   min-width: 0 !important;
   min-height: 0 !important;
-  max-width: 7.5em !important;
-  max-height: 7.5em !important;
+  max-width: 9.375em !important;
+  max-height: 9.375em !important;
   margin: 0 auto 0.5em auto !important;
   border: 2px solid #ffc300;
   border-radius: 7px;
@@ -659,9 +670,9 @@
 
 @media (max-width: 600px) {
   .rules-icon {
-    width: 5.5em !important;
-    height: 5.5em !important;
-    max-width: 5.5em !important;
-    max-height: 5.5em !important;
+    width: 6.875em !important;
+    height: 6.875em !important;
+    max-width: 6.875em !important;
+    max-height: 6.875em !important;
   }
 }
