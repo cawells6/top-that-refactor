@@ -6,7 +6,7 @@
     "outDir": "../../dist/public/scripts", // Example of a specific output for client scripts if needed
     "noEmit": true, // Keep this true, Vite handles emit
     "lib": ["es2022", "dom", "dom.iterable"],
-    "types": ["jest"],
+    "types": ["jest", "node"],
     // Paths should be relative to baseUrl (which is now project root)
     "paths": {
       "@models/*": ["models/*"],
