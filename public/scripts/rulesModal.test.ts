@@ -1,6 +1,5 @@
 /** @jest-environment jsdom */
 import '@testing-library/jest-dom';
-import { fireEvent } from '@testing-library/dom';
 
 const realLog = console.log;
 const realError = console.error;
@@ -29,19 +28,19 @@ jest.mock(
     socket: { emit: jest.fn(), on: jest.fn() },
     loadSession: jest.fn(),
     $: jest.fn((selector: string) =>
-      global.document ? global.document.querySelector(selector) : null
+      globalThis.document ? globalThis.document.querySelector(selector) : null
     ),
     getCopyLinkBtn: jest.fn(() =>
-      global.document ? global.document.createElement('button') : null
+      globalThis.document ? globalThis.document.createElement('button') : null
     ),
     getRulesButton: jest.fn(() =>
-      global.document ? global.document.createElement('button') : null
+      globalThis.document ? globalThis.document.createElement('button') : null
     ),
     getRulesModal: jest.fn(() =>
-      global.document ? global.document.createElement('div') : null
+      globalThis.document ? globalThis.document.createElement('div') : null
     ),
     getBackToLobbyButton: jest.fn(() =>
-      global.document ? global.document.createElement('button') : null
+      globalThis.document ? globalThis.document.createElement('button') : null
     ),
   }),
   { virtual: true }
