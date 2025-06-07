@@ -38,6 +38,7 @@ interface MockIO {
 
 interface PlayerJoinDataPayload {
   name: string;
+  numHumans?: number;
   numCPUs?: number;
   id?: string;
 }

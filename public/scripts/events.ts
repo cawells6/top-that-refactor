@@ -443,9 +443,7 @@ export async function initializePageEventListeners() {
         nameInput.focus();
         return;
       }
-      const payload = state.currentRoom
-        ? { name, id: state.currentRoom }
-        : { name };
+      const payload = state.currentRoom ? { name, id: state.currentRoom } : { name };
       state.socket.emit(JOIN_GAME, payload);
       setButtonDisabled(createJoinBtn, true);
     };
