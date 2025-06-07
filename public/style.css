@@ -1149,6 +1149,42 @@ body {
   box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
 }
 
+#start-game-button {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c !important;
+  border: none;
+}
+
+#start-game-button:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  color: #1b2e3c !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+}
+
+#start-game-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
+}
+
+#copy-link-button {
+  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
+  color: #ffffff !important;
+  border: none;
+}
+
+#copy-link-button:hover {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+#copy-link-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(33, 150, 243, 0.2);
+}
+
 /* General button styling for .header-btn class */
 .header-btn {
   background-color: #007bff; /* Default blue */

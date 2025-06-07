@@ -132,18 +132,13 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
 
   test('Player joins, game auto-starts with 1 CPU, initial state is broadcast', () => {
     const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
-    // Simulate player joining (should result in lobby state, not started game)
+    // Simulate player joining - should auto start with CPU
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
 
-    // After join, game should NOT be started yet (lobby state)
-    expect(gameController['gameState'].started).toBe(false);
+    // After join, game should already be started
+    expect(gameController['gameState'].started).toBe(true);
     expect(gameController['gameState'].players).toContain(playerData.id);
-    expect(gameController['players'].has(playerData.id!)).toBe(true);
-    // No CPUs yet
-    expect(gameController['players'].has('COMPUTER_1')).toBe(false);
-
-    // Now simulate the host starting the game (as the UI would do after lobby)
-    (gameController as any).handleStartGame({ computerCount: 1, socket: globalMockSocket });
+    expect(gameController['players'].has('COMPUTER_1')).toBe(true);
 
     // After start, CPUs should be present and game should be started
     expect(gameController['gameState'].started).toBe(true);

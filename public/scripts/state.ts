@@ -58,6 +58,7 @@ export let currentRoom: string | null = null;
 export let pileTransition: boolean = false;
 export let specialEffectsQueue: any[] = []; // TODO: Consider defining a specific type for effects, e.g., SpecialEffect[]
 export let processingEffects: boolean = false;
+export let desiredCpuCount = 0;
 
 export const stateHistory: any[] = []; // TODO: Consider defining a specific type for state history items, e.g., GameStateSnapshot[]
 export let stateIndex: number = -1;
@@ -65,11 +66,14 @@ export let stateIndex: number = -1;
 export function loadSession(): void {
   setMyId(sessionStorage.getItem('myId'));
   setCurrentRoom(sessionStorage.getItem('currentRoom'));
+  const cpuStr = sessionStorage.getItem('desiredCpuCount');
+  if (cpuStr) desiredCpuCount = parseInt(cpuStr, 10) || 0;
 }
 
 export function saveSession(): void {
   if (myId) sessionStorage.setItem('myId', myId);
   if (currentRoom) sessionStorage.setItem('currentRoom', currentRoom);
+  sessionStorage.setItem('desiredCpuCount', desiredCpuCount.toString());
 }
 
 export function setMyId(id: string | null): void {
@@ -77,6 +81,15 @@ export function setMyId(id: string | null): void {
 }
 export function setCurrentRoom(room: string | null): void {
   currentRoom = room;
+}
+
+export function setDesiredCpuCount(count: number): void {
+  desiredCpuCount = count;
+  sessionStorage.setItem('desiredCpuCount', count.toString());
+}
+
+export function getDesiredCpuCount(): number {
+  return desiredCpuCount;
 }
 export function setPileTransition(value: boolean): void {
   pileTransition = value;

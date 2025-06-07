@@ -85,6 +85,16 @@ export function showWaitingState(
   if (waitingHeading) {
     waitingHeading.textContent = `Room: ${roomId} (${currentPlayers}/${maxPlayers})`;
   }
+  const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
+  const qrImg = document.getElementById('qr-code-image') as HTMLImageElement | null;
+  if (inviteInput) {
+    const link = `${window.location.origin}?room=${roomId}`;
+    inviteInput.value = link;
+    if (qrImg) {
+      qrImg.src = `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(link)}&chs=150x150&chld=L|0`;
+      qrImg.style.display = 'block';
+    }
+  }
   // Render player list
   let playerList = document.getElementById('player-list');
   if (!playerList) {

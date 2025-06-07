@@ -25,6 +25,7 @@ jest.mock('../public/scripts/state.js', () => {
   return {
     socket: { emit: jest.fn(), on: jest.fn() }, // These will be overridden in beforeEach
     loadSession: jest.fn(),
+    saveSession: jest.fn(),
     $: jest.fn((selector: string) =>
       global.document ? global.document.querySelector(selector) : null
     ),
@@ -38,6 +39,8 @@ jest.mock('../public/scripts/state.js', () => {
     getBackToLobbyButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
+    setDesiredCpuCount: jest.fn(),
+    getDesiredCpuCount: jest.fn(() => 0),
   };
 });
 

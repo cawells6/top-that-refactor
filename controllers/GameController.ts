@@ -333,7 +333,7 @@ export default class GameController {
       maxPlayers: this.gameState.maxPlayers,
     });
 
-    // --- Refined auto-start logic: count actual humans/CPUs in the room ---
+    // --- Refined auto-start logic ---
     const allPlayers = Array.from(this.players.values());
     const numHumansInRoom = allPlayers.filter((p) => !p.isComputer).length;
     const numCPUsInRoom = allPlayers.filter((p) => p.isComputer).length;
@@ -344,6 +344,15 @@ export default class GameController {
     );
 
     if (
+      !this.gameState.started &&
+      numHumansInRoom === 1 &&
+      (playerData.numCPUs || 0) >= 1 &&
+      totalPlayersInRoom === 1
+    ) {
+      const botsToAdd = playerData.numCPUs || 0;
+      this.log(`Auto-starting solo game with ${botsToAdd} CPU bot(s).`);
+      this.handleStartGame({ computerCount: botsToAdd, socket });
+    } else if (
       numHumansInRoom === 1 &&
       numCPUsInRoom >= 1 &&
       totalPlayersInRoom >= 2 &&
