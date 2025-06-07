@@ -1,7 +1,7 @@
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
-import { JOIN_GAME } from '../../src/shared/events.js';
+import { JOIN_GAME, START_GAME } from '../../src/shared/events.js';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -443,12 +443,10 @@ export async function initializePageEventListeners() {
         nameInput.focus();
         return;
       }
-      // TODO: CRITICAL - Inconsistent JOIN_GAME payload.
-      // handleDealClick emits an object: { name, numHumans, numCPUs }.
-      // This emits only the name. This needs to be reconciled with server expectations.
-      // If this is for joining an existing game by room ID (not creating),
-      // the event name or payload might need to differ from the game creation event.
-      state.socket.emit(JOIN_GAME, name);
+      const payload = state.currentRoom
+        ? { name, id: state.currentRoom }
+        : { name };
+      state.socket.emit(JOIN_GAME, payload);
       setButtonDisabled(createJoinBtn, true);
     };
   }
@@ -456,7 +454,17 @@ export async function initializePageEventListeners() {
   const copyLinkBtn = uiManager.getCopyLinkBtn();
   if (copyLinkBtn) {
     copyLinkBtn.onclick = () => {
-      navigator.clipboard.writeText(window.location.href);
+      const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
+      const linkToCopy = inviteInput ? inviteInput.value : window.location.href;
+      navigator.clipboard.writeText(linkToCopy);
+    };
+  }
+
+  const startGameLobbyBtn = document.getElementById('start-game-button');
+  if (startGameLobbyBtn) {
+    startGameLobbyBtn.onclick = () => {
+      const cpuCount = state.getDesiredCpuCount();
+      state.socket.emit(START_GAME, { computerCount: cpuCount });
     };
   }
 
@@ -754,13 +762,19 @@ function handleDealClick() {
   const numHumans = parseInt(totalPlayersInput.value, 10) || 1;
   const numCPUs = parseInt(cpuPlayersInput.value, 10) || 0;
 
+  state.setDesiredCpuCount(numCPUs);
+
+  const currentRoom = state.currentRoom;
+
   const playerDataForEmit = {
     name: name,
     numHumans: numHumans,
     numCPUs: numCPUs,
+    ...(currentRoom ? { id: currentRoom } : {}),
   };
 
   console.log('🎯 Deal button: Validations passed. Joining game with data:', playerDataForEmit);
+  state.saveSession();
   state.socket.emit(JOIN_GAME, playerDataForEmit);
 
   const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;

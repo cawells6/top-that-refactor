@@ -157,6 +157,7 @@ export default class GameController {
   private players: Map<string, Player>;
   private socketIdToPlayerId: Map<string, string>;
   private roomId: string;
+  private expectedHumanCount: number;
 
   private log(message: string, ...args: any[]): void {
     console.log(`[GameController ${this.roomId}] ${message}`, ...args);
@@ -168,6 +169,7 @@ export default class GameController {
     this.gameState = new GameState();
     this.players = new Map<string, Player>();
     this.socketIdToPlayerId = new Map<string, string>();
+    this.expectedHumanCount = 1;
     this.log('GameController instance created.');
   }
 
@@ -313,6 +315,10 @@ export default class GameController {
     this.players.set(id, player);
     this.socketIdToPlayerId.set(socket.id, id);
 
+    if (this.players.size === 1) {
+      this.expectedHumanCount = playerData.numHumans ?? 1;
+    }
+
     socket.join(this.roomId);
     this.log(
       `Player '${name}' (Socket ID: ${socket.id}) joined room '${this.roomId}'. Emitting JOINED.`
@@ -333,7 +339,7 @@ export default class GameController {
       maxPlayers: this.gameState.maxPlayers,
     });
 
-    // --- Refined auto-start logic: count actual humans/CPUs in the room ---
+    // --- Refined auto-start logic ---
     const allPlayers = Array.from(this.players.values());
     const numHumansInRoom = allPlayers.filter((p) => !p.isComputer).length;
     const numCPUsInRoom = allPlayers.filter((p) => p.isComputer).length;
@@ -343,7 +349,20 @@ export default class GameController {
       `[Auto-Start Check] numHumansInRoom=${numHumansInRoom}, numCPUsInRoom=${numCPUsInRoom}, totalPlayersInRoom=${totalPlayersInRoom}, gameState.started=${this.gameState.started}`
     );
 
+    const expectingSolo = this.expectedHumanCount === 1;
+
     if (
+      !this.gameState.started &&
+      expectingSolo &&
+      numHumansInRoom === 1 &&
+      (playerData.numCPUs || 0) >= 1 &&
+      totalPlayersInRoom === 1
+    ) {
+      const botsToAdd = playerData.numCPUs || 0;
+      this.log(`Auto-starting solo game with ${botsToAdd} CPU bot(s).`);
+      this.handleStartGame({ computerCount: botsToAdd, socket });
+    } else if (
+      expectingSolo &&
       numHumansInRoom === 1 &&
       numCPUsInRoom >= 1 &&
       totalPlayersInRoom >= 2 &&

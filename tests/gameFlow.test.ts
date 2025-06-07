@@ -131,19 +131,19 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
   });
 
   test('Player joins, game auto-starts with 1 CPU, initial state is broadcast', () => {
-    const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
-    // Simulate player joining (should result in lobby state, not started game)
+    const playerData: PlayerJoinDataPayload = {
+      name: 'Player1',
+      numHumans: 1,
+      numCPUs: 1,
+      id: 'Player1-ID',
+    };
+    // Simulate player joining - should auto start with CPU
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
 
-    // After join, game should NOT be started yet (lobby state)
-    expect(gameController['gameState'].started).toBe(false);
+    // After join, game should already be started
+    expect(gameController['gameState'].started).toBe(true);
     expect(gameController['gameState'].players).toContain(playerData.id);
-    expect(gameController['players'].has(playerData.id!)).toBe(true);
-    // No CPUs yet
-    expect(gameController['players'].has('COMPUTER_1')).toBe(false);
-
-    // Now simulate the host starting the game (as the UI would do after lobby)
-    (gameController as any).handleStartGame({ computerCount: 1, socket: globalMockSocket });
+    expect(gameController['players'].has('COMPUTER_1')).toBe(true);
 
     // After start, CPUs should be present and game should be started
     expect(gameController['gameState'].started).toBe(true);
@@ -170,6 +170,48 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
     expect(player1Instance!.hand.length).toBe(3);
     expect(cpu1Instance!.hand.length).toBe(3);
     expect(gameController['gameState'].deck!.length).toBe(52 - 2 * 9);
+  });
+});
+
+describe('Game Flow - Lobby with Extra Human', () => {
+  let gameController: GameController;
+
+  beforeEach(() => {
+    topLevelEmitMock.mockClear();
+
+    globalMockSocket = {
+      id: 'socket-lobby',
+      join: jest.fn(),
+      emit: jest.fn(),
+      on: jest.fn(),
+      removeAllListeners: jest.fn(),
+      eventHandlers: {},
+      simulateIncomingEvent: () => {},
+      disconnect: jest.fn(),
+    } as unknown as MockSocket;
+
+    if (mockIo.sockets && mockIo.sockets.sockets) {
+      mockIo.sockets.sockets.clear();
+      mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
+    }
+
+    mockIo.on.mockClear();
+    mockIo.to.mockClear();
+    gameController = new GameController(mockIo as any, 'test-room');
+  });
+
+  test('No auto-start when expecting another human', () => {
+    const playerData: PlayerJoinDataPayload = {
+      name: 'Host',
+      numHumans: 2,
+      numCPUs: 1,
+      id: 'HOST_ID',
+    };
+
+    (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
+
+    expect(gameController['gameState'].started).toBe(false);
+    expect(gameController['players'].has('COMPUTER_1')).toBe(false);
   });
 });
 

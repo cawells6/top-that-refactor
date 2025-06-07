@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Clear session on page load
   sessionStorage.removeItem('myId');
   sessionStorage.removeItem('currentRoom');
+  sessionStorage.removeItem('desiredCpuCount');
+
+  const params = new URLSearchParams(window.location.search);
+  const roomFromLink = params.get('room');
+  if (roomFromLink) {
+    sessionStorage.setItem('currentRoom', roomFromLink);
+  }
 
   try {
     await socketReady;
