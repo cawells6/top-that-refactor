@@ -6,11 +6,11 @@ import '@testing-library/jest-dom';
 import { fireEvent } from '@testing-library/dom';
 
 // Import the actual constants for use in test assertions
-import * as state from '../public/scripts/state.js'; // Stays .js for now
 import { JOIN_GAME } from '../src/shared/events.js'; // Import from the actual (now .ts) module
+import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
+import * as state from '../public/scripts/state.js'; // Stays .js for now
 // Import the client-side script under test (AFTER mocks are set up)
 // This file (public/scripts/events.js) has NOT been converted to TS yet.
-import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
 
 const mockEmit = jest.fn();
 const mockOn = jest.fn();

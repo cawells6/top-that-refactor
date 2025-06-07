@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 import '@testing-library/jest-dom';
+// Importing but not using fireEvent yet - will be used in future tests
 import { fireEvent } from '@testing-library/dom';
 
 const realLog = console.log;
@@ -37,9 +38,7 @@ jest.mock(
     getRulesButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
-    getRulesModal: jest.fn(() =>
-      global.document ? global.document.createElement('div') : null
-    ),
+    getRulesModal: jest.fn(() => (global.document ? global.document.createElement('div') : null)),
     getBackToLobbyButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
@@ -69,7 +68,6 @@ describe('Rules modal interactions', () => {
       </div>`;
   });
 
-
   it('opens and closes the rules modal', async () => {
     const rulesModal = document.getElementById('rules-modal') as HTMLElement;
     const overlay = document.getElementById('modal-overlay') as HTMLElement;
@@ -88,5 +86,4 @@ describe('Rules modal interactions', () => {
     expect(overlay).toHaveClass('modal__overlay--hidden');
     expect(lobby.style.display).toBe('');
   });
-
 });
