@@ -24,5 +24,6 @@
     "../../models/**/*.ts", // Corrected path for models
     "../../src/shared/**/*.ts", // Corrected path for shared files
     "../../src/types.ts" // Corrected path for the main types file
+    ,"../../utils/**/*.ts" // Include utils for Player.ts dependencies
   ]
 }
