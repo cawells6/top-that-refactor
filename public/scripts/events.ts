@@ -1,7 +1,8 @@
+import { JOIN_GAME } from '@shared/events.ts';
+
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
-import { JOIN_GAME, START_GAME } from '../../src/shared/events.js';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -99,11 +100,6 @@ function clearMessageQueueAndHide() {
     innerMessageBox.classList.remove('active');
   }
   isDisplayingMessage = false;
-}
-
-// Helper to safely get value from input elements
-function getInputValue(el: HTMLElement | null): string {
-  return el && 'value' in el ? (el as HTMLInputElement).value : '';
 }
 
 // Helper to safely set disabled on button elements
@@ -457,9 +453,7 @@ export async function initializePageEventListeners() {
     shareLinkBtn.onclick = () => {
       const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
       const linkToShare = inviteInput ? inviteInput.value : window.location.href;
-      navigator
-        .share({ url: linkToShare })
-        .catch((err) => console.warn('Share failed', err));
+      navigator.share({ url: linkToShare }).catch((err) => console.warn('Share failed', err));
     };
   }
 
@@ -761,18 +755,20 @@ function handleDealClick() {
 
   state.setDesiredCpuCount(numCPUs);
 
-  const currentRoom = state.currentRoom;
-
   const playerDataForEmit = {
     name: name,
     numHumans: numHumans,
     numCPUs: numCPUs,
-    ...(currentRoom ? { id: currentRoom } : {}),
   };
 
   console.log('🎯 Deal button: Validations passed. Joining game with data:', playerDataForEmit);
-  state.saveSession();
-  state.socket.emit(JOIN_GAME, playerDataForEmit);
+  state.saveSession(); // Save name
+  state.socket.emit(JOIN_GAME, playerDataForEmit, (response: any) => {
+    if (response.roomId) {
+      state.setCurrentRoom(response.roomId);
+      state.setMyId(response.playerId);
+    }
+  });
 
   const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
   if (dealButton) {
@@ -781,7 +777,7 @@ function handleDealClick() {
     setTimeout(() => {
       if (dealButton) {
         dealButton.disabled = false;
-        dealButton.textContent = "Let's Play";
+        dealButton.textContent = "LET'S PLAY";
       }
     }, 3000);
   }

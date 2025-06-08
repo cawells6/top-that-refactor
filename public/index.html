@@ -8,6 +8,7 @@
     <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/styles/modals.css" />
+    <link rel="stylesheet" href="/styles/lobby.css" />
     <link rel="stylesheet" href="/styles/rules-cards.css" />
     <link rel="stylesheet" href="/styles/enhanced-rules-cards.css" />
     <link rel="stylesheet" href="/styles/debug-cards.css" />
@@ -191,33 +192,6 @@
           </div>
         </div>
 
-        <!-- Waiting Room / Invite Link Section (restored) -->
-        <div
-          id="waiting-state"
-          class="hidden"
-          style="width: 100%; text-align: center; margin-top: 2rem"
-        >
-          <h3 id="waiting-heading">Waiting for players...</h3>
-          <div id="share-link-message" style="margin: 1em 0">
-            <span>Share this link to invite friends:</span>
-            <input
-              id="invite-link"
-              type="text"
-              readonly
-              style="width: 60%; max-width: 400px; margin: 0 0.5em"
-            />
-            <button id="copy-link-button" class="header-btn" type="button">Copy Link</button>
-            <button id="share-link-button" class="header-btn" type="button">Share</button>
-            <img
-              id="qr-code-image"
-              alt="Invite QR Code"
-              style="margin-top: 0.5em; width: 150px; height: 150px; display: none"
-            />
-          </div>
-          <button id="start-game-button" class="header-btn" type="button" style="margin-top: 1em">
-            Start Game
-          </button>
-        </div>
       </div>
 
       <!-- Game Table -->

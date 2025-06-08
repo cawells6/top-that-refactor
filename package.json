@@ -73,7 +73,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
-    "wait-on": "^6.2.0"
+    "wait-on": "8.0.3"
   },
   "keywords": [],
   "author": "",

@@ -54,13 +54,9 @@ export default defineConfig({
     },
   },
 
-  // Optional: Configure path aliases for cleaner imports (can be set up later if needed)
-  // resolve: {
-  //   alias: {
-  //     // Example: Allows `import X from '@/components/X'`
-  //     '@': path.resolve(__dirname, 'public/scripts'),
-  //     // Example: Allows `import { MyType } from '@shared/types'`
-  //     '@shared': path.resolve(__dirname, 'src/shared'),
-  //   },
-  // },
+  resolve: {
+    alias: {
+      '@shared': path.resolve(__dirname, 'src/shared'),
+    },
+  },
 });

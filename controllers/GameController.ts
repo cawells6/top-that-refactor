@@ -6,8 +6,6 @@ import Player from '../models/Player.js';
 import {
   JOIN_GAME,
   JOINED,
-  PLAYER_JOINED,
-  LOBBY,
   STATE_UPDATE,
   SPECIAL_CARD_EFFECT,
   REJOIN,
@@ -19,7 +17,9 @@ import {
   ERROR as ERROR_EVENT,
   PLAY_CARD,
   PICK_UP_PILE,
+  LOBBY_STATE_UPDATE,
 } from '../src/shared/events.js';
+import { InSessionLobbyState } from '../src/shared/types.js';
 import {
   normalizeCardValue,
   isSpecialCard,
@@ -165,6 +165,7 @@ export default class GameController {
   private roomId: string;
   private expectedHumanCount: number;
   private expectedCpuCount: number;
+  private hostId: string | null = null;
 
   private log(message: string, ...args: any[]): void {
     console.log(`[GameController ${this.roomId}] ${message}`, ...args);
@@ -201,6 +202,22 @@ export default class GameController {
       name: p.name,
       disconnected: p.disconnected,
     }));
+  }
+
+  private pushLobbyState(): void {
+    const lobbyPlayers = Array.from(this.players.values()).map((p: Player) => ({
+      id: p.id,
+      name: p.name,
+      status: p.status,
+    }));
+
+    const lobbyState: InSessionLobbyState = {
+      roomId: this.roomId,
+      hostId: this.hostId,
+      players: lobbyPlayers,
+    };
+
+    this.io.to(this.roomId).emit(LOBBY_STATE_UPDATE, lobbyState);
   }
 
   public publicHandleJoin(
@@ -249,11 +266,7 @@ export default class GameController {
       this.log(`Emitted JOINED to rejoining player ${player.name}`);
 
       this.pushState();
-      this.io.to(this.roomId).emit(LOBBY, {
-        roomId: this.roomId,
-        players: this.getLobbyPlayerList(),
-        maxPlayers: this.gameState.maxPlayers,
-      });
+      this.pushLobbyState();
       this.log(`Pushed state and lobby info to room ${this.roomId} after rejoin.`);
       if (ack) ack({ success: true });
     } else {
@@ -320,6 +333,12 @@ export default class GameController {
     const player = new Player(id);
     player.name = name;
     player.socketId = socket.id;
+    if (this.players.size === 0) {
+      this.hostId = id;
+      player.status = 'host';
+    } else {
+      player.status = 'joined';
+    }
     this.players.set(id, player);
     this.socketIdToPlayerId.set(socket.id, id);
 
@@ -335,18 +354,8 @@ export default class GameController {
     socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
     if (ack) ack({ roomId: this.roomId, playerId: player.id });
 
-    // --- After adding the player, update lobby and check for auto-start ---
-    const currentLobbyPlayers = this.getLobbyPlayerList();
-    this.log(
-      `Emitting PLAYER_JOINED and LOBBY to room '${this.roomId}'. Players:`,
-      currentLobbyPlayers
-    );
-    this.io.to(this.roomId).emit(PLAYER_JOINED, currentLobbyPlayers);
-    this.io.to(this.roomId).emit(LOBBY, {
-      roomId: this.roomId,
-      players: currentLobbyPlayers,
-      maxPlayers: this.gameState.maxPlayers,
-    });
+    // --- After adding the player, update lobby state ---
+    this.pushLobbyState();
 
     // --- Refined auto-start logic ---
     const allPlayers = Array.from(this.players.values());
@@ -360,14 +369,10 @@ export default class GameController {
 
     if (!this.gameState.started && numHumansInRoom === this.expectedHumanCount) {
       if (this.expectedHumanCount === 1 && this.expectedCpuCount > 0) {
-        this.log(
-          `Auto-starting solo game with ${this.expectedCpuCount} CPU(s).`
-        );
+        this.log(`Auto-starting solo game with ${this.expectedCpuCount} CPU(s).`);
         this.handleStartGame({ computerCount: this.expectedCpuCount, socket });
       } else if (this.expectedHumanCount > 1) {
-        this.log(
-          `All expected humans joined. Auto-starting with ${this.expectedCpuCount} CPU(s).`
-        );
+        this.log(`All expected humans joined. Auto-starting with ${this.expectedCpuCount} CPU(s).`);
         this.handleStartGame({ computerCount: this.expectedCpuCount, socket });
       } else {
         this.log('Not auto-starting. Waiting for manual start.');
@@ -387,6 +392,10 @@ export default class GameController {
     this.log(
       `Handling start game request. Computer count: ${computerCount}. Requested by: ${requestingSocket?.id}`
     );
+
+    if (requestingSocket && requestingSocket.id !== this.hostId) {
+      return;
+    }
 
     if (this.gameState.started) {
       const errorMsg = 'Game has already started.';
@@ -875,11 +884,7 @@ export default class GameController {
       }
     }
     this.pushState();
-    this.io.to(this.roomId).emit(LOBBY, {
-      roomId: this.roomId,
-      players: this.getLobbyPlayerList(),
-      maxPlayers: this.gameState.maxPlayers,
-    });
+    this.pushLobbyState();
   }
 
   private pushState(): void {

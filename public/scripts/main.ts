@@ -1,4 +1,5 @@
 // public/scripts/main.ts
+import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
 import { socket, socketReady } from './state.js';
@@ -42,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 [Client] initializePageEventListeners completed');
 
     initializeSocketHandlers();
+    new InSessionLobbyModal();
     console.log('🚀 [Client] All initialization completed');
   } catch (error) {
     console.error('Error during initialization:', error);
