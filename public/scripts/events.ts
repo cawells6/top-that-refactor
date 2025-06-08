@@ -458,13 +458,7 @@ export async function initializePageEventListeners() {
     };
   }
 
-  const startGameLobbyBtn = document.getElementById('start-game-button');
-  if (startGameLobbyBtn) {
-    startGameLobbyBtn.onclick = () => {
-      const cpuCount = state.getDesiredCpuCount();
-      state.socket.emit(START_GAME, { computerCount: cpuCount });
-    };
-  }
+  // Start button is no longer needed; games auto-start when ready
 
   const backToLobbyButton = uiManager.getBackToLobbyButton();
   if (backToLobbyButton) {
