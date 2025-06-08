@@ -136,6 +136,12 @@ export class GameRoomManager {
 
     if (roomId) {
       controller = this.rooms.get(roomId);
+      if (!controller) {
+        this.log(`Join failed: room ${roomId} not found.`);
+        if (ack) ack({ error: 'Room not found.' });
+        socket.emit(ERROR_EVENT, 'Room not found.');
+        return;
+      }
     }
 
     if (!controller) {
