@@ -3,6 +3,7 @@ import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 
 import GameController from '../controllers/GameController.js';
 import { JOINED, LOBBY, ERROR } from '../src/shared/events.js';
+import { GameRoomManager } from '../controllers/GameController.js';
 
 interface MockSocket {
   id: string;
@@ -119,5 +120,22 @@ describe('Lobby joining', () => {
     );
     expect(ackData).toEqual({ error: 'Game has already started. Cannot join.' });
     expect(lateSocket.emit).not.toHaveBeenCalledWith(ERROR, expect.anything());
+  });
+});
+
+describe('GameRoomManager', () => {
+  test('joining unknown room returns error', () => {
+    const manager = new GameRoomManager(mockIo as any);
+    const socket = createMockSocket('joiner');
+    let ackData: any;
+    (manager as any)['handleClientJoinGame'](
+      socket as any,
+      { name: 'A', id: 'BAD999' },
+      (res: any) => {
+        ackData = res;
+      }
+    );
+    expect(ackData).toEqual({ error: 'Room not found.' });
+    expect(socket.emit).toHaveBeenCalledWith(ERROR, 'Room not found.');
   });
 });
