@@ -1,8 +1,9 @@
+import { JOINED, STATE_UPDATE, REJOIN } from '@shared/events.js';
+import { GameStateData } from '@shared/types.js';
+
 import { renderGameState } from './render.js';
 import * as state from './state.js';
 import { showLobbyForm, showGameTable, showError } from './uiManager.js';
-import { JOINED, STATE_UPDATE, REJOIN, LOBBY_STATE_UPDATE } from '@shared/events.ts';
-import { GameStateData, ClientStatePlayer } from '@shared/types.ts';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
@@ -17,9 +18,6 @@ export async function initializeSocketHandlers(): Promise<void> {
     state.setMyId(id);
     state.setCurrentRoom(roomId);
     state.saveSession();
-  });
-  state.socket.on(LOBBY_STATE_UPDATE, () => {
-    // Lobby modal handles rendering
   });
   state.socket.on(STATE_UPDATE, (s: GameStateData) => {
     console.log('Received STATE_UPDATE payload:', JSON.stringify(s, null, 2));

@@ -23,6 +23,7 @@ module.exports = {
     // --- Path aliases from tsconfig.json (map to module path without extension) ---
     // Jest will append extensions based on moduleFileExtensions
     '^@models/(.*)$': '<rootDir>/models/$1',
+    '^@shared/(.*)\\.js$': '<rootDir>/src/shared/$1.ts',
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
     '^@publicScripts/(.*)$': '<rootDir>/public/scripts/$1',
     // Assuming @srcTypes is an alias for the single file src/types.ts

@@ -1,8 +1,10 @@
 // public/scripts/components/InSessionLobbyModal.ts
+import { LOBBY_STATE_UPDATE, START_GAME } from '@shared/events.js';
+import { InSessionLobbyState } from '@shared/types.js';
+
 import { Modal } from './Modal.js';
-import { InSessionLobbyState } from '@shared/types.ts';
-import { LOBBY_STATE_UPDATE, START_GAME } from '@shared/events.ts';
 import * as state from '../state.js';
+import * as uiManager from '../uiManager.js';
 
 export class InSessionLobbyModal {
   private modal: Modal;
@@ -75,6 +77,8 @@ export class InSessionLobbyModal {
 
     if (!playersContainer || !gameIdEl || !startGameBtn) return;
 
+    uiManager.hideLobbyForm();
+
     gameIdEl.textContent = lobbyState.roomId;
     playersContainer.innerHTML = '';
 
@@ -83,8 +87,9 @@ export class InSessionLobbyModal {
       const statusClass = player.status.toLowerCase();
       playerEl.className = `player-item ${statusClass}`;
       playerEl.innerHTML = `
-          <span class="player-name">${player.name}$
-            {player.id === state.socket?.id ? ' (You)' : ''}</span>
+          <span class="player-name">${player.name}${
+            player.id === state.socket?.id ? ' (You)' : ''
+          }</span>
           <span class="player-status">${player.status}</span>
       `;
       playersContainer.appendChild(playerEl);

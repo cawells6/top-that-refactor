@@ -18,7 +18,6 @@ import {
   PLAY_CARD,
   PICK_UP_PILE,
   LOBBY_STATE_UPDATE,
-  SEND_INVITE,
 } from '../src/shared/events.js';
 import { InSessionLobbyState } from '../src/shared/types.js';
 import {
@@ -370,14 +369,10 @@ export default class GameController {
 
     if (!this.gameState.started && numHumansInRoom === this.expectedHumanCount) {
       if (this.expectedHumanCount === 1 && this.expectedCpuCount > 0) {
-        this.log(
-          `Auto-starting solo game with ${this.expectedCpuCount} CPU(s).`
-        );
+        this.log(`Auto-starting solo game with ${this.expectedCpuCount} CPU(s).`);
         this.handleStartGame({ computerCount: this.expectedCpuCount, socket });
       } else if (this.expectedHumanCount > 1) {
-        this.log(
-          `All expected humans joined. Auto-starting with ${this.expectedCpuCount} CPU(s).`
-        );
+        this.log(`All expected humans joined. Auto-starting with ${this.expectedCpuCount} CPU(s).`);
         this.handleStartGame({ computerCount: this.expectedCpuCount, socket });
       } else {
         this.log('Not auto-starting. Waiting for manual start.');

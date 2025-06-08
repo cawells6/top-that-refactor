@@ -1,8 +1,8 @@
 // public/scripts/main.ts
+import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
 import { socket, socketReady } from './state.js';
-import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 
 console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
