@@ -1,8 +1,8 @@
 import { renderGameState } from './render.js';
 import * as state from './state.js';
 import { showLobbyForm, showGameTable, showError } from './uiManager.js';
-import { JOINED, STATE_UPDATE, REJOIN, LOBBY_STATE_UPDATE } from '@shared/events.js';
-import { GameStateData, ClientStatePlayer } from '@shared/types.js';
+import { JOINED, STATE_UPDATE, REJOIN, LOBBY_STATE_UPDATE } from '@shared/events.ts';
+import { GameStateData, ClientStatePlayer } from '@shared/types.ts';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
