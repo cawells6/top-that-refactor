@@ -238,6 +238,18 @@ function validateNameInput(): { isValid: boolean; message: string; name: string 
   return { isValid: true, message: '', name };
 }
 
+function validateRoomCodeInput(): { isValid: boolean; message: string; code: string } {
+  const codeInput = document.getElementById('join-code-input') as HTMLInputElement | null;
+  if (!codeInput) {
+    return { isValid: false, message: 'Game code input not found.', code: '' };
+  }
+  const code = codeInput.value.trim().toUpperCase();
+  if (code.length !== 6) {
+    return { isValid: false, message: 'Enter a valid 6 character code.', code };
+  }
+  return { isValid: true, message: '', code };
+}
+
 // Helper function to update the contextual player requirement message
 function updatePlayerRequirementMessage() {
   // This function is no longer needed since we're using the queue system
@@ -426,27 +438,9 @@ export async function initializePageEventListeners() {
   }
 
   // UI hooks
-  const createJoinBtn = uiManager.$('create-join');
-  if (createJoinBtn) {
-    createJoinBtn.onclick = () => {
-      const nameInput = uiManager.getNameInput();
-      if (!nameInput) {
-        console.error('❌ Name input element not found');
-        return;
-      }
-      const name = getInputValue(nameInput).trim();
-      if (!name) {
-        nameInput.focus();
-        return;
-      }
-      if (name.length < 2) {
-        nameInput.focus();
-        return;
-      }
-      const payload = state.currentRoom ? { name, id: state.currentRoom } : { name };
-      state.socket.emit(JOIN_GAME, payload);
-      setButtonDisabled(createJoinBtn, true);
-    };
+  const joinGameButton = document.getElementById('join-game-button');
+  if (joinGameButton) {
+    joinGameButton.addEventListener('click', handleJoinGameClick);
   }
 
   const copyLinkBtn = uiManager.getCopyLinkBtn();
@@ -455,6 +449,17 @@ export async function initializePageEventListeners() {
       const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
       const linkToCopy = inviteInput ? inviteInput.value : window.location.href;
       navigator.clipboard.writeText(linkToCopy);
+    };
+  }
+
+  const shareLinkBtn = document.getElementById('share-link-button');
+  if (shareLinkBtn && navigator.share) {
+    shareLinkBtn.onclick = () => {
+      const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
+      const linkToShare = inviteInput ? inviteInput.value : window.location.href;
+      navigator
+        .share({ url: linkToShare })
+        .catch((err) => console.warn('Share failed', err));
     };
   }
 
@@ -780,6 +785,41 @@ function handleDealClick() {
       }
     }, 3000);
   }
+}
+
+function handleJoinGameClick() {
+  console.log('🎯 Join game button clicked!');
+  clearMessageQueueAndHide();
+
+  const nameValidation = validateNameInput();
+  const codeValidation = validateRoomCodeInput();
+
+  let allValid = true;
+  if (!nameValidation.isValid) {
+    queueMessage(nameValidation.message);
+    allValid = false;
+  }
+  if (!codeValidation.isValid) {
+    queueMessage(codeValidation.message);
+    allValid = false;
+  }
+
+  if (!allValid) {
+    if (!nameValidation.isValid) {
+      const nameInput = uiManager.getNameInput();
+      if (nameInput) nameInput.focus();
+    }
+    return;
+  }
+
+  const name = nameValidation.name;
+  const code = codeValidation.code;
+  state.setCurrentRoom(code);
+  state.saveSession();
+  state.socket.emit(JOIN_GAME, { id: code, name });
+
+  const joinBtn = document.getElementById('join-game-button') as HTMLButtonElement | null;
+  if (joinBtn) joinBtn.disabled = true;
 }
 
 // Failsafe: Always hide overlay when hiding rules modal
