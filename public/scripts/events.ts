@@ -761,18 +761,20 @@ function handleDealClick() {
 
   state.setDesiredCpuCount(numCPUs);
 
-  const currentRoom = state.currentRoom;
-
   const playerDataForEmit = {
     name: name,
     numHumans: numHumans,
     numCPUs: numCPUs,
-    ...(currentRoom ? { id: currentRoom } : {}),
   };
 
   console.log('🎯 Deal button: Validations passed. Joining game with data:', playerDataForEmit);
-  state.saveSession();
-  state.socket.emit(JOIN_GAME, playerDataForEmit);
+  state.saveSession(); // Save name
+  state.socket.emit(JOIN_GAME, playerDataForEmit, (response: any) => {
+      if (response.roomId) {
+        state.setCurrentRoom(response.roomId);
+        state.setMyId(response.playerId);
+      }
+  });
 
   const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
   if (dealButton) {
@@ -781,7 +783,7 @@ function handleDealClick() {
     setTimeout(() => {
       if (dealButton) {
         dealButton.disabled = false;
-        dealButton.textContent = "Let's Play";
+        dealButton.textContent = "LET'S PLAY";
       }
     }, 3000);
   }
