@@ -545,3 +545,35 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
   }
   tryRunEffect();
 }
+
+/**
+ * Display the game table using elements already present in the DOM.
+ * This hides the lobby and waiting screens and reveals the table area.
+ */
+export function playArea(): void {
+  const table = document.getElementById('game-table');
+  const lobby = document.getElementById('lobby-container');
+  const waiting = document.getElementById('waiting-state');
+  const mainContent = document.getElementById('main-content');
+  if (lobby) lobby.classList.add('hidden');
+  if (waiting) waiting.classList.add('hidden');
+  if (table) table.classList.remove('table--hidden', 'hidden');
+  if (mainContent) mainContent.classList.add('game-active');
+}
+
+/**
+ * Update the invite link and QR code for the lobby.
+ * @param param0 Object containing the room id.
+ */
+export function lobbyLink({ id }: { id: string }): void {
+  const url = `${window.location.origin}?room=${encodeURIComponent(id)}`;
+  const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
+  if (inviteInput) {
+    inviteInput.value = url;
+  }
+  const qrImg = document.getElementById('qr-code-image') as HTMLImageElement | null;
+  if (qrImg) {
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
+    qrImg.style.display = 'inline-block';
+  }
+}
