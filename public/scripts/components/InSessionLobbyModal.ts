@@ -1,7 +1,7 @@
 // public/scripts/components/InSessionLobbyModal.ts
 import { Modal } from './Modal.js';
-import { InSessionLobbyState } from '@shared/types.js';
-import { LOBBY_STATE_UPDATE, START_GAME } from '@shared/events.js';
+import { InSessionLobbyState } from '../../../src/shared/types.js';
+import { LOBBY_STATE_UPDATE, START_GAME } from '../../../src/shared/events.js';
 import * as state from '../state.js';
 
 export class InSessionLobbyModal {
