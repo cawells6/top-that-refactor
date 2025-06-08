@@ -1,4 +1,4 @@
-import { renderGameState } from './render.js';
+import { renderGameState, playArea, lobbyLink } from './render.js';
 import * as state from './state.js';
 import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
 import { GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
@@ -87,15 +87,7 @@ export function showWaitingState(
   }
 
   // Update invite link and QR code
-  const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
-  if (inviteInput) {
-    inviteInput.value = window.location.href;
-  }
-  const qrImg = document.getElementById('qr-code-image') as HTMLImageElement | null;
-  if (qrImg) {
-    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href)}`;
-    qrImg.style.display = 'inline-block';
-  }
+  lobbyLink({ id: roomId });
   // Render player list
   let playerList = document.getElementById('player-list');
   if (!playerList) {
@@ -116,13 +108,7 @@ export function showWaitingState(
 }
 
 export function showGameTable(): void {
-  const lobbyContainer = getLobbyContainer();
-  const table = getGameTable();
-  const mainContent = document.getElementById('main-content');
-
-  if (lobbyContainer) lobbyContainer.classList.add('hidden');
-  if (table) table.classList.remove('table--hidden', 'hidden');
-  if (mainContent) mainContent.classList.add('game-active'); // Add class for game layout
+  playArea();
 }
 
 export function showError(msg: string): void {
