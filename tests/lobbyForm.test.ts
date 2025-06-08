@@ -58,7 +58,6 @@ describe('Lobby Form Submission', () => {
   let numHumansInput: HTMLInputElement;
   let numCPUsInput: HTMLInputElement;
   let submitButton: HTMLButtonElement;
-  let joinButton: HTMLButtonElement;
   let nameInputError: HTMLElement;
   let playerCountError: HTMLElement;
 
@@ -67,7 +66,6 @@ describe('Lobby Form Submission', () => {
     document.body.innerHTML = `
       <form id="lobby-form">
         <input type="text" id="player-name-input" />
-        <input type="text" id="join-code-input" />
         <div>
           <button id="humans-minus" type="button">-</button>
           <input type="number" id="total-players-input" value="1" />
@@ -83,7 +81,6 @@ describe('Lobby Form Submission', () => {
         <div class="lobby-buttons-row">
           <button id="setup-rules-button" type="button">RULES</button>
           <button id="setup-deal-button" type="button">LET'S PLAY</button>
-          <button id="join-game-button" type="button">Join Game</button>
         </div>
       </form>
     `;
@@ -91,7 +88,6 @@ describe('Lobby Form Submission', () => {
     numHumansInput = document.getElementById('total-players-input') as HTMLInputElement;
     numCPUsInput = document.getElementById('cpu-players-input') as HTMLInputElement;
     submitButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
-    joinButton = document.getElementById('join-game-button') as HTMLButtonElement;
     nameInputError = document.querySelector('#lobby-validation-message p') as HTMLElement;
     playerCountError = document.querySelector('#lobby-validation-message p') as HTMLElement;
 
@@ -169,22 +165,5 @@ describe('Lobby Form Submission', () => {
     expect(submitButton.disabled).toBe(true);
   });
 
-  it('shows error when join code is invalid', () => {
-    nameInput.value = 'Sam';
-    const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
-    codeInput.value = '123';
-    fireEvent.click(joinButton);
-    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    expect(msgBox).toHaveClass('active');
-    expect(mockEmit).not.toHaveBeenCalled();
-  });
-
-  it('emits JOIN_GAME with room code when join button clicked', () => {
-    nameInput.value = 'Sam';
-    const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
-    codeInput.value = 'ABC123';
-    fireEvent.click(joinButton);
-    expect(mockEmit).toHaveBeenCalledWith(JOIN_GAME, { id: 'ABC123', name: 'Sam' });
-    expect(joinButton.disabled).toBe(true);
-  });
+  // Join game functionality removed
 });

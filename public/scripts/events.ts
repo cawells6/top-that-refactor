@@ -1,7 +1,7 @@
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
-import { JOIN_GAME, START_GAME } from '../../src/shared/events.js';
+import { JOIN_GAME } from '../../src/shared/events.js';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -99,11 +99,6 @@ function clearMessageQueueAndHide() {
     innerMessageBox.classList.remove('active');
   }
   isDisplayingMessage = false;
-}
-
-// Helper to safely get value from input elements
-function getInputValue(el: HTMLElement | null): string {
-  return el && 'value' in el ? (el as HTMLInputElement).value : '';
 }
 
 // Helper to safely set disabled on button elements
@@ -236,18 +231,6 @@ function validateNameInput(): { isValid: boolean; message: string; name: string 
     return { isValid: false, message: 'Name must be at least 2 characters.', name };
   }
   return { isValid: true, message: '', name };
-}
-
-function validateRoomCodeInput(): { isValid: boolean; message: string; code: string } {
-  const codeInput = document.getElementById('join-code-input') as HTMLInputElement | null;
-  if (!codeInput) {
-    return { isValid: false, message: 'Game code input not found.', code: '' };
-  }
-  const code = codeInput.value.trim().toUpperCase();
-  if (code.length !== 6) {
-    return { isValid: false, message: 'Enter a valid 6 character code.', code };
-  }
-  return { isValid: true, message: '', code };
 }
 
 // Helper function to update the contextual player requirement message
@@ -438,10 +421,6 @@ export async function initializePageEventListeners() {
   }
 
   // UI hooks
-  const joinGameButton = document.getElementById('join-game-button');
-  if (joinGameButton) {
-    joinGameButton.addEventListener('click', handleJoinGameClick);
-  }
 
   const copyLinkBtn = uiManager.getCopyLinkBtn();
   if (copyLinkBtn) {
@@ -457,9 +436,7 @@ export async function initializePageEventListeners() {
     shareLinkBtn.onclick = () => {
       const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
       const linkToShare = inviteInput ? inviteInput.value : window.location.href;
-      navigator
-        .share({ url: linkToShare })
-        .catch((err) => console.warn('Share failed', err));
+      navigator.share({ url: linkToShare }).catch((err) => console.warn('Share failed', err));
     };
   }
 
@@ -785,41 +762,6 @@ function handleDealClick() {
       }
     }, 3000);
   }
-}
-
-function handleJoinGameClick() {
-  console.log('🎯 Join game button clicked!');
-  clearMessageQueueAndHide();
-
-  const nameValidation = validateNameInput();
-  const codeValidation = validateRoomCodeInput();
-
-  let allValid = true;
-  if (!nameValidation.isValid) {
-    queueMessage(nameValidation.message);
-    allValid = false;
-  }
-  if (!codeValidation.isValid) {
-    queueMessage(codeValidation.message);
-    allValid = false;
-  }
-
-  if (!allValid) {
-    if (!nameValidation.isValid) {
-      const nameInput = uiManager.getNameInput();
-      if (nameInput) nameInput.focus();
-    }
-    return;
-  }
-
-  const name = nameValidation.name;
-  const code = codeValidation.code;
-  state.setCurrentRoom(code);
-  state.saveSession();
-  state.socket.emit(JOIN_GAME, { id: code, name });
-
-  const joinBtn = document.getElementById('join-game-button') as HTMLButtonElement | null;
-  if (joinBtn) joinBtn.disabled = true;
 }
 
 // Failsafe: Always hide overlay when hiding rules modal
