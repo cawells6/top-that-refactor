@@ -48,3 +48,11 @@ This project hosts a refactored implementation of the **Top That!** card game.  
 - **tests/** – unit tests
 
 Enjoy the game and feel free to contribute!
+
+## Lobby and Invite Links
+
+After clicking **LET'S PLAY** the game creates a room. If you selected bots and
+are the only human, the match begins automatically. When additional humans are
+expected a waiting screen shows a join link and QR code you can share. Use the
+**Copy Link** button to quickly send the invite. When everyone has joined press
+the **Start Game** button to deal the cards.
