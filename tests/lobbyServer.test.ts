@@ -1,31 +1,28 @@
 // tests/lobbyServer.test.ts
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
+
 import GameController from '../controllers/GameController.js';
-import { JOINED, LOBBY, ERROR, START_GAME } from '../src/shared/events.js';
+import { JOINED, LOBBY, ERROR } from '../src/shared/events.js';
 
 interface MockSocket {
   id: string;
-  join: jest.Mock<void, [string]>;
-  emit: jest.Mock<void, [string, any?]>;
-  on: jest.Mock<void, [string, (data?: any, ack?: Function) => void]>;
-  removeAllListeners: jest.Mock<void, []>;
+  join: jest.Mock<any>;
+  emit: jest.Mock<any>;
+  on: jest.Mock<any>;
+  removeAllListeners: jest.Mock<any>;
   eventHandlers: Record<string, (data?: any, ack?: Function) => void>;
   simulateIncomingEvent: (event: string, data?: any, ack?: Function) => void;
-  disconnect: jest.Mock<void, []>;
-}
-
-interface MockIOWithEmit {
-  emit: jest.Mock<void, [string, any?]>;
+  disconnect: jest.Mock<any>;
 }
 
 interface MockIO {
-  on: jest.Mock<void, [string, (socket: MockSocket) => void]>;
-  to: jest.Mock<MockIOWithEmit, [string]>;
-  emit: jest.Mock<void, [string, any?]>;
+  on: jest.Mock<any>;
+  to: jest.Mock<any>;
+  emit: jest.Mock<any>;
   sockets: { sockets: Map<string, MockSocket> };
 }
 
-let topLevelEmitMock: jest.Mock<void, [string, any?]>;
+let topLevelEmitMock: jest.Mock<any>;
 let mockIo: MockIO;
 let hostSocket: MockSocket;
 let gameController: GameController;
@@ -54,7 +51,7 @@ beforeEach(() => {
   topLevelEmitMock = jest.fn();
   mockIo = {
     on: jest.fn(),
-    to: jest.fn((id: string) => {
+    to: jest.fn((_id: string) => {
       return { emit: jest.fn((event: string, payload?: any) => topLevelEmitMock(event, payload)) };
     }),
     emit: jest.fn((event: string, payload?: any) => topLevelEmitMock(event, payload)),
@@ -70,7 +67,11 @@ beforeEach(() => {
 describe('Lobby joining', () => {
   test('first player join emits lobby state', () => {
     (gameController['publicHandleJoin'] as Function)(hostSocket, { name: 'Host', id: 'HOST_ID' });
-    expect(hostSocket.emit).toHaveBeenCalledWith(JOINED, { id: 'HOST_ID', name: 'Host', roomId: 'test-room' });
+    expect(hostSocket.emit).toHaveBeenCalledWith(JOINED, {
+      id: 'HOST_ID',
+      name: 'Host',
+      roomId: 'test-room',
+    });
     const lobbyCall = topLevelEmitMock.mock.calls.find((c) => c[0] === LOBBY);
     expect(lobbyCall).toBeDefined();
     if (lobbyCall) {
@@ -94,7 +95,7 @@ describe('Lobby joining', () => {
     (gameController['publicHandleJoin'] as Function)(secondSocket, { name: 'Bob', id: 'BOB_ID' });
     const lobbyCalls = topLevelEmitMock.mock.calls.filter((c) => c[0] === LOBBY);
     expect(lobbyCalls.length).toBeGreaterThanOrEqual(2);
-    const lastLobby = lobbyCalls[lobbyCalls.length - 1];
+    const lastLobby = lobbyCalls[lobbyCalls.length - 1] as any;
     expect(lastLobby[1].players.length).toBe(2);
     expect(lastLobby[1].players).toEqual(
       expect.arrayContaining([
@@ -109,9 +110,13 @@ describe('Lobby joining', () => {
     (gameController['handleStartGame'] as Function)({ computerCount: 1, socket: hostSocket });
     const lateSocket = createMockSocket('late-socket');
     let ackData: any;
-    (gameController['publicHandleJoin'] as Function)(lateSocket, { name: 'Late', id: 'LATE_ID' }, (res: any) => {
-      ackData = res;
-    });
+    (gameController['publicHandleJoin'] as Function)(
+      lateSocket,
+      { name: 'Late', id: 'LATE_ID' },
+      (res: any) => {
+        ackData = res;
+      }
+    );
     expect(ackData).toEqual({ error: 'Game has already started. Cannot join.' });
     expect(lateSocket.emit).not.toHaveBeenCalledWith(ERROR, expect.anything());
   });

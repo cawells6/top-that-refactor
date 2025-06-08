@@ -443,12 +443,8 @@ export async function initializePageEventListeners() {
         nameInput.focus();
         return;
       }
-      // TODO: CRITICAL - Inconsistent JOIN_GAME payload.
-      // handleDealClick emits an object: { name, numHumans, numCPUs }.
-      // This emits only the name. This needs to be reconciled with server expectations.
-      // If this is for joining an existing game by room ID (not creating),
-      // the event name or payload might need to differ from the game creation event.
-      state.socket.emit(JOIN_GAME, name);
+      const payload = state.currentRoom ? { name, id: state.currentRoom } : { name };
+      state.socket.emit(JOIN_GAME, payload);
       setButtonDisabled(createJoinBtn, true);
     };
   }
