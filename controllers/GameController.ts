@@ -158,6 +158,7 @@ export default class GameController {
   private socketIdToPlayerId: Map<string, string>;
   private roomId: string;
   private expectedHumanCount: number;
+  private expectedCpuCount: number;
 
   private log(message: string, ...args: any[]): void {
     console.log(`[GameController ${this.roomId}] ${message}`, ...args);
@@ -170,6 +171,7 @@ export default class GameController {
     this.players = new Map<string, Player>();
     this.socketIdToPlayerId = new Map<string, string>();
     this.expectedHumanCount = 1;
+    this.expectedCpuCount = 0;
     this.log('GameController instance created.');
   }
 
@@ -317,6 +319,7 @@ export default class GameController {
 
     if (this.players.size === 1) {
       this.expectedHumanCount = playerData.numHumans ?? 1;
+      this.expectedCpuCount = playerData.numCPUs ?? 0;
     }
 
     socket.join(this.roomId);
@@ -349,19 +352,21 @@ export default class GameController {
       `[Auto-Start Check] numHumansInRoom=${numHumansInRoom}, numCPUsInRoom=${numCPUsInRoom}, totalPlayersInRoom=${totalPlayersInRoom}, gameState.started=${this.gameState.started}`
     );
 
-    const expectingSolo = this.expectedHumanCount === 1;
-
-    if (
-      !this.gameState.started &&
-      numHumansInRoom === 1 &&
-      numCPUsInRoom >= 1 &&
-      totalPlayersInRoom >= 2 &&
-      !this.gameState.started
-    ) {
-      this.log(
-        `Auto-starting game: 1 human + ${numCPUsInRoom} CPU(s). Total players: ${totalPlayersInRoom}`
-      );
-      this.handleStartGame({ computerCount: numCPUsInRoom, socket });
+    if (!this.gameState.started && numHumansInRoom === this.expectedHumanCount) {
+      if (this.expectedHumanCount === 1 && this.expectedCpuCount > 0) {
+        this.log(
+          `Auto-starting solo game with ${this.expectedCpuCount} CPU(s).`
+        );
+        this.handleStartGame({ computerCount: this.expectedCpuCount, socket });
+      } else if (this.expectedHumanCount > 1) {
+        this.log(
+          `All expected humans joined. Auto-starting with ${this.expectedCpuCount} CPU(s).`
+        );
+        this.handleStartGame({ computerCount: this.expectedCpuCount, socket });
+      } else {
+        this.log('Not auto-starting. Waiting for manual start.');
+        this.pushState();
+      }
     } else {
       this.log(
         `Not auto-starting. Waiting for more players or manual start. (numHumansInRoom=${numHumansInRoom})`
