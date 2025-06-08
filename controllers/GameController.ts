@@ -353,16 +353,6 @@ export default class GameController {
 
     if (
       !this.gameState.started &&
-      expectingSolo &&
-      numHumansInRoom === 1 &&
-      (playerData.numCPUs || 0) >= 1 &&
-      totalPlayersInRoom === 1
-    ) {
-      const botsToAdd = playerData.numCPUs || 0;
-      this.log(`Auto-starting solo game with ${botsToAdd} CPU bot(s).`);
-      this.handleStartGame({ computerCount: botsToAdd, socket });
-    } else if (
-      expectingSolo &&
       numHumansInRoom === 1 &&
       numCPUsInRoom >= 1 &&
       totalPlayersInRoom >= 2 &&

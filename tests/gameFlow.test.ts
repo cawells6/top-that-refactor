@@ -117,12 +117,7 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
   });
 
   test('Player joins, game auto-starts with 1 CPU, initial state is broadcast', () => {
-    const playerData: PlayerJoinDataPayload = {
-      name: 'Player1',
-      numHumans: 1,
-      numCPUs: 1,
-      id: 'Player1-ID',
-    };
+    const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
     // Simulate player joining - should auto start with CPU
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
 
