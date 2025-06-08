@@ -770,17 +770,7 @@ function handleDealClick() {
     }
   });
 
-  const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
-  if (dealButton) {
-    dealButton.disabled = true;
-    dealButton.textContent = 'Starting...';
-    setTimeout(() => {
-      if (dealButton) {
-        dealButton.disabled = false;
-        dealButton.textContent = "LET'S PLAY";
-      }
-    }, 3000);
-  }
+
 }
 
 function handleJoinGameClick() {
