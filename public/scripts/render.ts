@@ -547,19 +547,12 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
 }
 
 /**
- * Switch UI from lobby to the main play area
- */
-export function playArea(): void {
-  const lobbyContainer = document.getElementById('lobby-container');
-  const table = document.getElementById('game-table');
-  const mainContent = document.getElementById('main-content');
 
-  if (lobbyContainer) lobbyContainer.classList.add('hidden');
-  if (table) table.classList.remove('hidden', 'table--hidden');
   if (mainContent) mainContent.classList.add('game-active');
 }
 
 /**
+
  * Display a lobby link for inviting other players
  */
 export function lobbyLink({ id }: { id: string }): void {
@@ -576,4 +569,19 @@ export function lobbyLink({ id }: { id: string }): void {
 
   const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
   if (inviteInput) inviteInput.value = window.location.href;
+=======
+ * Update the invite link and QR code for the lobby.
+ * @param param0 Object containing the room id.
+ */
+export function lobbyLink({ id }: { id: string }): void {
+  const url = `${window.location.origin}?room=${encodeURIComponent(id)}`;
+  const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
+  if (inviteInput) {
+    inviteInput.value = url;
+  }
+  const qrImg = document.getElementById('qr-code-image') as HTMLImageElement | null;
+  if (qrImg) {
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
+    qrImg.style.display = 'inline-block';
+  }
 }

@@ -88,7 +88,7 @@ const mockIo: MockIO = {
   },
 };
 
-describe('Game Flow - Single Player vs CPU (auto-start)', () => {
+describe('Game Flow - Single Player vs CPU (manual start)', () => {
   let gameController: GameController;
 
   beforeEach(() => {
@@ -128,7 +128,7 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
     gameController = new GameController(mockIo as any, 'test-room');
   });
 
-  test('Player joins, game auto-starts with 1 CPU, initial state is broadcast', () => {
+  test('Player joins, then host starts game with 1 CPU', () => {
     const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
     // Simulate player joining (should result in lobby state, not started game)
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
