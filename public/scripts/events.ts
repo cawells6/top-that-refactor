@@ -1,7 +1,9 @@
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
+import * as render from './render.js';
 import { JOIN_GAME, START_GAME } from '../../src/shared/events.js';
+import { GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -763,26 +765,32 @@ function handleDealClick() {
   const numHumans = parseInt(totalPlayersInput.value, 10) || 1;
   const numCPUs = parseInt(cpuPlayersInput.value, 10) || 0;
 
-  const playerDataForEmit = {
-    name: name,
-    numHumans: numHumans,
-    numCPUs: numCPUs,
-  };
+  if (numHumans === 1 && numCPUs > 0) {
+    const players: ClientStatePlayer[] = [
+      { id: 'P1', name, isComputer: false },
+    ];
+    for (let i = 0; i < numCPUs; i++) {
+      players.push({ id: `CPU${i + 1}`, name: `CPU ${i + 1}`, isComputer: true });
+    }
 
-  console.log('🎯 Deal button: Validations passed. Joining game with data:', playerDataForEmit);
-  state.socket.emit(JOIN_GAME, playerDataForEmit);
-
-  const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
-  if (dealButton) {
-    dealButton.disabled = true;
-    dealButton.textContent = 'Starting...';
-    setTimeout(() => {
-      if (dealButton) {
-        dealButton.disabled = false;
-        dealButton.textContent = "Let's Play";
-      }
-    }, 3000);
+    const localState: GameStateData = {
+      players,
+      pile: [],
+      discardCount: 0,
+      deckSize: 0,
+      started: true,
+      lastRealCard: null,
+    };
+    render.renderGameState(localState, 'P1');
+    render.playArea();
+    return;
   }
+
+  const gameId = Math.random().toString(36).slice(2, 7).toUpperCase();
+  const url = new URL(window.location.href);
+  url.searchParams.set('game', gameId);
+  window.history.replaceState({}, '', url.toString());
+  render.lobbyLink({ id: gameId });
 }
 
 // Failsafe: Always hide overlay when hiding rules modal

@@ -7,7 +7,7 @@ import { fireEvent } from '@testing-library/dom';
 
 // Import the actual constants for use in test assertions
 import * as state from '../public/scripts/state.js'; // Stays .js for now
-import { JOIN_GAME } from '../src/shared/events.js'; // Import from the actual (now .ts) module
+import * as render from '../public/scripts/render.js';
 // Import the client-side script under test (AFTER mocks are set up)
 // This file (public/scripts/events.js) has NOT been converted to TS yet.
 import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
@@ -40,6 +40,12 @@ jest.mock('../public/scripts/state.js', () => {
     ),
   };
 });
+
+jest.mock('../public/scripts/render.js', () => ({
+  playArea: jest.fn(),
+  lobbyLink: jest.fn(),
+  renderGameState: jest.fn(),
+}));
 
 // Mock the shared events module
 jest.mock('../src/shared/events', () => ({
@@ -145,7 +151,7 @@ describe('Lobby Form Submission', () => {
     expect(mockEmit).not.toHaveBeenCalled();
   });
 
-  it('emits JOIN_GAME with correct data and disables button on valid input', () => {
+  it('starts a CPU game locally when only bots are selected', () => {
     nameInput.value = 'ChrisP';
     numHumansInput.value = '1';
     numCPUsInput.value = '1';
@@ -154,11 +160,19 @@ describe('Lobby Form Submission', () => {
 
     const msgBox = document.querySelector('.message-box-content') as HTMLElement;
     expect(msgBox.classList.contains('active')).toBe(false);
-    expect(mockEmit).toHaveBeenCalledWith(JOIN_GAME, {
-      name: 'ChrisP',
-      numHumans: 1,
-      numCPUs: 1,
-    });
-    expect(submitButton.disabled).toBe(true);
+    expect(mockEmit).not.toHaveBeenCalled();
+    expect(render.playArea).toHaveBeenCalled();
+  });
+
+  it('generates a lobby link when another human is expected', () => {
+    nameInput.value = 'ChrisP';
+    numHumansInput.value = '2';
+    numCPUsInput.value = '0';
+
+    fireEvent.click(submitButton);
+
+    expect(mockEmit).not.toHaveBeenCalled();
+    expect(window.location.search).toMatch(/\?game=/);
+    expect(render.lobbyLink).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(String) }));
   });
 });
