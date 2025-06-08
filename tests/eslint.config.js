@@ -81,7 +81,7 @@ const mockIo: MockIO = {
   },
 };
 
-describe('Game Flow - Single Player vs CPU (auto-start)', () => {
+describe('Game Flow - Single Player vs CPU (manual start)', () => {
   let gameController: GameController;
 
   beforeEach(() => {
@@ -121,7 +121,7 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
     gameController = new GameController(mockIo as any, 'test-room');
   });
 
-  test('Player joins, game auto-starts with 1 CPU, initial state is broadcast', () => {
+  test('Player joins, then host starts game with 1 CPU', () => {
     const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
     // Call the controller's join logic directly since our mock socket does not
     // automatically wire event handlers in these tests
@@ -152,7 +152,7 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
 
     if (!stateUpdateAfterAutoStart) {
       console.log(
-        'TEST_DEBUG: All topLevelEmitMock calls in auto-start test:',
+        'TEST_DEBUG: All topLevelEmitMock calls in manual-start test:',
         JSON.stringify(topLevelEmitMock.mock.calls, null, 2)
       );
     }
