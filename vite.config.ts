@@ -54,16 +54,9 @@ export default defineConfig({
     },
   },
 
-  // Configure path aliases to match tsconfig.json
   resolve: {
     alias: {
-      '@models': path.resolve(__dirname, 'models'),
       '@shared': path.resolve(__dirname, 'src/shared'),
-      '@publicScripts': path.resolve(__dirname, 'public/scripts'),
-      '@srcTypes': path.resolve(__dirname, 'src'),
-      '@srcTypes/types': path.resolve(__dirname, 'src/types.ts'),
-  //     // Example: Allows `import { MyType } from '@shared/types'`
-  //     '@shared': path.resolve(__dirname, 'src/shared'),
-  //   },
-  // },
+    },
+  },
 });
