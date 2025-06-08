@@ -1,7 +1,8 @@
 // public/scripts/components/InSessionLobbyModal.ts
+import { LOBBY_STATE_UPDATE, START_GAME } from '@shared/events.ts';
+import { InSessionLobbyState } from '@shared/types.ts';
+
 import { Modal } from './Modal.js';
-import { LOBBY_STATE_UPDATE, START_GAME } from '../../../src/shared/events.js';
-import { InSessionLobbyState } from '../../../src/shared/types.js';
 import * as state from '../state.js';
 import * as uiManager from '../uiManager.js';
 
@@ -76,11 +77,7 @@ export class InSessionLobbyModal {
 
     if (!playersContainer || !gameIdEl || !startGameBtn) return;
 
-    // Hide the lobby form if needed (using an existing function)
-    const lobbyContainer = uiManager.getLobbyContainer();
-    const lobbyFormContent = uiManager.getLobbyFormContent();
-    if (lobbyContainer) lobbyContainer.classList.add('hidden');
-    if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
+    uiManager.hideLobbyForm();
 
     gameIdEl.textContent = lobbyState.roomId;
     playersContainer.innerHTML = '';

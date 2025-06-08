@@ -1,4 +1,4 @@
-import { JOIN_GAME } from '@shared/events.js';
+import { JOIN_GAME } from '@shared/events.ts';
 
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
