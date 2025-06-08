@@ -52,16 +52,17 @@ export const $ = (id: string): HTMLElement | null => document.getElementById(id)
 
 export function showLobbyForm(): void {
   const lobbyContainer = getLobbyContainer();
-  const lobbyFormContent = getLobbyFormContent();
-  const waitingStateDiv = getWaitingStateDiv();
   const table = getGameTable();
   const mainContent = document.getElementById('main-content');
 
   if (lobbyContainer) lobbyContainer.classList.remove('hidden');
-  if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
-  if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
   if (table) table.classList.add('table--hidden', 'hidden');
   if (mainContent) mainContent.classList.remove('game-active'); // Remove class for lobby layout
+}
+
+export function hideLobbyForm(): void {
+  const lobbyContainer = getLobbyContainer();
+  if (lobbyContainer) lobbyContainer.classList.add('hidden');
 }
 
 export function showWaitingState(
