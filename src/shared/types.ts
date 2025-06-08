@@ -31,3 +31,15 @@ export interface GameStateData {
   started: boolean;
   lastRealCard: Card | null;
 }
+
+export interface LobbyPlayer {
+  id: string;
+  name: string;
+  status: 'host' | 'invited' | 'joined';
+}
+
+export interface InSessionLobbyState {
+  roomId: string;
+  hostId: string | null;
+  players: LobbyPlayer[];
+}

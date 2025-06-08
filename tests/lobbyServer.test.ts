@@ -1,9 +1,8 @@
 // tests/lobbyServer.test.ts
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 
-import GameController from '../controllers/GameController.js';
+import GameController, { GameRoomManager } from '../controllers/GameController.js';
 import { JOINED, LOBBY, ERROR } from '../src/shared/events.js';
-import { GameRoomManager } from '../controllers/GameController.js';
 
 interface MockSocket {
   id: string;
