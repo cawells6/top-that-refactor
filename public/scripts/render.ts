@@ -545,3 +545,35 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
   }
   tryRunEffect();
 }
+
+/**
+ * Switch UI from lobby to the main play area
+ */
+export function playArea(): void {
+  const lobbyContainer = document.getElementById('lobby-container');
+  const table = document.getElementById('game-table');
+  const mainContent = document.getElementById('main-content');
+
+  if (lobbyContainer) lobbyContainer.classList.add('hidden');
+  if (table) table.classList.remove('hidden', 'table--hidden');
+  if (mainContent) mainContent.classList.add('game-active');
+}
+
+/**
+ * Display a lobby link for inviting other players
+ */
+export function lobbyLink({ id }: { id: string }): void {
+  const lobbyContainer = document.getElementById('lobby-container');
+  const lobbyFormContent = document.getElementById('lobby-form-content');
+  const waitingStateDiv = document.getElementById('waiting-state');
+
+  if (lobbyContainer) lobbyContainer.classList.remove('hidden');
+  if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
+  if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
+
+  const heading = document.getElementById('waiting-heading');
+  if (heading) heading.textContent = `Room: ${id}`;
+
+  const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
+  if (inviteInput) inviteInput.value = window.location.href;
+}
