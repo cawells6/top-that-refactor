@@ -76,7 +76,11 @@ export class InSessionLobbyModal {
 
     if (!playersContainer || !gameIdEl || !startGameBtn) return;
 
-    uiManager.hideLobbyForm();
+    // Hide the lobby form if needed (using an existing function)
+    const lobbyContainer = uiManager.getLobbyContainer();
+    const lobbyFormContent = uiManager.getLobbyFormContent();
+    if (lobbyContainer) lobbyContainer.classList.add('hidden');
+    if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
 
     gameIdEl.textContent = lobbyState.roomId;
     playersContainer.innerHTML = '';
