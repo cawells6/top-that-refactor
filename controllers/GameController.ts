@@ -320,7 +320,7 @@ export default class GameController {
     socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
     if (ack) ack({ roomId: this.roomId, playerId: player.id });
 
-    // --- After adding the player, update lobby and check for auto-start ---
+    // --- After adding the player, update lobby ---
     const currentLobbyPlayers = this.getLobbyPlayerList();
     this.log(
       `Emitting PLAYER_JOINED and LOBBY to room '${this.roomId}'. Players:`,
@@ -333,32 +333,8 @@ export default class GameController {
       maxPlayers: this.gameState.maxPlayers,
     });
 
-    // --- Refined auto-start logic: count actual humans/CPUs in the room ---
-    const allPlayers = Array.from(this.players.values());
-    const numHumansInRoom = allPlayers.filter((p) => !p.isComputer).length;
-    const numCPUsInRoom = allPlayers.filter((p) => p.isComputer).length;
-    const totalPlayersInRoom = allPlayers.length;
-
-    this.log(
-      `[Auto-Start Check] numHumansInRoom=${numHumansInRoom}, numCPUsInRoom=${numCPUsInRoom}, totalPlayersInRoom=${totalPlayersInRoom}, gameState.started=${this.gameState.started}`
-    );
-
-    if (
-      numHumansInRoom === 1 &&
-      numCPUsInRoom >= 1 &&
-      totalPlayersInRoom >= 2 &&
-      !this.gameState.started
-    ) {
-      this.log(
-        `Auto-starting game: 1 human + ${numCPUsInRoom} CPU(s). Total players: ${totalPlayersInRoom}`
-      );
-      this.handleStartGame({ computerCount: numCPUsInRoom, socket });
-    } else {
-      this.log(
-        `Not auto-starting. Waiting for more players or manual start. (numHumansInRoom=${numHumansInRoom})`
-      );
-      this.pushState();
-    }
+    // Auto-start has been removed; clients must explicitly request game start
+    this.pushState();
   }
 
   private async handleStartGame(opts: StartGameOptions): Promise<void> {
