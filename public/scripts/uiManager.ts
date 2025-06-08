@@ -64,6 +64,14 @@ export function showLobbyForm(): void {
   if (mainContent) mainContent.classList.remove('game-active'); // Remove class for lobby layout
 }
 
+export function hideLobbyForm(): void {
+  const lobbyContainer = getLobbyContainer();
+  const lobbyFormContent = getLobbyFormContent();
+  
+  if (lobbyContainer) lobbyContainer.classList.add('hidden');
+  if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
+}
+
 export function showWaitingState(
   roomId: string,
   currentPlayers: number,

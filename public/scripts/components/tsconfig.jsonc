@@ -1,0 +1,7 @@
+// ...existing config...
+"include": [
+  "src",
+  "public/scripts",
+  // Add any other folders where you keep TypeScript files
+]
+// ...existing config...

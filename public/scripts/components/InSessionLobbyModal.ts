@@ -77,11 +77,14 @@ export class InSessionLobbyModal {
 
     if (!playersContainer || !gameIdEl || !startGameBtn) return;
 
+    // Hide the lobby form but don't hide the lobby container itself
     uiManager.hideLobbyForm();
 
+    // Set the room ID in the modal
     gameIdEl.textContent = lobbyState.roomId;
     playersContainer.innerHTML = '';
 
+    // Render the player list
     lobbyState.players.forEach((player) => {
       const playerEl = document.createElement('div');
       const statusClass = player.status.toLowerCase();
@@ -95,7 +98,11 @@ export class InSessionLobbyModal {
       playersContainer.appendChild(playerEl);
     });
 
+    // Only enable the start button for the host
     startGameBtn.disabled = state.socket?.id !== lobbyState.hostId;
+    
+    // Show the modal (make it visible)
+    console.log('📢 Showing in-session lobby modal for room:', lobbyState.roomId);
     this.modal.show();
   }
 }

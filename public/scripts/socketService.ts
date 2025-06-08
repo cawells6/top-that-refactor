@@ -22,7 +22,12 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(STATE_UPDATE, (s: GameStateData) => {
     console.log('Received STATE_UPDATE payload:', JSON.stringify(s, null, 2));
     renderGameState(s, state.myId);
-    if (s.started) showGameTable();
+
+    // Only show game table if the game has actually started
+    // This ensures we don't hide the lobby modal prematurely
+    if (s.started) {
+      showGameTable();
+    }
   });
   state.socket.on('err', (msg: string) => {
     showError(msg);

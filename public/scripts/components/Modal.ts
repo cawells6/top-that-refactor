@@ -25,26 +25,38 @@ export class Modal {
   }
 
   show(): void {
-    if (this.isVisible) return;
+    if (this.isVisible) {
+      console.log('📢 Modal already visible, not showing again', this.element.id);
+      return;
+    }
+    console.log('📢 Showing modal', this.element.id);
+    
     document.body.appendChild(this.backdrop);
     document.body.appendChild(this.element);
 
     setTimeout(() => {
       this.backdrop.classList.add('show');
       this.element.classList.add('show');
+      console.log('📢 Modal transition started', this.element.id);
     }, 10);
 
     this.isVisible = true;
   }
 
   hide(): void {
-    if (!this.isVisible) return;
+    if (!this.isVisible) {
+      console.log('📢 Modal already hidden, not hiding again', this.element.id);
+      return;
+    }
+    console.log('📢 Hiding modal', this.element.id);
+    
     this.backdrop.classList.remove('show');
     this.element.classList.remove('show');
 
     setTimeout(() => {
       if (this.element.parentElement) document.body.removeChild(this.element);
       if (this.backdrop.parentElement) document.body.removeChild(this.backdrop);
+      console.log('📢 Modal removed from DOM', this.element.id);
     }, 300);
 
     this.isVisible = false;
