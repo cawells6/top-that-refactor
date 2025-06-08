@@ -366,7 +366,6 @@ export default class GameController {
     this.log(
       `[Auto-Start Check] numHumansInRoom=${numHumansInRoom}, numCPUsInRoom=${numCPUsInRoom}, totalPlayersInRoom=${totalPlayersInRoom}, gameState.started=${this.gameState.started}`
     );
-
     if (
       !this.gameState.started &&
       this.expectedHumanCount === 1 &&
