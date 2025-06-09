@@ -25,7 +25,8 @@ export class InSessionLobbyModal {
     container.innerHTML = `
         <h2>Game Lobby</h2>
         <div class="game-id-section">
-            <p>Room Code: <strong class="game-id"></strong></p>
+            <label for="lobby-room-code" class="visually-hidden">Room Code</label>
+            <input id="lobby-room-code" class="game-id-input" type="text" readonly />
             <button id="copy-game-id-btn" class="btn">Copy</button>
         </div>
         <div class="players-list">
@@ -52,9 +53,9 @@ export class InSessionLobbyModal {
       const startGameBtn = document.getElementById('start-game-btn');
 
       copyBtn?.addEventListener('click', () => {
-        const gameIdEl = document.querySelector('#in-session-lobby-modal .game-id');
-        if (gameIdEl?.textContent) {
-          navigator.clipboard.writeText(gameIdEl.textContent);
+        const gameIdInput = document.getElementById('lobby-room-code') as HTMLInputElement | null;
+        if (gameIdInput?.value) {
+          navigator.clipboard.writeText(gameIdInput.value);
           if (copyBtn instanceof HTMLButtonElement) {
             copyBtn.textContent = 'Copied!';
             setTimeout(() => {
@@ -72,16 +73,16 @@ export class InSessionLobbyModal {
 
   private render(lobbyState: InSessionLobbyState): void {
     const playersContainer = document.getElementById('players-container');
-    const gameIdEl = document.querySelector('#in-session-lobby-modal .game-id');
+    const gameIdInput = document.getElementById('lobby-room-code') as HTMLInputElement | null;
     const startGameBtn = document.getElementById('start-game-btn') as HTMLButtonElement | null;
 
-    if (!playersContainer || !gameIdEl || !startGameBtn) return;
+    if (!playersContainer || !gameIdInput || !startGameBtn) return;
 
     // Hide the lobby form but don't hide the lobby container itself
     uiManager.hideLobbyForm();
 
     // Set the room ID in the modal
-    gameIdEl.textContent = lobbyState.roomId;
+    gameIdInput.value = lobbyState.roomId;
     playersContainer.innerHTML = '';
 
     // Render the player list

@@ -61,10 +61,17 @@
   border-radius: 6px;
 }
 
-.game-id-section .game-id {
+.game-id-section .game-id-input {
+  flex-grow: 1;
   font-weight: bold;
   font-family: monospace;
   font-size: 1.2rem;
+  padding: 4px 8px;
+  margin-right: 10px;
+  border: 1px solid var(--input-border, #bbb);
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
 }
 
 .players-list {
