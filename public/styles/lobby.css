@@ -138,3 +138,87 @@
   padding: 12px;
   font-size: 1.1rem;
 }
+
+/* === IN-SESSION LOBBY MODAL STYLES === */
+.in-session-lobby-modal {
+  max-width: 380px;
+  min-width: 300px;
+}
+
+.in-session-lobby-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem;
+}
+
+.players-section {
+  background: #fdfaf0;
+  border: 1px solid #ffebb5;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+}
+
+.players-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #a56a00;
+  margin: 0 0 0.75rem 0;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.players-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.player-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background-color: #fff;
+  border-left: 5px solid #ccc;
+}
+
+.player-item.host { border-left-color: #ffc107; }
+.player-item.joined { border-left-color: #28a745; }
+
+.player-status {
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 3px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.player-item.host .player-status { background-color: #fff8e1; color: #ff8f00; }
+.player-item.joined .player-status { background-color: #e8f5e9; color: #2e7d32; }
+
+.lobby-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.game-id-input {
+  font-family: monospace;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 0.1em;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex-grow: 1;
+}
+
+.btn.copy-link-btn, .btn.lets-play-btn {
+  white-space: nowrap;
+}
