@@ -41,6 +41,7 @@ export class Modal {
     }, 10);
 
     this.isVisible = true;
+    console.log('📢 Modal appended to DOM and visible:', this.element.id);
   }
 
   hide(): void {

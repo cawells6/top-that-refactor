@@ -226,6 +226,7 @@ export default class GameController {
       players: lobbyPlayers,
     };
 
+    console.log('[SERVER] Emitting LOBBY_STATE_UPDATE:', lobbyState);
     this.io.to(this.roomId).emit(LOBBY_STATE_UPDATE, lobbyState);
   }
 

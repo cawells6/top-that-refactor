@@ -8,19 +8,13 @@ import * as uiManager from '../uiManager.js';
 
 export class InSessionLobbyModal extends Modal {
   constructor() {
-    super(document.createElement('div'));
-    this.createContent();
+    const content = InSessionLobbyModal.createContent();
+    super(content, { className: 'in-session-lobby-modal' });
+    this.setupSocketListeners(); // <-- Add this line to subscribe to lobby updates
     this.addEventListeners();
-    // Always append modal and backdrop to body if not present
-    if (!document.body.contains(this.element)) {
-      document.body.appendChild(this.element);
-    }
-    if (this.backdrop && !document.body.contains(this.backdrop)) {
-      document.body.appendChild(this.backdrop);
-    }
   }
 
-  private createContent(): HTMLElement {
+  private static createContent(): HTMLElement {
     const container = document.createElement('div');
     container.className = 'in-session-lobby-container';
     container.innerHTML = `
@@ -44,6 +38,7 @@ export class InSessionLobbyModal extends Modal {
   private setupSocketListeners(): void {
     if (!state.socket) return;
     state.socket.on(LOBBY_STATE_UPDATE, (lobbyState: InSessionLobbyState) => {
+      console.log('[CLIENT] Received LOBBY_STATE_UPDATE:', lobbyState);
       this.render(lobbyState);
     });
   }
@@ -51,13 +46,13 @@ export class InSessionLobbyModal extends Modal {
   private addEventListeners(): void {
     setTimeout(() => {
       const copyBtn = document.getElementById('copy-game-id-btn');
+      const startGameBtn = document.getElementById('start-game-btn');
 
       copyBtn?.addEventListener('click', () => {
         const gameIdInput = document.getElementById('lobby-room-code') as HTMLInputElement | null;
         if (gameIdInput?.value) {
           navigator.clipboard.writeText(gameIdInput.value);
           if (copyBtn instanceof HTMLButtonElement) {
-            copyBtn.textContent = 'Copied!';
             setTimeout(() => {
               copyBtn.textContent = 'Copy';
             }, 2000);
@@ -72,11 +67,21 @@ export class InSessionLobbyModal extends Modal {
   }
 
   private render(lobbyState: InSessionLobbyState): void {
+    // Ensure modal is in the DOM before querying its elements
+    this.show();
+
     const playersContainer = document.getElementById('players-container');
     const gameIdInput = document.getElementById('lobby-room-code') as HTMLInputElement | null;
     const startGameBtn = document.getElementById('start-game-btn') as HTMLButtonElement | null;
 
-    if (!playersContainer || !gameIdInput || !startGameBtn) return;
+    console.log('[DEBUG] playersContainer:', playersContainer);
+    console.log('[DEBUG] gameIdInput:', gameIdInput);
+    console.log('[DEBUG] startGameBtn:', startGameBtn);
+
+    if (!playersContainer || !gameIdInput || !startGameBtn) {
+      console.warn('[InSessionLobbyModal] One or more modal elements missing. Modal will not render.');
+      return;
+    }
 
     // Hide the lobby form but don't hide the lobby container itself
     uiManager.hideLobbyForm();
@@ -101,9 +106,5 @@ export class InSessionLobbyModal extends Modal {
 
     // Only enable the start button for the host
     startGameBtn.disabled = state.myId !== lobbyState.hostId;
-
-    // Show the modal (make it visible)
-    console.log('📢 Showing in-session lobby modal for room:', lobbyState.roomId);
-    this.modal.show();
   }
 }

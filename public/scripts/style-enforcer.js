@@ -76,10 +76,16 @@
     }
   });
   
-  // Start observing the document
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
+  // Start observing the document after DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    if (document.body) {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    } else {
+      console.warn('[STYLE-ENFORCER] document.body not found, MutationObserver not started');
+    }
   });
   
   // Run cleanup periodically for added safety

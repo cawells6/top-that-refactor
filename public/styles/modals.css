@@ -10,7 +10,7 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+  z-index: 1051;
   animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   /* Exactly matching the styling of lobby-modal-container */
 }
@@ -659,4 +659,35 @@
     max-width: 5.5em !important;
     max-height: 5.5em !important;
   }
+}
+
+/* Smaller, less intrusive secondary modal */
+.in-session-lobby-modal {
+  width: 340px;
+  min-width: 0;
+  max-width: 90vw;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  background: var(--header-bg, #fff);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  z-index: 1051;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* --- Responsive tweak for small screens --- */
+@media (max-width: 400px) {
+  .in-session-lobby-modal {
+    width: 98vw;
+    padding: 0.5rem 0.2rem;
+  }
+}
+
+/* --- Accessibility: visible focus style for close button --- */
+.modal__close-button:focus {
+  outline: 2px solid #ffc300;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #ffc300;
 }
