@@ -29,19 +29,6 @@ jest.mock(
   () => ({
     socket: { emit: jest.fn(), on: jest.fn() },
     loadSession: jest.fn(),
-    $: jest.fn((selector: string) =>
-      global.document ? global.document.querySelector(selector) : null
-    ),
-    getCopyLinkBtn: jest.fn(() =>
-      global.document ? global.document.createElement('button') : null
-    ),
-    getRulesButton: jest.fn(() =>
-      global.document ? global.document.createElement('button') : null
-    ),
-    getRulesModal: jest.fn(() => (global.document ? global.document.createElement('div') : null)),
-    getBackToLobbyButton: jest.fn(() =>
-      global.document ? global.document.createElement('button') : null
-    ),
   }),
   { virtual: true }
 );

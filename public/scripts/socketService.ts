@@ -5,8 +5,6 @@ import { renderGameState } from './render.js';
 import * as state from './state.js';
 import { showLobbyForm, showGameTable, showError } from './uiManager.js';
 
-let socketHandlersInitialized = false;
-
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
   state.socket.on('connect', () => {
