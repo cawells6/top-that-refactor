@@ -12,10 +12,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('main-content')?.classList.remove('preload-hidden');
   console.log('🚀 [Client] DOM fully loaded and parsed (from main.ts)');
 
-  // Clear session on page load
-  sessionStorage.removeItem('myId');
-  sessionStorage.removeItem('currentRoom');
-  sessionStorage.removeItem('desiredCpuCount');
+  // Do NOT clear session on page load! Only clear on explicit user action.
+  // sessionStorage.removeItem('myId');
+  // sessionStorage.removeItem('currentRoom');
+  // sessionStorage.removeItem('desiredCpuCount');
 
   const params = new URLSearchParams(window.location.search);
   const roomFromLink = params.get('room');

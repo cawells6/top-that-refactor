@@ -224,6 +224,7 @@ export default class GameController {
       roomId: this.roomId,
       hostId: this.hostId,
       players: lobbyPlayers,
+      started: this.gameState.started, // Add started property
     };
 
     console.log('[SERVER] Emitting LOBBY_STATE_UPDATE:', lobbyState);

@@ -22,6 +22,7 @@ export class Modal {
     if (this.isVisible) return;
     this.isVisible = true;
 
+    console.log(`[Modal] show() called for #${this.modalElement.id}`);
     this.backdrop.classList.remove('modal__overlay--hidden');
     this.modalElement.classList.remove('modal--hidden');
 
@@ -32,6 +33,7 @@ export class Modal {
     if (!this.isVisible) return;
     this.isVisible = false;
 
+    console.log(`[Modal] hide() called for #${this.modalElement.id}`);
     this.backdrop.classList.add('modal__overlay--hidden');
     this.modalElement.classList.add('modal--hidden');
   }

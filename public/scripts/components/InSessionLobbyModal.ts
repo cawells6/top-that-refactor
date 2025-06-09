@@ -89,9 +89,17 @@ export class InSessionLobbyModal extends Modal {
     }
   }
 
-  private render(lobbyState: InSessionLobbyState): void {
+  private render(lobbyState: InSessionLobbyState & { started?: boolean }): void {
+    console.log('[InSessionLobbyModal] render() called', lobbyState);
+    // If the game has started, hide the modal and show the game table
+    if (lobbyState.started) {
+      this.hide();
+      uiManager.showGameTable();
+      return;
+    }
+    // Otherwise, show the modal and keep the game table visible (but not the main game UI)
     this.show();
-    uiManager.showGameTable();
+    // Do NOT call uiManager.showGameTable() here unless the game has started
 
     this.playersContainer.innerHTML = '';
     lobbyState.players.forEach((player) => {
@@ -110,7 +118,6 @@ export class InSessionLobbyModal extends Modal {
     if (params.get('room') !== lobbyState.roomId) {
       window.history.replaceState({}, '', `?room=${lobbyState.roomId}`);
     }
-
     this.startGameBtn.disabled = state.myId !== lobbyState.hostId;
   }
 }

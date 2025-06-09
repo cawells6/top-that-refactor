@@ -60,8 +60,12 @@ export function showLobbyForm(): void {
   if (lobbyContainer) lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
-  if (table) table.classList.add('table--hidden', 'hidden');
-  if (mainContent) mainContent.classList.remove('game-active'); // Remove class for lobby layout
+  if (table) {
+    table.classList.add('table--hidden', 'hidden');
+    console.log('[uiManager] showLobbyForm: Hid game table.');
+  }
+  if (mainContent) mainContent.classList.remove('game-active');
+  console.log('[uiManager] showLobbyForm: Showed lobby form.');
 }
 
 export function hideLobbyForm(): void {
@@ -86,7 +90,8 @@ export function showWaitingState(
   if (lobbyContainer) lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
-  if (mainContent) mainContent.classList.remove('game-active'); // Ensure lobby layout
+  if (mainContent) mainContent.classList.remove('game-active');
+  console.log('[uiManager] showWaitingState: Showed waiting state.');
 
   // Update waiting heading
   const waitingHeading = document.getElementById('waiting-heading');
@@ -127,9 +132,20 @@ export function showGameTable(): void {
   const table = getGameTable();
   const mainContent = document.getElementById('main-content');
 
-  if (lobbyContainer) lobbyContainer.classList.add('hidden');
-  if (table) table.classList.remove('table--hidden', 'hidden');
-  if (mainContent) mainContent.classList.add('game-active'); // Add class for game layout
+  if (!table) {
+    console.warn('[uiManager] showGameTable: #game-table element not found!');
+  } else {
+    table.classList.remove('table--hidden', 'hidden');
+    console.log('[uiManager] showGameTable: Revealed game table.');
+  }
+  if (lobbyContainer) {
+    lobbyContainer.classList.add('hidden');
+    console.log('[uiManager] showGameTable: Hid lobby container.');
+  }
+  if (mainContent) {
+    mainContent.classList.add('game-active');
+    console.log('[uiManager] showGameTable: Added game-active to main-content.');
+  }
 }
 
 export function showError(msg: string): void {

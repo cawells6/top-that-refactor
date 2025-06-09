@@ -42,4 +42,5 @@ export interface InSessionLobbyState {
   roomId: string;
   hostId: string | null;
   players: LobbyPlayer[];
+  started?: boolean; // Added to communicate game start state
 }
