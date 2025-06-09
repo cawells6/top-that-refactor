@@ -45,8 +45,8 @@ describe('InSessionLobbyModal', () => {
       <div id="modal-overlay" class="modal__overlay modal__overlay--hidden"></div>
       <div class="modal modal--hidden in-session-lobby-modal" id="in-session-lobby-modal" tabindex="-1">
         <div class="in-session-lobby-container">
-          <div class="players-section">
-            <h3 class="players-section-title">Players</h3>
+          <div class="player-section">
+            <h3 class="section-title">Players</h3>
             <div id="players-container" class="players-container"></div>
           </div>
           <div class="lobby-actions-row">
