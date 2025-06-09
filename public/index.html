@@ -421,6 +421,19 @@
       </div>
     </div>
 
+    <div class="modal modal--hidden in-session-lobby-modal" id="in-session-lobby-modal" role="dialog" aria-modal="true" aria-labelledby="in-session-lobby-title">
+      <div class="in-session-lobby-container">
+        <div class="players-section">
+          <h3 id="in-session-lobby-title" class="players-section-title">Players</h3>
+          <div id="players-container" class="players-container"></div>
+        </div>
+        <div class="lobby-actions-row">
+          <input id="lobby-room-code" class="game-id-input" type="text" readonly maxlength="6" />
+          <button id="copy-link-btn" class="btn copy-link-btn">Copy Link</button>
+          <button id="start-game-btn" class="btn lets-play-btn" disabled>Let's Play</button>
+        </div>
+      </div>
+    </div>
     <script>
       function showFullSizeIcon(iconElement) {
         const modal = document.getElementById('fullsize-icon-modal');

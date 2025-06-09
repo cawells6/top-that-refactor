@@ -1,66 +1,38 @@
 // public/scripts/components/Modal.ts
 export class Modal {
-  private element: HTMLElement;
-  private backdrop: HTMLElement;
-  private isVisible: boolean = false;
+  public modalElement: HTMLElement;
+  protected backdrop: HTMLElement;
+  private isVisible = false;
 
-  constructor(content: HTMLElement | string, options: { id?: string; className?: string } = {}) {
-    this.backdrop = document.createElement('div');
-    this.backdrop.className = 'modal-overlay';
+  constructor(element: HTMLElement) {
+    this.modalElement = element;
 
-    this.element = document.createElement('div');
-    this.element.className = 'modal ' + (options.className || '');
-    if (options.id) this.element.id = options.id;
-
-    const modalContent = document.createElement('div');
-    modalContent.className = 'modal-content';
-
-    if (typeof content === 'string') {
-      modalContent.innerHTML = content;
-    } else {
-      modalContent.appendChild(content);
+    let backdropElement = document.getElementById('modal-overlay');
+    if (!backdropElement) {
+      console.warn('Modal backdrop not found, creating one.');
+      backdropElement = document.createElement('div');
+      backdropElement.className = 'modal__overlay';
+      backdropElement.id = 'modal-overlay';
+      document.body.appendChild(backdropElement);
     }
-
-    this.element.appendChild(modalContent);
+    this.backdrop = backdropElement;
   }
 
   show(): void {
-    if (this.isVisible) {
-      console.log('📢 Modal already visible, not showing again', this.element.id);
-      return;
-    }
-    console.log('📢 Showing modal', this.element.id);
-
-    document.body.appendChild(this.backdrop);
-    document.body.appendChild(this.element);
-
-    setTimeout(() => {
-      this.backdrop.classList.add('show');
-      this.element.classList.add('show');
-      console.log('📢 Modal transition started', this.element.id);
-    }, 10);
-
+    if (this.isVisible) return;
     this.isVisible = true;
-    console.log('📢 Modal appended to DOM and visible:', this.element.id);
+
+    this.backdrop.classList.remove('modal__overlay--hidden');
+    this.modalElement.classList.remove('modal--hidden');
+
+    this.modalElement.focus();
   }
 
   hide(): void {
-    if (!this.isVisible) {
-      console.log('📢 Modal already hidden, not hiding again', this.element.id);
-      return;
-    }
-    // Log stack trace for debugging premature hiding
-    console.log('📢 Hiding modal', this.element.id, new Error('Modal.hide() stack trace').stack);
-
-    this.backdrop.classList.remove('show');
-    this.element.classList.remove('show');
-
-    setTimeout(() => {
-      if (this.element.parentElement) document.body.removeChild(this.element);
-      if (this.backdrop.parentElement) document.body.removeChild(this.backdrop);
-      console.log('📢 Modal removed from DOM', this.element.id);
-    }, 300);
-
+    if (!this.isVisible) return;
     this.isVisible = false;
+
+    this.backdrop.classList.add('modal__overlay--hidden');
+    this.modalElement.classList.add('modal--hidden');
   }
 }
