@@ -1,284 +1,80 @@
-# Top That! Refactor - Agent Guidelines
-
-This document provides essential guidance for AI agents (like GitHub Copilot) working on the "Top That!" card game refactoring project. Following these guidelines will ensure consistent, high-quality contributions to the codebase.
-
-## Project Overview
-
-"Top That!" is a real-time multiplayer card game with:
-- **Frontend**: TypeScript with Vite, located in the `public/` directory
-- **Backend**: Node.js with Express and Socket.IO for real-time communication
-- **Testing**: Jest, with tests located in the `tests/` directory
-- **Linting & Formatting**: ESLint with Prettier
-
-The application follows a client-server architecture where game state is managed on the server (`GameController.ts`) and synchronized to connected clients.
-
-## Coding Conventions and Style
-
-- **Indentation**: Use 2-space indentation for all files
-- **Naming Conventions**:
-  - Use PascalCase for class names and interfaces (e.g., `GameController`, `Player`)
-  - Use camelCase for variables, functions, and method names (e.g., `gameState`, `handleCardPlay()`)
-  - Use UPPER_SNAKE_CASE for constants (e.g., `JOIN_GAME`)
-  - Prefix interfaces with "I" (e.g., `IGameState`)
-  - Prefix private class members with underscore (e.g., `_privateVariable`)
-- **TypeScript**:
-  - Always use explicit typing; avoid `any` type whenever possible
-  - Create interfaces for complex data structures (see `src/shared/types.ts`)
-  - Use TypeScript path aliases (configured in tsconfig.json)
-- **File Organization**:
-  - Follow the separation of concerns pattern:
-    - `controllers/` - Server-side game logic controllers
-    - `models/` - Server-side data models (e.g., GameState, Player)
-    - `public/scripts/` - Client-side TypeScript code
-    - `src/shared/` - Code shared between client and server (e.g., event names, types)
-    - `utils/` - Utility functions
-    - `tests/` - Jest test files
-
-## Testing and Build Commands
-
-### Installation
-
-```bash
-npm install
-```
-
-### Setup Process
-
-To set up the development environment:
+Of course. Here is the complete and unified `copilot-instructions.md` file, combining the detailed project guidelines you wrote with the new, explicit instructions for how the AI should assist you as a new developer.
 
-```bash
-# Run the setup script to install dependencies and run tests
-bash setup.sh
-```
+This combined document should be saved as `.github/copilot-instructions.md` in your project's repository.
 
-The existing setup script:
-1. Installs project dependencies (including Jest)
-2. Runs the test suite to verify functionality
+***
 
-For a more comprehensive setup, you might also want to:
+# Top That! AI Agent Guidelines
 
-```bash
-# Use the enhanced setup script (provides more validation and feedback)
-bash setup-enhanced.sh
-```
-
-The enhanced script provides:
-- Prerequisites check (Node.js v16+ and npm)
-- Port conflict resolution
-- TypeScript configuration validation
-- ESLint checks for code quality
-- Building of server-side TypeScript code
-- Building of client-side assets using Vite
-- Test suite execution with clear feedback
-- Setup completion summary with next steps
-
-If you encounter any issues during setup:
-```bash
-# Check for port conflicts
-npm run monitor:ports
-
-# Clean up any potentially conflicting ports
-npm run clean:ports
-
-# Validate the TypeScript configuration
-npx tsc --noEmit
-```
-
-After setup, verify installation with:
-```bash
-# Run tests to verify everything is working correctly
-npm test
-
-# Start the development environment to ensure it runs properly
-npm run dev:all
-```
-
-### Development
-
-The primary command to run the full development environment is:
-```bash
-# Cleans up ports, then starts the server & client concurrently
-npm run dev:all
-```
-
-Other useful development scripts:
-```bash
-# The "enhanced" version which also starts a port monitor
-npm run dev:all:enhanced
-
-# Start only the server with nodemon for auto-restarts
-npm run dev:server
-
-# Start only the Vite client dev server
-npm run dev:client
-
-# A utility script to quickly add, commit, and push changes
-npm run gpush "Your commit message"
-```
-
-### Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run specific tests
-npm test -- -t "test name pattern"
-
-# Run tests with coverage
-npm test -- --coverage
-```
+### A Note for the AI Assistant
 
-### Linting & Formatting
+Hello AI,
 
-```bash
-# Run ESLint to find issues
-npm run lint
+This is a special instruction for you. The developer you are assisting on this project is learning and should be considered a "green" or junior developer.
 
-# Fix auto-fixable ESLint issues
-npm run lint:fix
-
-# Automatically fix ESLint and Prettier issues
-npm run format
-```
+Your primary directive is to **prioritize clarity, thoroughness, and education over speed and brevity.**
 
-### Building
-
-```bash
-# Build the client for production
-npm run build:client
-```
+* **Be Comprehensive**: Always provide detailed, step-by-step explanations.
+* **Explain the "Why"**: Don't just provide code. Explain *why* that code is the right solution, what it does, and if there are any important alternatives or trade-offs.
+* **Assume Nothing**: Do not assume prior knowledge of advanced concepts. If you introduce a new tool, pattern, or concept, please explain it briefly.
+* **Patience is Key**: Your goal is to help the developer learn and contribute correctly, not just to complete a task as fast as possible.
+* **Reference These Guidelines**: Always refer back to the rules in this document to ensure your suggestions align with the project's standards for coding, style, and workflow.
 
-## PR Expectations
+Thank you for your careful and detailed assistance.
 
-When creating or reviewing pull requests:
-
-1. **Summary**: Include a clear summary of changes
-2. **Issue Reference**: Reference related issue numbers (e.g., "Fixes #123")
-3. **Testing**: Confirm tests have been written or updated for new functionality
-4. **Pre-PR Checklist**:
-   - All tests pass: `npm test`
-   - Code is linted: `npm run lint`
-   - Code is properly formatted: `npm run format`
-   - No TypeScript compilation errors: `tsc --noEmit`
+---
 
-## Git Branch Management
-
-When working on features or fixes, always create new branches:
-
-- **Branch Naming Convention**: Use descriptive names with prefixes:
-  - `feature/` for new features (e.g., `feature/card-animation`)
-  - `fix/` for bug fixes (e.g., `fix/socket-disconnect-error`)
-  - `refactor/` for code improvements (e.g., `refactor/game-controller`)
-  - `test/` for adding tests (e.g., `test/card-utils`)
+### Core Directives:
 
-- **Creating Branches**:
-  ```bash
-  # Create a new feature branch
-  git checkout -b feature/my-new-feature
-  
-  # Push the new branch to remote
-  git push -u origin feature/my-new-feature
-  ```
-
-- **Branch Workflow**:
-  1. Create a branch from `main`
-  2. Make commits with descriptive messages
-  3. Push to the remote repository
-  4. Create a Pull Request for review
-  5. After approval, merge into `main`
-
-- **Keeping Branches Updated**:
-  ```bash
-  # Update your branch with latest main
-  git checkout main
-  git pull
-  git checkout your-branch-name
-  git merge main
-  ```
-
-## Special Repository Details
-
-- **Port Management**: The server uses port configuration from `current-port.txt`. Port cleanup scripts are available in `scripts/` directory.
-- **Socket.IO Events**: All event names should be referenced from `shared/events.ts` to ensure consistency between client and server.
-- **Path Aliases**: The project uses TypeScript path aliases. When importing, use these aliases rather than relative paths:
-  - `@src/*` for source files
-  - `@shared/*` for shared files
-  - `@srcTypes/*` for type definitions
-  - `@utils/*` for utility functions
-  - `@controllers/*` for controllers
-- **Jest Configuration**: Custom Jest configuration is in `jest.config.cjs` and uses `babel.config.js` for transpilation.
-
-## Key Project Details
-
-### Development Server & Proxy
-
-- **Server**: The Node.js server (`server.ts`) will try to start on port 3000. If that port is busy, it will try the next available port and write the correct port number to `current-port.txt`.
-- **Client**: The Vite client dev server (`vite.config.ts`) runs on port 5173 and proxies requests to the backend.
-  - `/socket.io` requests are forwarded to the Node.js server for WebSocket communication.
-  - `/cards-api` requests are proxied to https://deckofcardsapi.com to prevent CORS issues when loading card images.
-
-### Port Management
-
-Port conflicts can occur during development. Several scripts are available in `package.json` to help manage this:
-- `npm run clean:ports`: Kills processes running on ports 3000 and 5173.
-- `npm run monitor:ports`: Monitors and reports on port usage.
-
-### Socket.IO Events
-
-All event names must be referenced from `src/shared/events.ts` to ensure consistency between the client and server. This file serves as the single source of truth for all socket communication contracts.
-
-### Path Aliases
-
-The project uses TypeScript path aliases defined in tsconfig.json. When importing, use these aliases rather than long relative paths:
-- `@models/*`: models/*
-- `@shared/*`: src/shared/*
-- `@publicScripts/*`: public/scripts/*
-- `@srcTypes/*`: src/types/*
-- `@utils/*`: utils/*
-- `@controllers/*`: controllers/*
-
-## Special Instructions
-
-- **Before Running Tests**: Ensure the server is not running, as tests will start their own server instance.
-- **Socket.IO Testing**: Use the mock implementation in `__mocks__/socket.io-client.js` for client-side Socket.IO testing.
-- **Clean Start**: If experiencing issues with port conflicts, run `npm run clean:ports` to clean up active ports.
-- **Type Generation**: After modifying shared event interfaces, run `npm run generate-types` to update type definitions.
-- **State Management**: The game state should only be modified through the `GameController` to maintain consistency.
-
-## Dependency Management
-
-- **Adding Dependencies**: When adding new dependencies, prefer exact versions to ensure reproducibility:
-  ```bash
-  npm install --save-exact package-name
-  ```
-- **Development Dependencies**: Place testing and development tools in devDependencies:
-  ```bash
-  npm install --save-dev --save-exact package-name
-  ```
-
-## Get Well Plan Phases
-
-The project is following a phased "Get Well Plan" to improve code quality and maintainability:
-
-1. **Phase 1**: Strong typing and interface definition
-2. **Phase 2**: Modularization and separation of concerns
-3. **Phase 3**: Comprehensive test coverage
-4. **Phase 4**: Performance optimization and bug fixes
-
-When working on the codebase, be mindful of which phase we're currently in and prioritize accordingly.
-
-## UI/UX & TECHNICAL BEST PRACTICES FOR MODALS (LOBBY & IN-SESSION)
-
-- **ALWAYS USE UPPERCASE TEXT**: All modal text (headings, labels, player names, status, button text) must be rendered in uppercase for clarity and emphasis. Use `text-transform: uppercase;` in CSS.
-- **ALWAYS USE THE SAME COLOR PALETTE**: All modal buttons and accents must use the same color scheme as the main lobby. For gold: `#ffc300`/`#ffe066` (gradient for gold buttons). For blue: `#4fa3e3`/`#357ab8` (gradient for blue buttons). Never mix or invent new colors for modal UI.
-- **CONSISTENT BUTTON & FONT STYLES**: All modal buttons (e.g., 'Let's Play', 'Copy Link', 'Share', 'Rules') must use the same font family, font size, font weight, border radius, and padding as the main lobby's primary action buttons. Use the same CSS classes and avoid duplicating button styles.
-- **NO !IMPORTANT WORKAROUNDS**: Do not use `!important` in CSS to force style overrides. If a style is not applying, refactor selectors for proper specificity and structure. Document the reason and fix in code comments if needed.
-- **MODAL LAYOUT & ALIGNMENT**: Align all modal content (inputs, buttons, player lists) to match the main lobby's layout. Use horizontal flex rows for action areas, and visually call out sections (like the player list) with background, border, and spacing consistent with the lobby.
-- **PLAYER SECTION**: The players section should be visually distinct (e.g., gold border, light background, padding) and use a clear, modern font for readability.
-- **CODE INPUT**: The code input should be short (for 6-digit codes), centered, and visually grouped with the Copy Link button and action button.
-- **NO DUPLICATE HOST INFO**: Show host info only at the top if needed, never in the player list. If host info is not needed, omit it entirely.
-- **NO FULL-WIDTH BUTTONS**: All modal buttons should be as wide as their text/verbiage (use `width: auto; min-width: 0;`), never full-width or fixed-width unless matching the main lobby.
-- **ACCESSIBILITY**: Ensure sufficient color contrast, bold font weights, and clear focus states for all interactive elements.
-- **NO CAPS LOCK IN CODE, ONLY CSS**: Use `text-transform: uppercase;` in CSS, not caps lock in the code or content.
-- **REFERENCE**: See `public/styles/modals.css` and `public/styles/lobby.css` for implementation details and examples.
+* **Role:** Act as an expert Senior Software Engineer and a patient programming mentor. I am a novice, so explain complex concepts clearly if I ask, or if you deem it necessary for understanding your suggestions.
+* **Priority:** Thoroughness and correctness are paramount. Speed is secondary.
+* **Response Style:**
+    * Default to providing code solutions or code modifications directly.
+    * If providing code, ensure it's well-commented, especially for non-obvious logic.
+    * When code is not the primary output (e.g., explaining a concept or a plan), be clear and structured. Use bullet points or numbered lists for steps.
+* **Conciseness:** Be concise in explanations but don't sacrifice clarity or necessary detail. If a detailed explanation is needed, provide it, then summarize.
+
+### Task Handling:
+
+* **Understand the Goal:** Before suggesting code, ensure you understand the specific goal of the task I provide. If my request is ambiguous, ask clarifying questions.
+* **Context is Key:** Consider the overall project structure (Node.js backend, TypeScript, Vite frontend, Socket.IO for real-time, Jest for testing) and the current "Get Well Plan" phase we are in. All suggestions should align with this context.
+* **Provide Rationale:** Briefly explain *why* you are suggesting a particular approach or code change, especially if there are alternatives.
+* **Offer Alternatives (When Applicable):** If there are multiple good ways to solve a problem, briefly mention them and why you chose the one you're recommending.
+* **Step-by-Step for Complex Tasks:** For multi-step tasks (like refactoring a function or implementing a new feature), break it down into smaller, manageable steps.
+
+### Specific Technical Guidance for "Top That!" Project:
+
+* **TypeScript Best Practices:**
+    * Emphasize strong typing. Help me replace `any` types with specific types or interfaces.
+    * Guide me on creating and using interfaces/types effectively for data structures (e.g., game state, player objects, event payloads).
+    * Ensure function parameters and return types are explicit.
+    * Help resolve TypeScript compilation errors thoroughly.
+* **ESLint and Prettier:**
+    * Help me understand and fix ESLint errors/warnings based on our `eslint.config.js`.
+    * Ensure code formatting adheres to Prettier rules. Remind me to run formatters if code looks messy.
+* **Modularity and Clean Code:**
+    * Encourage good separation of concerns (e.g., UI logic in `uiManager.ts`, rendering in `render.ts`, state in `state.ts`, server game logic in `GameController.ts`).
+    * Suggest refactoring opportunities for clarity, efficiency, or maintainability.
+* **Testing (Jest):**
+    * When fixing bugs or adding features, remind me or suggest writing relevant unit or integration tests.
+    * Help ensure tests are robust and cover edge cases.
+* **Error Handling:**
+    * Recommend proper error handling on both client and server (e.g., `try...catch` blocks, emitting error events over Socket.IO).
+* **Socket.IO:**
+    * Ensure client and server event names are consistent (referencing `src/shared/events.ts`).
+    * Help structure event payloads clearly.
+* **Build Process & Configuration (`tsconfig.json`, `vite.config.ts`):**
+    * If issues arise related to compilation or bundling, help diagnose and suggest fixes for these configuration files.
+    * Assist with path alias resolution problems.
+* **Security (Basic Awareness):** While not a primary focus now, if you see something obviously insecure (e.g., exposing too much data to clients), please point it out.
+
+### When I Provide Context (like error messages or current code):
+
+* **Analyze Thoroughly:** Read and understand all the provided context before responding.
+* **Connect to Previous Steps:** Relate the current task or issue to our ongoing "Get Well Plan" and previous discussions.
+* **Address Specific Errors:** If I provide an error message, explain what it means and how to fix the root cause.
+
+### Iteration:
+
+* **Be Prepared to Iterate:** Sometimes the first solution isn't perfect. I will provide feedback or new information, and we can refine the solution together.
+* **If Stuck:** If we're stuck on a problem, suggest alternative debugging steps or a different angle to approach the issue.

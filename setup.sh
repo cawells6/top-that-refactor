@@ -57,43 +57,66 @@ npm install
 echo "✅ Dependencies installed successfully."
 echo ""
 
-# 4. Validate TypeScript configuration (optional)
-optional_step "Validating TypeScript configuration..." \
-  "npx tsc --noEmit" \
-  "TypeScript configuration is valid." \
-  "TypeScript validation failed"
+# 4. Validate TypeScript configuration (required)
+echo "🔍 Validating TypeScript configuration..."
+npx tsc --noEmit
+if [ $? -eq 0 ]; then
+  echo "✅ TypeScript configuration is valid."
+else
+  echo "❌ TypeScript validation failed. Exiting."
+  exit 1
+fi
 
-# 5. Run ESLint to check for issues (optional)
-optional_step "Running ESLint to check code quality..." \
-  "npm run lint" \
-  "ESLint check complete." \
-  "ESLint found issues"
+echo "🔍 Running ESLint to check code quality..."
+npm run lint
+if [ $? -eq 0 ]; then
+  echo "✅ ESLint check complete."
+else
+  echo "❌ ESLint found issues. Exiting."
+  exit 1
+fi
 
-# 6. Build the TypeScript source code
 echo "⚙️ Building server-side TypeScript code..."
 npm run build
-echo "✅ Server-side code built successfully."
+if [ $? -eq 0 ]; then
+  echo "✅ Server-side code built successfully."
+else
+  echo "❌ Server-side build failed. Exiting."
+  exit 1
+fi
 echo ""
 
-# 7. Build the client-side code
 echo "⚙️ Building client-side assets..."
 npm run build:client
-echo "✅ Client-side assets built successfully."
+if [ $? -eq 0 ]; then
+  echo "✅ Client-side assets built successfully."
+else
+  echo "❌ Client-side build failed. Exiting."
+  exit 1
+fi
 echo ""
 
-# 8. Run tests (optional)
-optional_step "Running tests to verify functionality..." \
-  "npm test" \
-  "All tests passed!" \
-  "Some tests failed"
+echo "🔍 Running tests to verify functionality..."
+npm test
+if [ $? -eq 0 ]; then
+  echo "✅ All tests passed!"
+else
+  echo "❌ Some tests failed. Exiting."
+  exit 1
+fi
+
+echo ""
+echo "# --- Educational & Safety Notes ---"
+echo "# - This script enforces TypeScript, lint, and test checks."
+echo "# - If you need to skip a step for debugging, comment out the relevant block."
+echo "# - If you encounter persistent issues, try:"
+echo "#     rm -rf node_modules dist && npm install"
+echo "# - For Windows users: run this script in Git Bash or WSL for best results."
+echo "# - If you need to roll back, use: git checkout -- setup.sh"
+echo "# - For more help, see README.md or copilot-instructions.md."
+echo ""
 
 # --- Completion ---
 echo "🎉 Setup complete!"
-echo "You can now start the development environment by running:"
-echo ""
-echo "    npm run dev:all       - Start both client and server"
-echo "    npm run dev:server    - Start only the server"
-echo "    npm run dev:client    - Start only the client"
-echo "    npm run monitor:ports - Monitor port usage"
-echo ""
-echo "Happy coding! 🚀"
+echo "Starting the development environment (both client and server)..."
+npm run dev:all
