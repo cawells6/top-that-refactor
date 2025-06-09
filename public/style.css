@@ -743,6 +743,43 @@ body {
   display: block;
 }
 
+/* === In-Session Modal Customizations === */
+.session-modal .players-box {
+  /* Brand background for players container */
+  background: #e0ebe8;
+  /* Keep padding, border-radius, box-shadow from .player-section */
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 1.2rem;
+}
+
+.session-modal .players-container {
+  /* Inherit layout, but remove extra background */
+  background: none;
+  padding: 0;
+}
+
+.session-modal .player-item .player-name {
+  /* Make player names stand out */
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2a2a2a;
+  /* Optional: pill-style background for extra emphasis */
+  background: #f6f6f6;
+  border-radius: 999px;
+  padding: 0.25em 1em;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  text-shadow: 0 1px 2px #fff, 0 0.5px 0 #bbb;
+  margin-right: 0.5rem;
+  display: inline-block;
+}
+
+/* Ensure modal root gets .session-modal for targeting */
+#in-session-lobby-modal.session-modal .players-box {
+  background: #e0ebe8;
+}
+
 /* --- Card Layout for Game Table --- */
 .player-area .hand,
 .player-area .opp-hand,

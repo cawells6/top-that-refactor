@@ -427,22 +427,17 @@
       aria-labelledby="in-session-lobby-title"
     >
       <div class="lobby-modal-container">
-        <!-- game-setup-content shares styling with the main lobby card -->
         <div class="game-setup-content">
-          <div class="player-section">
-            <h3 id="in-session-lobby-title" class="section-title">Players</h3>
+          <!-- Players container with new .players-box for custom background -->
+          <div class="player-section players-box">
+            <h3 id="in-session-lobby-title" class="section-title">Users</h3>
             <div id="players-container" class="players-container"></div>
           </div>
           <div class="lobby-buttons-row">
-            <input id="lobby-room-code" class="game-id-input" type="text" readonly maxlength="6" />
-            <!-- Reuse header button styling for consistency with main lobby -->
+            <!-- Removed code input box as requested -->
             <button id="copy-link-button" class="header-btn" type="button">Copy Link</button>
-            <button id="start-game-button" class="header-btn" type="button" disabled>
-              LET'S PLAY
-            </button>
+            <button id="start-game-button" class="header-btn" type="button" disabled>LET'S PLAY</button>
           </div>
-          <!-- Toast message for copy link feedback -->
-          <div id="copy-toast" class="toast" aria-live="polite"></div>
         </div>
       </div>
     </div>

@@ -136,69 +136,50 @@
 
 /* === IN-SESSION LOBBY MODAL STYLES === */
 .in-session-lobby-modal {
-  max-width: 380px;
-  min-width: 300px;
-  /* Ensure this modal appears above the game board */
+  max-width: 320px; /* Shrink modal width for minimal content */
+  min-width: 220px;
+  width: auto;
+  margin: 0 auto;
   z-index: 1100;
 }
 
-.in-session-lobby-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 0.5rem;
-}
-
-<<<<<<< ours
-.player-section {
-  background: #fdfaf0;
-  border: 1px solid #ffebb5;
-  border-radius: 8px;
-  padding: 0.8rem 1rem;
-}
-
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #a56a00;
-  margin: 0 0 0.75rem 0;
-  text-align: center;
-  text-transform: uppercase;
-}
-=======
-/* The following elements reuse main lobby styles from style.css */
->>>>>>> theirs
-
-.players-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.player-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  background-color: #fff;
-  border-left: 5px solid #ccc;
-}
-
-.player-item.host { border-left-color: #ffc107; }
-.player-item.joined { border-left-color: #28a745; }
-
-.player-status {
-  font-size: 0.8rem;
-  font-weight: bold;
-  padding: 3px 10px;
+.in-session-lobby-container .player-section {
+  /* Match main lobby .player-section */
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
   border-radius: 12px;
-  text-transform: uppercase;
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 120px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 1.2rem;
 }
 
-.player-item.host .player-status { background-color: #fff8e1; color: #ff8f00; }
-.player-item.joined .player-status { background-color: #e8f5e9; color: #2e7d32; }
+.in-session-lobby-container .section-title {
+  /* Match main lobby .section-title and use 'Users' verbiage */
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  -webkit-text-stroke: 1px #1b2e3c;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  text-align: center;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* Remove any link at the bottom left of the in-session lobby modal */
+.in-session-lobby-modal a,
+.in-session-lobby-modal .lobby-link {
+  display: none !important;
+}
 
 

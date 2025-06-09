@@ -20,6 +20,8 @@ export class InSessionLobbyModal extends Modal {
       );
     }
     super(modalElement);
+    // Add 'session-modal' class for targeted CSS
+    this.modalElement.classList.add('session-modal');
 
     this.playersContainer = this.modalElement.querySelector('#players-container')!;
     this.roomCodeInput = this.modalElement.querySelector('#lobby-room-code')!;
