@@ -21,7 +21,9 @@
 }
 
 .modal {
-    background: white;
+    /* Match main lobby modal styling */
+    background: var(--header-bg);
+    color: var(--text);
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     z-index: 1051;
@@ -152,14 +154,14 @@
   padding: 0.5rem;
 }
 
-.players-section {
+.player-section {
   background: #fdfaf0;
   border: 1px solid #ffebb5;
   border-radius: 8px;
   padding: 0.8rem 1rem;
 }
 
-.players-section-title {
+.section-title {
   font-size: 1.1rem;
   font-weight: 700;
   color: #a56a00;
