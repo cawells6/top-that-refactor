@@ -149,21 +149,7 @@
   padding: 0.5rem;
 }
 
-.player-section {
-  background: #fdfaf0;
-  border: 1px solid #ffebb5;
-  border-radius: 8px;
-  padding: 0.8rem 1rem;
-}
-
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #a56a00;
-  margin: 0 0 0.75rem 0;
-  text-align: center;
-  text-transform: uppercase;
-}
+/* The following elements reuse main lobby styles from style.css */
 
 .players-container {
   display: flex;
@@ -197,25 +183,4 @@
 .player-item.host .player-status { background-color: #fff8e1; color: #ff8f00; }
 .player-item.joined .player-status { background-color: #e8f5e9; color: #2e7d32; }
 
-.lobby-actions-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
 
-.game-id-input {
-  font-family: monospace;
-  font-size: 1.2rem;
-  font-weight: bold;
-  text-align: center;
-  letter-spacing: 0.1em;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  flex-grow: 1;
-}
-
-.btn.copy-link-btn, .btn.lets-play-btn {
-  white-space: nowrap;
-}
