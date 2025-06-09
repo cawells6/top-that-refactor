@@ -49,10 +49,10 @@ describe('InSessionLobbyModal', () => {
             <h3 class="section-title">Players</h3>
             <div id="players-container" class="players-container"></div>
           </div>
-          <div class="lobby-actions-row">
+          <div class="lobby-buttons-row">
             <input id="lobby-room-code" class="game-id-input" type="text" readonly />
-            <button id="copy-link-btn" class="btn copy-link-btn">Copy Link</button>
-            <button id="start-game-btn" class="btn lets-play-btn" disabled>Let's Play</button>
+            <button id="copy-link-button" class="header-btn" type="button">Copy Link</button>
+            <button id="start-game-button" class="header-btn" type="button" disabled>LET'S PLAY</button>
           </div>
         </div>
       </div>

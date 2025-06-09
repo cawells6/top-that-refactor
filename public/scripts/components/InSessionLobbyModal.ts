@@ -23,8 +23,9 @@ export class InSessionLobbyModal extends Modal {
 
     this.playersContainer = this.modalElement.querySelector('#players-container')!;
     this.roomCodeInput = this.modalElement.querySelector('#lobby-room-code')!;
-    this.copyLinkBtn = this.modalElement.querySelector('#copy-link-btn')!;
-    this.startGameBtn = this.modalElement.querySelector('#start-game-btn')!;
+    // IDs updated to match main lobby styling
+    this.copyLinkBtn = this.modalElement.querySelector('#copy-link-button')!;
+    this.startGameBtn = this.modalElement.querySelector('#start-game-button')!;
 
     this.setupSocketListeners();
     this.addEventListeners();
@@ -65,7 +66,7 @@ export class InSessionLobbyModal extends Modal {
       navigator.userAgent
     );
     if (typeof navigator.share === 'function' && isMobile) {
-      const actionsRow = this.modalElement.querySelector('.lobby-actions-row');
+      const actionsRow = this.modalElement.querySelector('.lobby-buttons-row');
       if (actionsRow) {
         const shareBtn = document.createElement('button');
         shareBtn.id = 'share-link-btn';
@@ -87,6 +88,13 @@ export class InSessionLobbyModal extends Modal {
         actionsRow.insertBefore(shareBtn, this.startGameBtn);
       }
     }
+  }
+
+  // Override Modal.show to hide the main lobby and reveal the game table
+  override show(): void {
+    // Display the game board and hide lobby elements
+    uiManager.showGameTable();
+    super.show();
   }
 
   private render(lobbyState: InSessionLobbyState & { started?: boolean }): void {
