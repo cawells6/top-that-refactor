@@ -663,26 +663,117 @@
 
 /* Smaller, less intrusive secondary modal */
 .in-session-lobby-modal {
-  width: 340px;
-  min-width: 0;
-  max-width: 90vw;
-  padding: 1.2rem 1.5rem;
-  border-radius: 12px;
-  background: var(--header-bg, #fff);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-  z-index: 1051;
-  position: fixed;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
+  background: #fff;
+  border: 2px solid #e6af00;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.13);
+  max-width: 340px;
+  min-width: 260px;
+  padding: 18px 20px 16px 20px;
 }
 
-/* --- Responsive tweak for small screens --- */
-@media (max-width: 400px) {
-  .in-session-lobby-modal {
-    width: 98vw;
-    padding: 0.5rem 0.2rem;
-  }
+.in-session-lobby-modal .players-section {
+  background: #fffbe6;
+  border: 2px solid #ffc300;
+  border-radius: 8px;
+  padding: 0.7em 1em 0.9em 1em;
+  margin-bottom: 1.1em;
+  box-shadow: 0 2px 8px rgba(255, 195, 0, 0.08);
+}
+.in-session-lobby-modal .players-section-title {
+  font-size: 1.13rem;
+  font-weight: 700;
+  color: #b8860b;
+  margin: 0 0 0.5em 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.in-session-lobby-modal .players-container {
+  font-family: 'Inter', 'Roboto', Arial, sans-serif;
+  font-size: 1.08rem;
+  font-weight: 500;
+  color: #1b2e3c;
+}
+
+.in-session-lobby-modal .lobby-actions-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5em;
+  margin-top: 0.7em;
+}
+
+.in-session-lobby-modal .game-id-input {
+  width: 90px;
+  max-width: 100px;
+  text-align: center;
+  letter-spacing: 0.15em;
+  font-size: 1.1em;
+  margin-right: 0.2em;
+}
+
+/* --- SESSION LOBBY BUTTONS: MATCH MAIN LOBBY EXACTLY (NO GRADIENT) --- */
+.in-session-lobby-modal .btn.copy-link-btn {
+  background: #4fa3e3;
+  color: #fff;
+  border: none;
+  font-family: 'Inter', 'Roboto', Arial, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(79, 163, 227, 0.13);
+  padding: 0.5rem 1.2rem;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0 0.1em;
+  display: inline-block;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.in-session-lobby-modal .btn.copy-link-btn:hover,
+.in-session-lobby-modal .btn.copy-link-btn:focus {
+  background: #357ab8;
+  color: #fff;
+  box-shadow: 0 4px 8px rgba(79, 163, 227, 0.18);
+  outline: none;
+}
+.in-session-lobby-modal .btn.copy-link-btn:active {
+  background: #357ab8;
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(79, 163, 227, 0.13);
+}
+
+.in-session-lobby-modal .btn.lets-play-btn {
+  background: #ffc300;
+  color: #222;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.5em 1.5em;
+  text-transform: uppercase;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  box-shadow: none;
+  outline: none;
+  width: auto;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.in-session-lobby-modal .btn.lets-play-btn:hover,
+.in-session-lobby-modal .btn.lets-play-btn:focus {
+  background: #e6bb0d;
+  color: #222;
+  /* Optional: add a subtle shadow or border if main lobby uses it */
+  /* box-shadow: 0 0 0 2px #ffe066; */
+}
+.in-session-lobby-modal .btn.lets-play-btn:active {
+  background: #d4a900;
+  color: #222;
 }
 
 /* --- Accessibility: visible focus style for close button --- */

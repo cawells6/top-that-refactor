@@ -206,6 +206,7 @@ When working on features or fixes, always create new branches:
   - `@shared/*` for shared files
   - `@srcTypes/*` for type definitions
   - `@utils/*` for utility functions
+  - `@controllers/*` for controllers
 - **Jest Configuration**: Custom Jest configuration is in `jest.config.cjs` and uses `babel.config.js` for transpilation.
 
 ## Key Project Details
@@ -266,3 +267,18 @@ The project is following a phased "Get Well Plan" to improve code quality and ma
 4. **Phase 4**: Performance optimization and bug fixes
 
 When working on the codebase, be mindful of which phase we're currently in and prioritize accordingly.
+
+## UI/UX & TECHNICAL BEST PRACTICES FOR MODALS (LOBBY & IN-SESSION)
+
+- **ALWAYS USE UPPERCASE TEXT**: All modal text (headings, labels, player names, status, button text) must be rendered in uppercase for clarity and emphasis. Use `text-transform: uppercase;` in CSS.
+- **ALWAYS USE THE SAME COLOR PALETTE**: All modal buttons and accents must use the same color scheme as the main lobby. For gold: `#ffc300`/`#ffe066` (gradient for gold buttons). For blue: `#4fa3e3`/`#357ab8` (gradient for blue buttons). Never mix or invent new colors for modal UI.
+- **CONSISTENT BUTTON & FONT STYLES**: All modal buttons (e.g., 'Let's Play', 'Copy Link', 'Share', 'Rules') must use the same font family, font size, font weight, border radius, and padding as the main lobby's primary action buttons. Use the same CSS classes and avoid duplicating button styles.
+- **NO !IMPORTANT WORKAROUNDS**: Do not use `!important` in CSS to force style overrides. If a style is not applying, refactor selectors for proper specificity and structure. Document the reason and fix in code comments if needed.
+- **MODAL LAYOUT & ALIGNMENT**: Align all modal content (inputs, buttons, player lists) to match the main lobby's layout. Use horizontal flex rows for action areas, and visually call out sections (like the player list) with background, border, and spacing consistent with the lobby.
+- **PLAYER SECTION**: The players section should be visually distinct (e.g., gold border, light background, padding) and use a clear, modern font for readability.
+- **CODE INPUT**: The code input should be short (for 6-digit codes), centered, and visually grouped with the Copy Link button and action button.
+- **NO DUPLICATE HOST INFO**: Show host info only at the top if needed, never in the player list. If host info is not needed, omit it entirely.
+- **NO FULL-WIDTH BUTTONS**: All modal buttons should be as wide as their text/verbiage (use `width: auto; min-width: 0;`), never full-width or fixed-width unless matching the main lobby.
+- **ACCESSIBILITY**: Ensure sufficient color contrast, bold font weights, and clear focus states for all interactive elements.
+- **NO CAPS LOCK IN CODE, ONLY CSS**: Use `text-transform: uppercase;` in CSS, not caps lock in the code or content.
+- **REFERENCE**: See `public/styles/modals.css` and `public/styles/lobby.css` for implementation details and examples.
