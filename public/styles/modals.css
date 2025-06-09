@@ -661,6 +661,7 @@
   }
 }
 
+/* --- Accessibility: visible focus style for close button --- */
 .modal__close-button:focus {
   outline: 2px solid #ffc300;
   outline-offset: 2px;
