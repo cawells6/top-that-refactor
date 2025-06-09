@@ -148,9 +148,12 @@
   gap: 1rem;
   padding: 0.5rem;
 }
-
-/* The following elements reuse main lobby styles from style.css */
-
+.player-section {
+  background: #fdfaf0;
+  border: 1px solid #ffebb5;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+}
 .players-container {
   display: flex;
   flex-direction: column;
