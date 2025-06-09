@@ -39,8 +39,6 @@ import * as uiManager from './uiManager.js';
 import { initializeSocketHandlers } from './socketService.js';
 
 const JOINED = 'joined';
-const PLAYER_JOINED = 'player-joined';
-const LOBBY = 'lobby';
 const STATE_UPDATE = 'state-update';
 // const REJOIN = 'rejoin';
 
@@ -56,8 +54,8 @@ describe('socketService', () => {
     await initializeSocketHandlers();
     expect(state.socket.on).toHaveBeenCalledWith('connect', expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith(JOINED, expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(PLAYER_JOINED, expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(LOBBY, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith(STATE_UPDATE, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith(STATE_UPDATE, expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
   });
@@ -79,16 +77,6 @@ describe('socketService', () => {
 
     // Verify showLobbyForm was called
     expect(uiManager.showLobbyForm).toHaveBeenCalled();
-  });
-
-  it('calls showWaitingState on LOBBY event', async () => {
-    await initializeSocketHandlers();
-    const lobbyHandler = (state.socket.on as jest.Mock).mock.calls.find(
-      ([event]) => event === LOBBY
-    )[1];
-    const data = { roomId: 'R', players: [{ id: '1' }], maxPlayers: 4 };
-    lobbyHandler(data);
-    expect(uiManager.showWaitingState).toHaveBeenCalledWith('R', 1, 4, data.players);
   });
 
   it('calls renderGameState and showGameTable on STATE_UPDATE', async () => {

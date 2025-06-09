@@ -99,8 +99,8 @@ export class InSessionLobbyModal {
     });
 
     // Only enable the start button for the host
-    startGameBtn.disabled = state.socket?.id !== lobbyState.hostId;
-    
+    startGameBtn.disabled = state.myId !== lobbyState.hostId;
+
     // Show the modal (make it visible)
     console.log('📢 Showing in-session lobby modal for room:', lobbyState.roomId);
     this.modal.show();
