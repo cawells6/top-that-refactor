@@ -49,7 +49,8 @@ export class Modal {
       console.log('📢 Modal already hidden, not hiding again', this.element.id);
       return;
     }
-    console.log('📢 Hiding modal', this.element.id);
+    // Log stack trace for debugging premature hiding
+    console.log('📢 Hiding modal', this.element.id, new Error('Modal.hide() stack trace').stack);
 
     this.backdrop.classList.remove('show');
     this.element.classList.remove('show');
