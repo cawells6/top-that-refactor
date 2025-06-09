@@ -67,7 +67,7 @@ export function showLobbyForm(): void {
 export function hideLobbyForm(): void {
   const lobbyContainer = getLobbyContainer();
   const lobbyFormContent = getLobbyFormContent();
-  
+
   if (lobbyContainer) lobbyContainer.classList.add('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
 }

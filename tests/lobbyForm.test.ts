@@ -39,6 +39,8 @@ jest.mock('../public/scripts/state.js', () => {
     getBackToLobbyButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
+    setCurrentRoom: jest.fn(),
+    setMyId: jest.fn(),
     setDesiredCpuCount: jest.fn(),
     getDesiredCpuCount: jest.fn(() => 0),
   };
@@ -161,11 +163,15 @@ describe('Lobby Form Submission', () => {
 
     const msgBox = document.querySelector('.message-box-content') as HTMLElement;
     expect(msgBox.classList.contains('active')).toBe(false);
-    expect(mockEmit).toHaveBeenCalledWith(JOIN_GAME, {
-      name: 'ChrisP',
-      numHumans: 1,
-      numCPUs: 1,
-    });
+    expect(mockEmit).toHaveBeenCalledWith(
+      JOIN_GAME,
+      {
+        name: 'ChrisP',
+        numHumans: 1,
+        numCPUs: 1,
+      },
+      expect.any(Function)
+    );
     expect(submitButton.disabled).toBe(true);
   });
 

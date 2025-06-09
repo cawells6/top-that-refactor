@@ -1,9 +1,8 @@
 // tests/lobbyServer.test.ts
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 
-import GameController from '../controllers/GameController.js';
-import { JOINED, LOBBY, ERROR } from '../src/shared/events.js';
-import { GameRoomManager } from '../controllers/GameController.js';
+import GameController, { GameRoomManager } from '../controllers/GameController.js';
+import { JOINED, LOBBY_STATE_UPDATE, ERROR } from '../src/shared/events.js';
 
 interface MockSocket {
   id: string;
@@ -73,14 +72,15 @@ describe('Lobby joining', () => {
       name: 'Host',
       roomId: 'test-room',
     });
-    const lobbyCall = topLevelEmitMock.mock.calls.find((c) => c[0] === LOBBY);
+    const lobbyCall = topLevelEmitMock.mock.calls.find((c) => c[0] === LOBBY_STATE_UPDATE);
     expect(lobbyCall).toBeDefined();
     if (lobbyCall) {
       expect(lobbyCall[1]).toEqual(
         expect.objectContaining({
           roomId: 'test-room',
+          hostId: 'HOST_ID',
           players: expect.arrayContaining([
-            expect.objectContaining({ id: 'HOST_ID', name: 'Host', disconnected: false }),
+            expect.objectContaining({ id: 'HOST_ID', name: 'Host', status: 'host' }),
           ]),
         })
       );
@@ -94,15 +94,17 @@ describe('Lobby joining', () => {
       mockIo.sockets.sockets.set(secondSocket.id, secondSocket);
     }
     (gameController['publicHandleJoin'] as Function)(secondSocket, { name: 'Bob', id: 'BOB_ID' });
-    const lobbyCalls = topLevelEmitMock.mock.calls.filter((c) => c[0] === LOBBY);
+    const lobbyCalls = topLevelEmitMock.mock.calls.filter((c) => c[0] === LOBBY_STATE_UPDATE);
     expect(lobbyCalls.length).toBeGreaterThanOrEqual(2);
     const lastLobby = lobbyCalls[lobbyCalls.length - 1] as any;
-    expect(lastLobby[1].players.length).toBe(2);
-    expect(lastLobby[1].players).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: 'HOST_ID' }),
-        expect.objectContaining({ id: 'BOB_ID' }),
-      ])
+    expect(lastLobby[1]).toEqual(
+      expect.objectContaining({
+        hostId: 'HOST_ID',
+        players: expect.arrayContaining([
+          expect.objectContaining({ id: 'HOST_ID' }),
+          expect.objectContaining({ id: 'BOB_ID' }),
+        ]),
+      })
     );
   });
 

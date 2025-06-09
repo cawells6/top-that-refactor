@@ -133,6 +133,8 @@ export class GameRoomManager {
     playerData: PlayerJoinData,
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
+    // `playerData.id` is used by the client to specify the room code.
+    // Internally we treat it as the desired room ID, not the player's ID.
     let roomId = playerData.id;
     let controller: GameController | undefined;
 
@@ -157,7 +159,10 @@ export class GameRoomManager {
       this.log(`Player ${playerData.name || socket.id} attempting to join existing room ${roomId}`);
     }
 
-    controller.publicHandleJoin(socket, playerData, ack);
+    // Pass a copy of playerData without the room identifier so the controller
+    // assigns the joining player's ID from the socket.
+    const joinData = { ...playerData, id: undefined };
+    controller.publicHandleJoin(socket, joinData, ack);
   }
 }
 
@@ -400,11 +405,11 @@ export default class GameController {
 
     // Order is important here - push lobby state BEFORE pushing game state
     // This ensures the in-session lobby modal gets displayed first before any game state updates
-    this.pushLobbyState(); 
-    
+    this.pushLobbyState();
+
     // Log that we're showing the session lobby for this player
     this.log(`Player '${name}' joined room. Showing in-session lobby.`);
-    
+
     // Push game state after lobby state
     this.pushState();
 
@@ -430,7 +435,7 @@ export default class GameController {
       `Handling start game request. Computer count: ${computerCount}. Requested by: ${requestingSocket?.id}`
     );
 
-    if (requestingSocket && requestingSocket.id !== this.hostId) {
+    if (requestingSocket && this.socketIdToPlayerId.get(requestingSocket.id) !== this.hostId) {
       return;
     }
 

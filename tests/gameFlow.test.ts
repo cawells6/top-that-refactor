@@ -5,7 +5,7 @@ import GameController from '../controllers/GameController.js';
 
 // Use string literals for event names to avoid import errors
 const JOINED = 'joined';
-const LOBBY = 'lobby';
+const LOBBY = 'lobby-state-update';
 const STATE_UPDATE = 'state-update';
 const NEXT_TURN = 'next-turn';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -116,12 +116,14 @@ describe('Game Flow - Single Player vs CPU (auto-start)', () => {
     gameController = new GameController(mockIo as any, 'test-room');
   });
 
-  test('Player joins, game auto-starts with 1 CPU, initial state is broadcast', () => {
+  test('Player joins and host starts game with 1 CPU, initial state is broadcast', () => {
     const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
-    // Simulate player joining - should auto start with CPU
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
 
-    // After join, game should already be started
+    // Game should not auto-start for human vs CPU
+    expect(gameController['gameState'].started).toBe(false);
+    (gameController['handleStartGame'] as Function)({ computerCount: 1, socket: globalMockSocket });
+
     expect(gameController['gameState'].started).toBe(true);
     expect(gameController['gameState'].players).toContain(playerData.id);
     expect(gameController['players'].has('COMPUTER_1')).toBe(true);

@@ -30,7 +30,7 @@ export class Modal {
       return;
     }
     console.log('📢 Showing modal', this.element.id);
-    
+
     document.body.appendChild(this.backdrop);
     document.body.appendChild(this.element);
 
@@ -49,7 +49,7 @@ export class Modal {
       return;
     }
     console.log('📢 Hiding modal', this.element.id);
-    
+
     this.backdrop.classList.remove('show');
     this.element.classList.remove('show');
 
