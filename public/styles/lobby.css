@@ -29,14 +29,7 @@
     z-index: 1051;
     max-width: 90%;
     width: 500px;
-    transform: scale(0.95);
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.modal.show {
-    opacity: 1;
-    transform: scale(1);
+    /* Let modals.css handle centering and animations */
 }
 
 .modal-content {
@@ -145,6 +138,8 @@
 .in-session-lobby-modal {
   max-width: 380px;
   min-width: 300px;
+  /* Ensure this modal appears above the game board */
+  z-index: 1100;
 }
 
 .in-session-lobby-container {

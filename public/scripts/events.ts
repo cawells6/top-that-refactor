@@ -479,11 +479,14 @@ export async function initializePageEventListeners() {
     }
 
     // Close modal when clicking overlay
-    overlay.onclick = (e) => {
-      if (e.target === overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (
+        e.target === overlay &&
+        !rulesModal.classList.contains('modal--hidden')
+      ) {
         hideRulesModalAndOverlay();
       }
-    };
+    });
 
     // "Got it!" button in rules modal
     const gotItBtn = document.getElementById('rules-gotit-btn');
