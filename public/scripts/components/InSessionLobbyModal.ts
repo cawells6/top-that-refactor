@@ -6,17 +6,18 @@ import { Modal } from './Modal.js';
 import * as state from '../state.js';
 import * as uiManager from '../uiManager.js';
 
-export class InSessionLobbyModal {
-  private modal: Modal;
-
+export class InSessionLobbyModal extends Modal {
   constructor() {
-    const content = this.createContent();
-    this.modal = new Modal(content, {
-      id: 'in-session-lobby-modal',
-      className: 'game-lobby-modal',
-    });
-    this.setupSocketListeners();
+    super(document.createElement('div'));
+    this.createContent();
     this.addEventListeners();
+    // Always append modal and backdrop to body if not present
+    if (!document.body.contains(this.element)) {
+      document.body.appendChild(this.element);
+    }
+    if (this.backdrop && !document.body.contains(this.backdrop)) {
+      document.body.appendChild(this.backdrop);
+    }
   }
 
   private createContent(): HTMLElement {
@@ -50,7 +51,6 @@ export class InSessionLobbyModal {
   private addEventListeners(): void {
     setTimeout(() => {
       const copyBtn = document.getElementById('copy-game-id-btn');
-      const startGameBtn = document.getElementById('start-game-btn');
 
       copyBtn?.addEventListener('click', () => {
         const gameIdInput = document.getElementById('lobby-room-code') as HTMLInputElement | null;

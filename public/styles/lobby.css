@@ -12,10 +12,12 @@
     z-index: 1050;
     opacity: 0;
     transition: opacity 0.3s ease;
+    pointer-events: none; /* Prevent blocking when hidden */
 }
 
 .modal-overlay.show {
     opacity: 1;
+    pointer-events: auto; /* Only block when visible */
 }
 
 .modal {
