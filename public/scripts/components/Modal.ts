@@ -3,6 +3,11 @@ export class Modal {
   public modalElement: HTMLElement;
   protected backdrop: HTMLElement;
   private isVisible = false;
+  private handleBackdropClick = (e: Event): void => {
+    if (e.target === this.backdrop) {
+      this.hide();
+    }
+  };
 
   constructor(element: HTMLElement) {
     this.modalElement = element;
@@ -26,6 +31,9 @@ export class Modal {
     this.backdrop.classList.remove('modal__overlay--hidden');
     this.modalElement.classList.remove('modal--hidden');
 
+    // Close when clicking outside the modal
+    this.backdrop.addEventListener('click', this.handleBackdropClick);
+
     this.modalElement.focus();
   }
 
@@ -36,5 +44,7 @@ export class Modal {
     console.log(`[Modal] hide() called for #${this.modalElement.id}`);
     this.backdrop.classList.add('modal__overlay--hidden');
     this.modalElement.classList.add('modal--hidden');
+
+    this.backdrop.removeEventListener('click', this.handleBackdropClick);
   }
 }
