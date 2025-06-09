@@ -46,11 +46,15 @@ export class InSessionLobbyModal extends Modal {
       navigator.clipboard
         .writeText(link)
         .then(() => {
-          const originalText = this.copyLinkBtn.textContent;
-          this.copyLinkBtn.textContent = 'Copied!';
-          setTimeout(() => {
-            this.copyLinkBtn.textContent = originalText;
-          }, 2000);
+          // Show transient toast instead of altering button text
+          const toast = this.modalElement.querySelector('#copy-toast');
+          if (toast) {
+            toast.textContent = 'Link copied!';
+            toast.classList.add('show');
+            setTimeout(() => {
+              toast.classList.remove('show');
+            }, 2000);
+          }
           return undefined;
         })
         .catch(() => {});
@@ -112,11 +116,9 @@ export class InSessionLobbyModal extends Modal {
     this.playersContainer.innerHTML = '';
     lobbyState.players.forEach((player) => {
       const playerEl = document.createElement('div');
-      playerEl.className = `player-item ${player.status.toLowerCase()}`;
-      playerEl.innerHTML = `
-        <span class="player-name">${player.name}${player.id === state.socket?.id ? ' (You)' : ''}</span>
-        <span class="player-status">${player.status}</span>
-      `;
+      // Use simplified pill style. Add 'host' class when applicable
+      playerEl.className = `player-item${player.id === lobbyState.hostId ? ' host' : ''}`;
+      playerEl.textContent = `${player.name}${player.id === state.socket?.id ? ' (You)' : ''}`;
       this.playersContainer.appendChild(playerEl);
     });
 
