@@ -11,7 +11,10 @@ export default class Player {
   public name: string;
   public isComputer: boolean;
   public disconnected: boolean;
-  public status: 'host' | 'invited' | 'joined';
+  // Track the player's status in the lobby. A player can be the host,
+  // invited (before joining), joined (connected but not yet ready),
+  // or ready (clicked the "Let's Play" button).
+  public status: 'host' | 'invited' | 'joined' | 'ready';
 
   constructor(id: string) {
     this.id = id;

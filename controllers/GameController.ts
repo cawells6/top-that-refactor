@@ -18,6 +18,7 @@ import {
   PLAY_CARD,
   PICK_UP_PILE,
   LOBBY_STATE_UPDATE,
+  PLAYER_READY,
 } from '../src/shared/events.js';
 import { InSessionLobbyState } from '../src/shared/types.js';
 import {
@@ -202,6 +203,19 @@ export default class GameController {
     );
     socket.on(PLAY_CARD, (data: PlayData) => this.handlePlayCard(socket, data));
     socket.on(PICK_UP_PILE, () => this.handlePickUpPile(socket));
+    socket.on(PLAYER_READY, (playerName: string) => {
+      const playerId = this.socketIdToPlayerId.get(socket.id);
+      if (playerId) {
+        const player = this.players.get(playerId);
+        if (player) {
+          // Update name and mark as ready
+          player.name = playerName;
+          player.status = 'ready';
+          this.pushLobbyState();
+          this.checkIfGameCanStart();
+        }
+      }
+    });
     socket.on('disconnect', () => this.handleDisconnect(socket));
   }
 
@@ -229,6 +243,26 @@ export default class GameController {
 
     console.log('[SERVER] Emitting LOBBY_STATE_UPDATE:', lobbyState);
     this.io.to(this.roomId).emit(LOBBY_STATE_UPDATE, lobbyState);
+  }
+
+  /**
+   * Determine if all human players are ready and start the game automatically.
+   * The host is considered ready by default.
+   */
+  private checkIfGameCanStart(): void {
+    const allPlayers = Array.from(this.players.values());
+    const humanPlayers = allPlayers.filter((p) => !p.isComputer);
+    const allHumansReady = humanPlayers.every(
+      (p) => p.status === 'host' || p.status === 'ready'
+    );
+
+    if (
+      humanPlayers.length === this.expectedHumanCount &&
+      allHumansReady &&
+      !this.gameState.started
+    ) {
+      this.handleStartGame({ computerCount: this.expectedCpuCount });
+    }
   }
 
   public publicHandleJoin(

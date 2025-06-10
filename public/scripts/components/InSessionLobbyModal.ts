@@ -1,5 +1,5 @@
 // public/scripts/components/InSessionLobbyModal.ts
-import { LOBBY_STATE_UPDATE } from '@shared/events.ts';
+import { LOBBY_STATE_UPDATE, PLAYER_READY } from '@shared/events.ts';
 import { InSessionLobbyState } from '@shared/types.ts';
 
 import { Modal } from './Modal.js';
@@ -9,9 +9,10 @@ import { showToast } from '../uiHelpers';
 
 export class InSessionLobbyModal extends Modal {
   private playersContainer: HTMLElement;
-  private roomCodeInput: HTMLInputElement;
   private copyLinkBtn: HTMLButtonElement;
-  private startGameBtn: HTMLButtonElement;
+  private readyUpButton: HTMLButtonElement;
+  private guestNameInput: HTMLInputElement;
+  private currentRoomId: string = '';
 
   constructor() {
     const modalElement = document.getElementById('in-session-lobby-modal');
@@ -25,10 +26,9 @@ export class InSessionLobbyModal extends Modal {
     this.modalElement.classList.add('session-modal');
 
     this.playersContainer = this.modalElement.querySelector('#players-container')!;
-    this.roomCodeInput = this.modalElement.querySelector('#lobby-room-code')!;
-    // IDs updated to match main lobby styling
     this.copyLinkBtn = this.modalElement.querySelector('#copy-link-button')!;
-    this.startGameBtn = this.modalElement.querySelector('#start-game-button')!;
+    this.readyUpButton = this.modalElement.querySelector('#ready-up-button')!;
+    this.guestNameInput = this.modalElement.querySelector('#guest-player-name-input')!;
 
     this.setupSocketListeners();
     this.addEventListeners();
@@ -45,7 +45,7 @@ export class InSessionLobbyModal extends Modal {
 
   private addEventListeners(): void {
     this.copyLinkBtn.addEventListener('click', () => {
-      const link = `${window.location.origin}?room=${this.roomCodeInput.value}`;
+      const link = `${window.location.origin}?room=${this.currentRoomId}`;
       navigator.clipboard
         .writeText(link)
         .then(() => {
@@ -63,11 +63,15 @@ export class InSessionLobbyModal extends Modal {
         .catch(() => {});
     });
 
-    this.startGameBtn.addEventListener('click', () => {
-      // Use state.socket to emit START_GAME
-      import('../state.js').then(({ socket }) => {
-        socket?.emit('start-game');
-      });
+    this.readyUpButton.addEventListener('click', () => {
+      const playerName = this.guestNameInput.value.trim();
+      if (playerName) {
+        state.socket?.emit(PLAYER_READY, playerName);
+        this.readyUpButton.disabled = true;
+        this.guestNameInput.disabled = true;
+      } else {
+        showToast('Please enter your name!', 'error');
+      }
     });
   }
 
@@ -84,18 +88,18 @@ export class InSessionLobbyModal extends Modal {
         shareBtn.textContent = 'Share';
 
         shareBtn.addEventListener('click', async () => {
-          const link = `${window.location.origin}?room=${this.roomCodeInput.value}`;
+          const link = `${window.location.origin}?room=${this.currentRoomId}`;
           try {
             await navigator.share({
               title: 'Join my Top That! game',
-              text: `Join my game of Top That! The room code is ${this.roomCodeInput.value}`,
+              text: `Join my game of Top That! The room code is ${this.currentRoomId}`,
               url: link,
             });
           } catch {
             // Share was cancelled or failed.
           }
         });
-        actionsRow.insertBefore(shareBtn, this.startGameBtn);
+        actionsRow.insertBefore(shareBtn, this.readyUpButton);
       }
     }
   }
@@ -128,13 +132,21 @@ export class InSessionLobbyModal extends Modal {
       this.playersContainer.appendChild(playerEl);
     });
 
-    this.roomCodeInput.value = lobbyState.roomId;
+    this.currentRoomId = lobbyState.roomId;
 
     const params = new URLSearchParams(window.location.search);
     if (params.get('room') !== lobbyState.roomId) {
       window.history.replaceState({}, '', `?room=${lobbyState.roomId}`);
     }
-    this.startGameBtn.disabled = state.myId !== lobbyState.hostId;
+
+    const localPlayer = lobbyState.players.find((p) => p.id === state.myId);
+    if (localPlayer && (localPlayer.status === 'host' || localPlayer.status === 'ready')) {
+      this.guestNameInput.style.display = 'none';
+      this.readyUpButton.style.display = 'none';
+    } else {
+      this.guestNameInput.style.display = 'block';
+      this.readyUpButton.style.display = 'block';
+    }
   }
 }
 
@@ -168,7 +180,8 @@ export function setupInSessionLobbyModal(roomId: string): void {
   if (!modal) return;
 
   const copyLinkButton = document.getElementById('copy-link-button');
-  const startGameButton = document.getElementById('start-game-button') as HTMLButtonElement;
+  const readyButton = document.getElementById('ready-up-button') as HTMLButtonElement;
+  const nameInput = document.getElementById('guest-player-name-input') as HTMLInputElement;
 
   if (copyLinkButton) {
     // Replace the button with a clone of itself to remove any old event listeners
@@ -196,16 +209,23 @@ export function setupInSessionLobbyModal(roomId: string): void {
     });
   }
 
-  if (startGameButton) {
-    startGameButton.addEventListener('click', () => {
-      import('../state.js')
-        .then(({ socket }) => {
-          socket?.emit('start-game');
-          return undefined;
-        })
-        .catch((err) => {
-          console.error('Failed to emit START_GAME:', err);
-        });
+  if (readyButton) {
+    readyButton.addEventListener('click', () => {
+      const playerName = nameInput?.value.trim();
+      if (playerName) {
+        import('../state.js')
+          .then(({ socket }) => {
+            socket?.emit(PLAYER_READY, playerName);
+            return undefined;
+          })
+          .catch((err) => {
+            console.error('Failed to emit PLAYER_READY:', err);
+          });
+        readyButton.disabled = true;
+        if (nameInput) nameInput.disabled = true;
+      } else {
+        showToast('Please enter your name!', 'error');
+      }
     });
   }
 }

@@ -1,7 +1,8 @@
 // public/scripts/main.ts
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
-import { socket, socketReady } from './state.js';
+import { JOIN_GAME } from '@shared/events.ts';
+import { socket, socketReady, setCurrentRoom } from './state.js';
 
 console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
@@ -103,17 +104,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Only run join link logic if NOT in-session
   const inSession = document.body.classList.contains('in-session');
   if (roomIdFromUrl && !inSession) {
-    sessionStorage.setItem('currentRoom', roomIdFromUrl);
-    // Only update join code inputs if they are empty
-    const joinCodeInputs = document.querySelectorAll<HTMLInputElement>(
-      '#join-code-input, #lobby-room-code'
-    );
-    joinCodeInputs.forEach((input) => {
-      if (!input.value) {
-        input.value = roomIdFromUrl.toUpperCase();
-      }
-    });
-    // Clean up the URL to prevent issues on page refresh
+    setCurrentRoom(roomIdFromUrl);
+    socket.emit(JOIN_GAME, { id: roomIdFromUrl });
     window.history.replaceState({}, document.title, window.location.pathname);
   }
   // --- END: New logic for handling join links ---

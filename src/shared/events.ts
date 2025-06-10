@@ -32,6 +32,7 @@ export const MESSAGE: string = 'message'; // Generic message from server
 
 // Lobby events
 export const LOBBY_STATE_UPDATE: string = 'lobby-state-update';
+export const PLAYER_READY: string = 'player-ready';
 export const SEND_INVITE: string = 'send-invite';
 
 // Optional: You could also define these as an enum if you prefer,
