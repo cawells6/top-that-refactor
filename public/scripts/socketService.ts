@@ -30,10 +30,23 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
     renderGameState(s, state.myId);
   });
+  state.socket.on('lobby-state-update', (lobbyState) => {
+    import('./render.js')
+      .then(({ renderLobbyState }) => {
+        renderLobbyState(lobbyState);
+        return undefined;
+      })
+      .catch((err) => {
+        console.error('Failed to load renderLobbyState:', err);
+      });
+  });
 
   // Handle error or failed rejoin from server
   state.socket.on('err', (msg: string) => {
     showLobbyForm();
     showError(msg);
+    // Clear stored room and player IDs if rejoin fails
+    state.setCurrentRoom(null);
+    state.setMyId(null);
   });
 }

@@ -1,10 +1,11 @@
 // public/scripts/components/InSessionLobbyModal.ts
-import { LOBBY_STATE_UPDATE, START_GAME } from '@shared/events.ts';
+import { LOBBY_STATE_UPDATE } from '@shared/events.ts';
 import { InSessionLobbyState } from '@shared/types.ts';
 
 import { Modal } from './Modal.js';
 import * as state from '../state.js';
 import * as uiManager from '../uiManager.js';
+import { showToast } from '../uiHelpers';
 
 export class InSessionLobbyModal extends Modal {
   private playersContainer: HTMLElement;
@@ -63,7 +64,10 @@ export class InSessionLobbyModal extends Modal {
     });
 
     this.startGameBtn.addEventListener('click', () => {
-      if (state.socket) state.socket.emit(START_GAME);
+      // Use state.socket to emit START_GAME
+      import('../state.js').then(({ socket }) => {
+        socket?.emit('start-game');
+      });
     });
   }
 
@@ -131,5 +135,77 @@ export class InSessionLobbyModal extends Modal {
       window.history.replaceState({}, '', `?room=${lobbyState.roomId}`);
     }
     this.startGameBtn.disabled = state.myId !== lobbyState.hostId;
+  }
+}
+
+// Additional standalone script to handle copy link button functionality
+const copyLinkButton = document.getElementById('copy-link-button') as HTMLButtonElement;
+const lobbyRoomCodeInput = document.getElementById('lobby-room-code') as HTMLInputElement;
+
+if (copyLinkButton && lobbyRoomCodeInput) {
+  copyLinkButton.addEventListener('click', () => {
+    const roomId = lobbyRoomCodeInput.value;
+    if (roomId) {
+      // Construct a full URL with the room ID as a query parameter
+      const joinUrl = `${window.location.origin}?room=${roomId}`;
+
+      navigator.clipboard
+        .writeText(joinUrl)
+        .then(() => {
+          alert('Join link copied to clipboard!');
+          return;
+        })
+        .catch((err) => {
+          console.error('Failed to copy link: ', err);
+          alert('Error copying link.');
+        });
+    }
+  });
+}
+
+export function setupInSessionLobbyModal(roomId: string): void {
+  const modal = document.getElementById('in-session-lobby-modal');
+  if (!modal) return;
+
+  const copyLinkButton = document.getElementById('copy-link-button');
+  const startGameButton = document.getElementById('start-game-button') as HTMLButtonElement;
+
+  if (copyLinkButton) {
+    // Replace the button with a clone of itself to remove any old event listeners
+    const newCopyButton = copyLinkButton.cloneNode(true) as HTMLButtonElement;
+    copyLinkButton.parentNode?.replaceChild(newCopyButton, copyLinkButton);
+
+    // Add a new, correct event listener
+    newCopyButton.addEventListener('click', () => {
+      if (!roomId) {
+        showToast('Room code is not available.', 'error');
+        return;
+      }
+
+      // Construct the full shareable URL
+      const joinUrl = `${window.location.origin}?room=${roomId}`;
+
+      navigator.clipboard.writeText(joinUrl).then(
+        () => {
+          showToast('Join link copied to clipboard!', 'success');
+        },
+        () => {
+          showToast('Failed to copy link.', 'error');
+        }
+      );
+    });
+  }
+
+  if (startGameButton) {
+    startGameButton.addEventListener('click', () => {
+      import('../state.js')
+        .then(({ socket }) => {
+          socket?.emit('start-game');
+          return undefined;
+        })
+        .catch((err) => {
+          console.error('Failed to emit START_GAME:', err);
+        });
+    });
   }
 }

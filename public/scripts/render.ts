@@ -1,4 +1,6 @@
 import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
+import { setupInSessionLobbyModal } from './components/InSessionLobbyModal.js';
+import { InSessionLobbyState } from '../../src/shared/types.js';
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 export function code(card: CardType): string {
@@ -544,4 +546,13 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
     }
   }
   tryRunEffect();
+}
+
+/**
+ * Render the lobby state and setup the in-session lobby modal
+ * @param {InSessionLobbyState} lobbyState - The current state of the lobby
+ */
+export function renderLobbyState(lobbyState: InSessionLobbyState): void {
+  // Show the modal and update the UI as needed (add your UI logic here)
+  setupInSessionLobbyModal(lobbyState.roomId);
 }

@@ -1,5 +1,4 @@
 // public/scripts/main.ts
-import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
 import { socket, socketReady } from './state.js';
@@ -16,12 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // sessionStorage.removeItem('myId');
   // sessionStorage.removeItem('currentRoom');
   // sessionStorage.removeItem('desiredCpuCount');
-
-  const params = new URLSearchParams(window.location.search);
-  const roomFromLink = params.get('room');
-  if (roomFromLink) {
-    sessionStorage.setItem('currentRoom', roomFromLink);
-  }
 
   try {
     await socketReady;
@@ -43,7 +36,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 [Client] initializePageEventListeners completed');
 
     initializeSocketHandlers();
-    new InSessionLobbyModal();
     console.log('🚀 [Client] All initialization completed');
   } catch (error) {
     console.error('Error during initialization:', error);
@@ -103,4 +95,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     lobbyContainer.style.opacity = '1';
   }
   console.log('🚀 [Client] Lobby explicitly made visible.');
+
+  // --- START: New logic for handling join links ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomIdFromUrl = urlParams.get('room');
+
+  // Only run join link logic if NOT in-session
+  const inSession = document.body.classList.contains('in-session');
+  if (roomIdFromUrl && !inSession) {
+    sessionStorage.setItem('currentRoom', roomIdFromUrl);
+    // Only update join code inputs if they are empty
+    const joinCodeInputs = document.querySelectorAll<HTMLInputElement>(
+      '#join-code-input, #lobby-room-code'
+    );
+    joinCodeInputs.forEach((input) => {
+      if (!input.value) {
+        input.value = roomIdFromUrl.toUpperCase();
+      }
+    });
+    // Clean up the URL to prevent issues on page refresh
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+  // --- END: New logic for handling join links ---
 });

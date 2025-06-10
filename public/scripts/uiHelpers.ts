@@ -27,3 +27,30 @@ export function validateName(): string | null {
   alert('Please enter a name between 1 and 20 characters.');
   return null;
 }
+
+export function showToast(message: string, type: 'success' | 'error' = 'success') {
+  // Simple toast implementation
+  const toast = document.createElement('div');
+  toast.className = `toast toast--${type}`;
+  toast.textContent = message;
+  Object.assign(toast.style, {
+    position: 'fixed',
+    bottom: '32px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: type === 'success' ? '#28a745' : '#dc3545',
+    color: '#fff',
+    padding: '12px 24px',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    zIndex: 9999,
+    fontSize: '1.1rem',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    opacity: '0.95',
+    pointerEvents: 'none',
+  });
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, 2000);
+}
