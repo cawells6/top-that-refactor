@@ -241,11 +241,8 @@ export class InSessionLobbyModal extends Modal {
       const playerEl = document.createElement('div');
       playerEl.className = 'player-item';
 
-      // Update the way player names are displayed
+      // Remove (You) from player name display
       let playerName = player.name;
-      if (isCurrentPlayer) {
-        playerName += ' (You)';
-      }
 
       // Add player name first
       playerEl.textContent = playerName;
@@ -264,8 +261,16 @@ export class InSessionLobbyModal extends Modal {
         playerEl.textContent = '';
         const nameSpan = document.createElement('span');
         nameSpan.textContent = playerName;
+        nameSpan.className = 'player-name';
         playerEl.appendChild(nameSpan);
         playerEl.appendChild(hostBadge);
+      } else {
+        // Always wrap name in span for consistent styling
+        playerEl.textContent = '';
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = playerName;
+        nameSpan.className = 'player-name';
+        playerEl.appendChild(nameSpan);
       }
 
       this.playersContainer.appendChild(playerEl);

@@ -1404,22 +1404,37 @@ body {
 
 .in-session-lobby-modal .player-item {
   background: #fff;
-  border: 2px solid var(--accent);
+  border: 2.5px solid var(--accent);
   border-radius: 999px;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 0.9em;
   color: #1b2e3c;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 0;
+  max-width: 40vw;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
-.in-session-lobby-modal .player-item.host::after {
-  content: 'HOST';
-  margin-left: 0.5rem;
-  background: var(--accent);
-  color: #1b2e3c;
-  padding: 0 0.4rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
+.in-session-lobby-modal .player-item .player-name {
+  font-size: 1.25rem;
   font-weight: 700;
+  color: #2a2a2a;
+  background: none;
+  border-radius: 999px;
+  padding: 0;
+  box-shadow: none;
+  text-shadow: 0 1px 2px #fff, 0 0.5px 0 #bbb;
+  margin-right: 0;
+  display: inline-block;
+  border: none;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* Toast used for copy link feedback */
