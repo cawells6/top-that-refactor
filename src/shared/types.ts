@@ -32,10 +32,12 @@ export interface GameStateData {
   lastRealCard: Card | null;
 }
 
+// Represents a player in the lobby. `status` shows whether the
+// player is the host, just joined, or has clicked the ready button.
 export interface LobbyPlayer {
   id: string;
   name: string;
-  status: 'host' | 'invited' | 'joined';
+  status: 'host' | 'invited' | 'joined' | 'ready';
 }
 
 export interface InSessionLobbyState {

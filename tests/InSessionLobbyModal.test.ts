@@ -6,7 +6,7 @@ import { fireEvent, screen } from '@testing-library/dom';
 
 import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobbyModal';
 import * as state from '../public/scripts/state';
-import { START_GAME } from '../src/shared/events';
+import { PLAYER_READY } from '../src/shared/events';
 import { InSessionLobbyState } from '../src/shared/types';
 
 jest.mock('../public/scripts/state', () => ({
@@ -31,28 +31,29 @@ Object.assign(navigator, {
 describe('InSessionLobbyModal', () => {
   let modalInstance: InSessionLobbyModal;
 
-  const mockLobbyState: InSessionLobbyState = {
-    roomId: 'TEST12',
-    hostId: 'host-id',
-    players: [
-      { id: 'host-id', name: 'Host Player', status: 'host' },
-      { id: 'my-socket-id', name: 'Me', status: 'joined' },
-    ],
-  };
+  let mockLobbyState: InSessionLobbyState;
 
   beforeEach(() => {
+    mockLobbyState = {
+      roomId: 'TEST12',
+      hostId: 'host-id',
+      players: [
+        { id: 'host-id', name: 'Host Player', status: 'host' },
+        { id: 'my-socket-id', name: 'Me', status: 'joined' },
+      ],
+    };
     document.body.innerHTML = `
       <div id="modal-overlay" class="modal__overlay modal__overlay--hidden"></div>
       <div class="modal modal--hidden in-session-lobby-modal" id="in-session-lobby-modal" tabindex="-1">
         <div class="in-session-lobby-container">
-          <div class="player-section">
-            <h3 class="section-title">Players</h3>
-            <div id="players-container" class="players-container"></div>
+          <h3 id="in-session-lobby-title" class="section-title">Waiting for Players...</h3>
+          <div class="name-input-section" id="guest-name-section">
+            <input id="guest-player-name-input" type="text" />
           </div>
+          <div id="players-container" class="players-container"></div>
           <div class="lobby-buttons-row">
-            <input id="lobby-room-code" class="game-id-input" type="text" readonly />
             <button id="copy-link-button" class="header-btn" type="button">Copy Link</button>
-            <button id="start-game-button" class="header-btn" type="button" disabled>LET'S PLAY</button>
+            <button id="ready-up-button" class="header-btn" type="button">Let's Play</button>
           </div>
         </div>
       </div>
@@ -70,32 +71,29 @@ describe('InSessionLobbyModal', () => {
     expect(screen.getByText('Me (You)')).toBeInTheDocument();
   });
 
-  it('should display the correct room code', () => {
-    const roomCodeInput = screen.getByRole('textbox') as HTMLInputElement;
-    expect(roomCodeInput.value).toBe('TEST12');
+  it('shows the ready button for non-ready players', () => {
+    const readyButton = screen.getByRole('button', { name: /Let's Play/i });
+    expect(readyButton).toBeInTheDocument();
+    expect(readyButton).toBeEnabled();
   });
 
-  it('should have the "Start Game" button disabled for non-host players', () => {
-    const startButton = screen.getByRole('button', { name: /Let's Play/i });
-    expect(startButton).toBeDisabled();
-  });
-
-  it('should enable the "Start Game" button for the host player', () => {
+  it('hides the ready button when the local player is host', () => {
     mockLobbyState.hostId = 'my-socket-id';
+    mockLobbyState.players[1].status = 'host';
     (modalInstance as any).render(mockLobbyState);
 
-    const startButton = screen.getByRole('button', { name: /Let's Play/i });
-    expect(startButton).toBeEnabled();
+    const readyButton = document.getElementById('ready-up-button') as HTMLButtonElement;
+    expect(readyButton).toHaveStyle('display: none');
   });
 
-  it('should emit START_GAME event when the enabled start button is clicked', () => {
-    mockLobbyState.hostId = 'my-socket-id';
-    (modalInstance as any).render(mockLobbyState);
+  it('emits PLAYER_READY with name when the button is clicked', () => {
+    const nameInput = screen.getByRole('textbox') as HTMLInputElement;
+    nameInput.value = 'Tester';
 
-    const startButton = screen.getByRole('button', { name: /Let's Play/i });
-    fireEvent.click(startButton);
+    const readyButton = screen.getByRole('button', { name: /Let's Play/i });
+    fireEvent.click(readyButton);
 
-    expect(state.socket.emit).toHaveBeenCalledWith(START_GAME);
+    expect(state.socket.emit).toHaveBeenCalledWith(PLAYER_READY, 'Tester');
   });
 
   it('should copy the game link to the clipboard when "Copy Link" is clicked', () => {
