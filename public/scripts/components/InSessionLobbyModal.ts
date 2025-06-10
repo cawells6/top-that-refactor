@@ -34,13 +34,13 @@ export class InSessionLobbyModal extends Modal {
     this.readyUpButton = this.modalElement.querySelector('#ready-up-button')!;
     this.guestNameInput = this.modalElement.querySelector('#guest-player-name-input')!;
 
-    // Update input field to match main lobby's "Who's playing today?" field
+    // Update input field to match main lobby's "Who's playing today?" field with centered text
     if (this.guestNameInput) {
       this.guestNameInput.setAttribute('placeholder', "Who's playing today?");
       this.guestNameInput.className = 'player-name-input';
       this.guestNameInput.setAttribute(
         'style',
-        'width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px;'
+        'width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; text-align: center;'
       );
     }
 
@@ -152,12 +152,13 @@ export class InSessionLobbyModal extends Modal {
   }
 
   private applyProfessionalStyling(): void {
-    // Update heading to all uppercase with reduced letter spacing only
+    // Update heading to all uppercase with reduced letter spacing and center alignment
     const heading = this.modalElement.querySelector('h2, h3, .modal-title');
     if (heading) {
       heading.textContent = 'AWAITING PLAYERS';
-      // Only adjust letter spacing without changing font weight or other properties
+      // Add letter spacing and center alignment
       heading.style.letterSpacing = '-0.05em';
+      heading.style.textAlign = 'center';
     }
 
     // Add shadow and adjust padding
