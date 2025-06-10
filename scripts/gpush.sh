@@ -8,7 +8,7 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
-# Get the commit message
+# Get the commit message from all arguments
 MSG="$*"
 
 # If no commit message provided, use a default
