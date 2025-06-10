@@ -603,6 +603,7 @@ export default class GameController {
     // Only allow a human to start the game. If the first player is a CPU, do not auto-play.
     // If you want to force a human to always be first, ensure player order is set accordingly before this point.
     // If the first player is a CPU, do NOT call playComputerTurn.
+    this.pushLobbyState();
   }
 
   private handlePlayCard(socket: Socket, { cardIndices, zone }: PlayData): void {

@@ -1,8 +1,10 @@
 // public/scripts/main.ts
+import { JOIN_GAME } from '@shared/events.ts';
+
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
-import { JOIN_GAME } from '@shared/events.ts';
 import { socket, socketReady, setCurrentRoom } from './state.js';
+import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 
 console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
@@ -18,6 +20,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // sessionStorage.removeItem('desiredCpuCount');
 
   try {
+    // Instantiate the in-session lobby modal so it can listen for events
+    new InSessionLobbyModal();
+
     await socketReady;
 
     // Attach socket event listeners after socket is ready
