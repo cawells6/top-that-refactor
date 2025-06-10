@@ -227,20 +227,28 @@ export class InSessionLobbyModal extends Modal {
 
     this.playersContainer.innerHTML = '';
     lobbyState.players.forEach((player) => {
+      // Don't show players who haven't selected their name yet
+      const isCurrentPlayer = player.id === state.socket?.id;
+      const hasSelectedName = player.status === 'ready' || player.status === 'host';
+      
+      // Skip rendering this player if they're the current user and haven't selected a name
+      if (isCurrentPlayer && !hasSelectedName) {
+        return; // Don't show the player at all until they select a name
+      }
+
       const playerEl = document.createElement('div');
-      // Choose one approach for host display - use just the badge approach
       playerEl.className = 'player-item';
 
       // Update the way player names are displayed
       let playerName = player.name;
-      if (player.id === state.socket?.id) {
+      if (isCurrentPlayer) {
         playerName += ' (You)';
       }
 
       // Add player name first
       playerEl.textContent = playerName;
       
-      // Add host badge if applicable, but don't use duplicate host class
+      // Add host badge if applicable
       if (player.id === lobbyState.hostId) {
         const hostBadge = document.createElement('span');
         hostBadge.textContent = 'Host';
