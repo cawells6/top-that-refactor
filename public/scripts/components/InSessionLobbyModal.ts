@@ -151,26 +151,33 @@ export class InSessionLobbyModal extends Modal {
     super.show();
   }
 
+  // Simplify the modal styling to match the main lobby approach
+  private setModalWidth(width: number): void {
+    // Only set width on the outer modal - let CSS handle the rest
+    this.modalElement.style.maxWidth = `${width}px`;
+    this.modalElement.style.width = '90%';
+
+    // Use the same class structure as the main lobby
+    this.modalElement.classList.add('session-modal');
+
+    // Let the background color come from CSS variables like in the main lobby
+    const container = this.modalElement.querySelector('.lobby-modal-container');
+    if (container instanceof HTMLElement) {
+      container.style.width = '100%';
+      container.style.maxWidth = `${width - 40}px`;
+    }
+  }
+
   private applyProfessionalStyling(): void {
     // Update heading to all uppercase with reduced letter spacing and center alignment
     const heading = this.modalElement.querySelector('h2, h3, .modal-title');
     if (heading) {
       heading.textContent = 'AWAITING PLAYERS';
       // Add letter spacing and center alignment
-      heading.style.letterSpacing = '-0.05em';
-      heading.style.textAlign = 'center';
+      (heading as HTMLElement).style.letterSpacing = '-0.05em';
+      (heading as HTMLElement).style.textAlign = 'center';
     }
 
-    // Add shadow and adjust padding
-    const modalContent = this.modalElement.querySelector('.modal-content, .card');
-    if (modalContent) {
-      modalContent.className += ' shadow-lg';
-      modalContent.setAttribute(
-        'style',
-        'padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);'
-      );
-    }
-    
     // Reduce player names container size by half
     if (this.playersContainer) {
       this.playersContainer.setAttribute(
@@ -179,16 +186,16 @@ export class InSessionLobbyModal extends Modal {
       );
     }
 
-    // Adjust spacing above buttons and increase margin for copy link button
+    // Adjust spacing above buttons
     const buttonRow = this.modalElement.querySelector('.lobby-buttons-row, .button-container');
     if (buttonRow) {
       buttonRow.className += ' mt-4';
       buttonRow.setAttribute('style', 'margin-top: 24px;');
     }
-    
-    // Add more space around the copy link button
+
+    // Style the copy link button
     if (this.copyLinkBtn) {
-      this.copyLinkBtn.setAttribute('style', 'margin-top: 16px; font-weight: 600;');
+      this.copyLinkBtn.setAttribute('style', 'font-weight: 600;');
     }
 
     // Apply consistent font weights to other buttons
@@ -197,7 +204,7 @@ export class InSessionLobbyModal extends Modal {
       button.setAttribute('style', 'font-weight: 600;');
     });
 
-    // Style the input container to match the main lobby
+    // Style the input container
     const inputContainer = this.guestNameInput?.parentElement;
     if (inputContainer) {
       inputContainer.className = 'name-input-container';
@@ -205,11 +212,6 @@ export class InSessionLobbyModal extends Modal {
         'style',
         'margin: 16px 0; width: 100%; max-width: 300px; margin: 0 auto;'
       );
-    }
-    
-    // Remove the half-width styling for input field since we want it to match the main lobby
-    if (this.guestNameInput) {
-      // Styling is now applied in the constructor to match main lobby
     }
   }
 
@@ -230,7 +232,7 @@ export class InSessionLobbyModal extends Modal {
       // Don't show players who haven't selected their name yet
       const isCurrentPlayer = player.id === state.socket?.id;
       const hasSelectedName = player.status === 'ready' || player.status === 'host';
-      
+
       // Skip rendering this player if they're the current user and haven't selected a name
       if (isCurrentPlayer && !hasSelectedName) {
         return; // Don't show the player at all until they select a name
@@ -247,7 +249,7 @@ export class InSessionLobbyModal extends Modal {
 
       // Add player name first
       playerEl.textContent = playerName;
-      
+
       // Add host badge if applicable
       if (player.id === lobbyState.hostId) {
         const hostBadge = document.createElement('span');
@@ -257,7 +259,7 @@ export class InSessionLobbyModal extends Modal {
           'style',
           'font-size: 0.8em; font-weight: 600; margin-left: 8px; padding: 2px 6px; border-radius: 4px; background-color: rgba(0,0,0,0.1);'
         );
-        
+
         // Clear the element and rebuild it with spans
         playerEl.textContent = '';
         const nameSpan = document.createElement('span');
@@ -302,73 +304,26 @@ export class InSessionLobbyModal extends Modal {
       }, 100);
     }
   }
-
-  // Add this method to ensure consistent sizing across modals
-  private setModalWidth(width: number): void {
-    // Apply width to the modal element directly
-    this.modalElement.style.maxWidth = `${width}px`;
-    this.modalElement.style.width = '90%';
-
-    // Also set width on inner container if it exists (for consistent inner spacing)
-    const container = this.modalElement.querySelector('.lobby-modal-container');
-    if (container instanceof HTMLElement) {
-      container.style.width = '100%';
-      container.style.maxWidth = `${width - 40}px`; // Account for padding
-    }
-
-    // Add class to ensure CSS can target this modal type specifically
-    this.modalElement.classList.add('session-modal');
-  }
 }
 
-// Additional standalone script to handle copy link button functionality
-const copyLinkButton = document.getElementById('copy-link-button') as HTMLButtonElement;
-const lobbyRoomCodeInput = document.getElementById('lobby-room-code') as HTMLInputElement;
-
-if (copyLinkButton && lobbyRoomCodeInput) {
-  copyLinkButton.addEventListener('click', () => {
-    const roomId = lobbyRoomCodeInput.value;
-    if (roomId) {
-      // Construct a full URL with the room ID as a query parameter
-      const joinUrl = `${window.location.origin}?room=${roomId}`;
-
-      navigator.clipboard
-        .writeText(joinUrl)
-        .then(() => {
-          alert('Join link copied to clipboard!');
-          return;
-        })
-        .catch((err) => {
-          console.error('Failed to copy link: ', err);
-          alert('Error copying link.');
-        });
-    }
-  });
-}
-
+// Place this function OUTSIDE the class body:
 export function setupInSessionLobbyModal(roomId: string): void {
   const modal = document.getElementById('in-session-lobby-modal');
   if (!modal) return;
-
   const copyLinkButton = document.getElementById('copy-link-button');
   const readyButton = document.getElementById('ready-up-button') as HTMLButtonElement;
   const nameInput = document.getElementById('guest-player-name-input') as HTMLInputElement;
-
   if (copyLinkButton) {
     // Replace the button with a clone of itself to remove any old event listeners
     const newCopyButton = copyLinkButton.cloneNode(true) as HTMLButtonElement;
     copyLinkButton.parentNode?.replaceChild(newCopyButton, copyLinkButton);
-
     // Add a new, correct event listener
     newCopyButton.addEventListener('click', () => {
       if (!roomId) {
         showToast('Room code is not available.', 'error');
         return;
       }
-
-      // Construct the full shareable URL
       const joinUrl = `${window.location.origin}?room=${roomId}`;
-
       navigator.clipboard
         .writeText(joinUrl)
         .then(() => {
@@ -381,7 +336,6 @@ export function setupInSessionLobbyModal(roomId: string): void {
         });
     });
   }
-
   if (readyButton) {
     readyButton.addEventListener('click', () => {
       const playerName = nameInput?.value.trim();

@@ -136,11 +136,12 @@
 
 /* === IN-SESSION LOBBY MODAL STYLES === */
 .in-session-lobby-modal {
-  max-width: 320px; /* Shrink modal width for minimal content */
   min-width: 220px;
-  width: auto;
+  width: 500px; /* Fixed width instead of auto */
+  max-width: 90%; /* Ensure it's responsive */
   margin: 0 auto;
   z-index: 1100;
+  overflow: hidden; /* Prevent content from extending beyond boundaries */
 }
 
 .in-session-lobby-container .player-section {

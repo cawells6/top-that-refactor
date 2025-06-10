@@ -1,6 +1,5 @@
 import { JOINED, STATE_UPDATE, REJOIN } from '@shared/events.ts';
 import { GameStateData } from '@shared/types.ts';
-
 import { renderGameState } from './render.js';
 import * as state from './state.js';
 import { showLobbyForm, showGameTable, showError } from './uiManager.js';

@@ -1,7 +1,12 @@
 // public/scripts/components/MainLobbyModal.ts
 import { Modal } from './Modal.js';
+import * as uiManager from '../uiManager.js';
 
 export class MainLobbyModal extends Modal {
+  private playersContainer: HTMLElement;
+  private copyLinkBtn: HTMLButtonElement;
+  private guestNameInput: HTMLInputElement;
+
   constructor() {
     const modalElement = document.getElementById('main-lobby-modal');
     if (!modalElement) {
@@ -10,6 +15,11 @@ export class MainLobbyModal extends Modal {
       );
     }
     super(modalElement);
+
+    // Initialize DOM element references
+    this.playersContainer = this.modalElement.querySelector('#players-container')!;
+    this.copyLinkBtn = this.modalElement.querySelector('#copy-link-button')!;
+    this.guestNameInput = this.modalElement.querySelector('#guest-player-name-input')!;
 
     // Set consistent width that will match the in-session lobby
     this.setModalWidth(500);
@@ -24,12 +34,12 @@ export class MainLobbyModal extends Modal {
       letsPlayHeading.setAttribute(
         'style',
         'letter-spacing: -1px; ' +
-        'font-family: inherit; ' +
-        'font-size: 18px; ' +
-        'font-weight: 500; ' +
-        'color: #333333; ' + 
-        'margin-bottom: 16px; ' +
-        'text-align: center;'
+          'font-family: inherit; ' +
+          'font-size: 18px; ' +
+          'font-weight: 500; ' +
+          'color: #333333; ' +
+          'margin-bottom: 16px; ' +
+          'text-align: center;'
       );
     }
   }
@@ -46,21 +56,21 @@ export class MainLobbyModal extends Modal {
     const heading = this.modalElement.querySelector('h2, h3, .modal-title');
     if (heading) {
       heading.textContent = 'Awaiting Players';
-      
+
       // Remove any existing classes that might add shading or gradients
       heading.className = '';
-      
+
       // Apply clean, consistent styling to match player names
       heading.setAttribute(
         'style',
         'letter-spacing: -1px; ' +
-        'font-family: inherit; ' +
-        'font-weight: normal; ' +
-        'font-size: 16px; ' +
-        'color: #333; ' +
-        'margin-bottom: 16px; ' +
-        'text-shadow: none; ' +
-        'background: none;'
+          'font-family: inherit; ' +
+          'font-weight: normal; ' +
+          'font-size: 16px; ' +
+          'color: #333; ' +
+          'margin-bottom: 16px; ' +
+          'text-shadow: none; ' +
+          'background: none;'
       );
     }
 
@@ -73,7 +83,7 @@ export class MainLobbyModal extends Modal {
         'padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);'
       );
     }
-    
+
     // Reduce player names container size by half
     if (this.playersContainer) {
       this.playersContainer.setAttribute(
@@ -88,7 +98,7 @@ export class MainLobbyModal extends Modal {
       buttonRow.className += ' mt-4';
       buttonRow.setAttribute('style', 'margin-top: 24px;');
     }
-    
+
     // Add more space around the copy link button
     if (this.copyLinkBtn) {
       this.copyLinkBtn.setAttribute('style', 'margin-top: 16px; font-weight: 600;');
@@ -109,13 +119,10 @@ export class MainLobbyModal extends Modal {
         'display: flex; justify-content: center; align-items: center;'
       );
     }
-    
+
     // Make the input field half as wide
     if (this.guestNameInput) {
-      this.guestNameInput.setAttribute(
-        'style',
-        'width: 50%; max-width: 200px; margin: 0 auto;'
-      );
+      this.guestNameInput.setAttribute('style', 'width: 50%; max-width: 200px; margin: 0 auto;');
     }
   }
 

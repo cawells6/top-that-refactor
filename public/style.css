@@ -437,10 +437,6 @@ body {
 
 /* New Lobby Modal Container - matches .modal style */
 .lobby-modal-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   background-color: var(--header-bg); /* Dark blue like the modal */
   color: var(--text);
   padding: 20px;
@@ -1398,11 +1394,6 @@ body {
 }
 
 /* --- In-Session Lobby Modal Adjustments --- */
-.in-session-lobby-modal .game-setup-content {
-  max-width: 480px; /* Shrink modal content width */
-  width: 100%;
-}
-
 .in-session-lobby-modal .players-container {
   display: flex;
   flex-wrap: wrap;
