@@ -183,4 +183,14 @@
   display: none !important;
 }
 
+.highlight-input {
+  animation: pulse 1.5s infinite alternate;
+  border-color: #ffc300 !important;
+}
+
+@keyframes pulse {
+  from { box-shadow: 0 0 0 0 rgba(255, 195, 0, 0.4); }
+  to { box-shadow: 0 0 0 8px rgba(255, 195, 0, 0); }
+}
+
 

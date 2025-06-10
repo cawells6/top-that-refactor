@@ -10,10 +10,10 @@ export class InSessionLobbyModal {
 
   constructor() {
     const content = this.createContent();
-    this.modal = new Modal(content, {
-      id: 'in-session-lobby-modal',
-      className: 'game-lobby-modal',
-    });
+    // Set id and className directly on the content element
+    content.id = 'in-session-lobby-modal';
+    content.classList.add('game-lobby-modal');
+    this.modal = new Modal(content);
     this.setupSocketListeners();
     this.addEventListeners();
   }

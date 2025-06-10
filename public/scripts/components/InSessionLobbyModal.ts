@@ -4,8 +4,8 @@ import { InSessionLobbyState } from '@shared/types.ts';
 
 import { Modal } from './Modal.js';
 import * as state from '../state.js';
+import { showToast } from '../uiHelpers.js';
 import * as uiManager from '../uiManager.js';
-import { showToast } from '../uiHelpers';
 
 export class InSessionLobbyModal extends Modal {
   private playersContainer: HTMLElement;
@@ -144,8 +144,15 @@ export class InSessionLobbyModal extends Modal {
       this.guestNameInput.style.display = 'none';
       this.readyUpButton.style.display = 'none';
     } else {
-      this.guestNameInput.style.display = 'block';
-      this.readyUpButton.style.display = 'block';
+      this.guestNameInput.style.display = '';
+      this.readyUpButton.style.display = '';
+      // Automatically focus the name input and highlight it for new players
+      setTimeout(() => {
+        if (this.guestNameInput) {
+          this.guestNameInput.focus();
+          this.guestNameInput.classList.add('highlight-input');
+        }
+      }, 100);
     }
   }
 }
@@ -198,14 +205,16 @@ export function setupInSessionLobbyModal(roomId: string): void {
       // Construct the full shareable URL
       const joinUrl = `${window.location.origin}?room=${roomId}`;
 
-      navigator.clipboard.writeText(joinUrl).then(
-        () => {
+      navigator.clipboard
+        .writeText(joinUrl)
+        .then(() => {
           showToast('Join link copied to clipboard!', 'success');
-        },
-        () => {
+          return undefined;
+        })
+        .catch(() => {
           showToast('Failed to copy link.', 'error');
-        }
-      );
+          return undefined;
+        });
     });
   }
 
@@ -222,7 +231,9 @@ export function setupInSessionLobbyModal(roomId: string): void {
             console.error('Failed to emit PLAYER_READY:', err);
           });
         readyButton.disabled = true;
-        if (nameInput) nameInput.disabled = true;
+        if (nameInput) {
+          nameInput.disabled = true;
+        }
       } else {
         showToast('Please enter your name!', 'error');
       }
