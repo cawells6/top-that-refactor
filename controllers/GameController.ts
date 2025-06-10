@@ -252,9 +252,7 @@ export default class GameController {
   private checkIfGameCanStart(): void {
     const allPlayers = Array.from(this.players.values());
     const humanPlayers = allPlayers.filter((p) => !p.isComputer);
-    const allHumansReady = humanPlayers.every(
-      (p) => p.status === 'host' || p.status === 'ready'
-    );
+    const allHumansReady = humanPlayers.every((p) => p.status === 'host' || p.status === 'ready');
 
     if (
       humanPlayers.length === this.expectedHumanCount &&

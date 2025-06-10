@@ -22,13 +22,53 @@ export class InSessionLobbyModal extends Modal {
       );
     }
     super(modalElement);
-    // Add 'session-modal' class for targeted CSS
-    this.modalElement.classList.add('session-modal');
+
+    // Set consistent width that will match the main lobby
+    this.setModalWidth(500);
+
+    // Apply professional styling to the modal
+    this.applyProfessionalStyling();
 
     this.playersContainer = this.modalElement.querySelector('#players-container')!;
     this.copyLinkBtn = this.modalElement.querySelector('#copy-link-button')!;
     this.readyUpButton = this.modalElement.querySelector('#ready-up-button')!;
     this.guestNameInput = this.modalElement.querySelector('#guest-player-name-input')!;
+
+    // Update input field to match main lobby's "Who's playing today?" field
+    if (this.guestNameInput) {
+      this.guestNameInput.setAttribute('placeholder', "Who's playing today?");
+      this.guestNameInput.className = 'player-name-input';
+      this.guestNameInput.setAttribute(
+        'style',
+        'width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px;'
+      );
+    }
+
+    // Update button text to be more descriptive
+    if (this.copyLinkBtn) {
+      this.copyLinkBtn.textContent = 'Copy Invite Link';
+    }
+
+    // Ensure the input field is cleared when the modal is created
+    this.guestNameInput.value = '';
+
+    // Override the autocomplete attribute to prevent browsers from auto-filling
+    this.guestNameInput.setAttribute('autocomplete', 'off');
+
+    // Add a MutationObserver to ensure the field stays empty until user input
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (
+          mutation.type === 'attributes' &&
+          mutation.attributeName === 'value' &&
+          this.guestNameInput.value !== ''
+        ) {
+          this.guestNameInput.value = '';
+        }
+      }
+    });
+
+    observer.observe(this.guestNameInput, { attributes: true });
 
     this.setupSocketListeners();
     this.addEventListeners();
@@ -111,6 +151,67 @@ export class InSessionLobbyModal extends Modal {
     super.show();
   }
 
+  private applyProfessionalStyling(): void {
+    // Update heading to all uppercase with reduced letter spacing only
+    const heading = this.modalElement.querySelector('h2, h3, .modal-title');
+    if (heading) {
+      heading.textContent = 'AWAITING PLAYERS';
+      // Only adjust letter spacing without changing font weight or other properties
+      heading.style.letterSpacing = '-0.05em';
+    }
+
+    // Add shadow and adjust padding
+    const modalContent = this.modalElement.querySelector('.modal-content, .card');
+    if (modalContent) {
+      modalContent.className += ' shadow-lg';
+      modalContent.setAttribute(
+        'style',
+        'padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);'
+      );
+    }
+    
+    // Reduce player names container size by half
+    if (this.playersContainer) {
+      this.playersContainer.setAttribute(
+        'style',
+        'max-height: 120px; overflow-y: auto; margin: 0 auto; width: 50%; max-width: 200px;'
+      );
+    }
+
+    // Adjust spacing above buttons and increase margin for copy link button
+    const buttonRow = this.modalElement.querySelector('.lobby-buttons-row, .button-container');
+    if (buttonRow) {
+      buttonRow.className += ' mt-4';
+      buttonRow.setAttribute('style', 'margin-top: 24px;');
+    }
+    
+    // Add more space around the copy link button
+    if (this.copyLinkBtn) {
+      this.copyLinkBtn.setAttribute('style', 'margin-top: 16px; font-weight: 600;');
+    }
+
+    // Apply consistent font weights to other buttons
+    const buttons = this.modalElement.querySelectorAll('button:not(#copy-link-button)');
+    buttons.forEach((button) => {
+      button.setAttribute('style', 'font-weight: 600;');
+    });
+
+    // Style the input container to match the main lobby
+    const inputContainer = this.guestNameInput?.parentElement;
+    if (inputContainer) {
+      inputContainer.className = 'name-input-container';
+      inputContainer.setAttribute(
+        'style',
+        'margin: 16px 0; width: 100%; max-width: 300px; margin: 0 auto;'
+      );
+    }
+    
+    // Remove the half-width styling for input field since we want it to match the main lobby
+    if (this.guestNameInput) {
+      // Styling is now applied in the constructor to match main lobby
+    }
+  }
+
   private render(lobbyState: InSessionLobbyState & { started?: boolean }): void {
     console.log('[InSessionLobbyModal] render() called', lobbyState);
     // If the game has started, hide the modal and show the game table
@@ -126,9 +227,36 @@ export class InSessionLobbyModal extends Modal {
     this.playersContainer.innerHTML = '';
     lobbyState.players.forEach((player) => {
       const playerEl = document.createElement('div');
-      // Use simplified pill style. Add 'host' class when applicable
-      playerEl.className = `player-item${player.id === lobbyState.hostId ? ' host' : ''}`;
-      playerEl.textContent = `${player.name}${player.id === state.socket?.id ? ' (You)' : ''}`;
+      // Choose one approach for host display - use just the badge approach
+      playerEl.className = 'player-item';
+
+      // Update the way player names are displayed
+      let playerName = player.name;
+      if (player.id === state.socket?.id) {
+        playerName += ' (You)';
+      }
+
+      // Add player name first
+      playerEl.textContent = playerName;
+      
+      // Add host badge if applicable, but don't use duplicate host class
+      if (player.id === lobbyState.hostId) {
+        const hostBadge = document.createElement('span');
+        hostBadge.textContent = 'Host';
+        hostBadge.className = 'host-badge';
+        hostBadge.setAttribute(
+          'style',
+          'font-size: 0.8em; font-weight: 600; margin-left: 8px; padding: 2px 6px; border-radius: 4px; background-color: rgba(0,0,0,0.1);'
+        );
+        
+        // Clear the element and rebuild it with spans
+        playerEl.textContent = '';
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = playerName;
+        playerEl.appendChild(nameSpan);
+        playerEl.appendChild(hostBadge);
+      }
+
       this.playersContainer.appendChild(playerEl);
     });
 
@@ -146,14 +274,41 @@ export class InSessionLobbyModal extends Modal {
     } else {
       this.guestNameInput.style.display = '';
       this.readyUpButton.style.display = '';
+
+      // Reset input field and ensure placeholder is set to match main lobby
+      this.guestNameInput.value = '';
+      this.guestNameInput.setAttribute('placeholder', "Who's playing today?");
+
+      // Reset any form state that might be causing auto-population
+      const form = this.guestNameInput.closest('form');
+      if (form) form.reset();
+
       // Automatically focus the name input and highlight it for new players
       setTimeout(() => {
         if (this.guestNameInput) {
+          this.guestNameInput.value = ''; // One more check to ensure it's empty
           this.guestNameInput.focus();
           this.guestNameInput.classList.add('highlight-input');
         }
       }, 100);
     }
+  }
+
+  // Add this method to ensure consistent sizing across modals
+  private setModalWidth(width: number): void {
+    // Apply width to the modal element directly
+    this.modalElement.style.maxWidth = `${width}px`;
+    this.modalElement.style.width = '90%';
+
+    // Also set width on inner container if it exists (for consistent inner spacing)
+    const container = this.modalElement.querySelector('.lobby-modal-container');
+    if (container instanceof HTMLElement) {
+      container.style.width = '100%';
+      container.style.maxWidth = `${width - 40}px`; // Account for padding
+    }
+
+    // Add class to ensure CSS can target this modal type specifically
+    this.modalElement.classList.add('session-modal');
   }
 }
 
@@ -231,9 +386,7 @@ export function setupInSessionLobbyModal(roomId: string): void {
             console.error('Failed to emit PLAYER_READY:', err);
           });
         readyButton.disabled = true;
-        if (nameInput) {
-          nameInput.disabled = true;
-        }
+        if (nameInput) nameInput.disabled = true;
       } else {
         showToast('Please enter your name!', 'error');
       }

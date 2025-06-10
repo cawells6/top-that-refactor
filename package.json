@@ -8,7 +8,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "gpush": "bash scripts/gpush.sh",
-    "dev": "nodemon --watch ./ --ext ts --exec \"node --loader ts-node/esm ./server.ts\"",
+    "dev": "vite --open",
     "force": "node --loader ts-node/esm ./scripts/force-dev-start.ts",
     "dev:force": "node --loader ts-node/esm ./scripts/force-dev-start.ts",
     "test": "jest",

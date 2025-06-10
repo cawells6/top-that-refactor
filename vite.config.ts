@@ -11,7 +11,7 @@ export default defineConfig({
   // Configure the development server
   server: {
     port: 5173, // Port for the Vite client-side dev server
-    open: false, // Set to true if you want Vite to open the browser automatically
+    open: true, // Automatically open browser on server start
     cors: true, // Enable CORS for all origins
     hmr: {
       clientPort: 5173, // Ensure HMR uses the correct client port
@@ -37,6 +37,9 @@ export default defineConfig({
       //   changeOrigin: true, // Recommended for virtual hosted sites
       //   rewrite: (path) => path.replace(/^\/api/, '') // Optional: if you need to rewrite the path
       // }
+    },
+    watch: {
+      usePolling: true, // Needed for some systems/file systems
     },
   },
 
