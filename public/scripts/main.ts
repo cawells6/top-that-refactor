@@ -20,10 +20,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // sessionStorage.removeItem('desiredCpuCount');
 
   try {
-    // Instantiate the in-session lobby modal so it can listen for events
-    new InSessionLobbyModal();
-
     await socketReady;
+
+    // Instantiate the in-session lobby modal after the socket is ready so
+    // event listeners can attach correctly
+    new InSessionLobbyModal();
 
     // Attach socket event listeners after socket is ready
     socket.on('connect', () => {
