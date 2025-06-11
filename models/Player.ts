@@ -11,6 +11,7 @@ export default class Player {
   public name: string;
   public isComputer: boolean;
   public disconnected: boolean;
+  public ready: boolean;
 
   constructor(id: string) {
     this.id = id;
@@ -20,6 +21,7 @@ export default class Player {
     this.name = '';
     this.isComputer = false;
     this.disconnected = false;
+    this.ready = false;
   }
 
   setHand(cards: Card[]): void {

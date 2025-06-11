@@ -6,6 +6,7 @@ import {
   LOBBY,
   STATE_UPDATE,
   NEXT_TURN,
+  START_GAME,
 } from '../src/shared/events.js';
 
 // --- Type Definitions for Mocks ---

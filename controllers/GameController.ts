@@ -474,6 +474,14 @@ export default class GameController {
     // If the first player is a CPU, do NOT call playComputerTurn.
   }
 
+  /**
+   * Public wrapper around the private start logic so external callers (like the Lobby)
+   * can trigger the game start without exposing the full internal options type.
+   */
+  public startGame(computerCount = 0, socket?: Socket): Promise<void> {
+    return this.handleStartGame({ computerCount, socket });
+  }
+
   private handlePlayCard(socket: Socket, { cardIndices, zone }: PlayData): void {
     const playerId = this.socketIdToPlayerId.get(socket.id);
     this.log(
