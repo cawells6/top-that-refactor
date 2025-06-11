@@ -1,6 +1,11 @@
 import { renderGameState, playArea, lobbyLink } from './render.js';
 import * as state from './state.js';
-import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
+import {
+  JOINED,
+  LOBBY_STATE_UPDATE,
+  STATE_UPDATE,
+  REJOIN,
+} from '../../src/shared/events.js';
 import { GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
 
 export const getLobbyContainer = (): HTMLElement | null =>
@@ -68,7 +73,7 @@ export function showWaitingState(
   roomId: string,
   currentPlayers: number,
   maxPlayers: number,
-  players: Pick<ClientStatePlayer, 'name' | 'disconnected'>[] // More specific type for players in lobby
+  players: { id: string; name: string; ready: boolean }[]
 ): void {
   const lobbyContainer = getLobbyContainer();
   const lobbyFormContent = getLobbyFormContent();
@@ -102,7 +107,7 @@ export function showWaitingState(
   playerList.innerHTML = '';
   players.forEach((p) => {
     const li = document.createElement('li');
-    li.textContent = p.name + (p.disconnected ? ' (disconnected)' : '');
+    li.textContent = `${p.name} - ${p.ready ? 'Ready' : 'Not Ready'}`;
     playerList.appendChild(li);
   });
 }
@@ -128,8 +133,7 @@ export function initializeSocketHandlers(): void {
   // Remove existing listeners to prevent duplicates
   state.socket.removeAllListeners('connect');
   state.socket.removeAllListeners(JOINED);
-  state.socket.removeAllListeners(PLAYER_JOINED);
-  state.socket.removeAllListeners(LOBBY);
+  // Legacy events removed: PLAYER_JOINED, LOBBY
   state.socket.removeAllListeners(STATE_UPDATE);
   state.socket.removeAllListeners('err');
 
@@ -147,19 +151,11 @@ export function initializeSocketHandlers(): void {
     state.saveSession();
   });
 
-  state.socket.on(PLAYER_JOINED, () => {
-    // Handle player joined logic
-  });
 
   state.socket.on(
-    LOBBY,
-    (data: {
-      roomId: string;
-      players: Pick<ClientStatePlayer, 'name' | 'disconnected'>[];
-      maxPlayers: number;
-    }) => {
-      const { roomId, players, maxPlayers } = data;
-      showWaitingState(roomId, players.length, maxPlayers, players);
+    LOBBY_STATE_UPDATE,
+    (data: { roomId: string; players: { id: string; name: string; ready: boolean }[] }) => {
+      showWaitingState(data.roomId, data.players.length, data.players.length, data.players);
     }
   );
 

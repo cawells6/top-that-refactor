@@ -1,7 +1,17 @@
 import { renderGameState } from './render.js';
 import * as state from './state.js';
 import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
-import { JOINED, PLAYER_JOINED, LOBBY, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
+import {
+  CREATE_LOBBY,
+  LOBBY_CREATED,
+  JOIN_LOBBY,
+  PLAYER_READY,
+  LOBBY_STATE_UPDATE,
+  GAME_STARTED,
+  STATE_UPDATE,
+  REJOIN,
+  JOINED,
+} from '../../src/shared/events.js';
 import { GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
 
 export async function initializeSocketHandlers(): Promise<void> {
@@ -13,25 +23,24 @@ export async function initializeSocketHandlers(): Promise<void> {
       showLobbyForm();
     }
   });
-  state.socket.on(JOINED, ({ id, roomId }: { id: string; roomId: string }) => {
-    state.setMyId(id);
+  state.socket.on(LOBBY_CREATED, (roomId: string) => {
     state.setCurrentRoom(roomId);
-    state.saveSession();
   });
-  state.socket.on(PLAYER_JOINED, () => {
-    // Handle player joined logic
-  });
+
   state.socket.on(
-    LOBBY,
+    LOBBY_STATE_UPDATE,
     (data: {
       roomId: string;
-      players: Pick<ClientStatePlayer, 'name' | 'disconnected'>[];
-      maxPlayers: number;
+      players: { id: string; name: string; ready: boolean }[];
+      hostId: string | null;
     }) => {
-      const { roomId, players, maxPlayers } = data;
-      showWaitingState(roomId, players.length, maxPlayers, players);
+      showWaitingState(data.roomId, data.players.length, data.players.length, data.players);
     }
   );
+
+  state.socket.on(GAME_STARTED, () => {
+    showGameTable();
+  });
   state.socket.on(STATE_UPDATE, (s: GameStateData) => {
     console.log('Received STATE_UPDATE payload:', JSON.stringify(s, null, 2));
     renderGameState(s, state.myId);
@@ -40,4 +49,16 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on('err', (msg: string) => {
     showError(msg);
   });
+}
+
+export function createLobby(playerName: string): void {
+  state.socket.emit(CREATE_LOBBY, playerName);
+}
+
+export function joinLobby(roomId: string, playerName: string): void {
+  state.socket.emit(JOIN_LOBBY, roomId, playerName);
+}
+
+export function playerReady(): void {
+  state.socket.emit(PLAYER_READY, true);
 }

@@ -547,29 +547,14 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
 }
 
 /**
-
+ * Reveal the main game area. This is called once the game starts.
+ */
+export function playArea(): void {
+  const mainContent = document.getElementById('main-content');
   if (mainContent) mainContent.classList.add('game-active');
 }
 
 /**
-
- * Display a lobby link for inviting other players
- */
-export function lobbyLink({ id }: { id: string }): void {
-  const lobbyContainer = document.getElementById('lobby-container');
-  const lobbyFormContent = document.getElementById('lobby-form-content');
-  const waitingStateDiv = document.getElementById('waiting-state');
-
-  if (lobbyContainer) lobbyContainer.classList.remove('hidden');
-  if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
-  if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
-
-  const heading = document.getElementById('waiting-heading');
-  if (heading) heading.textContent = `Room: ${id}`;
-
-  const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
-  if (inviteInput) inviteInput.value = window.location.href;
-=======
  * Update the invite link and QR code for the lobby.
  * @param param0 Object containing the room id.
  */

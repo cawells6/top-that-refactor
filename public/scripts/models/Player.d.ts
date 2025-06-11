@@ -8,6 +8,7 @@ export default class Player {
   name: string;
   isComputer: boolean;
   disconnected: boolean;
+  ready: boolean;
   constructor(id: string);
   setHand(cards: Card[]): void;
   setUpCards(cards: Card[]): void;

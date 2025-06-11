@@ -39,8 +39,9 @@ import * as uiManager from './uiManager.js';
 import { initializeSocketHandlers } from './socketService.js';
 
 const JOINED = 'joined';
-const PLAYER_JOINED = 'player-joined';
-const LOBBY = 'lobby';
+const LOBBY_CREATED = 'lobbyCreated';
+const LOBBY_STATE_UPDATE = 'lobbyStateUpdate';
+const GAME_STARTED = 'game-started';
 const STATE_UPDATE = 'state-update';
 // const REJOIN = 'rejoin';
 
@@ -55,9 +56,9 @@ describe('socketService', () => {
   it('registers socket event handlers and calls UI functions', async () => {
     await initializeSocketHandlers();
     expect(state.socket.on).toHaveBeenCalledWith('connect', expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(JOINED, expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(PLAYER_JOINED, expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(LOBBY, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith(LOBBY_CREATED, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith(LOBBY_STATE_UPDATE, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith(GAME_STARTED, expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith(STATE_UPDATE, expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
   });
@@ -81,14 +82,14 @@ describe('socketService', () => {
     expect(uiManager.showLobbyForm).toHaveBeenCalled();
   });
 
-  it('calls showWaitingState on LOBBY event', async () => {
+  it('calls showWaitingState on lobby state updates', async () => {
     await initializeSocketHandlers();
     const lobbyHandler = (state.socket.on as jest.Mock).mock.calls.find(
-      ([event]) => event === LOBBY
+      ([event]) => event === LOBBY_STATE_UPDATE
     )[1];
-    const data = { roomId: 'R', players: [{ id: '1' }], maxPlayers: 4 };
+    const data = { roomId: 'R', players: [{ id: '1', name: 'A', ready: false }], maxPlayers: 4 };
     lobbyHandler(data);
-    expect(uiManager.showWaitingState).toHaveBeenCalledWith('R', 1, 4, data.players);
+    expect(uiManager.showWaitingState).toHaveBeenCalledWith('R', 1, 1, data.players);
   });
 
   it('calls renderGameState and showGameTable on STATE_UPDATE', async () => {
@@ -99,6 +100,15 @@ describe('socketService', () => {
     const s = { started: true };
     stateUpdateHandler(s);
     expect(render.renderGameState).toHaveBeenCalledWith(s, null);
+    expect(uiManager.showGameTable).toHaveBeenCalled();
+  });
+
+  it('shows the game table when GAME_STARTED fires', async () => {
+    await initializeSocketHandlers();
+    const handler = (state.socket.on as jest.Mock).mock.calls.find(
+      ([event]) => event === GAME_STARTED
+    )[1];
+    handler();
     expect(uiManager.showGameTable).toHaveBeenCalled();
   });
 
