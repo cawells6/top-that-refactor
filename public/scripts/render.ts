@@ -1,4 +1,4 @@
-import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
+import { getInSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import {
   Card as CardType,
   GameStateData,
@@ -6,17 +6,11 @@ import {
   InSessionLobbyState,
 } from '../../src/shared/types.js';
 
-// Store a singleton instance of the modal
-let inSessionLobbyModal: InSessionLobbyModal | null = null;
-
 export function renderLobbyState(lobbyState: InSessionLobbyState): void {
   console.log('[DEBUG] renderLobbyState called', lobbyState);
-  if (!inSessionLobbyModal) {
-    inSessionLobbyModal = new InSessionLobbyModal();
-    console.log('[DEBUG] Created new InSessionLobbyModal instance');
-  }
+  const modal = getInSessionLobbyModal();
   // @ts-expect-error: render is private, but we need to call it here
-  inSessionLobbyModal.render(lobbyState);
+  modal.render(lobbyState);
   // Check modal visibility after render
   const modalEl = document.getElementById('in-session-lobby-modal');
   if (modalEl) {
