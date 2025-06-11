@@ -1,7 +1,7 @@
 // public/scripts/main.ts
 import { JOIN_GAME } from '@shared/events.ts';
 
-import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
+import { getInSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
 import { socket, socketReady, setCurrentRoom } from './state.js';
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Instantiate the in-session lobby modal after the socket is ready so
     // event listeners can attach correctly
-    new InSessionLobbyModal();
+    getInSessionLobbyModal();
 
     // Attach socket event listeners after socket is ready
     socket.on('connect', () => {

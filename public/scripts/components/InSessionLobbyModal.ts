@@ -232,6 +232,19 @@ export class InSessionLobbyModal extends Modal {
   }
 }
 
+let modalInstance: InSessionLobbyModal | null = null;
+
+/**
+ * Retrieve a singleton instance of {@link InSessionLobbyModal}.
+ * This ensures event listeners are only registered once.
+ */
+export function getInSessionLobbyModal(): InSessionLobbyModal {
+  if (!modalInstance) {
+    modalInstance = new InSessionLobbyModal();
+  }
+  return modalInstance;
+}
+
 // Place this function OUTSIDE the class body:
 export function setupInSessionLobbyModal(roomId: string): void {
   const modal = document.getElementById('in-session-lobby-modal');
