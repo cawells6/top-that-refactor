@@ -39,8 +39,7 @@
     <!-- Style and layout enhancer -->
     <script src="/scripts/style-enforcer.js"></script>
   </head>
-  <body class="body-loading" style="min-height: 100vh; display: flex; flex-direction: column"
-        onload="document.body.classList.add('body-loading')">
+  <body class="body-loading" style="min-height: 100vh; display: flex; flex-direction: column">
     <!-- Header removed per user request -->
 
     <div id="game-container">
@@ -50,7 +49,7 @@
 
       <main class="main-content" id="main-content">
         <!-- Lobby Screen -->
-        <div class="lobby hidden" id="lobby-container" style="opacity:0;visibility:hidden;">
+        <div class="lobby hidden" id="lobby-container">
           <div id="lobby-outer-card" class="lobby-modal-container">
             <div id="lobby-inner-content" class="game-setup-content">
               <div class="setup-header">
