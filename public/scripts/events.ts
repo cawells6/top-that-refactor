@@ -480,10 +480,7 @@ export async function initializePageEventListeners() {
 
     // Close modal when clicking overlay
     overlay.addEventListener('click', (e) => {
-      if (
-        e.target === overlay &&
-        !rulesModal.classList.contains('modal--hidden')
-      ) {
+      if (e.target === overlay && !rulesModal.classList.contains('modal--hidden')) {
         hideRulesModalAndOverlay();
       }
     });
@@ -700,7 +697,7 @@ function handleRulesClick() {
   if (rulesModal && overlay) {
     // Hide the lobby container when showing the rules modal
     if (lobbyContainer) {
-      lobbyContainer.style.display = 'none';
+      lobbyContainer.classList.add('hidden');
     }
 
     rulesModal.classList.remove('modal--hidden');
@@ -832,7 +829,7 @@ function hideRulesModalAndOverlay() {
 
   // Show the lobby container again when hiding the rules modal
   if (lobbyContainer) {
-    lobbyContainer.style.display = ''; // Resets to default display value
+    lobbyContainer.classList.remove('hidden');
   }
 
   console.log('✅ Rules modal closed, lobby restored');

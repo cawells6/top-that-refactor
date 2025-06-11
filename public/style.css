@@ -7,6 +7,29 @@
 @import 'styles/modal-containers.css';
 @import 'styles/animations.css';
 
+/* ———————————————————————————————————————— 
+   core layout: keep the game centered at all times
+   (so it doesn’t flash at 0,0 before JS runs)
+   ———————————————————————————————————————— */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+#game-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
 :root {
   --bg: #137a4b;
   --header-bg: #1b2e3c;
@@ -27,15 +50,20 @@ body {
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
 }
 
+/*
+  IMPORTANT: For best long-term reliability, always add the 'hidden' class to #lobby-container in your HTML/JSX by default.
+  Example: <div id="lobby-container" class="hidden"> ... </div>
+  This ensures the modal never flashes visible before JS runs.
+*/
 #lobby-container {
-  background: none; /* Remove blue background from the container itself */
+  background: rgba(0, 0, 0, 0.5); /* A semi-transparent backdrop */
   padding: 0;
   border-radius: 0;
   box-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Revert back to center */
+  justify-content: center;
   min-height: 100vh;
   min-width: 100vw;
   position: fixed;
@@ -44,6 +72,14 @@ body {
   right: 0;
   bottom: 0;
   z-index: 1000;
+  opacity: 0; /* Initially hidden */
+  visibility: hidden; /* Initially hidden */
+  transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition */
+}
+
+#lobby-container:not(.hidden) {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* New Game Setup Card Design */

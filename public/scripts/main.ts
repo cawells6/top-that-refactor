@@ -97,8 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (lobbyContainer) {
     lobbyContainer.classList.remove('hidden');
     lobbyContainer.classList.remove('lobby--hidden');
-    lobbyContainer.style.visibility = 'visible';
-    lobbyContainer.style.opacity = '1';
+    // No direct style.visibility or style.opacity changes
   }
   console.log('🚀 [Client] Lobby explicitly made visible.');
 
