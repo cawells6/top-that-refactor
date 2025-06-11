@@ -233,4 +233,29 @@
   gap: 1rem;
 }
 
+/* Ensure proper centering of lobby container from initial render */
+.lobby {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Prevent layout shifts from image loading */
+.header-logo img {
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: auto; /* Maintain aspect ratio */
+}
+
+/* Remove any animations/transitions that might cause repositioning */
+.lobby-modal-container {
+  transition: none !important;
+  animation: none !important;
+}
+
 

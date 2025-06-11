@@ -60,6 +60,7 @@
                     alt="Top That! Logo and Slogan"
                     onload="console.log('Logo loaded successfully:', this.src);"
                     onerror="console.error('Logo failed to load:', this.src);"
+                    style="max-width: 100%; height: auto;"
                   />
                 </div>
               </div>
@@ -466,6 +467,54 @@
             event.stopPropagation();
           }
         }
+
+        // Fix for lobby modal positioning without affecting size
+        document.addEventListener('DOMContentLoaded', function() {
+          // Target the lobby container and position it properly
+          const lobbyContainer = document.getElementById('lobby-container');
+          
+          // Position the lobby in the center without affecting its size
+          function positionLobby() {
+            // Clear any previously set styles
+            lobbyContainer.style.position = 'absolute';
+            lobbyContainer.style.top = '50%';
+            lobbyContainer.style.left = '50%';
+            lobbyContainer.style.transform = 'translate(-50%, -50%)';
+            
+            // Ensure it doesn't stretch
+            lobbyContainer.style.width = 'auto';
+            lobbyContainer.style.height = 'auto';
+            lobbyContainer.style.display = 'block';
+            
+            // Ensure the inner modal container is not stretched
+            const outerCard = document.getElementById('lobby-outer-card');
+            if (outerCard) {
+              outerCard.style.width = 'auto';
+              outerCard.style.height = 'auto';
+              outerCard.style.maxWidth = '100%';
+            }
+            
+            console.log('Lobby positioned correctly');
+          }
+          
+          // Apply positioning when visible
+          const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.attributeName === 'class' && 
+                  !lobbyContainer.classList.contains('hidden')) {
+                // Small delay to ensure DOM is ready
+                setTimeout(positionLobby, 0);
+              }
+            });
+          });
+          
+          observer.observe(lobbyContainer, { attributes: true });
+          
+          // Check on page load as well
+          if (!lobbyContainer.classList.contains('hidden')) {
+            positionLobby();
+          }
+        });
       </script>
     </body>
 </html>
