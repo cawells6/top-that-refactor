@@ -23,12 +23,6 @@ export class InSessionLobbyModal extends Modal {
     }
     super(modalElement);
 
-    // Set consistent width that will match the main lobby
-    this.setModalWidth(500);
-
-    // Apply professional styling to the modal
-    this.applyProfessionalStyling();
-
     this.playersContainer = this.modalElement.querySelector('#players-container')!;
     this.copyLinkBtn = this.modalElement.querySelector('#copy-link-button')!;
     this.readyUpButton = this.modalElement.querySelector('#ready-up-button')!;
@@ -38,10 +32,6 @@ export class InSessionLobbyModal extends Modal {
     if (this.guestNameInput) {
       this.guestNameInput.setAttribute('placeholder', "Who's playing today?");
       this.guestNameInput.className = 'player-name-input';
-      this.guestNameInput.setAttribute(
-        'style',
-        'width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; text-align: center;'
-      );
     }
 
     // Update button text to be more descriptive
@@ -149,70 +139,6 @@ export class InSessionLobbyModal extends Modal {
     // Display the game board and hide lobby elements
     uiManager.showGameTable();
     super.show();
-  }
-
-  // Simplify the modal styling to match the main lobby approach
-  private setModalWidth(width: number): void {
-    // Only set width on the outer modal - let CSS handle the rest
-    this.modalElement.style.maxWidth = `${width}px`;
-    this.modalElement.style.width = '90%';
-
-    // Use the same class structure as the main lobby
-    this.modalElement.classList.add('session-modal');
-
-    // Let the background color come from CSS variables like in the main lobby
-    const container = this.modalElement.querySelector('.lobby-modal-container');
-    if (container instanceof HTMLElement) {
-      container.style.width = '100%';
-      container.style.maxWidth = `${width - 40}px`;
-    }
-  }
-
-  private applyProfessionalStyling(): void {
-    // Update heading to all uppercase with reduced letter spacing and center alignment
-    const heading = this.modalElement.querySelector('h2, h3, .modal-title');
-    if (heading) {
-      heading.textContent = 'AWAITING PLAYERS';
-      // Add letter spacing and center alignment
-      (heading as HTMLElement).style.letterSpacing = '-0.05em';
-      (heading as HTMLElement).style.textAlign = 'center';
-    }
-
-    // Reduce player names container size by half
-    if (this.playersContainer) {
-      this.playersContainer.setAttribute(
-        'style',
-        'max-height: 120px; overflow-y: auto; margin: 0 auto; width: 50%; max-width: 200px;'
-      );
-    }
-
-    // Adjust spacing above buttons
-    const buttonRow = this.modalElement.querySelector('.lobby-buttons-row, .button-container');
-    if (buttonRow) {
-      buttonRow.className += ' mt-4';
-      buttonRow.setAttribute('style', 'margin-top: 24px;');
-    }
-
-    // Style the copy link button
-    if (this.copyLinkBtn) {
-      this.copyLinkBtn.setAttribute('style', 'font-weight: 600;');
-    }
-
-    // Apply consistent font weights to other buttons
-    const buttons = this.modalElement.querySelectorAll('button:not(#copy-link-button)');
-    buttons.forEach((button) => {
-      button.setAttribute('style', 'font-weight: 600;');
-    });
-
-    // Style the input container
-    const inputContainer = this.guestNameInput?.parentElement;
-    if (inputContainer) {
-      inputContainer.className = 'name-input-container';
-      inputContainer.setAttribute(
-        'style',
-        'margin: 16px 0; width: 100%; max-width: 300px; margin: 0 auto;'
-      );
-    }
   }
 
   private render(lobbyState: InSessionLobbyState & { started?: boolean }): void {

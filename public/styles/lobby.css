@@ -135,15 +135,6 @@
 }
 
 /* === IN-SESSION LOBBY MODAL STYLES === */
-.in-session-lobby-modal {
-  min-width: 220px;
-  width: 500px; /* Fixed width instead of auto */
-  max-width: 90%; /* Ensure it's responsive */
-  margin: 0 auto;
-  z-index: 1100;
-  overflow: hidden; /* Prevent content from extending beyond boundaries */
-}
-
 .in-session-lobby-container .player-section {
   /* Match main lobby .player-section */
   background: #f8f9fa;
@@ -192,6 +183,54 @@
 @keyframes pulse {
   from { box-shadow: 0 0 0 0 rgba(255, 195, 0, 0.4); }
   to { box-shadow: 0 0 0 8px rgba(255, 195, 0, 0); }
+}
+
+/* === IN-SESSION LOBBY MODAL === */
+
+.in-session-lobby-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.in-session-lobby-modal .game-setup-content {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  color: #333;
+  border-radius: 24px;
+  border: 3px solid #ffc300;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15),
+    0 8px 25px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 195, 0, 0.2);
+  padding: 2rem 2.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.in-session-lobby-modal .section-title {
+  text-align: center;
+  letter-spacing: -0.05em;
+  font-size: 2.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.in-session-lobby-modal .name-input-section {
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.in-session-lobby-modal .players-container {
+  max-height: 150px;
+  overflow-y: auto;
+  margin: 1rem auto;
+  width: 80%;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.in-session-lobby-modal .lobby-buttons-row {
+  margin-top: 1.5rem;
+  gap: 1rem;
 }
 
 

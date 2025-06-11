@@ -1,5 +1,7 @@
 #!/bin/bash
 # Simple script to start the development server
+# Kill any process using port 5173 to ensure Vite uses the correct port
+powershell -Command "Get-Process -Id (Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue).OwningProcess | Stop-Process -Force" 2>/dev/null || true
 echo "Starting development servers..."
 npx concurrently "npm run dev:client 2>&1 | grep -v '\[nodemon\]' | grep -v 'ExperimentalWarning' | grep -v 'DeprecationWarning'" \
              "npm run dev:server 2>&1 | grep -v '\[nodemon\]' | grep -v 'ExperimentalWarning' | grep -v 'DeprecationWarning'"

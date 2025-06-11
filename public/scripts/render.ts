@@ -1,6 +1,29 @@
-import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
-import { setupInSessionLobbyModal } from './components/InSessionLobbyModal.js';
-import { InSessionLobbyState } from '../../src/shared/types.js';
+import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
+import {
+  Card as CardType,
+  GameStateData,
+  ClientStatePlayer,
+  InSessionLobbyState,
+} from '../../src/shared/types.js';
+
+// Store a singleton instance of the modal
+let inSessionLobbyModal: InSessionLobbyModal | null = null;
+
+export function renderLobbyState(lobbyState: InSessionLobbyState): void {
+  console.log('[DEBUG] renderLobbyState called', lobbyState);
+  if (!inSessionLobbyModal) {
+    inSessionLobbyModal = new InSessionLobbyModal();
+    console.log('[DEBUG] Created new InSessionLobbyModal instance');
+  }
+  // @ts-expect-error: render is private, but we need to call it here
+  inSessionLobbyModal.render(lobbyState);
+  // Check modal visibility after render
+  const modalEl = document.getElementById('in-session-lobby-modal');
+  if (modalEl) {
+    console.log('[DEBUG] Modal classes after render:', modalEl.className);
+    console.log('[DEBUG] Modal style after render:', modalEl.getAttribute('style'));
+  }
+}
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 export function code(card: CardType): string {
@@ -546,13 +569,4 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
     }
   }
   tryRunEffect();
-}
-
-/**
- * Render the lobby state and setup the in-session lobby modal
- * @param {InSessionLobbyState} lobbyState - The current state of the lobby
- */
-export function renderLobbyState(lobbyState: InSessionLobbyState): void {
-  // Show the modal and update the UI as needed (add your UI logic here)
-  setupInSessionLobbyModal(lobbyState.roomId);
 }
