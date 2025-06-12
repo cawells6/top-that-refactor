@@ -38,6 +38,7 @@ export interface LobbyPlayer {
   id: string;
   name: string;
   status: 'host' | 'invited' | 'joined' | 'ready';
+  ready?: boolean;
 }
 
 export interface InSessionLobbyState {

@@ -69,6 +69,7 @@ function startServer(port: number, retries = 0) {
       const lobby = lobbyManager.findLobbyBySocketId(socket.id);
       if (lobby) {
         lobby.setPlayerReady(socket.id, ready);
+        io.to(lobby.roomId).emit(LOBBY_STATE_UPDATE, lobby.getState());
       }
     });
 
