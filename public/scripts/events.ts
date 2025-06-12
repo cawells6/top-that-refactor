@@ -129,18 +129,16 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
   const emojiFallback = document.createElement('span');
   emojiFallback.className = 'silhouette-emoji-fallback';
   emojiFallback.textContent = type === 'cpu' ? '🤖' : '🙂';
-  emojiFallback.style.display = 'none'; // Initially hidden
+  emojiFallback.classList.add('hidden'); // Initially hidden
 
   img.onload = function () {
-    // Image loaded successfully, ensure emoji is hidden and image is shown
-    img.style.display = '';
-    emojiFallback.style.display = 'none';
+    img.classList.remove('hidden');
+    emojiFallback.classList.add('hidden');
   };
 
   img.onerror = function () {
-    // Image failed to load, hide img tag and show emoji
-    img.style.display = 'none'; // Hide the broken image element
-    emojiFallback.style.display = ''; // Show the emoji
+    img.classList.add('hidden');
+    emojiFallback.classList.remove('hidden');
   };
 
   silhouette.appendChild(img);
@@ -697,7 +695,6 @@ function handleRulesClick() {
   if (rulesModal && overlay) {
     // Hide the lobby container when showing the rules modal
     if (lobbyContainer) {
-      // Hide the lobby by applying the reusable "hidden" class
       lobbyContainer.classList.add('hidden');
     }
 

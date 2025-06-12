@@ -103,4 +103,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
   // --- END: New logic for handling join links ---
+
+  const lobbyContainer = document.getElementById('lobby-container');
+  if (lobbyContainer) {
+    lobbyContainer.classList.remove('hidden', 'lobby--hidden');
+  }
+  console.log('🚀 [Client] Lobby explicitly made visible.');
 });

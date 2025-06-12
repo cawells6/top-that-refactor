@@ -53,7 +53,7 @@ jest.mock('../public/scripts/render.js', () => ({
 }));
 
 // Mock the shared events module
-jest.mock('../src/shared/events', () => ({
+jest.mock('../src/shared/events.js', () => ({
   // Path to events.ts (without extension)
   __esModule: true, // Use if events.ts is an ES module
   JOIN_GAME: 'join-game',
@@ -182,7 +182,9 @@ describe('Lobby Form Submission', () => {
 
     expect(mockEmit).not.toHaveBeenCalled();
     expect(window.location.search).toMatch(/\?game=/);
-    expect(render.lobbyLink).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(String) }));
+    expect(render.lobbyLink).toHaveBeenCalledWith(
+      expect.objectContaining({ id: expect.any(String) })
+    );
     // If your code triggers JOIN_GAME after lobby creation, add this:
     // expect(mockEmit).toHaveBeenCalledWith(
     //   JOIN_GAME,
