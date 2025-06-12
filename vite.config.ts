@@ -11,7 +11,11 @@ export default defineConfig({
   // Configure the development server
   server: {
     port: 5173, // Port for the Vite client-side dev server
+<<<<<<< HEAD
     open: true, // Automatically open browser on server start
+=======
+    open: 'firefox', // This tells Vite to open Firefox
+>>>>>>> 822cdde (perfected run scripts)
     cors: true, // Enable CORS for all origins
     hmr: {
       clientPort: 5173, // Ensure HMR uses the correct client port
@@ -53,6 +57,7 @@ export default defineConfig({
       // Ensure index.html from the 'public' directory (Vite's root) is used as the input
       input: {
         main: path.resolve(__dirname, 'public/index.html'),
+        card: path.resolve(__dirname, 'public/card-test.html'),
       },
     },
   },

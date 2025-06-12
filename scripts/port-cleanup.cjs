@@ -3,7 +3,7 @@ const util = require('util');
 const execAsync = util.promisify(exec);
 
 // Target ports for your Top-That project
-const TARGET_PORTS = [3000, 5173, 5170]; // Server, Vite client, and fallback
+const TARGET_PORTS = [3000, 5173]; // Server and Vite client only
 
 /**
  * Get processes running on specific ports
@@ -97,21 +97,34 @@ async function cleanupPorts() {
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
-  // Check final status
-  console.log('📊 Final port status:');
+  // Retry up to 3 times if ports are still occupied
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    processes = await getPortProcesses(TARGET_PORTS);
+    const stillOccupied = Array.from(processes.entries());
+    if (stillOccupied.length === 0) break;
+    console.log(`⏳ Retry ${attempt}: Ports still occupied:`);
+    stillOccupied.forEach(([port, proc]) => {
+      console.log(`  Port ${port}: PID ${proc.pid}`);
+    });
+    // Try to kill again
+    for (const [, proc] of stillOccupied) {
+      await killProcess(proc.pid);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+
+  // Final status
   processes = await getPortProcesses(TARGET_PORTS);
   displayPortStatus(processes);
-
-  const stillOccupied = processes.size;
-  if (stillOccupied === 0) {
+  const stillOccupied = Array.from(processes.entries());
+  if (stillOccupied.length === 0) {
     console.log('🎉 All target ports are now free!');
   } else {
     console.log(
-      `⚠️  ${stillOccupied} port(s) still occupied. You may need to manually check these.`
+      `⚠️  ${stillOccupied.length} port(s) still occupied. You may need to manually check these.`
     );
   }
-
-  return stillOccupied === 0;
+  return stillOccupied.length === 0;
 }
 
 /**
