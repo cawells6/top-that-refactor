@@ -12,7 +12,11 @@ export default defineConfig({
   server: {
     port: 5173, // Port for the Vite client-side dev server
 <<<<<<< HEAD
+<<<<<<< HEAD
     open: true, // Automatically open browser on server start
+=======
+    open: 'firefox', // This tells Vite to open Firefox
+>>>>>>> 822cdde (perfected run scripts)
 =======
     open: 'firefox', // This tells Vite to open Firefox
 >>>>>>> 822cdde (perfected run scripts)

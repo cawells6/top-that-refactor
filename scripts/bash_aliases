@@ -14,4 +14,7 @@ alias gpush="$PROJECT_DIR/gpush.bat"
 # Top-That-Refactor run alias
 alias run="npm run dev:all & disown"
 
+# Top-That-Refactor run alias
+alias run="npm run dev:all & disown"
+
 echo "✅ Top-That-Refactor aliases loaded!"
