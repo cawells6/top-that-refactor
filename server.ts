@@ -4,8 +4,6 @@ import http from 'http';
 import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 
-import { GameRoomManager } from './controllers/GameController.js';
-
 const app: Express = express();
 
 // Serve your client files from /public
@@ -29,8 +27,61 @@ function startServer(port: number, retries = 0) {
   server = http.createServer(app);
   // Attach Socket.IO to the same HTTP server
   const io: SocketIOServer = new SocketIOServer(server, { cors: { origin: '*' } });
-  // Instantiate your game room manager (multi-room support)
-  new GameRoomManager(io);
+  
+  // Replace GameRoomManager with LobbyManager
+  import LobbyManager from './models/LobbyManager.js';
+  import {
+    CREATE_LOBBY,
+    LOBBY_CREATED,
+    JOIN_LOBBY,
+    PLAYER_READY,
+    ERROR,
+  } from './src/shared/events.js';
+  
+  const lobbyManager = LobbyManager.getInstance(io);
+
+  io.on('connection', (socket) => {
+    console.log(`New connection: ${socket.id}`);
+    
+    socket.on(CREATE_LOBBY, (playerName: string, ack?: (roomId: string) => void) => {
+      console.log(`Socket ${socket.id} creating lobby with name: ${playerName}`);
+      const lobby = lobbyManager.createLobby();
+      lobby.addPlayer(socket, playerName);
+      if (ack) ack(lobby.roomId);
+      socket.emit(LOBBY_CREATED, lobby.roomId);
+    });
+
+    socket.on(
+      JOIN_LOBBY,
+      (roomId: string, playerName: string, ack?: (success: boolean) => void) => {
+        const lobby = lobbyManager.getLobby(roomId);
+        if (lobby) {
+          lobby.addPlayer(socket, playerName);
+          if (ack) ack(true);
+        } else {
+          if (ack) ack(false);
+          socket.emit(ERROR, 'Lobby not found');
+        }
+      }
+    );
+
+    socket.on(PLAYER_READY, (ready: boolean) => {
+      const lobby = lobbyManager.findLobbyBySocketId(socket.id);
+      if (lobby) {
+        lobby.setPlayerReady(socket.id, ready);
+      }
+    });
+
+    socket.on('disconnect', () => {
+      const lobby = lobbyManager.findLobbyBySocketId(socket.id);
+      if (lobby) {
+        lobby.removePlayer(socket.id);
+        if (lobby.players.size === 0) {
+          lobbyManager.removeLobby(lobby.roomId);
+        }
+      }
+    });
+  });
 
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE' && retries < MAX_RETRIES) {
