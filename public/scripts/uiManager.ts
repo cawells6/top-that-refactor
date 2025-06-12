@@ -1,4 +1,4 @@
-import { renderGameState, playArea, lobbyLink } from './render.js';
+import { renderGameState } from './render.js';
 import * as state from './state.js';
 import { JOINED, LOBBY_STATE_UPDATE, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
 import { GameStateData } from '../../src/shared/types.js';
@@ -100,7 +100,6 @@ export function showWaitingState(
   }
 
   // Update invite link and QR code
-  lobbyLink({ id: roomId });
   // Render player list
   let playerList = document.getElementById('player-list');
   if (!playerList) {
@@ -122,8 +121,8 @@ export function showWaitingState(
 
 export function showGameTable(): void {
   // Set up the play area using the render.js playArea function
-  playArea();
-  
+  // playArea();
+
   // Additional UI updates
   const lobbyContainer = getLobbyContainer();
   const table = getGameTable();
@@ -179,7 +178,6 @@ export function initializeSocketHandlers(): void {
     state.setCurrentRoom(roomId);
     state.saveSession();
   });
-
 
   state.socket.on(
     LOBBY_STATE_UPDATE,
