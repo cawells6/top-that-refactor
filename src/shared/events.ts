@@ -34,6 +34,9 @@ export const MESSAGE: string = 'message'; // Generic message from server
 export const LOBBY_STATE_UPDATE: string = 'lobby-state-update';
 export const PLAYER_READY: string = 'player-ready';
 export const SEND_INVITE: string = 'send-invite';
+export const CREATE_LOBBY: string = 'create-lobby';
+export const LOBBY_CREATED: string = 'lobby-created';
+export const JOIN_LOBBY: string = 'join-lobby';
 
 // Optional: You could also define these as an enum if you prefer,
 // though string constants are very common for event names.

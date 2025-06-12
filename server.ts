@@ -3,6 +3,14 @@ import http from 'http';
 
 import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
+import LobbyManager from './models/LobbyManager.js';
+import {
+  CREATE_LOBBY,
+  LOBBY_CREATED,
+  JOIN_LOBBY,
+  PLAYER_READY,
+  ERROR,
+} from './src/shared/events.js';
 
 const app: Express = express();
 
@@ -27,22 +35,12 @@ function startServer(port: number, retries = 0) {
   server = http.createServer(app);
   // Attach Socket.IO to the same HTTP server
   const io: SocketIOServer = new SocketIOServer(server, { cors: { origin: '*' } });
-  
-  // Replace GameRoomManager with LobbyManager
-  import LobbyManager from './models/LobbyManager.js';
-  import {
-    CREATE_LOBBY,
-    LOBBY_CREATED,
-    JOIN_LOBBY,
-    PLAYER_READY,
-    ERROR,
-  } from './src/shared/events.js';
-  
+
   const lobbyManager = LobbyManager.getInstance(io);
 
   io.on('connection', (socket) => {
     console.log(`New connection: ${socket.id}`);
-    
+
     socket.on(CREATE_LOBBY, (playerName: string, ack?: (roomId: string) => void) => {
       console.log(`Socket ${socket.id} creating lobby with name: ${playerName}`);
       const lobby = lobbyManager.createLobby();
