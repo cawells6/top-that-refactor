@@ -22,6 +22,11 @@ export const PICK_UP_PILE: string = 'pick-up-pile'; // Player chooses to pick up
 export const CARD_PLAYED: string = 'card-played'; // A card was successfully played
 export const PILE_PICKED_UP: string = 'pile-picked-up'; // The pile was picked up by a player
 
+// Lobby system events
+export const CREATE_LOBBY: string = 'createLobby';
+export const LOBBY_CREATED: string = 'lobbyCreated';
+export const JOIN_LOBBY: string = 'joinLobby';
+
 // Game state and updates
 export const STATE_UPDATE: string = 'state-update'; // Generic state update from server
 export const SPECIAL_CARD_EFFECT: string = 'specialCardEffect'; // Renamed from SPECIAL_CARD, Indicates a special card effect (e.g., 2, 5, 10 played)

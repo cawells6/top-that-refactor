@@ -27,7 +27,7 @@ function startServer(port: number, retries = 0) {
   server = http.createServer(app);
   // Attach Socket.IO to the same HTTP server
   const io: SocketIOServer = new SocketIOServer(server, { cors: { origin: '*' } });
-  
+
   // Replace GameRoomManager with LobbyManager
   import LobbyManager from './models/LobbyManager.js';
   import {
@@ -37,16 +37,20 @@ function startServer(port: number, retries = 0) {
     PLAYER_READY,
     ERROR,
   } from './src/shared/events.js';
-  
+
   const lobbyManager = LobbyManager.getInstance(io);
 
   io.on('connection', (socket) => {
     console.log(`New connection: ${socket.id}`);
-    
+
     socket.on(CREATE_LOBBY, (playerName: string, ack?: (roomId: string) => void) => {
       console.log(`Socket ${socket.id} creating lobby with name: ${playerName}`);
       const lobby = lobbyManager.createLobby();
-      lobby.addPlayer(socket, playerName);
+      const err = lobby.addPlayer(socket, playerName);
+      if (err) {
+        socket.emit(ERROR, err);
+        return;
+      }
       if (ack) ack(lobby.roomId);
       socket.emit(LOBBY_CREATED, lobby.roomId);
     });
@@ -56,8 +60,13 @@ function startServer(port: number, retries = 0) {
       (roomId: string, playerName: string, ack?: (success: boolean) => void) => {
         const lobby = lobbyManager.getLobby(roomId);
         if (lobby) {
-          lobby.addPlayer(socket, playerName);
-          if (ack) ack(true);
+          const err = lobby.addPlayer(socket, playerName);
+          if (err) {
+            if (ack) ack(false);
+            socket.emit(ERROR, err);
+          } else {
+            if (ack) ack(true);
+          }
         } else {
           if (ack) ack(false);
           socket.emit(ERROR, 'Lobby not found');
@@ -68,7 +77,10 @@ function startServer(port: number, retries = 0) {
     socket.on(PLAYER_READY, (ready: boolean) => {
       const lobby = lobbyManager.findLobbyBySocketId(socket.id);
       if (lobby) {
-        lobby.setPlayerReady(socket.id, ready);
+        const err = lobby.setPlayerReady(socket.id, ready) as string | void;
+        if (err) {
+          socket.emit(ERROR, err);
+        }
       }
     });
 

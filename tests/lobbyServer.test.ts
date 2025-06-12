@@ -2,6 +2,7 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 
 import GameController, { GameRoomManager } from '../controllers/GameController.js';
+import LobbyManager from '../models/LobbyManager.js';
 import { JOINED, LOBBY_STATE_UPDATE, ERROR } from '../src/shared/events.js';
 
 interface MockSocket {
@@ -139,5 +140,37 @@ describe('GameRoomManager', () => {
     );
     expect(ackData).toEqual({ error: 'Room not found.' });
     expect(socket.emit).toHaveBeenCalledWith(ERROR, 'Room not found.');
+  });
+});
+
+describe('Lobby validations', () => {
+  let lobbyManager: LobbyManager;
+  beforeEach(() => {
+    (LobbyManager as any).instance = undefined;
+    lobbyManager = LobbyManager.getInstance(mockIo as any);
+  });
+
+  test('prevents duplicate joins', () => {
+    const lobby = lobbyManager.createLobby();
+    const err1 = lobby.addPlayer(hostSocket as any, 'Host');
+    expect(err1).toBeUndefined();
+    const err2 = lobby.addPlayer(hostSocket as any, 'Host');
+    expect(err2).toBe('Player already in lobby.');
+  });
+
+  test('prevents joining when lobby is full', () => {
+    const lobby = lobbyManager.createLobby();
+    const sockets = [
+      hostSocket,
+      createMockSocket('s2'),
+      createMockSocket('s3'),
+      createMockSocket('s4'),
+    ];
+    sockets.forEach((s, i) => {
+      lobby.addPlayer(s as any, `P${i}`);
+    });
+    const extra = createMockSocket('s5');
+    const err = lobby.addPlayer(extra as any, 'Extra');
+    expect(err).toBe('Lobby is full.');
   });
 });
