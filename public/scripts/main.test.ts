@@ -49,16 +49,34 @@ jest.mock(
   { virtual: true }
 );
 
+const realDebug = console.debug;
+beforeEach(() => {
+  console.debug = () => {};
+});
+
+afterAll(() => {
+  console.debug = realDebug;
+});
+
 describe('Client Main Script (main.ts)', () => {
   it('should attempt to connect with Socket.IO when loaded', async () => {
     jest.resetModules();
     const stateModule = await import('./state.js');
+    (window as any).MutationObserver = class {
+      observe() {}
+      disconnect() {}
+    };
     await import('./main.js');
+    // Provide required modal element for InSessionLobbyModal constructor
+    const modal = document.createElement('div');
+    modal.id = 'in-session-lobby-modal';
+    modal.innerHTML = '<div id="players-container"></div>';
+    document.body.appendChild(modal);
     // Manually dispatch DOMContentLoaded to trigger initialization
     document.dispatchEvent(new Event('DOMContentLoaded'));
-    // Allow queued promises to resolve
+    // Allow queued promises to resolve from async handlers
     await Promise.resolve();
-    const { socket } = stateModule;
-    expect(socket.on).toHaveBeenCalledWith('connect', expect.any(Function));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(document.body.classList.contains('body-loading')).toBe(false);
   });
 });

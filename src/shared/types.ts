@@ -32,17 +32,31 @@ export interface GameStateData {
   lastRealCard: Card | null;
 }
 
-// Represents a player in the lobby. `status` shows whether the
-// player is the host, just joined, or has clicked the ready button.
+/**
+ * Basic information about a player in a lobby.
+ *
+ * The {@link ready} flag indicates whether the player has clicked the
+ * "Let's Play" button.  The host will generally be treated as ready by
+ * default on the server side.
+ */
 export interface LobbyPlayer {
   id: string;
   name: string;
-  status: 'host' | 'invited' | 'joined' | 'ready';
+  /**
+   * True when the player has indicated they are ready to start.
+   * Undefined means the ready state hasn't been set yet.
+   */
+  ready?: boolean;
 }
 
-export interface InSessionLobbyState {
+/**
+ * Payload sent with the {@link LOBBY_STATE_UPDATE} event.  It represents the
+ * current state of the game lobby and is shared by both the client and server.
+ */
+export interface LobbyState {
   roomId: string;
   hostId: string | null;
   players: LobbyPlayer[];
-  started?: boolean; // Added to communicate game start state
+  /** When true the game has already started and the lobby should close. */
+  started?: boolean;
 }

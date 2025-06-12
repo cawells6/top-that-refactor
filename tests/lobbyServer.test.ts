@@ -80,7 +80,7 @@ describe('Lobby joining', () => {
           roomId: 'test-room',
           hostId: 'HOST_ID',
           players: expect.arrayContaining([
-            expect.objectContaining({ id: 'HOST_ID', name: 'Host', status: 'host' }),
+            expect.objectContaining({ id: 'HOST_ID', name: 'Host', ready: true }),
           ]),
         })
       );

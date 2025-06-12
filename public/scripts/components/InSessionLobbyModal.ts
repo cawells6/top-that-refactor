@@ -1,6 +1,6 @@
 // public/scripts/components/InSessionLobbyModal.ts
 import { LOBBY_STATE_UPDATE, PLAYER_READY } from '@shared/events.ts';
-import { InSessionLobbyState } from '@shared/types.ts';
+import { LobbyState } from '@shared/types.ts';
 
 import { Modal } from './Modal.js';
 import * as state from '../state.js';
@@ -67,7 +67,7 @@ export class InSessionLobbyModal extends Modal {
 
   private setupSocketListeners(): void {
     if (!state.socket) return;
-    state.socket.on(LOBBY_STATE_UPDATE, (lobbyState: InSessionLobbyState) => {
+    state.socket.on(LOBBY_STATE_UPDATE, (lobbyState: LobbyState) => {
       console.log('[CLIENT] Received LOBBY_STATE_UPDATE:', lobbyState);
       this.render(lobbyState);
     });
@@ -141,7 +141,7 @@ export class InSessionLobbyModal extends Modal {
     super.show();
   }
 
-  private render(lobbyState: InSessionLobbyState & { started?: boolean }): void {
+  private render(lobbyState: LobbyState & { started?: boolean }): void {
     console.log('[InSessionLobbyModal] render() called', lobbyState);
     // If the game has started, hide the modal and show the game table
     if (lobbyState.started) {
@@ -157,7 +157,7 @@ export class InSessionLobbyModal extends Modal {
     lobbyState.players.forEach((player) => {
       // Don't show players who haven't selected their name yet
       const isCurrentPlayer = player.id === state.socket?.id;
-      const hasSelectedName = player.status === 'ready' || player.status === 'host';
+      const hasSelectedName = player.ready || player.id === lobbyState.hostId;
 
       // Skip rendering this player if they're the current user and haven't selected a name
       if (isCurrentPlayer && !hasSelectedName) {
@@ -205,7 +205,7 @@ export class InSessionLobbyModal extends Modal {
     }
 
     const localPlayer = lobbyState.players.find((p) => p.id === state.myId);
-    if (localPlayer && (localPlayer.status === 'host' || localPlayer.status === 'ready')) {
+    if (localPlayer && (localPlayer.ready || localPlayer.id === lobbyState.hostId)) {
       this.guestNameInput.style.display = 'none';
       this.readyUpButton.style.display = 'none';
     } else {

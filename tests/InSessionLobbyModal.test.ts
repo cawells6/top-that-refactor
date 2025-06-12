@@ -7,7 +7,7 @@ import { fireEvent, screen } from '@testing-library/dom';
 import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobbyModal';
 import * as state from '../public/scripts/state';
 import { PLAYER_READY } from '../src/shared/events';
-import { InSessionLobbyState } from '../src/shared/types';
+import { LobbyState } from '../src/shared/types';
 
 jest.mock('../public/scripts/state', () => ({
   socket: {
@@ -31,15 +31,15 @@ Object.assign(navigator, {
 describe('InSessionLobbyModal', () => {
   let modalInstance: InSessionLobbyModal;
 
-  let mockLobbyState: InSessionLobbyState;
+  let mockLobbyState: LobbyState;
 
   beforeEach(() => {
     mockLobbyState = {
       roomId: 'TEST12',
       hostId: 'host-id',
       players: [
-        { id: 'host-id', name: 'Host Player', status: 'host' },
-        { id: 'my-socket-id', name: 'Me', status: 'joined' },
+        { id: 'host-id', name: 'Host Player', ready: true },
+        { id: 'my-socket-id', name: 'Me', ready: false },
       ],
     };
     document.body.innerHTML = `
@@ -66,9 +66,9 @@ describe('InSessionLobbyModal', () => {
     (modalInstance as any).render(mockLobbyState);
   });
 
-  it('should render player names correctly, identifying "You"', () => {
+  it('should render host name only until local player is ready', () => {
     expect(screen.getByText('Host Player')).toBeInTheDocument();
-    expect(screen.getByText('Me (You)')).toBeInTheDocument();
+    expect(screen.queryByText('Me (You)')).toBeNull();
   });
 
   it('shows the ready button for non-ready players', () => {
@@ -79,7 +79,7 @@ describe('InSessionLobbyModal', () => {
 
   it('hides the ready button when the local player is host', () => {
     mockLobbyState.hostId = 'my-socket-id';
-    mockLobbyState.players[1].status = 'host';
+    mockLobbyState.players[1].ready = true;
     (modalInstance as any).render(mockLobbyState);
 
     const readyButton = document.getElementById('ready-up-button') as HTMLButtonElement;
@@ -96,8 +96,8 @@ describe('InSessionLobbyModal', () => {
     expect(state.socket.emit).toHaveBeenCalledWith(PLAYER_READY, 'Tester');
   });
 
-  it('should copy the game link to the clipboard when "Copy Link" is clicked', () => {
-    const copyButton = screen.getByRole('button', { name: /Copy Link/i });
+  it('should copy the game link to the clipboard when "Copy Invite Link" is clicked', () => {
+    const copyButton = screen.getByRole('button', { name: /Copy Invite Link/i });
     fireEvent.click(copyButton);
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(

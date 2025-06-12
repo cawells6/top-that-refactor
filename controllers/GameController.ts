@@ -20,7 +20,7 @@ import {
   LOBBY_STATE_UPDATE,
   PLAYER_READY,
 } from '../src/shared/events.js';
-import { InSessionLobbyState } from '../src/shared/types.js';
+import { LobbyState } from '../src/shared/types.js';
 import {
   normalizeCardValue,
   isSpecialCard,
@@ -231,18 +231,18 @@ export default class GameController {
     const lobbyPlayers = Array.from(this.players.values()).map((p: Player) => ({
       id: p.id,
       name: p.name,
-      status: p.status,
+      ready: p.status === 'ready' || p.status === 'host',
     }));
 
-    const lobbyState: InSessionLobbyState = {
+    const lobbyState: LobbyState = {
       roomId: this.roomId,
       hostId: this.hostId,
       players: lobbyPlayers,
-      started: this.gameState.started, // Add started property
+      started: this.gameState.started, // communicate game start state
     };
 
     console.log('[SERVER] Emitting LOBBY_STATE_UPDATE:', lobbyState);
-    this.io.to(this.roomId).emit('lobby-state-update', lobbyState);
+    this.io.to(this.roomId).emit(LOBBY_STATE_UPDATE, lobbyState);
   }
 
   /**
