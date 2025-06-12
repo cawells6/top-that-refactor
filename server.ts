@@ -37,23 +37,39 @@ function startServer(port: number, retries = 0) {
     PLAYER_READY,
     ERROR,
   } from './src/shared/events.js';
+  import { isValidRoomId, isValidPlayerName } from './utils/validation.js';
   
   const lobbyManager = LobbyManager.getInstance(io);
 
   io.on('connection', (socket) => {
     console.log(`New connection: ${socket.id}`);
     
-    socket.on(CREATE_LOBBY, (playerName: string, ack?: (roomId: string) => void) => {
-      console.log(`Socket ${socket.id} creating lobby with name: ${playerName}`);
-      const lobby = lobbyManager.createLobby();
-      lobby.addPlayer(socket, playerName);
-      if (ack) ack(lobby.roomId);
-      socket.emit(LOBBY_CREATED, lobby.roomId);
-    });
+    socket.on(
+      CREATE_LOBBY,
+      (playerName: string, ack?: (response: string | false) => void) => {
+        console.log(
+          `Socket ${socket.id} creating lobby with name: ${playerName}`
+        );
+        if (!isValidPlayerName(playerName)) {
+          if (ack) ack(false);
+          socket.emit(ERROR, 'Invalid player name');
+          return;
+        }
+        const lobby = lobbyManager.createLobby();
+        lobby.addPlayer(socket, playerName);
+        if (ack) ack(lobby.roomId);
+        socket.emit(LOBBY_CREATED, lobby.roomId);
+      }
+    );
 
     socket.on(
       JOIN_LOBBY,
       (roomId: string, playerName: string, ack?: (success: boolean) => void) => {
+        if (!isValidRoomId(roomId) || !isValidPlayerName(playerName)) {
+          if (ack) ack(false);
+          socket.emit(ERROR, 'Invalid lobby code or player name');
+          return;
+        }
         const lobby = lobbyManager.getLobby(roomId);
         if (lobby) {
           lobby.addPlayer(socket, playerName);
