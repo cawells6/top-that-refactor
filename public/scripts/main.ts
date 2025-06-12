@@ -91,16 +91,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Optionally, call after any known UI update (if you know where icons are rendered)
   // removePlayerIconInlineStyles();
 
-  // === Unhide lobby and remove loading class ===
+  // === Remove the loading class once initialization is complete ===
   document.body.classList.remove('body-loading');
-  const lobbyContainer = document.getElementById('lobby-container');
-  if (lobbyContainer) {
-    lobbyContainer.classList.remove('hidden');
-    lobbyContainer.classList.remove('lobby--hidden');
-    lobbyContainer.style.visibility = 'visible';
-    lobbyContainer.style.opacity = '1';
-  }
-  console.log('🚀 [Client] Lobby explicitly made visible.');
 
   // --- START: New logic for handling join links ---
   const urlParams = new URLSearchParams(window.location.search);

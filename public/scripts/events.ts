@@ -697,7 +697,8 @@ function handleRulesClick() {
   if (rulesModal && overlay) {
     // Hide the lobby container when showing the rules modal
     if (lobbyContainer) {
-      lobbyContainer.style.display = 'none';
+      // Hide the lobby by applying the reusable "hidden" class
+      lobbyContainer.classList.add('hidden');
     }
 
     rulesModal.classList.remove('modal--hidden');
@@ -823,7 +824,8 @@ function hideRulesModalAndOverlay() {
 
   // Show the lobby container again when hiding the rules modal
   if (lobbyContainer) {
-    lobbyContainer.style.display = ''; // Resets to default display value
+    // Remove the "hidden" class so the lobby becomes visible again
+    lobbyContainer.classList.remove('hidden');
   }
 
   console.log('✅ Rules modal closed, lobby restored');
