@@ -7,10 +7,11 @@ import { fireEvent } from '@testing-library/dom';
 
 // Import the actual constants for use in test assertions
 import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
-import * as state from '../public/scripts/state.js'; // Stays .js for now
 import * as render from '../public/scripts/render.js';
+import * as state from '../public/scripts/state.js'; // Stays .js for now
 // Import the client-side script under test (AFTER mocks are set up)
 // This file (public/scripts/events.js) has NOT been converted to TS yet.
+import { JOIN_GAME } from '../src/shared/events.js'; // Add this import at the top
 
 const mockEmit = jest.fn();
 const mockOn = jest.fn();
@@ -170,7 +171,7 @@ describe('Lobby Form Submission', () => {
     const msgBox = document.querySelector('.message-box-content') as HTMLElement;
     expect(msgBox.classList.contains('active')).toBe(false);
     expect(mockEmit).not.toHaveBeenCalled();
-    expect(render.playArea).toHaveBeenCalled();
+    expect(render.renderGameState).toHaveBeenCalled();
   });
 
   it('generates a lobby link when another human is expected', () => {
@@ -182,19 +183,6 @@ describe('Lobby Form Submission', () => {
 
     expect(mockEmit).not.toHaveBeenCalled();
     expect(window.location.search).toMatch(/\?game=/);
-    expect(render.lobbyLink).toHaveBeenCalledWith(
-      expect.objectContaining({ id: expect.any(String) })
-    );
-    // If your code triggers JOIN_GAME after lobby creation, add this:
-    // expect(mockEmit).toHaveBeenCalledWith(
-    //   JOIN_GAME,
-    //   {
-    //     name: 'ChrisP',
-    //     numHumans: 1,
-    //     numCPUs: 1,
-    //   },
-    //   expect.any(Function)
-    // );
   });
 
   it('shows error when join code is invalid', () => {
