@@ -1,0 +1,38 @@
+[1mdiff --cc public/scripts/render.ts[m
+[1mindex be32d0b,9b0edeb..0000000[m
+[1m--- a/public/scripts/render.ts[m
+[1m+++ b/public/scripts/render.ts[m
+[36m@@@ -545,28 -547,12 +547,3 @@@[m [mexport function showCardEvent(cardValue[m
+    }[m
+    tryRunEffect();[m
+  }[m
+[31m- [m
+[31m- /**[m
+[31m-  * Reveal the main game area. This is called once the game starts.[m
+[31m-  */[m
+[31m- export function playArea(): void {[m
+[31m-   const mainContent = document.getElementById('main-content');[m
+[31m-   if (mainContent) mainContent.classList.add('game-active');[m
+[31m- }[m
+[31m--[m
+[31m--/**[m
+[31m-  * Update the invite link and QR code for the lobby.[m
+[31m-  * @param param0 Object containing the room id.[m
+[31m - * Render the lobby state and setup the in-session lobby modal[m
+[31m - * @param {InSessionLobbyState} lobbyState - The current state of the lobby[m
+[31m-- */[m
+[31m- export function lobbyLink({ id }: { id: string }): void {[m
+[31m-   const url = `${window.location.origin}?room=${encodeURIComponent(id)}`;[m
+[31m-   const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;[m
+[31m-   if (inviteInput) {[m
+[31m-     inviteInput.value = url;[m
+[31m-   }[m
+[31m-   const qrImg = document.getElementById('qr-code-image') as HTMLImageElement | null;[m
+[31m-   if (qrImg) {[m
+[31m-     qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;[m
+[31m-     qrImg.style.display = 'inline-block';[m
+[31m-   }[m
+[31m -export function renderLobbyState(lobbyState: InSessionLobbyState): void {[m
+[31m -  // Show the modal and update the UI as needed (add your UI logic here)[m
+[31m -  setupInSessionLobbyModal(lobbyState.roomId);[m
+[31m--}[m

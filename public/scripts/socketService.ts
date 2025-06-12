@@ -41,6 +41,12 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
   );
 
+  state.socket.on(JOINED, (data: { playerId: string; roomId: string }) => {
+    state.setMyId(data.playerId);
+    state.setCurrentRoom(data.roomId);
+    state.saveSession();
+  });
+
   state.socket.on(GAME_STARTED, () => {
     showGameTable();
   });
@@ -54,19 +60,6 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
     renderGameState(s, state.myId);
   });
-  state.socket.on('lobby-state-update', (lobbyState) => {
-    console.log('[socketService] Got lobby-state-update:', lobbyState);
-    // Handle the lobby state update based on the current application structure
-    if (lobbyState.players) {
-      showWaitingState(
-        lobbyState.roomId,
-        lobbyState.players.length,
-        lobbyState.maxPlayers || lobbyState.players.length,
-        lobbyState.players
-      );
-    }
-  });
-
   // Handle error or failed rejoin from server
   state.socket.on('err', (msg: string) => {
     showLobbyForm();

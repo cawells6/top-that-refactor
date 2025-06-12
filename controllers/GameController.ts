@@ -19,6 +19,8 @@ import {
   PICK_UP_PILE,
   LOBBY_STATE_UPDATE,
   PLAYER_READY,
+  PLAYER_JOINED,
+  LOBBY,
 } from '../src/shared/events.js';
 import { InSessionLobbyState } from '../src/shared/types.js';
 import {

@@ -35,15 +35,18 @@ import * as render from './render.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 
+// Import events from the shared file
+import {
+  JOINED,
+  LOBBY_CREATED,
+  LOBBY_STATE_UPDATE,
+  GAME_STARTED,
+  STATE_UPDATE,
+  // REJOIN
+} from '@shared/events.ts';
+
 // Import the module under test after mocks are set up
 import { initializeSocketHandlers } from './socketService.js';
-
-const JOINED = 'joined';
-const LOBBY_CREATED = 'lobbyCreated';
-const LOBBY_STATE_UPDATE = 'lobbyStateUpdate';
-const GAME_STARTED = 'game-started';
-const STATE_UPDATE = 'state-update';
-// const REJOIN = 'rejoin';
 
 describe('socketService', () => {
   beforeEach(() => {
@@ -62,7 +65,6 @@ describe('socketService', () => {
     expect(state.socket.on).toHaveBeenCalledWith(JOINED, expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith(STATE_UPDATE, expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(STATE_UPDATE, expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
   });
 

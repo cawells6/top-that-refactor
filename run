@@ -1,0 +1,5 @@
+#!/bin/bash
+# Simple script to start the development server
+echo "Starting development servers..."
+npx concurrently "npm run dev:client 2>&1 | grep -v '\[nodemon\]' | grep -v 'ExperimentalWarning' | grep -v 'DeprecationWarning'" \
+             "npm run dev:server 2>&1 | grep -v '\[nodemon\]' | grep -v 'ExperimentalWarning' | grep -v 'DeprecationWarning'"

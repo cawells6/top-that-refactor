@@ -37,9 +37,7 @@ export const SPECIAL_CARD_EFFECT: string = 'specialCardEffect'; // Renamed from 
 export const ERROR: string = 'err'; // Generic error message from server
 export const MESSAGE: string = 'message'; // Generic message from server
 
-// Lobby events
-export const LOBBY_STATE_UPDATE: string = 'lobby-state-update';
-export const PLAYER_READY: string = 'player-ready';
+// Additional lobby events
 export const SEND_INVITE: string = 'send-invite';
 
 // Optional: You could also define these as an enum if you prefer,

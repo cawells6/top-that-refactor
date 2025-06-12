@@ -38,9 +38,7 @@ jest.mock(
     getRulesButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
-    getRulesModal: jest.fn(() =>
-      global.document ? global.document.createElement('div') : null
-    ),
+    getRulesModal: jest.fn(() => (global.document ? global.document.createElement('div') : null)),
     getBackToLobbyButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
