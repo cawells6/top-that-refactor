@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* global process */
 /**
  * Simple script to git commit and push in one command
  * Usage: node scripts/gpush.js "Your commit message"

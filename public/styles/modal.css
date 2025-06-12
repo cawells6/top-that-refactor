@@ -1,0 +1,14 @@
+/* ...existing code... */
+
+.session-modal {
+  max-width: 500px !important;
+  width: 90% !important;
+}
+
+/* Add higher specificity selector for session modal */
+.modal.session-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+/* ...existing code... */

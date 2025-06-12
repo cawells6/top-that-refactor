@@ -1,4 +1,6 @@
 import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
+import { setupInSessionLobbyModal } from './components/InSessionLobbyModal.js';
+import { InSessionLobbyState } from '../../src/shared/types.js';
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 export function code(card: CardType): string {
@@ -544,29 +546,4 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
     }
   }
   tryRunEffect();
-}
-
-/**
- * Reveal the main game area. This is called once the game starts.
- */
-export function playArea(): void {
-  const mainContent = document.getElementById('main-content');
-  if (mainContent) mainContent.classList.add('game-active');
-}
-
-/**
- * Update the invite link and QR code for the lobby.
- * @param param0 Object containing the room id.
- */
-export function lobbyLink({ id }: { id: string }): void {
-  const url = `${window.location.origin}?room=${encodeURIComponent(id)}`;
-  const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
-  if (inviteInput) {
-    inviteInput.value = url;
-  }
-  const qrImg = document.getElementById('qr-code-image') as HTMLImageElement | null;
-  if (qrImg) {
-    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(url)}`;
-    qrImg.style.display = 'inline-block';
-  }
 }

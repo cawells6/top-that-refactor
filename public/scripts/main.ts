@@ -1,7 +1,10 @@
 // public/scripts/main.ts
+import { JOIN_GAME } from '@shared/events.ts';
+
+import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
-import { socket, socketReady } from './state.js';
+import { socket, socketReady, setCurrentRoom } from './state.js';
 
 console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
@@ -11,11 +14,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('main-content')?.classList.remove('preload-hidden');
   console.log('🚀 [Client] DOM fully loaded and parsed (from main.ts)');
 
-  // Clear session on page load
-  sessionStorage.removeItem('myId');
-  sessionStorage.removeItem('currentRoom');
+  // Do NOT clear session on page load! Only clear on explicit user action.
+  // sessionStorage.removeItem('myId');
+  // sessionStorage.removeItem('currentRoom');
+  // sessionStorage.removeItem('desiredCpuCount');
 
   try {
+    // Instantiate the in-session lobby modal so it can listen for events
+    new InSessionLobbyModal();
+
     await socketReady;
 
     // Attach socket event listeners after socket is ready
@@ -94,4 +101,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     lobbyContainer.style.opacity = '1';
   }
   console.log('🚀 [Client] Lobby explicitly made visible.');
+
+  // --- START: New logic for handling join links ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomIdFromUrl = urlParams.get('room');
+
+  // Only run join link logic if NOT in-session
+  const inSession = document.body.classList.contains('in-session');
+  if (roomIdFromUrl && !inSession) {
+    setCurrentRoom(roomIdFromUrl);
+    socket.emit(JOIN_GAME, { id: roomIdFromUrl });
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+  // --- END: New logic for handling join links ---
 });

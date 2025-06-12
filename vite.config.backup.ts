@@ -11,7 +11,7 @@ export default defineConfig({
   // Configure the development server
   server: {
     port: 5173, // Port for the Vite client-side dev server
-    open: true, // Automatically open browser on server start
+    open: false, // Set to true if you want Vite to open the browser automatically
     cors: true, // Enable CORS for all origins
     hmr: {
       clientPort: 5173, // Ensure HMR uses the correct client port
@@ -38,9 +38,6 @@ export default defineConfig({
       //   rewrite: (path) => path.replace(/^\/api/, '') // Optional: if you need to rewrite the path
       // }
     },
-    watch: {
-      usePolling: true, // Needed for some systems/file systems
-    },
   },
 
   // Configure the build process
@@ -55,11 +52,24 @@ export default defineConfig({
         main: path.resolve(__dirname, 'public/index.html'),
       },
     },
+    // Configuration for CSS processing
+    cssCodeSplit: false, // Bundle all CSS into a single file
+    // Custom configuration for the Vite client build
+    reportCompressedSize: false, // Improves build performance by skipping size reporting
+    target: 'esnext', // Target modern browsers
+    minify: 'terser', // Use Terser for minification
+    terserOptions: {
+      compress: {
+        drop_console: false, // Keep console logs in production
+      },
+    },
   },
 
+  // Resolve path aliases
   resolve: {
     alias: {
-      '@shared': path.resolve(__dirname, 'src/shared'),
+      '@': path.resolve(__dirname, './public'),
+      '@shared': path.resolve(__dirname, './src/shared'),
     },
   },
 });

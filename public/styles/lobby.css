@@ -1,0 +1,197 @@
+/* public/styles/lobby.css */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none; /* Prevent blocking when hidden */
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto; /* Only block when visible */
+}
+
+.modal {
+    /* Match main lobby modal styling */
+    background: var(--header-bg);
+    color: var(--text);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1051;
+    max-width: 90%;
+    width: 500px;
+    /* Let modals.css handle centering and animations */
+}
+
+.modal-content {
+    padding: 2rem;
+    position: relative;
+}
+
+.in-session-lobby-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: center;
+}
+
+.in-session-lobby-container h2 {
+  margin: 0;
+  color: #333;
+}
+
+.game-id-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f5f5f5;
+  padding: 10px 15px;
+  border-radius: 6px;
+}
+
+.game-id-section .game-id-input {
+  flex-grow: 1;
+  font-weight: bold;
+  font-family: monospace;
+  font-size: 1.2rem;
+  padding: 4px 8px;
+  margin-right: 10px;
+  border: 1px solid var(--input-border, #bbb);
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+}
+
+.players-list {
+    margin-top: 1rem;
+}
+
+.players-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.player-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+  border-left: 4px solid #ccc;
+}
+
+.player-item.host {
+  border-left-color: #ffc107;
+}
+
+.player-item.joined {
+  border-left-color: #28a745;
+}
+
+.player-status {
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.player-item.host .player-status {
+  background-color: #FFF8E1;
+  color: #FFC107;
+}
+
+.player-item.joined .player-status {
+  background-color: #E8F5E9;
+  color: #28a745;
+}
+
+.no-players-msg {
+  color: #777;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+}
+
+.btn.full-width {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1rem;
+}
+
+/* === IN-SESSION LOBBY MODAL STYLES === */
+.in-session-lobby-modal {
+  min-width: 220px;
+  width: 500px; /* Fixed width instead of auto */
+  max-width: 90%; /* Ensure it's responsive */
+  margin: 0 auto;
+  z-index: 1100;
+  overflow: hidden; /* Prevent content from extending beyond boundaries */
+}
+
+.in-session-lobby-container .player-section {
+  /* Match main lobby .player-section */
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 120px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 1.2rem;
+}
+
+.in-session-lobby-container .section-title,
+.player-section .section-title {
+  /* Match main lobby .section-title and use 'Users' verbiage */
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -0.01em; /* Negative for even tighter headings */
+  -webkit-text-stroke: 1px #1b2e3c;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  text-align: center;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* Remove any link at the bottom left of the in-session lobby modal */
+.in-session-lobby-modal a,
+.in-session-lobby-modal .lobby-link {
+  display: none !important;
+}
+
+.highlight-input {
+  animation: pulse 1.5s infinite alternate;
+  border-color: #ffc300 !important;
+}
+
+@keyframes pulse {
+  from { box-shadow: 0 0 0 0 rgba(255, 195, 0, 0.4); }
+  to { box-shadow: 0 0 0 8px rgba(255, 195, 0, 0); }
+}
+
+

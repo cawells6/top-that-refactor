@@ -32,3 +32,15 @@
   position: relative;
   overflow: hidden;
 }
+
+/* Target the specific in-session lobby modal container */
+.in-session-lobby-modal .lobby-modal-container {
+  max-width: 500px;
+  width: 90%;
+}
+
+/* Ensure the content div doesn't restrict width */
+.in-session-lobby-modal .game-setup-content {
+  width: 100%;
+  box-sizing: border-box;
+}

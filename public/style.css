@@ -437,10 +437,6 @@ body {
 
 /* New Lobby Modal Container - matches .modal style */
 .lobby-modal-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   background-color: var(--header-bg); /* Dark blue like the modal */
   color: var(--text);
   padding: 20px;
@@ -449,6 +445,7 @@ body {
   z-index: 1000;
   /* Animations for smooth appearance */
   animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Removed position: fixed, top, left, and transform to resolve modal centering conflict */
 }
 
 /* Inner white card content - separate content styling from container */
@@ -694,9 +691,11 @@ body {
 .rules-details-content ol {
   padding-left: 20px;
   margin-top: 5px;
+  list-style-position: outside;
 }
 .rules-details-content li {
   margin-bottom: 8px;
+  line-height: 1.4;
 }
 .rules-details-content strong {
   color: #444;
@@ -739,6 +738,43 @@ body {
   border-bottom: 1px solid #ffc30044;
   padding-bottom: 0.5rem;
   display: block;
+}
+
+/* === In-Session Modal Customizations === */
+.session-modal .players-box {
+  /* Brand background for players container */
+  background: #e0ebe8;
+  /* Keep padding, border-radius, box-shadow from .player-section */
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 1.2rem;
+}
+
+.session-modal .players-container {
+  /* Inherit layout, but remove extra background */
+  background: none;
+  padding: 0;
+}
+
+.session-modal .player-item .player-name {
+  /* Make player names stand out */
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2a2a2a;
+  /* Optional: pill-style background for extra emphasis */
+  background: #f6f6f6;
+  border-radius: 999px;
+  padding: 0.25em 1em;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  text-shadow: 0 1px 2px #fff, 0 0.5px 0 #bbb;
+  margin-right: 0.5rem;
+  display: inline-block;
+}
+
+/* Ensure modal root gets .session-modal for targeting */
+#in-session-lobby-modal.session-modal .players-box {
+  background: #e0ebe8;
 }
 
 /* --- Card Layout for Game Table --- */
@@ -1147,6 +1183,41 @@ body {
   box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
 }
 
+#start-game-button {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c !important;
+  border: none;
+}
+
+#start-game-button:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  color: #1b2e3c !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+}
+
+#start-game-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
+}
+
+#copy-link-button {
+  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
+  color: #ffffff !important;
+  border: none;
+}
+
+#copy-link-button:hover {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+#copy-link-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(33, 150, 243, 0.2);
+}
 /* General button styling for .header-btn class */
 .header-btn {
   background-color: #007bff; /* Default blue */
@@ -1321,6 +1392,55 @@ body {
   font-size: 1.1rem;
   line-height: 1.2;
   color: #721c24;
+}
+
+/* --- In-Session Lobby Modal Adjustments --- */
+.in-session-lobby-modal .players-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.in-session-lobby-modal .player-item {
+  background: #fff;
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  color: #1b2e3c;
+  font-weight: 600;
+}
+
+.in-session-lobby-modal .player-item.host::after {
+  content: 'HOST';
+  margin-left: 0.5rem;
+  background: var(--accent);
+  color: #1b2e3c;
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Toast used for copy link feedback */
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: -2.5rem;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: var(--header-bg);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.toast.show {
+  opacity: 1;
 }
 
 /* Rule for the action buttons container gap */

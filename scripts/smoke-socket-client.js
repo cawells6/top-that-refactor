@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 // scripts/smoke-socket-client.cjs
 // This file should be run as CommonJS (.cjs) to allow require().
-
-/* global console */
 // Rename this file to smoke-socket-client.cjs for Node.js ESM compatibility.
 // Minimal smoke test: connects to the server, joins a game, and starts a game.
 import fs from 'fs';

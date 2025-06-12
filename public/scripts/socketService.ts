@@ -1,30 +1,33 @@
-import { renderGameState } from './render.js';
-import * as state from './state.js';
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
 import {
+  JOINED,
+  STATE_UPDATE,
+  REJOIN,
   CREATE_LOBBY,
   LOBBY_CREATED,
   JOIN_LOBBY,
   PLAYER_READY,
   LOBBY_STATE_UPDATE,
   GAME_STARTED,
-  STATE_UPDATE,
-  REJOIN,
-  JOINED,
-} from '../../src/shared/events.js';
-import { GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
+} from '@shared/events.ts';
+import { GameStateData } from '@shared/types.ts';
+
+import { renderGameState } from './render.js';
+import * as state from './state.js';
+import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
   state.socket.on('connect', () => {
-    if (state.myId && state.currentRoom) {
+    if (state.currentRoom) {
       state.socket.emit(REJOIN, state.myId, state.currentRoom);
+      // Do NOT call showLobbyForm() here. Wait for server response.
     } else {
       showLobbyForm();
     }
   });
   state.socket.on(LOBBY_CREATED, (roomId: string) => {
     state.setCurrentRoom(roomId);
+    state.saveSession();
   });
 
   state.socket.on(
@@ -42,12 +45,35 @@ export async function initializeSocketHandlers(): Promise<void> {
     showGameTable();
   });
   state.socket.on(STATE_UPDATE, (s: GameStateData) => {
-    console.log('Received STATE_UPDATE payload:', JSON.stringify(s, null, 2));
+    console.log('[socketService] STATE_UPDATE received:', { started: s.started, payload: s });
+    if (s.started === true) {
+      console.log('[socketService] STATE_UPDATE: Game has started, calling showGameTable()');
+      showGameTable();
+    } else {
+      console.log('[socketService] STATE_UPDATE: Game not started, not showing game table.');
+    }
     renderGameState(s, state.myId);
-    if (s.started) showGameTable();
   });
+  state.socket.on('lobby-state-update', (lobbyState) => {
+    console.log('[socketService] Got lobby-state-update:', lobbyState);
+    // Handle the lobby state update based on the current application structure
+    if (lobbyState.players) {
+      showWaitingState(
+        lobbyState.roomId,
+        lobbyState.players.length,
+        lobbyState.maxPlayers || lobbyState.players.length,
+        lobbyState.players
+      );
+    }
+  });
+
+  // Handle error or failed rejoin from server
   state.socket.on('err', (msg: string) => {
+    showLobbyForm();
     showError(msg);
+    // Clear stored room and player IDs if rejoin fails
+    state.setCurrentRoom(null);
+    state.setMyId(null);
   });
 }
 

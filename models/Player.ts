@@ -11,6 +11,12 @@ export default class Player {
   public name: string;
   public isComputer: boolean;
   public disconnected: boolean;
+
+  // Track the player's status in the lobby. A player can be:
+  // 'host' (the room creator), 'invited' (before joining), 'joined' (connected but not ready), or 'ready' (clicked the "Let's Play" button).
+  public status: 'host' | 'invited' | 'joined' | 'ready';
+
+  // Indicates if the player is ready (for convenience in lobby logic)
   public ready: boolean;
 
   constructor(id: string) {
@@ -21,7 +27,8 @@ export default class Player {
     this.name = '';
     this.isComputer = false;
     this.disconnected = false;
-    this.ready = false;
+    this.status = 'invited'; // Default status
+    this.ready = false;      // Default ready state
   }
 
   setHand(cards: Card[]): void {

@@ -6,11 +6,11 @@ import '@testing-library/jest-dom';
 import { fireEvent } from '@testing-library/dom';
 
 // Import the actual constants for use in test assertions
+import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
 import * as state from '../public/scripts/state.js'; // Stays .js for now
 import * as render from '../public/scripts/render.js';
 // Import the client-side script under test (AFTER mocks are set up)
 // This file (public/scripts/events.js) has NOT been converted to TS yet.
-import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
 
 const mockEmit = jest.fn();
 const mockOn = jest.fn();
@@ -25,6 +25,7 @@ jest.mock('../public/scripts/state.js', () => {
   return {
     socket: { emit: jest.fn(), on: jest.fn() }, // These will be overridden in beforeEach
     loadSession: jest.fn(),
+    saveSession: jest.fn(),
     $: jest.fn((selector: string) =>
       global.document ? global.document.querySelector(selector) : null
     ),
@@ -38,6 +39,10 @@ jest.mock('../public/scripts/state.js', () => {
     getBackToLobbyButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
+    setCurrentRoom: jest.fn(),
+    setMyId: jest.fn(),
+    setDesiredCpuCount: jest.fn(),
+    getDesiredCpuCount: jest.fn(() => 0),
   };
 });
 
@@ -61,6 +66,7 @@ describe('Lobby Form Submission', () => {
   let numHumansInput: HTMLInputElement;
   let numCPUsInput: HTMLInputElement;
   let submitButton: HTMLButtonElement;
+  let joinButton: HTMLButtonElement;
   let nameInputError: HTMLElement;
   let playerCountError: HTMLElement;
 
@@ -69,6 +75,7 @@ describe('Lobby Form Submission', () => {
     document.body.innerHTML = `
       <form id="lobby-form">
         <input type="text" id="player-name-input" />
+        <input type="text" id="join-code-input" />
         <div>
           <button id="humans-minus" type="button">-</button>
           <input type="number" id="total-players-input" value="1" />
@@ -84,6 +91,7 @@ describe('Lobby Form Submission', () => {
         <div class="lobby-buttons-row">
           <button id="setup-rules-button" type="button">RULES</button>
           <button id="setup-deal-button" type="button">LET'S PLAY</button>
+          <button id="join-game-button" type="button">Join Game</button>
         </div>
       </form>
     `;
@@ -91,6 +99,7 @@ describe('Lobby Form Submission', () => {
     numHumansInput = document.getElementById('total-players-input') as HTMLInputElement;
     numCPUsInput = document.getElementById('cpu-players-input') as HTMLInputElement;
     submitButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
+    joinButton = document.getElementById('join-game-button') as HTMLButtonElement;
     nameInputError = document.querySelector('#lobby-validation-message p') as HTMLElement;
     playerCountError = document.querySelector('#lobby-validation-message p') as HTMLElement;
 
@@ -174,5 +183,34 @@ describe('Lobby Form Submission', () => {
     expect(mockEmit).not.toHaveBeenCalled();
     expect(window.location.search).toMatch(/\?game=/);
     expect(render.lobbyLink).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(String) }));
+    // If your code triggers JOIN_GAME after lobby creation, add this:
+    // expect(mockEmit).toHaveBeenCalledWith(
+    //   JOIN_GAME,
+    //   {
+    //     name: 'ChrisP',
+    //     numHumans: 1,
+    //     numCPUs: 1,
+    //   },
+    //   expect.any(Function)
+    // );
+  });
+
+  it('shows error when join code is invalid', () => {
+    nameInput.value = 'Sam';
+    const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+    codeInput.value = '123';
+    fireEvent.click(joinButton);
+    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
+    expect(msgBox).toHaveClass('active');
+    expect(mockEmit).not.toHaveBeenCalled();
+  });
+
+  it('emits JOIN_GAME with room code when join button clicked', () => {
+    nameInput.value = 'Sam';
+    const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+    codeInput.value = 'ABC123';
+    fireEvent.click(joinButton);
+    expect(mockEmit).toHaveBeenCalledWith(JOIN_GAME, { id: 'ABC123', name: 'Sam' });
+    expect(joinButton.disabled).toBe(true);
   });
 });

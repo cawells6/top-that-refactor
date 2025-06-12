@@ -1,13 +1,15 @@
 // tests/gameFlow.test.ts
+import { jest, describe, test, beforeEach, expect } from '@jest/globals';
+
 import GameController from '../controllers/GameController.js';
 
 // Use string literals for event names to avoid import errors
 const JOINED = 'joined';
-const LOBBY = 'lobby';
+const LOBBY = 'lobby-state-update';
 const STATE_UPDATE = 'state-update';
 const NEXT_TURN = 'next-turn';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const START_GAME = 'start-game';
-import { jest, describe, test, beforeEach, expect } from '@jest/globals';
 
 // --- Type Definitions for Mocks ---
 interface MockSocket {
@@ -36,6 +38,7 @@ interface MockIO {
 
 interface PlayerJoinDataPayload {
   name: string;
+  numHumans?: number;
   numCPUs?: number;
   id?: string;
 }
@@ -63,24 +66,13 @@ const mockIo: MockIO = {
       }
     }
   }),
-  to: jest.fn(function (id: string): MockIOWithEmit {
-    // id can be roomName or socketId
-    console.log(`DEBUG_TEST: mockIo.to CALLED WITH: '${id}'`);
+  to: jest.fn(function (_id: string): MockIOWithEmit {
     const specificEmitMock = jest.fn((event: string, payload?: any) => {
-      console.log(
-        `DEBUG_TEST: mockIo.to('${id}').emit CALLED -> event: '${event}', payload:`,
-        payload !== undefined ? JSON.stringify(payload) : 'undefined'
-      );
       topLevelEmitMock(event, payload);
     });
     return { emit: specificEmitMock };
   }),
   emit: jest.fn((event: string, payload?: any) => {
-    // For direct io.emit
-    console.log(
-      `DEBUG_TEST: mockIo.emit CALLED -> event: '${event}', payload:`,
-      payload !== undefined ? JSON.stringify(payload) : 'undefined'
-    );
     topLevelEmitMock(event, payload);
   }),
   sockets: {
@@ -98,10 +90,6 @@ describe('Game Flow - Single Player vs CPU (manual start)', () => {
       id: 'socket-id-1',
       join: jest.fn(),
       emit: jest.fn((event: string, payload?: any) => {
-        console.log(
-          `DEBUG_TEST: globalMockSocket.emit CALLED -> event: '${event}', payload:`,
-          payload !== undefined ? JSON.stringify(payload) : 'undefined'
-        );
         topLevelEmitMock(event, payload);
       }),
       on: jest.fn((event: string, handler: (data?: any, ack?: Function) => void) => {
@@ -128,20 +116,17 @@ describe('Game Flow - Single Player vs CPU (manual start)', () => {
     gameController = new GameController(mockIo as any, 'test-room');
   });
 
-  test('Player joins, then host starts game with 1 CPU', () => {
+  test('Player joins and host starts game with 1 CPU, initial state is broadcast', () => {
     const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
-    // Simulate player joining (should result in lobby state, not started game)
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
 
-    // After join, game should NOT be started yet (lobby state)
+    // Game should not auto-start for human vs CPU
     expect(gameController['gameState'].started).toBe(false);
-    expect(gameController['gameState'].players).toContain(playerData.id);
-    expect(gameController['players'].has(playerData.id!)).toBe(true);
-    // No CPUs yet
-    expect(gameController['players'].has('COMPUTER_1')).toBe(false);
+    (gameController['handleStartGame'] as Function)({ computerCount: 1, socket: globalMockSocket });
 
-    // Now simulate the host starting the game (as the UI would do after lobby)
-    (gameController as any).handleStartGame({ computerCount: 1, socket: globalMockSocket });
+    expect(gameController['gameState'].started).toBe(true);
+    expect(gameController['gameState'].players).toContain(playerData.id);
+    expect(gameController['players'].has('COMPUTER_1')).toBe(true);
 
     // After start, CPUs should be present and game should be started
     expect(gameController['gameState'].started).toBe(true);
@@ -171,6 +156,48 @@ describe('Game Flow - Single Player vs CPU (manual start)', () => {
   });
 });
 
+describe('Game Flow - Lobby with Extra Human', () => {
+  let gameController: GameController;
+
+  beforeEach(() => {
+    topLevelEmitMock.mockClear();
+
+    globalMockSocket = {
+      id: 'socket-lobby',
+      join: jest.fn(),
+      emit: jest.fn(),
+      on: jest.fn(),
+      removeAllListeners: jest.fn(),
+      eventHandlers: {},
+      simulateIncomingEvent: () => {},
+      disconnect: jest.fn(),
+    } as unknown as MockSocket;
+
+    if (mockIo.sockets && mockIo.sockets.sockets) {
+      mockIo.sockets.sockets.clear();
+      mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
+    }
+
+    mockIo.on.mockClear();
+    mockIo.to.mockClear();
+    gameController = new GameController(mockIo as any, 'test-room');
+  });
+
+  test('No auto-start when expecting another human', () => {
+    const playerData: PlayerJoinDataPayload = {
+      name: 'Host',
+      numHumans: 2,
+      numCPUs: 1,
+      id: 'HOST_ID',
+    };
+
+    (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
+
+    expect(gameController['gameState'].started).toBe(false);
+    expect(gameController['players'].has('COMPUTER_1')).toBe(false);
+  });
+});
+
 describe('Game Flow - Manual Start by Host', () => {
   let gameController: GameController;
 
@@ -181,10 +208,6 @@ describe('Game Flow - Manual Start by Host', () => {
       id: 'host-socket-id',
       join: jest.fn(),
       emit: jest.fn((event: string, payload?: any) => {
-        console.log(
-          `DEBUG_TEST: globalMockSocket.emit CALLED -> event: '${event}', payload:`,
-          payload !== undefined ? JSON.stringify(payload) : 'undefined'
-        );
         topLevelEmitMock(event, payload);
       }),
       on: jest.fn((event: string, handler: (data?: any, ack?: Function) => void) => {
@@ -222,10 +245,6 @@ describe('Game Flow - Manual Start by Host', () => {
 
     globalMockSocket.id = 'socket-A';
     globalMockSocket.emit = jest.fn((event: string, payload?: any) => {
-      console.log(
-        `DEBUG_TEST: globalMockSocket.emit (socket-A) CALLED -> event: '${event}', payload:`,
-        payload !== undefined ? JSON.stringify(payload) : 'undefined'
-      );
       topLevelEmitMock(event, payload);
     });
     // Ensure the GameController can find this socket by its new ID
@@ -236,13 +255,13 @@ describe('Game Flow - Manual Start by Host', () => {
 
     const playerAData: PlayerJoinDataPayload = { name: 'PlayerA', numCPUs: 0, id: 'PlayerA-ID' };
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerAData);
-
-    // Debug: print all calls to globalMockSocket.emit
-    console.log('DEBUG: globalMockSocket.emit.mock.calls:', JSON.stringify(globalMockSocket.emit.mock.calls, null, 2));
-
     // Check that a JOINED event with the correct payload was emitted (allowing for extra events)
     const joinedCallHost = globalMockSocket.emit.mock.calls.find(
-      (call: any) => call[0] === JOINED && call[1]?.id === playerAData.id && call[1]?.name === playerAData.name && call[1]?.roomId === 'test-room'
+      (call: any) =>
+        call[0] === JOINED &&
+        call[1]?.id === playerAData.id &&
+        call[1]?.name === playerAData.name &&
+        call[1]?.roomId === 'test-room'
     );
     expect(joinedCallHost).toBeDefined();
     expect(gameController['gameState'].players).toEqual([playerAData.id]);
@@ -250,7 +269,8 @@ describe('Game Flow - Manual Start by Host', () => {
       (call: any) => call[0] === STATE_UPDATE && (call[1] as StatePayload)?.started === false
     );
     expect(stateUpdateCallHost).toBeDefined();
-    if (stateUpdateCallHost) expect((stateUpdateCallHost[1] as StatePayload).players.length).toBe(1);
+    if (stateUpdateCallHost)
+      expect((stateUpdateCallHost[1] as StatePayload).players.length).toBe(1);
     // Only clear mocks after all assertions
     topLevelEmitMock.mockClear();
     globalMockSocket.emit.mockClear();
@@ -259,10 +279,6 @@ describe('Game Flow - Manual Start by Host', () => {
       id: 'socket-B',
       join: jest.fn(),
       emit: jest.fn((event: string, payload?: any) => {
-        console.log(
-          `DEBUG_TEST: playerBJoinSocket.emit (socket-B) CALLED -> event: '${event}', payload:`,
-          payload !== undefined ? JSON.stringify(payload) : 'undefined'
-        );
         topLevelEmitMock(event, payload);
       }),
       on: jest.fn((event: string, handler: (data?: any, ack?: Function) => void) => {
@@ -284,7 +300,11 @@ describe('Game Flow - Manual Start by Host', () => {
 
     // Check that a JOINED event with the correct payload was emitted for player B
     const joinedCallB = playerBJoinSocket.emit.mock.calls.find(
-      (call: any) => call[0] === JOINED && call[1]?.id === playerBData.id && call[1]?.name === playerBData.name && call[1]?.roomId === 'test-room'
+      (call: any) =>
+        call[0] === JOINED &&
+        call[1]?.id === playerBData.id &&
+        call[1]?.name === playerBData.name &&
+        call[1]?.roomId === 'test-room'
     );
     expect(joinedCallB).toBeDefined();
     expect(gameController['gameState'].players).toEqual([playerAData.id, playerBData.id]);
@@ -299,10 +319,13 @@ describe('Game Flow - Manual Start by Host', () => {
     );
     let stateUpdateCallPlayer2 = topLevelEmitMock.mock.calls.find(
       (call) =>
-        call[0] === STATE_UPDATE && (call[1] as StatePayload)?.started === false && (call[1] as StatePayload)?.players.length === 2
+        call[0] === STATE_UPDATE &&
+        (call[1] as StatePayload)?.started === false &&
+        (call[1] as StatePayload)?.players.length === 2
     );
     expect(stateUpdateCallPlayer2).toBeDefined();
-    if (stateUpdateCallPlayer2) expect((stateUpdateCallPlayer2[1] as StatePayload).players.length).toBe(2);
+    if (stateUpdateCallPlayer2)
+      expect((stateUpdateCallPlayer2[1] as StatePayload).players.length).toBe(2);
     topLevelEmitMock.mockClear();
     globalMockSocket.emit.mockClear();
 

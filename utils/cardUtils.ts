@@ -1,5 +1,5 @@
 // utils/cardUtils.ts
-import { Card } from '../src/types.js'; // <-- CHANGED
+import { Card } from '@srcTypes/types';
 
 export function normalizeCardValue(
   cardValue: string | number | null | undefined

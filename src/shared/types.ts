@@ -31,3 +31,18 @@ export interface GameStateData {
   started: boolean;
   lastRealCard: Card | null;
 }
+
+// Represents a player in the lobby. `status` shows whether the
+// player is the host, just joined, or has clicked the ready button.
+export interface LobbyPlayer {
+  id: string;
+  name: string;
+  status: 'host' | 'invited' | 'joined' | 'ready';
+}
+
+export interface InSessionLobbyState {
+  roomId: string;
+  hostId: string | null;
+  players: LobbyPlayer[];
+  started?: boolean; // Added to communicate game start state
+}

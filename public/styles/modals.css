@@ -10,7 +10,7 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+  z-index: 1051;
   animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   /* Exactly matching the styling of lobby-modal-container */
 }
@@ -664,4 +664,11 @@
     max-width: 5.5em !important;
     max-height: 5.5em !important;
   }
+}
+
+/* --- Accessibility: visible focus style for close button --- */
+.modal__close-button:focus {
+  outline: 2px solid #ffc300;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #ffc300;
 }

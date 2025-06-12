@@ -5,7 +5,6 @@
  * It ignores the Vite port to avoid disrupting the client
  */
 
-/* eslint-disable no-undef */
 const path = require('path');
 const fs = require('fs');
 

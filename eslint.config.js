@@ -37,6 +37,7 @@ export default [
       '.eslintrc.js', // Ignore old ESLint config file
       'vite.config.ts*.timestamp-*',
       'public/scripts/**/*.js', // JS files in public/scripts handled by their own block
+      'shared/eslint.config.js', // Ignore this file as it uses CommonJS syntax
     ],
   },
 
@@ -285,6 +286,31 @@ export default [
       'prettier/prettier': 'error',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // Updated
       'no-undef': 'error',
+    },
+  },
+
+  // New configuration for scripts/*.js files
+  {
+    files: ['scripts/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2021,
+        console: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+      },
+      sourceType: 'module',
+      ecmaVersion: 'latest',
+    },
+    plugins: {
+      prettier: prettierPlugin,
+    },
+    rules: {
+      'prettier/prettier': 'error',
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      'no-undef': 'error', 
     },
   },
 

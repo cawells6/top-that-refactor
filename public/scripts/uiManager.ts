@@ -1,12 +1,7 @@
 import { renderGameState, playArea, lobbyLink } from './render.js';
 import * as state from './state.js';
-import {
-  JOINED,
-  LOBBY_STATE_UPDATE,
-  STATE_UPDATE,
-  REJOIN,
-} from '../../src/shared/events.js';
-import { GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
+import { JOINED, LOBBY_STATE_UPDATE, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
+import { GameStateData } from '../../src/shared/types.js';
 
 export const getLobbyContainer = (): HTMLElement | null =>
   document.getElementById('lobby-container');
@@ -65,8 +60,20 @@ export function showLobbyForm(): void {
   if (lobbyContainer) lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
-  if (table) table.classList.add('table--hidden', 'hidden');
-  if (mainContent) mainContent.classList.remove('game-active'); // Remove class for lobby layout
+  if (table) {
+    table.classList.add('table--hidden', 'hidden');
+    console.log('[uiManager] showLobbyForm: Hid game table.');
+  }
+  if (mainContent) mainContent.classList.remove('game-active');
+  console.log('[uiManager] showLobbyForm: Showed lobby form.');
+}
+
+export function hideLobbyForm(): void {
+  const lobbyContainer = getLobbyContainer();
+  const lobbyFormContent = getLobbyFormContent();
+
+  if (lobbyContainer) lobbyContainer.classList.add('hidden');
+  if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
 }
 
 export function showWaitingState(
@@ -83,7 +90,8 @@ export function showWaitingState(
   if (lobbyContainer) lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
-  if (mainContent) mainContent.classList.remove('game-active'); // Ensure lobby layout
+  if (mainContent) mainContent.classList.remove('game-active');
+  console.log('[uiManager] showWaitingState: Showed waiting state.');
 
   // Update waiting heading
   const waitingHeading = document.getElementById('waiting-heading');
@@ -113,7 +121,28 @@ export function showWaitingState(
 }
 
 export function showGameTable(): void {
+  // Set up the play area using the render.js playArea function
   playArea();
+  
+  // Additional UI updates
+  const lobbyContainer = getLobbyContainer();
+  const table = getGameTable();
+  const mainContent = document.getElementById('main-content');
+
+  if (!table) {
+    console.warn('[uiManager] showGameTable: #game-table element not found!');
+  } else {
+    table.classList.remove('table--hidden', 'hidden');
+    console.log('[uiManager] showGameTable: Revealed game table.');
+  }
+  if (lobbyContainer) {
+    lobbyContainer.classList.add('hidden');
+    console.log('[uiManager] showGameTable: Hid lobby container.');
+  }
+  if (mainContent) {
+    mainContent.classList.add('game-active');
+    console.log('[uiManager] showGameTable: Added game-active to main-content.');
+  }
 }
 
 export function showError(msg: string): void {

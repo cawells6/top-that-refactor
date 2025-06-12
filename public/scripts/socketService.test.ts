@@ -59,6 +59,9 @@ describe('socketService', () => {
     expect(state.socket.on).toHaveBeenCalledWith(LOBBY_CREATED, expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith(LOBBY_STATE_UPDATE, expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith(GAME_STARTED, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith(JOINED, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith(STATE_UPDATE, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith(STATE_UPDATE, expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
   });
@@ -91,7 +94,6 @@ describe('socketService', () => {
     lobbyHandler(data);
     expect(uiManager.showWaitingState).toHaveBeenCalledWith('R', 1, 1, data.players);
   });
-
   it('calls renderGameState and showGameTable on STATE_UPDATE', async () => {
     await initializeSocketHandlers();
     const stateUpdateHandler = (state.socket.on as jest.Mock).mock.calls.find(

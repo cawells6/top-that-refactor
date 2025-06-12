@@ -7,5 +7,5 @@ SET SCRIPT_DIR=%~dp0
 REM Get the project directory (parent of script directory)
 SET PROJECT_DIR=%SCRIPT_DIR%..
 
-REM Pass all arguments to the gpush.sh script
-bash "%SCRIPT_DIR%gpush.sh" %*
+REM Pass all arguments to the scripts/gpush.sh script
+bash "%SCRIPT_DIR%scripts/gpush.sh" %*

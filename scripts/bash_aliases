@@ -5,8 +5,10 @@
 # Define the absolute path to the project directory
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Create a gpush alias that uses the project's gpush.sh script
-alias gpush="${PROJECT_DIR}/scripts/gpush.sh"
+# Add project root to PATH for gpush command
+export PATH="$PATH:$PROJECT_DIR"
+
+# Alias for gpush to call the batch file directly
+alias gpush="$PROJECT_DIR/gpush.bat"
 
 echo "✅ Top-That-Refactor aliases loaded!"
-echo "You can now use 'gpush \"Your commit message\"' directly"
