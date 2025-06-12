@@ -75,8 +75,8 @@ function startServer(port: number, retries = 0) {
     socket.on('disconnect', () => {
       const lobby = lobbyManager.findLobbyBySocketId(socket.id);
       if (lobby) {
-        lobby.removePlayer(socket.id);
-        if (lobby.players.size === 0) {
+        const isEmpty = lobby.removePlayer(socket.id);
+        if (isEmpty) {
           lobbyManager.removeLobby(lobby.roomId);
         }
       }
