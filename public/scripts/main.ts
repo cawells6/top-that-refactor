@@ -91,9 +91,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Optionally, call after any known UI update (if you know where icons are rendered)
   // removePlayerIconInlineStyles();
 
-  // === Remove the loading class once initialization is complete ===
-  document.body.classList.remove('body-loading');
-
   // --- START: New logic for handling join links ---
   const urlParams = new URLSearchParams(window.location.search);
   const roomIdFromUrl = urlParams.get('room');
