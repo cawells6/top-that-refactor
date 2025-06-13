@@ -58,8 +58,7 @@
         background: 'none',
         padding: '0',
         margin: '0',
-        zIndex: 1000,
-        border: '3px solid red' // DEBUG: visually see the container
+        zIndex: 1000
       });
     }
 
@@ -73,8 +72,7 @@
         transform: 'none',
         maxWidth: '800px',
         width: '100%',
-        boxSizing: 'border-box',
-        border: '3px solid blue' // DEBUG: visually see the modal
+        boxSizing: 'border-box'
       });
     }
     

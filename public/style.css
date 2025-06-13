@@ -503,7 +503,7 @@ body {
   z-index: 1000;
   /* Animations for smooth appearance */
   animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  max-width: 800px; /* Increased from 640px/500px for more space */
+  max-width: 980px; /* 30% less than 1400px */
   width: 100%;
   margin: 0 auto;
   position: relative;
@@ -511,15 +511,10 @@ body {
 }
 
 .lobby-modal-container {
-  position: relative !important;
-  margin: auto !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  transform: none !important;
-  max-width: 800px !important;
+  max-width: 980px !important;
   width: 100% !important;
-  box-sizing: border-box !important;
+  min-width: 320px !important;
+  margin: 0 auto !important;
 }
 
 /* Inner white card content - separate content styling from container */
@@ -533,7 +528,7 @@ body {
     0 8px 25px rgba(0, 0, 0, 0.1),
     0 0 0 1px rgba(255, 195, 0, 0.2);
   padding: 2rem 2.5rem;
-  max-width: 760px; /* Increased for more content width */
+  max-width: 950px; /* 30% less than 1360px */
   width: 100%;
   margin: 0;
   position: relative;
@@ -542,11 +537,13 @@ body {
 }
 
 .game-setup-content {
-  position: relative !important;
-  margin: 0 auto !important;
-  max-width: 760px !important;
+  max-width: 950px !important;
   width: 100% !important;
-  box-sizing: border-box !important;
+  min-width: 320px !important;
+  margin: 0 auto !important;
+  overflow-x: auto !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
 }
 
 /* Legacy .game-setup-card styling - keeping for backwards compatibility
@@ -1600,4 +1597,21 @@ body.showing-game #lobby-container {
   opacity: 0;
   pointer-events: none;
   z-index: 1; /* Lower z-index when hidden */
+}
+
+.lobby-modal-container {
+  max-width: 980px !important;
+  width: 100% !important;
+  min-width: 320px !important;
+  margin: 0 auto !important;
+}
+
+.game-setup-content {
+  max-width: 950px !important;
+  width: 100% !important;
+  min-width: 320px !important;
+  margin: 0 auto !important;
+  overflow-x: auto !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
 }

@@ -25,13 +25,14 @@
 /* Ensure the lobby modal container is centered from the first render */
 .lobby-modal-container {
   position: relative !important;
-  margin: auto !important;
+  margin: 0 auto !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
   transform: none !important;
-  max-width: 800px !important; /* Increased from default for more space */
-  width: 100% !important;
+  max-width: 800px !important; /* Restore max-width for modal appearance */
+  width: 100% !important; /* Keep width 100% for flexibility */
+  min-width: 320px !important; /* Ensure a reasonable minimum width */
   box-sizing: border-box !important;
 }
 
@@ -55,7 +56,8 @@ html.preload {
 .game-setup-content {
   position: relative !important;
   margin: 0 auto !important;
-  max-width: 760px !important;
-  width: 100% !important;
+  max-width: 760px !important; /* Restore max-width for content appearance */
+  width: 100% !important; /* Keep width 100% for flexibility */
+  min-width: 320px !important; /* Ensure a reasonable minimum width */
   box-sizing: border-box !important;
 }
