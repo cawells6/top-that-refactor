@@ -62,10 +62,15 @@ body {
 /* Game viewport - container for both game and lobby views */
 /* Basic structural styles - enhanced by layout-stabilizer.js */
 .game-viewport {
-  position: relative; /* layout-stabilizer.js will override to fixed */
-  width: 100%; /* layout-stabilizer.js will set to 100vw */
-  height: 100%; /* layout-stabilizer.js will set to 100vh */
-  overflow: hidden;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  z-index: 0 !important;
 }
 
 /* Base lobby container styles - core design only, positioning from layout-stabilizer.js */
@@ -76,6 +81,23 @@ body {
   box-shadow: none;
   display: flex;
   flex-direction: column;
+}
+
+#lobby-container {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  z-index: 1000 !important;
 }
 
 /* Initial hidden states - enhanced by layout-stabilizer.js */
@@ -268,7 +290,6 @@ body {
   box-shadow:
     inset 0 2px 4px rgba(0, 0, 0, 0.4),
     0 1px 1px rgba(255, 255, 255, 0.1); /* Adjust shadow for definition */
-  transition: all 0.2s ease;
 }
 
 /* Hide spinner arrows in webkit browsers (already present, but good to keep) */
@@ -482,7 +503,23 @@ body {
   z-index: 1000;
   /* Animations for smooth appearance */
   animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  /* Removed position: fixed, top, left, and transform to resolve modal centering conflict */
+  max-width: 800px; /* Increased from 640px/500px for more space */
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.lobby-modal-container {
+  position: relative !important;
+  margin: auto !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  transform: none !important;
+  max-width: 800px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Inner white card content - separate content styling from container */
@@ -496,11 +533,20 @@ body {
     0 8px 25px rgba(0, 0, 0, 0.1),
     0 0 0 1px rgba(255, 195, 0, 0.2);
   padding: 2rem 2.5rem;
-  max-width: 960px;
-  width: 90vw;
-  margin: 0; /* No margin inside container */
+  max-width: 760px; /* Increased for more content width */
+  width: 100%;
+  margin: 0;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+.game-setup-content {
+  position: relative !important;
+  margin: 0 auto !important;
+  max-width: 760px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Legacy .game-setup-card styling - keeping for backwards compatibility
@@ -1514,10 +1560,20 @@ body {
 
 /* Create a transition container for both views */
 .main-content {
-  position: relative; /* Establish positioning context */
-  overflow: hidden; /* Hide overflow during transitions */
-  width: 100%;
-  height: 100%;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: block !important;
+  background: none !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  z-index: 1 !important;
 }
 
 /* Improved visibility classes */

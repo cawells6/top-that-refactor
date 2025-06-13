@@ -48,19 +48,33 @@
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        width: '100%',
-        height: '100%',
-        position: 'relative'
+        width: '100vw',
+        height: '100vh',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        right: '0',
+        bottom: '0',
+        background: 'none',
+        padding: '0',
+        margin: '0',
+        zIndex: 1000,
+        border: '3px solid red' // DEBUG: visually see the container
       });
     }
-    
+
     if (lobbyOuterCard) {
       Object.assign(lobbyOuterCard.style, {
         position: 'relative',
-        margin: '0 auto',
-        top: 'auto',
-        left: 'auto',
-        transform: 'none'
+        margin: 'auto',
+        top: '0',
+        left: '0',
+        right: '0',
+        transform: 'none',
+        maxWidth: '800px',
+        width: '100%',
+        boxSizing: 'border-box',
+        border: '3px solid blue' // DEBUG: visually see the modal
       });
     }
     

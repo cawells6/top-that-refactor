@@ -43,10 +43,10 @@
 
 /* Lobby container styling */
 .lobby {
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 0;
+  width: 100vw !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* .game-setup-card styling moved to style.css to match rules modal blue background */
