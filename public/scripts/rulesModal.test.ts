@@ -78,12 +78,12 @@ describe('Rules modal interactions', () => {
 
     expect(rulesModal).not.toHaveClass('modal--hidden');
     expect(overlay).not.toHaveClass('modal__overlay--hidden');
-    expect(lobby).toHaveClass('hidden');
+    expect(lobby.style.display).toBe('none');
 
     hideRulesModalAndOverlay();
 
     expect(rulesModal).toHaveClass('modal--hidden');
     expect(overlay).toHaveClass('modal__overlay--hidden');
-    expect(lobby).not.toHaveClass('hidden');
+    expect(lobby.style.display).toBe('');
   });
 });

@@ -1,0 +1,51 @@
+/**
+ * immediate-fix.css
+ * This stylesheet ensures the lobby modal container is properly positioned from the start.
+ * It will be loaded very early to prevent any positioning shifts.
+ */
+
+/* Fix the lobby modal positioning to ensure it's centered from the beginning */
+#lobby-container {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+/* Ensure the lobby modal container is centered from the first render */
+.lobby-modal-container {
+  position: relative !important;
+  margin: auto !important;
+  top: 0 !important;
+  left: 0 !important;
+  transform: none !important;
+}
+
+/* Force immediate visibility (no transition) for first render */
+body:not(.loaded) #lobby-container {
+  transition: none !important;
+}
+
+/* Hide everything until we're sure styling is applied */
+html.preload {
+  visibility: hidden;
+}
+
+/* Fix for exact positioning with no jumps */
+.lobby-modal-container.centered, #lobby-outer-card {
+  position: relative !important;
+  margin: 0 auto !important;
+}
+
+/* Game setup content positioning */
+.game-setup-content {
+  position: relative;
+  margin: 0 auto;
+  max-width: 800px;
+  width: 100%;
+  box-sizing: border-box;
+}

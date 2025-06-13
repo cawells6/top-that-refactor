@@ -4,10 +4,10 @@
 import '@testing-library/jest-dom';
 import { fireEvent, screen } from '@testing-library/dom';
 
-import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobbyModal.js';
-import * as state from '../public/scripts/state.js';
-import { PLAYER_READY } from '../src/shared/events.js';
-import { InSessionLobbyState } from '../src/shared/types.js';
+import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobbyModal';
+import * as state from '../public/scripts/state';
+import { PLAYER_READY } from '../src/shared/events';
+import { InSessionLobbyState } from '../src/shared/types';
 
 jest.mock('../public/scripts/state', () => ({
   socket: {
@@ -83,7 +83,7 @@ describe('InSessionLobbyModal', () => {
     (modalInstance as any).render(mockLobbyState);
 
     const readyButton = document.getElementById('ready-up-button') as HTMLButtonElement;
-    expect(readyButton).toHaveClass('hidden');
+    expect(readyButton).toHaveStyle('display: none');
   });
 
   it('emits PLAYER_READY with name when the button is clicked', () => {
@@ -97,7 +97,7 @@ describe('InSessionLobbyModal', () => {
   });
 
   it('should copy the game link to the clipboard when "Copy Link" is clicked', () => {
-    const copyButton = screen.getByRole('button', { name: /Copy Invite Link/i });
+    const copyButton = screen.getByRole('button', { name: /Copy Link/i });
     fireEvent.click(copyButton);
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(

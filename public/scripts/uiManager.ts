@@ -54,25 +54,36 @@ export function showLobbyForm(): void {
   const lobbyContainer = getLobbyContainer();
   const lobbyFormContent = getLobbyFormContent();
   const waitingStateDiv = getWaitingStateDiv();
-  const table = getGameTable();
   const mainContent = document.getElementById('main-content');
 
-  if (lobbyContainer) lobbyContainer.classList.remove('hidden');
+  if (!lobbyContainer) {
+    console.warn('[uiManager] showLobbyForm: #lobby-container element not found!');
+    return;
+  }
+
+  // Let the layout-stabilizer.js handle the transition
+  // We only need to manage content visibility here
+  
+  // Update internal UI states
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
-  if (table) {
-    table.classList.add('table--hidden', 'hidden');
-    console.log('[uiManager] showLobbyForm: Hid game table.');
+  
+  // Optional: Update any class on main content if needed
+  if (mainContent) {
+    mainContent.classList.remove('game-active');
   }
-  if (mainContent) mainContent.classList.remove('game-active');
-  console.log('[uiManager] showLobbyForm: Showed lobby form.');
+  
+  console.log('[uiManager] showLobbyForm: Requested lobby view');
 }
 
 export function hideLobbyForm(): void {
   const lobbyContainer = getLobbyContainer();
   const lobbyFormContent = getLobbyFormContent();
 
-  if (lobbyContainer) lobbyContainer.classList.add('hidden');
+  if (lobbyContainer) {
+    lobbyContainer.classList.add('hidden');
+    lobbyContainer.classList.remove('lobby-fixed');
+  }
   if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
 }
 
@@ -87,7 +98,10 @@ export function showWaitingState(
   const waitingStateDiv = getWaitingStateDiv();
   const mainContent = document.getElementById('main-content');
 
-  if (lobbyContainer) lobbyContainer.classList.remove('hidden');
+  if (lobbyContainer) {
+    lobbyContainer.classList.remove('hidden');
+    lobbyContainer.classList.add('lobby-fixed');
+  }
   if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
   if (mainContent) mainContent.classList.remove('game-active');
@@ -120,28 +134,24 @@ export function showWaitingState(
 }
 
 export function showGameTable(): void {
-  // Set up the play area using the render.js playArea function
-  // playArea();
-
   // Additional UI updates
-  const lobbyContainer = getLobbyContainer();
   const table = getGameTable();
   const mainContent = document.getElementById('main-content');
 
   if (!table) {
     console.warn('[uiManager] showGameTable: #game-table element not found!');
-  } else {
-    table.classList.remove('table--hidden', 'hidden');
-    console.log('[uiManager] showGameTable: Revealed game table.');
+    return;
   }
-  if (lobbyContainer) {
-    lobbyContainer.classList.add('hidden');
-    console.log('[uiManager] showGameTable: Hid lobby container.');
-  }
+
+  // Let the layout-stabilizer.js handle the transition
+  // We only need to update internal UI state
+  
+  // Add game-active class to main content if needed
   if (mainContent) {
     mainContent.classList.add('game-active');
-    console.log('[uiManager] showGameTable: Added game-active to main-content.');
   }
+  
+  console.log('[uiManager] showGameTable: Requested game table view');
 }
 
 export function showError(msg: string): void {

@@ -1,5 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
+import { GameStateData } from '../../src/shared/types.js';
+
 let socket: Socket;
 export let socketReady: Promise<void>;
 
@@ -14,6 +16,8 @@ async function initSocket(): Promise<Socket> {
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 10000,
+    reconnectionAttempts: 10, // Increase reconnection attempts
+    timeout: 20000, // Increase connection timeout
   };
 
   // Special handling for Vite development server
@@ -63,6 +67,8 @@ export let desiredCpuCount = 0;
 export const stateHistory: any[] = []; // TODO: Consider defining a specific type for state history items, e.g., GameStateSnapshot[]
 export let stateIndex: number = -1;
 
+export let lastGameState: GameStateData | null = null;
+
 export function loadSession(): void {
   setMyId(sessionStorage.getItem('myId'));
   setCurrentRoom(sessionStorage.getItem('currentRoom'));
@@ -105,4 +111,7 @@ export function clearSpecialEffects(): void {
 }
 export function setStateIndex(index: number): void {
   stateIndex = index;
+}
+export function setLastGameState(gameState: GameStateData | null): void {
+  lastGameState = gameState;
 }

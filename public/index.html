@@ -1,9 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="loading preload">
   <head>
     <meta charset="UTF-8" />
     <title>Top That! Card Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Immediate fix for lobby modal position - must be first -->
+    <link rel="stylesheet" href="/styles/immediate-fix.css" />
+    
+    <!-- Direct position fix script - runs immediately -->
+    <script src="/scripts/position-fix.js"></script>
+    
+    <!-- Initial layout stabilization - must load early for execution -->
+    <script src="/scripts/initial-layout-stabilizer.js"></script>
 
     <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />
@@ -38,17 +47,34 @@
 
     <!-- Style and layout enhancer -->
     <script src="/scripts/style-enforcer.js"></script>
+    
+    <!-- Previous layout stabilizers - disabled in favor of initial-layout-stabilizer.js -->
+    <!-- <script src="/scripts/simple-layout-stabilizer.js"></script> -->
+    
+    <!-- Inline script for removing preload state after all resources load -->
+    <script>
+      // Ensure everything is fully loaded before showing content
+      window.addEventListener('load', function() {
+        // Force a small delay to ensure all styles are applied
+        setTimeout(function() {
+          document.documentElement.classList.remove('preload');
+          document.documentElement.classList.add('loaded');
+          console.log('[POSITION-FIX] Page fully loaded and revealed');
+        }, 50);
+      });
+    </script>
   </head>
-  <body style="min-height: 100vh; display: flex; flex-direction: column">
+  <body class="body-loading">
     <!-- Header removed per user request -->
 
     <!-- <div class="notice notice--hidden" id="notice-banner"></div> -->
     <!-- <div class="notice notice--hidden" id="error-banner"></div> -->
     <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
-
-    <main class="main-content" id="main-content">
+    
+    <div class="game-viewport">
+      <main class="main-content" id="main-content">
       <!-- Lobby Screen -->
-      <div class="lobby" id="lobby-container">
+      <div class="lobby lobby--hidden" id="lobby-container">
         <div id="lobby-outer-card" class="lobby-modal-container">
           <div id="lobby-inner-content" class="game-setup-content">
             <div class="setup-header">
@@ -203,7 +229,7 @@
       </div>
 
       <!-- Game Table -->
-      <div id="game-table" class="hidden" style="width: 100%; height: 100%">
+      <div id="game-table" class="hidden table--hidden" style="width: 100%; height: 100%">
         <div class="table" style="width: 100%; height: 100%">
           <div class="table-slot-top" id="opponent-area-top"></div>
           <div class="table-slot-left" id="opponent-area-left"></div>
@@ -212,8 +238,9 @@
           <div class="table-slot-bottom" id="player-area-bottom"></div>
         </div>
       </div>
-    </main>
-
+      </main>
+    </div>
+    
     <section class="game-log game-log--hidden" id="game-log"></section>
 
     <div

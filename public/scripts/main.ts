@@ -91,6 +91,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Optionally, call after any known UI update (if you know where icons are rendered)
   // removePlayerIconInlineStyles();
 
+  // === Unhide lobby and remove loading class ===
+  document.body.classList.remove('body-loading');
+  document.body.classList.add('showing-lobby'); // Add initial state class
+  const lobbyContainer = document.getElementById('lobby-container');
+  if (lobbyContainer) {
+    lobbyContainer.classList.remove('hidden');
+  }
+  console.log('🚀 [Client] Lobby explicitly made visible.');
+
   // --- START: New logic for handling join links ---
   const urlParams = new URLSearchParams(window.location.search);
   const roomIdFromUrl = urlParams.get('room');
@@ -103,10 +112,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
   // --- END: New logic for handling join links ---
-
-  const lobbyContainer = document.getElementById('lobby-container');
-  if (lobbyContainer) {
-    lobbyContainer.classList.remove('hidden', 'lobby--hidden');
-  }
-  console.log('🚀 [Client] Lobby explicitly made visible.');
 });

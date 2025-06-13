@@ -7,6 +7,26 @@
 @import 'styles/modal-containers.css';
 @import 'styles/animations.css';
 
+/* Prevent flash of unstyled/misaligned content during load */
+.preload-hidden {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: visibility 0s, opacity 0.5s ease;
+    position: fixed !important; /* Keep fixed even during load */
+    display: flex !important; /* Maintain flex layout during load */
+    justify-content: center !important; /* Keep centered even when hidden */
+    align-items: center !important; /* Keep centered even when hidden */
+}
+
+/* Fade in transition when showing content */
+.fade-in {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transition: visibility 0s, opacity 0.5s ease;
+}
+
 :root {
   --bg: #137a4b;
   --header-bg: #1b2e3c;
@@ -21,29 +41,46 @@
   --mute: #888;
 }
 
+html, body {
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-y: scroll !important; /* Always show vertical scrollbar */
+  scrollbar-width: thin; /* For Firefox */
+  -ms-overflow-style: scrollbar; /* For IE and Edge */
+  /* Force the scrollbar to always be visible */
+  scrollbar-gutter: stable; /* Modern browsers */
+  margin-right: calc(100vw - 100%); /* Fallback for browsers that don't support scrollbar-gutter */
+}
+
 body {
   background: var(--bg, #137a4b); /* Ensuring green background for the whole page */
   min-height: 100vh;
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
 }
 
+/* Game viewport - container for both game and lobby views */
+/* Basic structural styles - enhanced by layout-stabilizer.js */
+.game-viewport {
+  position: relative; /* layout-stabilizer.js will override to fixed */
+  width: 100%; /* layout-stabilizer.js will set to 100vw */
+  height: 100%; /* layout-stabilizer.js will set to 100vh */
+  overflow: hidden;
+}
+
+/* Base lobby container styles - core design only, positioning from layout-stabilizer.js */
 #lobby-container {
-  background: none; /* Remove blue background from the container itself */
+  background: none;
   padding: 0;
   border-radius: 0;
   box-shadow: none;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center; /* Revert back to center */
-  min-height: 100vh;
-  min-width: 100vw;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1000;
+}
+
+/* Initial hidden states - enhanced by layout-stabilizer.js */
+#lobby-container.hidden, #game-table.hidden {
+  opacity: 0;
 }
 
 /* New Game Setup Card Design */
@@ -890,13 +927,33 @@ body {
   min-height: 120px;
 }
 
-.table--hidden {
-  display: none !important;
+/* Game table styles */
+#game-table {
+  width: 100%;
+  height: 100%;
+  position: absolute; /* Keep positioned absolutely */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 1;
+  transition: opacity 0.4s ease; /* Match lobby transition timing */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: opacity; /* Optimize for animations */
+  transform: translateZ(0); /* Force GPU acceleration */
 }
 
-.lobby--hidden {
-  display: none !important;
+#game-table.hidden {
+  opacity: 0;
+  pointer-events: none; /* Disable interaction when hidden */
+  visibility: hidden; /* Use visibility for better transitions */
+  transition: opacity 0.4s ease, visibility 0s 0.4s; /* Delay visibility change until after fade */
 }
+
+/* Removed .table--hidden and .lobby--hidden classes */
+/* Transitions now handled directly in the element styles */
 
 .player-area {
   background: rgba(20, 30, 40, 0.12);
@@ -1448,3 +1505,43 @@ body {
   gap: 1.5rem !important;
   margin-top: 1.5rem !important;
 } */
+
+/* Body state classes to better control visibility with improved transitions */
+body {
+  /* Force scrollbar to be always present to prevent layout shift */
+  overflow-y: scroll;
+}
+
+/* Create a transition container for both views */
+.main-content {
+  position: relative; /* Establish positioning context */
+  overflow: hidden; /* Hide overflow during transitions */
+  width: 100%;
+  height: 100%;
+}
+
+/* Improved visibility classes */
+body.showing-lobby #lobby-container {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 2; /* Higher z-index when visible */
+}
+
+body.showing-game #game-table {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 2; /* Higher z-index when visible */
+}
+
+/* Keep both views in the DOM during transitions but with different z-index */
+body.showing-lobby #game-table {
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1; /* Lower z-index when hidden */
+}
+
+body.showing-game #lobby-container {
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1; /* Lower z-index when hidden */
+}

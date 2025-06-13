@@ -475,10 +475,7 @@ export async function initializePageEventListeners() {
 
     // Close modal when clicking overlay
     overlay.addEventListener('click', (e) => {
-      if (
-        e.target === overlay &&
-        !rulesModal.classList.contains('modal--hidden')
-      ) {
+      if (e.target === overlay && !rulesModal.classList.contains('modal--hidden')) {
         hideRulesModalAndOverlay();
       }
     });

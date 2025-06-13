@@ -21,8 +21,9 @@ export async function initializeSocketHandlers(): Promise<void> {
     if (state.currentRoom) {
       state.socket.emit(REJOIN, state.myId, state.currentRoom);
       // Do NOT call showLobbyForm() here. Wait for server response.
+    } else {
+      showLobbyForm();
     }
-    // Removed redundant showLobbyForm() call. Let main.ts handle initial UI.
   });
   state.socket.on(LOBBY_CREATED, (roomId: string) => {
     state.setCurrentRoom(roomId);
