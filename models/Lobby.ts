@@ -48,15 +48,6 @@ export default class Lobby {
     this.broadcastLobbyState();
   }
 
-  setPlayerReady(socketId: string, ready: boolean): void {
-    const player = this.players.get(socketId);
-    if (player) {
-      player.ready = ready;
-      this.broadcastLobbyState();
-      this.checkIfReadyToStart();
-    }
-  }
-
   private broadcastLobbyState(): void {
     const state = {
       roomId: this.roomId,
@@ -70,6 +61,15 @@ export default class Lobby {
     this.io.to(this.roomId).emit(LOBBY_STATE_UPDATE, state);
   }
 
+  setPlayerReady(socketId: string, ready: boolean): void {
+    const player = this.players.get(socketId);
+    if (player) {
+      player.ready = ready;
+      this.broadcastLobbyState();
+      this.checkIfReadyToStart();
+    }
+  }
+
   private checkIfReadyToStart(): void {
     const allReady = Array.from(this.players.values()).every((p) => p.ready);
     if (allReady && this.players.size > 0) {
@@ -78,7 +78,6 @@ export default class Lobby {
   }
 
   private startGame(): void {
-    console.log(`Lobby ${this.roomId} ready to start the game`);
     this.gameController = new GameController(this.io, this.roomId);
     for (const [socketId, player] of this.players.entries()) {
       const socket = this.sockets.get(socketId);
@@ -91,6 +90,7 @@ export default class Lobby {
       .startGame(0, hostSocket)
       .then(() => {
         this.io.to(this.roomId).emit(GAME_STARTED);
+        return null;
       })
       .catch((err) => {
         console.error('Failed to start game:', err);

@@ -12,7 +12,7 @@ console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('main-content')?.classList.remove('preload-hidden');
-  console.log('🚀 [Client] DOM fully loaded and parsed (from main.ts)');
+  // console.log('🚀 [Client] DOM fully loaded and parsed (from main.ts)');
 
   // Do NOT clear session on page load! Only clear on explicit user action.
   // sessionStorage.removeItem('myId');
@@ -39,10 +39,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     await initializePageEventListeners();
-    console.log('🚀 [Client] initializePageEventListeners completed');
+    // console.log('🚀 [Client] initializePageEventListeners completed');
 
     initializeSocketHandlers();
-    console.log('🚀 [Client] All initialization completed');
+    // console.log('🚀 [Client] All initialization completed');
   } catch (error) {
     console.error('Error during initialization:', error);
   }
@@ -52,7 +52,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const icons = document.querySelectorAll(
       '.player-silhouette img, .player-silhouette .user-icon, .player-silhouette .robot-icon'
     );
-    console.debug('[Silhouette] Found', icons.length, 'player icon(s) to clean up');
     icons.forEach((img) => {
       (img as HTMLElement).removeAttribute('style');
       (img as HTMLElement).removeAttribute('width');
@@ -65,19 +64,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Set up a MutationObserver on the whole body to catch any icon changes
   const observer = new MutationObserver((mutations) => {
-    // Debug: log what mutations occurred
-    mutations.forEach((mutation) => {
-      if (mutation.type === 'attributes') {
-        console.debug(
-          `[Silhouette] Attribute mutation: ${mutation.attributeName} on`,
-          mutation.target
-        );
-      } else if (mutation.type === 'childList') {
-        console.debug(
-          `[Silhouette] ChildList mutation: added ${mutation.addedNodes.length}, removed ${mutation.removedNodes.length}`
-        );
-      }
-    });
     removePlayerIconInlineStyles();
   });
 

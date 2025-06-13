@@ -51,12 +51,8 @@ export async function initializeSocketHandlers(): Promise<void> {
     showGameTable();
   });
   state.socket.on(STATE_UPDATE, (s: GameStateData) => {
-    console.log('[socketService] STATE_UPDATE received:', { started: s.started, payload: s });
     if (s.started === true) {
-      console.log('[socketService] STATE_UPDATE: Game has started, calling showGameTable()');
       showGameTable();
-    } else {
-      console.log('[socketService] STATE_UPDATE: Game not started, not showing game table.');
     }
     renderGameState(s, state.myId);
   });
@@ -78,6 +74,6 @@ export function joinLobby(roomId: string, playerName: string): void {
   state.socket.emit(JOIN_LOBBY, roomId, playerName);
 }
 
-export function playerReady(): void {
-  state.socket.emit(PLAYER_READY, true);
+export function playerReady(playerName: string): void {
+  state.socket.emit(PLAYER_READY, playerName);
 }

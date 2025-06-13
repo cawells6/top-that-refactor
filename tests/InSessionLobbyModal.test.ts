@@ -4,10 +4,10 @@
 import '@testing-library/jest-dom';
 import { fireEvent, screen } from '@testing-library/dom';
 
-import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobbyModal';
-import * as state from '../public/scripts/state';
-import { PLAYER_READY } from '../src/shared/events';
-import { InSessionLobbyState } from '../src/shared/types';
+import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobbyModal.js';
+import * as state from '../public/scripts/state.js';
+import { PLAYER_READY } from '../src/shared/events.js';
+import { InSessionLobbyState } from '../src/shared/types.js';
 
 jest.mock('../public/scripts/state', () => ({
   socket: {

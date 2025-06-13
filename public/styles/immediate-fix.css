@@ -1,3 +1,11 @@
+/*
+  LOBBY LAYOUT MAINTENANCE:
+  - This file ensures the lobby modal container is centered and visible from the first render.
+  - If the lobby appears off-center or jumps, update centering rules here.
+  - See also: style.css (.lobby-modal-container, .game-setup-content) and modals.css for modal flex centering.
+  - .preload class on <html> ensures no FOUC (flash of unstyled content).
+*/
+
 /**
  * immediate-fix.css
  * This stylesheet ensures the lobby modal container is properly positioned from the start.

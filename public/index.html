@@ -7,12 +7,23 @@
     
     <!-- Immediate fix for lobby modal position - must be first -->
     <link rel="stylesheet" href="/styles/immediate-fix.css" />
+    <!--
+      LOBBY LAYOUT MAINTENANCE:
+      - All lobby centering, sizing, and stabilization is now handled by CSS.
+      - If you need to update lobby/modal centering or appearance, edit:
+        * /styles/immediate-fix.css (initial centering, no jumps)
+        * /style.css (main modal and content sizing)
+        * /styles/modals.css (modal container flex centering)
+      - The .preload and .loaded classes on <html> control initial hiding/reveal.
+      - No JS stabilization scripts are needed anymore.
+      - See README or AGENTS.md for more details.
+    -->
     
     <!-- Direct position fix script - runs immediately -->
-    <script src="/scripts/position-fix.js"></script>
+    <!-- <script src="/scripts/position-fix.js"></script> -->
     
     <!-- Initial layout stabilization - must load early for execution -->
-    <script src="/scripts/initial-layout-stabilizer.js"></script>
+    <!-- <script src="/scripts/initial-layout-stabilizer.js"></script> -->
 
     <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />

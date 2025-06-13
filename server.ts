@@ -5,13 +5,7 @@ import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 
 import LobbyManager from './models/LobbyManager.js';
-import {
-  CREATE_LOBBY,
-  LOBBY_CREATED,
-  JOIN_LOBBY,
-  PLAYER_READY,
-  ERROR,
-} from './src/shared/events.js';
+import { CREATE_LOBBY, LOBBY_CREATED, JOIN_LOBBY, ERROR } from './src/shared/events.js';
 
 const app: Express = express();
 
@@ -60,12 +54,13 @@ function startServer(port: number, retries = 0) {
       }
     );
 
-    socket.on(PLAYER_READY, (ready: boolean) => {
-      const lobby = lobbyManager.findLobbyBySocketId(socket.id);
-      if (lobby) {
-        lobby.setPlayerReady(socket.id, ready);
-      }
-    });
+    // REMOVE legacy PLAYER_READY handler (handled by GameController now)
+    // socket.on(PLAYER_READY, (ready: boolean) => {
+    //   const lobby = lobbyManager.findLobbyBySocketId(socket.id);
+    //   if (lobby) {
+    //     lobby.setPlayerReady(socket.id, ready);
+    //   }
+    // });
 
     socket.on('disconnect', () => {
       const lobby = lobbyManager.findLobbyBySocketId(socket.id);

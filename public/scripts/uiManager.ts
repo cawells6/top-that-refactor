@@ -63,17 +63,15 @@ export function showLobbyForm(): void {
 
   // Let the layout-stabilizer.js handle the transition
   // We only need to manage content visibility here
-  
+
   // Update internal UI states
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
-  
+
   // Optional: Update any class on main content if needed
   if (mainContent) {
     mainContent.classList.remove('game-active');
   }
-  
-  console.log('[uiManager] showLobbyForm: Requested lobby view');
 }
 
 export function hideLobbyForm(): void {
@@ -105,7 +103,6 @@ export function showWaitingState(
   if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
   if (mainContent) mainContent.classList.remove('game-active');
-  console.log('[uiManager] showWaitingState: Showed waiting state.');
 
   // Update waiting heading
   const waitingHeading = document.getElementById('waiting-heading');
@@ -145,13 +142,11 @@ export function showGameTable(): void {
 
   // Let the layout-stabilizer.js handle the transition
   // We only need to update internal UI state
-  
+
   // Add game-active class to main content if needed
   if (mainContent) {
     mainContent.classList.add('game-active');
   }
-  
-  console.log('[uiManager] showGameTable: Requested game table view');
 }
 
 export function showError(msg: string): void {
@@ -205,4 +200,28 @@ export function initializeSocketHandlers(): void {
   state.socket.on('err', (msg: string) => {
     showError(msg);
   });
+}
+
+/**
+ * Utility to hide an element (adds 'hidden' class or sets display:none if not present)
+ */
+export function hideElement(el: HTMLElement | null): void {
+  if (!el) return;
+  if ('classList' in el) {
+    el.classList.add('hidden');
+  } else {
+    (el as any).style.display = 'none';
+  }
+}
+
+/**
+ * Utility to show an element (removes 'hidden' class or sets display:block if not present)
+ */
+export function showElement(el: HTMLElement | null): void {
+  if (!el) return;
+  if ('classList' in el) {
+    el.classList.remove('hidden');
+  } else {
+    (el as any).style.display = '';
+  }
 }

@@ -5,13 +5,11 @@
 import '@testing-library/jest-dom';
 import { fireEvent } from '@testing-library/dom';
 
-// Import the actual constants for use in test assertions
 import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
 import * as render from '../public/scripts/render.js';
 import * as state from '../public/scripts/state.js'; // Stays .js for now
 // Import the client-side script under test (AFTER mocks are set up)
 // This file (public/scripts/events.js) has NOT been converted to TS yet.
-import { JOIN_GAME } from '../src/shared/events.js'; // Add this import at the top
 
 const mockEmit = jest.fn();
 const mockOn = jest.fn();
@@ -54,13 +52,16 @@ jest.mock('../public/scripts/render.js', () => ({
 }));
 
 // Mock the shared events module
-jest.mock('../src/shared/events.js', () => ({
+jest.mock('../src/shared/events', () => ({
   // Path to events.ts (without extension)
   __esModule: true, // Use if events.ts is an ES module
   JOIN_GAME: 'join-game',
   START_GAME: 'start-game',
   // Add other events if public/scripts/events.js (script under test) uses them from shared/events
 }));
+
+// Add this import to bring JOIN_GAME into scope for the test
+import { JOIN_GAME } from '../src/shared/events.js';
 
 describe('Lobby Form Submission', () => {
   let nameInput: HTMLInputElement;
@@ -96,20 +97,6 @@ describe('Lobby Form Submission', () => {
         </div>
       </form>
     `;
-    // Debug: Log lobby form state after DOM setup
-    const lobbyForm = document.getElementById('lobby-form');
-    if (lobbyForm) {
-      // Log classList and computed style
-      // @ts-ignore
-      console.log(
-        '[TEST] Lobby form after DOM setup:',
-        lobbyForm.className,
-        getComputedStyle(lobbyForm).display
-      );
-    } else {
-      // @ts-ignore
-      console.log('[TEST] Lobby form not found after DOM setup');
-    }
     nameInput = document.getElementById('player-name-input') as HTMLInputElement;
     numHumansInput = document.getElementById('total-players-input') as HTMLInputElement;
     numCPUsInput = document.getElementById('cpu-players-input') as HTMLInputElement;
@@ -128,15 +115,6 @@ describe('Lobby Form Submission', () => {
 
     // Initialize event listeners after DOM is ready
     await initializePageEventListeners();
-    // Debug: Log lobby form state after event listeners
-    if (lobbyForm) {
-      // @ts-ignore
-      console.log(
-        '[TEST] Lobby form after event listeners:',
-        lobbyForm.className,
-        getComputedStyle(lobbyForm).display
-      );
-    }
   });
 
   afterEach(() => {
@@ -192,13 +170,9 @@ describe('Lobby Form Submission', () => {
     fireEvent.click(submitButton);
 
     const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    // Accept either local or emitted game start, just check that a game starts and no error is shown
     expect(msgBox.classList.contains('active')).toBe(false);
-    // Accept either: renderGameState called, or mockEmit called with join-game
-    const gameStarted =
-      (render.renderGameState as jest.Mock).mock.calls.length > 0 ||
-      (mockEmit as jest.Mock).mock.calls.find((call) => call[0] === JOIN_GAME);
-    expect(gameStarted).toBe(true);
+    expect(mockEmit).not.toHaveBeenCalled();
+    expect(render.playArea).toHaveBeenCalled();
   });
 
   it('generates a lobby link when another human is expected', () => {
@@ -210,6 +184,19 @@ describe('Lobby Form Submission', () => {
 
     expect(mockEmit).not.toHaveBeenCalled();
     expect(window.location.search).toMatch(/\?game=/);
+    expect(render.lobbyLink).toHaveBeenCalledWith(
+      expect.objectContaining({ id: expect.any(String) })
+    );
+    // If your code triggers JOIN_GAME after lobby creation, add this:
+    // expect(mockEmit).toHaveBeenCalledWith(
+    //   JOIN_GAME,
+    //   {
+    //     name: 'ChrisP',
+    //     numHumans: 1,
+    //     numCPUs: 1,
+    //   },
+    //   expect.any(Function)
+    // );
   });
 
   it('shows error when join code is invalid', () => {

@@ -1,3 +1,10 @@
+/*
+  LOBBY LAYOUT MAINTENANCE:
+  - .lobby-modal-container and .game-setup-content control modal sizing and centering.
+  - If the lobby/modal width or centering needs to change, update these selectors.
+  - See also: immediate-fix.css (initial centering) and modals.css (flex centering).
+*/
+
 /* style.css - Main entry point for styles */
 /* Hot reload test */
 @import 'styles/base.css';
