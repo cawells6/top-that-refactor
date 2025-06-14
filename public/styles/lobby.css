@@ -137,8 +137,9 @@
 /* === IN-SESSION LOBBY MODAL STYLES === */
 .in-session-lobby-modal {
   min-width: 220px;
-  width: 500px; /* Fixed width instead of auto */
-  max-width: 90%; /* Ensure it's responsive */
+  /* Match the main lobby modal width */
+  width: 100%;
+  max-width: 800px;
   margin: 0 auto;
   z-index: 1100;
   overflow: hidden; /* Prevent content from extending beyond boundaries */
