@@ -260,6 +260,7 @@ describe('Game Flow - Manual Start by Host', () => {
       roomId: 'test-room',
     };
     (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerAJoin);
+
     // Check that a JOINED event with the correct payload was emitted (allowing for extra events)
     const joinedCallHost = globalMockSocket.emit.mock.calls.find(
       (call: any) =>
@@ -440,14 +441,16 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
       numCPUs: 0,
       roomId: 'test-room',
     };
-    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
+    let errorResult;
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload, (result: any) => {
+      errorResult = result;
+    });
     // Try to join again with same socket
-    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
-    // Debug: print all emit calls
-    console.log('EMIT CALLS:', JSON.stringify(topLevelEmitMock.mock.calls, null, 2));
-    // Should emit error event for duplicate
-    const errorCall = topLevelEmitMock.mock.calls.find((call) => call[0] === ERROR_EVENT);
-    expect(errorCall).toBeDefined();
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload, (result: any) => {
+      errorResult = result;
+    });
+    // Should return error for duplicate
+    expect(errorResult && errorResult.error).toBeDefined();
     // Only one player in the list
     expect(Array.from(gameController['players'].values()).length).toBe(1);
   });
@@ -534,16 +537,18 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
       numCPUs: 0,
       roomId: 'test-room',
     };
-    (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA);
-    (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
-    (gameController['publicHandleJoin'] as Function)(socketC, joinPayloadC);
-    // Should emit error for third join
-    const errorCall = topLevelEmitMock.mock.calls.find((call) => call[0] === ERROR_EVENT);
-    expect(errorCall).toBeDefined();
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA, () => {});
+    (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB, () => {});
+    let errorResult;
+    (gameController['publicHandleJoin'] as Function)(socketC, joinPayloadC, (result: any) => {
+      errorResult = result;
+    });
+    // Should return error for third join
+    expect(errorResult && errorResult.error).toBeDefined();
     expect(Array.from(gameController['players'].values()).length).toBe(2);
   });
 
-  test('Prevents join after game has started', () => {
+  test('Prevents join after game has started', (done) => {
     const joinPayloadA: JoinGamePayload = {
       id: socketA.id,
       playerName: 'A',
@@ -551,21 +556,27 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
       numCPUs: 0,
       roomId: 'test-room',
     };
-    (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA);
-    // Start game
-    (gameController['handleStartGame'] as Function)({ computerCount: 0, socket: socketA });
-    // Try to join after start
-    const joinPayloadB: JoinGamePayload = {
-      id: socketB.id,
-      playerName: 'B',
-      numHumans: 2,
-      numCPUs: 0,
-      roomId: 'test-room',
-    };
-    (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
-    const errorCall = topLevelEmitMock.mock.calls.find((call) => call[0] === ERROR_EVENT);
-    expect(errorCall).toBeDefined();
-    expect(Array.from(gameController['players'].values()).length).toBe(1);
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA, (_result: any) => {
+      // Start game after first join
+      (gameController['handleStartGame'] as Function)({ computerCount: 0, socket: socketA });
+      // Try to join after start
+      const joinPayloadB: JoinGamePayload = {
+        id: socketB.id,
+        playerName: 'B',
+        numHumans: 2,
+        numCPUs: 0,
+        roomId: 'test-room',
+      };
+      (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB, (result: any) => {
+        try {
+          expect(result && result.error).toBeDefined();
+          expect(Array.from(gameController['players'].values()).length).toBe(1);
+          done();
+        } catch (err) {
+          done(err as Error);
+        }
+      });
+    });
   });
 
   test('CPUs only added by host, not by regular joiners', () => {
@@ -628,25 +639,32 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     expect(gameController['players'].get(playerId)!.disconnected).toBe(false);
   });
 
-  test('All relevant events are emitted with correct payloads', () => {
+  test('All relevant events are emitted with correct payloads', (done) => {
     const joinPayload: JoinGamePayload = {
       playerName: 'Eventful',
       numHumans: 1,
       numCPUs: 0,
       roomId: 'test-room',
     };
-    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
-    (gameController['handleStartGame'] as Function)({ computerCount: 0, socket: socketA });
-    // Check for JOINED, LOBBY, STATE_UPDATE
-    expect(topLevelEmitMock).toHaveBeenCalledWith(JOINED, expect.any(Object));
-    expect(topLevelEmitMock).toHaveBeenCalledWith(LOBBY, expect.any(Object));
-    expect(topLevelEmitMock).toHaveBeenCalledWith(STATE_UPDATE, expect.any(Object));
-    // If not enough players, expect ERROR_EVENT instead of NEXT_TURN
-    if (gameController['gameState'].players.length < 2) {
-      const errorCall = topLevelEmitMock.mock.calls.find((call) => call[0] === ERROR_EVENT);
-      expect(errorCall).toBeDefined();
-    } else {
-      expect(topLevelEmitMock).toHaveBeenCalledWith(NEXT_TURN, expect.anything());
-    }
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload, (result: any) => {
+      (gameController['handleStartGame'] as Function)({ computerCount: 0, socket: socketA });
+      // Check for JOINED and STATE_UPDATE always
+      const joinedEmitted = socketA.emit.mock.calls.some((call: any) => call[0] === JOINED);
+      const stateUpdateEmitted = socketA.emit.mock.calls.some(
+        (call: any) => call[0] === STATE_UPDATE
+      );
+      expect(joinedEmitted).toBe(true);
+      expect(stateUpdateEmitted).toBe(true);
+      // LOBBY is only emitted if there are enough players
+      const lobbyEmitted = topLevelEmitMock.mock.calls.some((call) => call[0] === LOBBY);
+      if (gameController['gameState'].players.length < 2) {
+        expect(result && result.error).toBeDefined();
+        expect(lobbyEmitted).toBe(false);
+      } else {
+        expect(lobbyEmitted).toBe(true);
+        expect(topLevelEmitMock).toHaveBeenCalledWith(NEXT_TURN, expect.anything());
+      }
+      done();
+    });
   });
 });

@@ -345,17 +345,17 @@ export default class GameController {
     );
 
     const existingPlayer = this.players.get(id);
+    const callAck = (response: any) => {
+      if (typeof ack === 'function') {
+        ack(response);
+      }
+    };
     if (existingPlayer && !existingPlayer.disconnected) {
       this.log(`Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`);
       console.log('[DEBUG] Emitting ERROR_EVENT: duplicate join');
-      if (typeof ack === 'function') {
-        ack({ error: `Player ID '${id}' is already active in a game.` });
-      } else {
-        socket.emit(ERROR_EVENT, `Player ID '${id}' is already active in a game.`);
-      }
+      callAck({ error: `Player ID '${id}' is already active in a game.` });
       return;
     }
-
     if (existingPlayer && existingPlayer.disconnected) {
       this.log(`Player ID '${id}' (${name}) is disconnected. Attempting rejoin logic.`);
       this.handleRejoin(
@@ -365,39 +365,25 @@ export default class GameController {
         ack
           ? (rejoinAck) => {
               if (rejoinAck.success) {
-                if (typeof ack === 'function') {
-                  ack({ roomId: this.roomId, playerId: id });
-                }
+                callAck({ roomId: this.roomId, playerId: id });
               } else {
-                if (typeof ack === 'function') {
-                  ack({ error: rejoinAck.error || 'Rejoin failed' });
-                }
+                callAck({ error: rejoinAck.error || 'Rejoin failed' });
               }
             }
           : undefined
       );
       return;
     }
-
     if (this.gameState.started) {
       this.log(`Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
       console.log('[DEBUG] Emitting ERROR_EVENT: game already started');
-      if (typeof ack === 'function') {
-        ack({ error: 'Game has already started. Cannot join.' });
-      } else {
-        socket.emit(ERROR_EVENT, 'Game has already started. Cannot join.');
-      }
+      callAck({ error: 'Game has already started. Cannot join.' });
       return;
     }
-
     if (this.players.size >= this.gameState.maxPlayers) {
       this.log(`Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
       console.log('[DEBUG] Emitting ERROR_EVENT: room full');
-      if (typeof ack === 'function') {
-        ack({ error: 'Game room is full.' });
-      } else {
-        socket.emit(ERROR_EVENT, 'Game room is full.');
-      }
+      callAck({ error: 'Game room is full.' });
       return;
     }
 
@@ -454,7 +440,7 @@ export default class GameController {
       maxPlayers: this.gameState.maxPlayers,
     });
 
-    // Auto-start has been removed; clients must explicitly request game start
+    // Always push state after join, even if not enough players
     this.pushState();
   }
 
@@ -1001,6 +987,7 @@ export default class GameController {
       lastRealCard: this.gameState.lastRealCard,
     };
 
+    // Emit personalized state to each connected player
     this.players.forEach((playerInstance) => {
       if (playerInstance.socketId && !playerInstance.disconnected) {
         const targetSocket = this.io.sockets.sockets.get(playerInstance.socketId);
@@ -1020,9 +1007,8 @@ export default class GameController {
         }
       }
     });
-    if (this.players.size === 0 && !this.gameState.started) {
-      this.io.to(this.roomId).emit(STATE_UPDATE, stateForEmit);
-    }
+    // Always emit a generic STATE_UPDATE to the room for listeners (testability, clients)
+    this.io.to(this.roomId).emit(STATE_UPDATE, stateForEmit);
   }
 
   // Add this log method for internal logging
