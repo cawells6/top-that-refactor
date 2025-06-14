@@ -85,6 +85,12 @@ export class InSessionLobbyModal {
   public render(lobbyState: InSessionLobbyState): void {
     this.currentRoomId = lobbyState.roomId;
 
+    // Update the session modal heading to be all caps
+    const title = this.modalElement.querySelector('#in-session-lobby-title');
+    if (title) {
+      title.textContent = 'WAITING FOR PLAYERS...';
+    }
+
     this.playersContainer.innerHTML = '';
     this.playersContainer.setAttribute('role', 'list');
     this.playersContainer.setAttribute('aria-label', 'Players in lobby');
@@ -113,6 +119,9 @@ export class InSessionLobbyModal {
       this.guestNameInput.style.display = '';
       this.readyUpButton.style.display = '';
       this.guestNameInput.focus();
+      // Ensure the button is always all caps, even if text changes
+      this.readyUpButton.textContent = this.readyUpButton.disabled ? 'STARTING...' : "LET'S PLAY";
+      this.readyUpButton.textContent = this.readyUpButton.textContent.toUpperCase();
     }
   }
 

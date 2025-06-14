@@ -5,7 +5,6 @@ import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
 import { socket, socketReady, setCurrentRoom } from './state.js';
-import { showWaitingState } from './uiManager.js';
 
 console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
@@ -42,8 +41,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Add handler for legacy 'lobby' event from server
     socket.on('lobby', (data) => {
       console.log('[Client] Received LOBBY event:', data);
-      // Call the correct UI update function to show the in-session lobby
-      showWaitingState(data.roomId, data.players.length, data.maxPlayers, data.players);
+      // Only show the in-session lobby modal, do not call showWaitingState
+      const inSessionModal = document.getElementById('in-session-lobby-modal');
+      const waitingStateDiv = document.getElementById('waiting-state');
+      if (inSessionModal) {
+        inSessionModal.classList.remove('modal--hidden');
+      }
+      if (waitingStateDiv) {
+        waitingStateDiv.classList.add('hidden');
+      }
+      // Optionally, hide the main lobby container
+      const lobbyContainer = document.getElementById('lobby-container');
+      if (lobbyContainer) {
+        lobbyContainer.classList.add('hidden');
+      }
     });
 
     await initializePageEventListeners();

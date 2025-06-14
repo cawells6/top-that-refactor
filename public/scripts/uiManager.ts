@@ -86,48 +86,13 @@ export function hideLobbyForm(): void {
 }
 
 export function showWaitingState(
-  roomId: string,
-  currentPlayers: number,
-  maxPlayers: number,
-  players: { id: string; name: string; ready: boolean }[]
+  _roomId: string,
+  _currentPlayers: number,
+  _maxPlayers: number,
+  _players: { id: string; name: string; ready: boolean }[]
 ): void {
-  const lobbyContainer = getLobbyContainer();
-  const lobbyFormContent = getLobbyFormContent();
-  const waitingStateDiv = getWaitingStateDiv();
-  const mainContent = document.getElementById('main-content');
-
-  if (lobbyContainer) {
-    lobbyContainer.classList.remove('hidden');
-    lobbyContainer.classList.add('lobby-fixed');
-  }
-  if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
-  if (waitingStateDiv) waitingStateDiv.classList.remove('hidden');
-  if (mainContent) mainContent.classList.remove('game-active');
-
-  // Update waiting heading
-  const waitingHeading = document.getElementById('waiting-heading');
-  if (waitingHeading) {
-    waitingHeading.textContent = `Room: ${roomId} (${currentPlayers}/${maxPlayers})`;
-  }
-
-  // Update invite link and QR code
-  // Render player list
-  let playerList = document.getElementById('player-list');
-  if (!playerList) {
-    playerList = document.createElement('ul');
-    playerList.id = 'player-list';
-    playerList.style.marginTop = '1rem';
-    playerList.style.marginBottom = '1rem';
-    playerList.style.listStyle = 'none';
-    playerList.style.padding = '0';
-    if (waitingStateDiv) waitingStateDiv.appendChild(playerList);
-  }
-  playerList.innerHTML = '';
-  players.forEach((p) => {
-    const li = document.createElement('li');
-    li.textContent = `${p.name} - ${p.ready ? 'Ready' : 'Not Ready'}`;
-    playerList.appendChild(li);
-  });
+  // This function is now deprecated. All waiting/in-session info is handled by the in-session lobby modal.
+  // No-op for now.
 }
 
 export function showGameTable(): void {
