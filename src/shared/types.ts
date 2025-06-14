@@ -46,3 +46,12 @@ export interface InSessionLobbyState {
   players: LobbyPlayer[];
   started?: boolean; // Added to communicate game start state
 }
+
+// Payload for joining a game (used by both client and server)
+export interface JoinGamePayload {
+  id?: string;
+  playerName: string;
+  numHumans: number;
+  numCPUs: number;
+  roomId?: string;
+}

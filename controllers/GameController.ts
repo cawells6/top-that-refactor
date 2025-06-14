@@ -30,13 +30,14 @@ import {
   isFiveCard,
   isTenCard,
 } from '../utils/cardUtils.js';
+import { JoinGamePayload } from '@shared/types';
 
-interface PlayerJoinData {
-  id?: string;
-  name?: string;
-  numHumans?: number;
-  numCPUs?: number;
-}
+// interface PlayerJoinData {
+//   id?: string;
+//   name?: string;
+//   numHumans?: number;
+//   numCPUs?: number;
+// }
 
 interface StartGameOptions {
   computerCount?: number;
@@ -89,7 +90,7 @@ export class GameRoomManager {
       socket.on(
         JOIN_GAME,
         (
-          playerData: PlayerJoinData,
+          playerData: JoinGamePayload,
           ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
         ) => {
           console.log(`[SERVER] Received JOIN_GAME from ${socket.id}:`, playerData);
@@ -137,14 +138,13 @@ export class GameRoomManager {
 
   private handleClientJoinGame(
     socket: Socket,
-    playerData: PlayerJoinData,
+    playerData: JoinGamePayload,
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
     console.log(`[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`, playerData);
     
-    // `playerData.id` is used by the client to specify the room code.
-    // Internally we treat it as the desired room ID, not the player's ID.
-    let roomId = playerData.id;
+    // Use playerData.roomId instead of playerData.id
+    let roomId = playerData.roomId;
     let controller: GameController | undefined;
 
     if (roomId) {
@@ -336,7 +336,10 @@ export default class GameController {
   ): void {
     // console.log('[SERVER] handleJoin: playerData', playerData);
     let id = playerData.id || socket.id;
-    let name = playerData.name || `Player-${id.substring(0, 4)}`;
+    let name =
+      typeof playerData.playerName === 'string' && playerData.playerName.trim()
+        ? playerData.playerName.trim()
+        : `Player-${id.substring(0, 4)}`;
     this.log(
       `Handling join request for player: ${name} (Proposed ID: ${id}, Socket: ${socket.id})`
     );
@@ -344,6 +347,7 @@ export default class GameController {
     const existingPlayer = this.players.get(id);
     if (existingPlayer && !existingPlayer.disconnected) {
       this.log(`Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`);
+      console.log('[DEBUG] Emitting ERROR_EVENT: duplicate join');
       if (typeof ack === 'function') {
         ack({ error: `Player ID '${id}' is already active in a game.` });
       } else {
@@ -377,6 +381,7 @@ export default class GameController {
 
     if (this.gameState.started) {
       this.log(`Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
+      console.log('[DEBUG] Emitting ERROR_EVENT: game already started');
       if (typeof ack === 'function') {
         ack({ error: 'Game has already started. Cannot join.' });
       } else {
@@ -387,6 +392,7 @@ export default class GameController {
 
     if (this.players.size >= this.gameState.maxPlayers) {
       this.log(`Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
+      console.log('[DEBUG] Emitting ERROR_EVENT: room full');
       if (typeof ack === 'function') {
         ack({ error: 'Game room is full.' });
       } else {
@@ -421,8 +427,14 @@ export default class GameController {
     }
 
     socket.join(this.roomId);
-    this.log(`Player '${name}' (Socket ID: ${socket.id}) joined room '${this.roomId}'. Emitting JOINED.`);
-    console.log(`[SERVER] Emitting JOINED to socket ${socket.id}:`, { id: player.id, name: player.name, roomId: this.roomId });
+    this.log(
+      `Player '${name}' (Socket ID: ${socket.id}) joined room '${this.roomId}'. Emitting JOINED.`
+    );
+    console.log('[SERVER] Emitting JOINED to socket', socket.id, {
+      id: player.id,
+      name: player.name,
+      roomId: this.roomId,
+    });
     socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
     if (typeof ack === 'function') {
       console.log(`[SERVER] Calling JOIN_GAME ack for socket ${socket.id}`);

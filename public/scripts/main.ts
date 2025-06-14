@@ -113,7 +113,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const inSession = document.body.classList.contains('in-session');
   if (roomIdFromUrl && !inSession) {
     setCurrentRoom(roomIdFromUrl);
-    socket.emit(JOIN_GAME, { id: roomIdFromUrl });
+    // Use JoinGamePayload structure
+    const joinPayload = {
+      roomId: roomIdFromUrl,
+      playerName: 'Guest', // fallback, ideally get from session or prompt
+      numHumans: 1,
+      numCPUs: 0,
+    };
+    socket.emit(JOIN_GAME, joinPayload);
     window.history.replaceState({}, document.title, window.location.pathname);
   }
   // --- END: New logic for handling join links ---

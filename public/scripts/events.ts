@@ -681,7 +681,7 @@ function handleDealClick() {
   state.setDesiredCpuCount(numCPUs);
 
   const playerDataForEmit = {
-    name: name,
+    playerName: name, // changed from 'name' to 'playerName' for JoinGamePayload
     numHumans: numHumans,
     numCPUs: numCPUs,
   };
@@ -726,6 +726,12 @@ function handleJoinGameClick() {
   console.log('🎯 Join game button clicked!');
   clearMessageQueueAndHide();
 
+  const joinBtn = document.getElementById('join-game-button') as HTMLButtonElement | null;
+  if (joinBtn && joinBtn.disabled) {
+    // Prevent duplicate emits if already disabled
+    return;
+  }
+
   const nameValidation = validateNameInput();
   const codeValidation = validateRoomCodeInput();
 
@@ -744,6 +750,7 @@ function handleJoinGameClick() {
       const nameInput = uiManager.getNameInput();
       if (nameInput) nameInput.focus();
     }
+    if (joinBtn) joinBtn.disabled = false; // Re-enable button on validation error
     return;
   }
 
@@ -751,10 +758,20 @@ function handleJoinGameClick() {
   const code = codeValidation.code;
   state.setCurrentRoom(code);
   state.saveSession();
-  console.log('[CLIENT] handleJoinGameClick: Emitting JOIN_GAME with', { id: code, name });
-  state.socket.emit(JOIN_GAME, { id: code, name });
+  const joinPayload = {
+    roomId: code,
+    playerName: name,
+    numHumans: 1,
+    numCPUs: 0,
+  };
+  console.log('[CLIENT] handleJoinGameClick: Emitting JOIN_GAME with', joinPayload);
+  state.socket.emit(JOIN_GAME, joinPayload, (response: any) => {
+    if (joinBtn) joinBtn.disabled = false; // Re-enable button after server response
+    if (response && response.error) {
+      queueMessage(response.error);
+    }
+  });
 
-  const joinBtn = document.getElementById('join-game-button') as HTMLButtonElement | null;
   if (joinBtn) joinBtn.disabled = true;
 }
 
