@@ -84,12 +84,15 @@ export class GameRoomManager {
     this.io = io;
     this.rooms = new Map();
     this.io.on('connection', (socket: Socket) => {
+      console.log(`[SERVER] Socket connected: ${socket.id}`);
+      
       socket.on(
         JOIN_GAME,
         (
           playerData: PlayerJoinData,
           ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
         ) => {
+          console.log(`[SERVER] Received JOIN_GAME from ${socket.id}:`, playerData);
           this.handleClientJoinGame(socket, playerData, ack);
         }
       );
@@ -100,6 +103,13 @@ export class GameRoomManager {
           rejoinData: RejoinData,
           ack?: (response: { success: boolean; error?: string }) => void
         ) => {
+          if (!rejoinData || !rejoinData.roomId || !rejoinData.playerId) {
+            if (typeof ack === 'function') {
+              ack({ success: false, error: 'Invalid rejoin data.' });
+            }
+            socket.emit(ERROR_EVENT, 'Invalid rejoin data.');
+            return;
+          }
           const controller = this.rooms.get(rejoinData.roomId);
           if (controller) {
             controller.publicHandleRejoin(socket, rejoinData.roomId, rejoinData.playerId, ack);
@@ -130,6 +140,8 @@ export class GameRoomManager {
     playerData: PlayerJoinData,
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
+    console.log(`[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`, playerData);
+    
     // `playerData.id` is used by the client to specify the room code.
     // Internally we treat it as the desired room ID, not the player's ID.
     let roomId = playerData.id;
@@ -138,7 +150,9 @@ export class GameRoomManager {
     if (roomId) {
       controller = this.rooms.get(roomId);
       if (!controller) {
+        console.log(`[SERVER] Room ${roomId} not found for JOIN_GAME from ${socket.id}`);
         if (typeof ack === 'function') {
+          console.log(`[SERVER] Sending error response to ${socket.id}: Room not found`);
           ack({ error: 'Room not found.' });
         }
         socket.emit(ERROR_EVENT, 'Room not found.');
@@ -148,6 +162,7 @@ export class GameRoomManager {
 
     if (!controller) {
       roomId = uuidv4().slice(0, 6);
+      console.log(`[SERVER] Creating new room ${roomId} for JOIN_GAME from ${socket.id}`);
       controller = new GameController(this.io, roomId);
       this.rooms.set(roomId, controller);
     }
@@ -155,6 +170,7 @@ export class GameRoomManager {
     // Pass a copy of playerData without the room identifier so the controller
     // assigns the joining player's ID from the socket.
     const joinData = { ...playerData, id: undefined };
+    console.log(`[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`);
     controller.publicHandleJoin(socket, joinData, ack);
   }
 }
@@ -260,7 +276,7 @@ export default class GameController {
     playerData: PlayerJoinData,
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
-    // console.log('[SERVER] publicHandleJoin: playerData', playerData);
+    console.log(`[SERVER] publicHandleJoin for socket ${socket.id}, data:`, playerData);
     this.attachSocketEventHandlers(socket);
     this.handleJoin(socket, playerData, ack);
   }
@@ -405,11 +421,11 @@ export default class GameController {
     }
 
     socket.join(this.roomId);
-    this.log(
-      `Player '${name}' (Socket ID: ${socket.id}) joined room '${this.roomId}'. Emitting JOINED.`
-    );
+    this.log(`Player '${name}' (Socket ID: ${socket.id}) joined room '${this.roomId}'. Emitting JOINED.`);
+    console.log(`[SERVER] Emitting JOINED to socket ${socket.id}:`, { id: player.id, name: player.name, roomId: this.roomId });
     socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
     if (typeof ack === 'function') {
+      console.log(`[SERVER] Calling JOIN_GAME ack for socket ${socket.id}`);
       ack({ roomId: this.roomId, playerId: player.id });
     }
 
@@ -995,5 +1011,10 @@ export default class GameController {
     if (this.players.size === 0 && !this.gameState.started) {
       this.io.to(this.roomId).emit(STATE_UPDATE, stateForEmit);
     }
+  }
+
+  // Add this log method for internal logging
+  private log(...args: any[]): void {
+    console.log(`[GameController][Room ${this.roomId}]`, ...args);
   }
 }

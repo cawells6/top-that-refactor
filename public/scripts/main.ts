@@ -5,6 +5,7 @@ import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializePageEventListeners } from './events.js';
 import { initializeSocketHandlers } from './socketService.js';
 import { socket, socketReady, setCurrentRoom } from './state.js';
+import { showWaitingState } from './uiManager.js';
 
 console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
@@ -38,6 +39,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('[Client] Socket.IO disconnected:', reason);
     });
 
+    // Add handler for legacy 'lobby' event from server
+    socket.on('lobby', (data) => {
+      console.log('[Client] Received LOBBY event:', data);
+      // Call the correct UI update function to show the in-session lobby
+      showWaitingState(data.roomId, data.players.length, data.maxPlayers, data.players);
+    });
+
     await initializePageEventListeners();
     // console.log('🚀 [Client] initializePageEventListeners completed');
 
@@ -63,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   removePlayerIconInlineStyles();
 
   // Set up a MutationObserver on the whole body to catch any icon changes
-  const observer = new MutationObserver((mutations) => {
+  const observer = new MutationObserver((_mutations) => {
     removePlayerIconInlineStyles();
   });
 

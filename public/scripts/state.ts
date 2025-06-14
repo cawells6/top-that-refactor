@@ -1,9 +1,8 @@
 import { io, Socket } from 'socket.io-client';
-
 import { GameStateData } from '../../src/shared/types.js';
 
 let socket: Socket;
-export let socketReady: Promise<void>;
+let socketReady: Promise<void>;
 
 function getSocketURL(port: string): string {
   const protocol = window.location.protocol;
@@ -55,63 +54,86 @@ socketReady = initSocket().then((s) => {
   socket = s;
   return;
 });
-export { socket };
 
-export let myId: string | null = null;
-export let currentRoom: string | null = null;
-export let pileTransition: boolean = false;
-export let specialEffectsQueue: any[] = []; // TODO: Consider defining a specific type for effects, e.g., SpecialEffect[]
-export let processingEffects: boolean = false;
-export let desiredCpuCount = 0;
+let myId: string | null = null;
+let currentRoom: string | null = null;
+let pileTransition: boolean = false;
+let specialEffectsQueue: any[] = [];
+let processingEffects: boolean = false;
+let desiredCpuCount = 0;
+const stateHistory: any[] = [];
+let stateIndex: number = -1;
+let lastGameState: GameStateData | null = null;
 
-export const stateHistory: any[] = []; // TODO: Consider defining a specific type for state history items, e.g., GameStateSnapshot[]
-export let stateIndex: number = -1;
-
-export let lastGameState: GameStateData | null = null;
-
-export function loadSession(): void {
+function loadSession(): void {
   setMyId(sessionStorage.getItem('myId'));
   setCurrentRoom(sessionStorage.getItem('currentRoom'));
   const cpuStr = sessionStorage.getItem('desiredCpuCount');
   if (cpuStr) desiredCpuCount = parseInt(cpuStr, 10) || 0;
 }
 
-export function saveSession(): void {
+function saveSession(): void {
   if (myId) sessionStorage.setItem('myId', myId);
   if (currentRoom) sessionStorage.setItem('currentRoom', currentRoom);
   sessionStorage.setItem('desiredCpuCount', desiredCpuCount.toString());
 }
 
-export function setMyId(id: string | null): void {
+function setMyId(id: string | null): void {
   myId = id;
 }
-export function setCurrentRoom(room: string | null): void {
+function setCurrentRoom(room: string | null): void {
   currentRoom = room;
 }
 
-export function setDesiredCpuCount(count: number): void {
+function setDesiredCpuCount(count: number): void {
   desiredCpuCount = count;
   sessionStorage.setItem('desiredCpuCount', count.toString());
 }
 
-export function getDesiredCpuCount(): number {
+function getDesiredCpuCount(): number {
   return desiredCpuCount;
 }
-export function setPileTransition(value: boolean): void {
+function setPileTransition(value: boolean): void {
   pileTransition = value;
 }
-export function setProcessingEffects(value: boolean): void {
+function setProcessingEffects(value: boolean): void {
   processingEffects = value;
 }
-export function addSpecialEffect(effect: any): void {
+function addSpecialEffect(effect: any): void {
   specialEffectsQueue.push(effect);
 }
-export function clearSpecialEffects(): void {
+function clearSpecialEffects(): void {
   specialEffectsQueue = [];
 }
-export function setStateIndex(index: number): void {
+function setStateIndex(index: number): void {
   stateIndex = index;
 }
-export function setLastGameState(gameState: GameStateData | null): void {
+function setLastGameState(gameState: GameStateData | null): void {
   lastGameState = gameState;
 }
+
+export {
+  socket,
+  socketReady,
+  myId,
+  currentRoom,
+  pileTransition,
+  specialEffectsQueue,
+  processingEffects,
+  desiredCpuCount,
+  stateHistory,
+  stateIndex,
+  lastGameState,
+  loadSession,
+  saveSession,
+  setMyId,
+  setCurrentRoom,
+  setDesiredCpuCount,
+  getDesiredCpuCount,
+  setPileTransition,
+  setProcessingEffects,
+  addSpecialEffect,
+  clearSpecialEffects,
+  setStateIndex,
+  setLastGameState,
+};

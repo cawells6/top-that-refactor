@@ -40,6 +40,19 @@ export const MESSAGE: string = 'message'; // Generic message from server
 // Additional lobby events
 export const SEND_INVITE: string = 'send-invite';
 
+// Debug helper - call in both client and server to verify same event names
+export function logEventNames() {
+  console.log('Event Names:', {
+    JOIN_GAME,
+    JOINED,
+    PLAYER_JOINED,
+    LOBBY,
+    LOBBY_STATE_UPDATE,
+    STATE_UPDATE,
+    // Add other important events...
+  });
+}
+
 // Optional: You could also define these as an enum if you prefer,
 // though string constants are very common for event names.
 /*

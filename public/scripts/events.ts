@@ -688,7 +688,26 @@ function handleDealClick() {
 
   console.log('🎯 Deal button: Validations passed. Joining game with data:', playerDataForEmit);
   console.log('[CLIENT] handleDealClick: Emitting JOIN_GAME with', playerDataForEmit);
-  state.socket.emit(JOIN_GAME, playerDataForEmit);
+  
+  // Log socket connection status before attempting to emit
+  console.log('[CLIENT] Socket connection status before JOIN_GAME:', {
+    socketExists: !!state.socket,
+    connected: state.socket?.connected,
+    id: state.socket?.id,
+    hasJoinedListeners: state.socket ? state.socket.listeners('joined').length : 0,
+    hasLobbyStateListeners: state.socket ? state.socket.listeners('lobby-state-update').length : 0
+  });
+
+  // Add a callback to log the server's response
+  state.socket.emit(JOIN_GAME, playerDataForEmit, (response) => {
+    console.log('[CLIENT] Received JOIN_GAME response from server:', response);
+    if (response.error) {
+      console.error('[CLIENT] JOIN_GAME error:', response.error);
+      queueMessage(response.error);
+    } else {
+      console.log('[CLIENT] JOIN_GAME success - Room ID:', response.roomId, 'Player ID:', response.playerId);
+    }
+  });
 
   const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
   if (dealButton) {

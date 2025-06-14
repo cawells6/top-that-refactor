@@ -6,6 +6,7 @@ import { Server as SocketIOServer } from 'socket.io';
 
 import LobbyManager from './models/LobbyManager.js';
 import { CREATE_LOBBY, LOBBY_CREATED, JOIN_LOBBY, ERROR } from './src/shared/events.js';
+import { GameRoomManager } from './controllers/GameController.js';
 
 const app: Express = express();
 
@@ -30,9 +31,22 @@ function startServer(port: number, retries = 0) {
   server = http.createServer(app);
   // Attach Socket.IO to the same HTTP server
   const io: SocketIOServer = new SocketIOServer(server, { cors: { origin: '*' } });
-  const lobbyManager = LobbyManager.getInstance(io);
+
+  // Attach GameRoomManager to handle game events
+  new GameRoomManager(io);
 
   io.on('connection', (socket) => {
+    console.log(`[SERVER] New socket connection: ${socket.id}`);
+
+    // Log all registered event listeners for debugging
+    console.log(`[SERVER] Socket ${socket.id} events:`, socket.eventNames());
+
+    socket.on('disconnect', (reason) => {
+      console.log(`[SERVER] Socket ${socket.id} disconnected: ${reason}`);
+    });
+
+    const lobbyManager = LobbyManager.getInstance(io);
+
     socket.on(CREATE_LOBBY, (playerName: string, ack?: (roomId: string) => void) => {
       const lobby = lobbyManager.createLobby();
       lobby.addPlayer(socket, playerName);
