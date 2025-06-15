@@ -1,3 +1,6 @@
+import { renderGameState } from './render.js';
+import * as state from './state.js';
+import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
 import {
   JOINED,
   STATE_UPDATE,
@@ -8,12 +11,8 @@ import {
   PLAYER_READY,
   LOBBY_STATE_UPDATE,
   GAME_STARTED,
-} from '@shared/events.ts';
-import { GameStateData } from '@shared/types.ts';
-
-import { renderGameState } from './render.js';
-import * as state from './state.js';
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
+} from '../../src/shared/events.js';
+import { GameStateData } from '../../src/shared/types.js';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
@@ -63,6 +62,7 @@ export async function initializeSocketHandlers(): Promise<void> {
     // Clear stored room and player IDs if rejoin fails
     state.setCurrentRoom(null);
     state.setMyId(null);
+    state.saveSession(); // Persist cleared session
   });
 }
 

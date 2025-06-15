@@ -2,6 +2,8 @@
   "window.autoDetectColorScheme": true,
   "terminal.integrated.allowMnemonics": true,
   "terminal.integrated.copyOnSelection": true,
-  "chat.agent.maxRequests": 100,
-  "inlineChat.enableV2": true
+  "chat.agent.maxRequests": 900,
+  "inlineChat.enableV2": true,
+  "github.copilot.chat.agent.thinkingTool": true,
+  "github.copilot.chat.codesearch.enabled": true
 }

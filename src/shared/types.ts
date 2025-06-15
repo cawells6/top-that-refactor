@@ -17,9 +17,11 @@ export interface ClientStatePlayer {
   downCount?: number;
   hand?: Card[];
   upCards?: Card[];
+  downCards?: Card[]; // Added for server compatibility
   downCardsHidden?: number; // Number of down cards (hidden)
   disconnected?: boolean;
   isComputer?: boolean;
+  error?: string; // Added for server compatibility
 }
 
 export interface GameStateData {

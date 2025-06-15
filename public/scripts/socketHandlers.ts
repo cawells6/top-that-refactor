@@ -4,12 +4,7 @@
 import { renderGameState } from './render.js';
 import * as state from './state.js';
 import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
-import {
-  JOINED,
-  LOBBY_STATE_UPDATE,
-  STATE_UPDATE,
-  REJOIN,
-} from '../../src/shared/events.js';
+import { JOINED, LOBBY_STATE_UPDATE, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
 import { GameStateData } from '../../src/shared/types.js';
 
 export async function initializeSocketHandlers(): Promise<void> {

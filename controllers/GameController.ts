@@ -1,7 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
-import GameState, { Card, CardValue } from '../models/GameState.js';
+import GameState from '../models/GameState.js';
+import { Card, CardValue, ClientStatePlayer, GameStateData, JoinGamePayload } from '../src/shared/types.js';
 import Player from '../models/Player.js';
 import {
   JOIN_GAME,
@@ -30,7 +31,6 @@ import {
   isFiveCard,
   isTenCard,
 } from '../utils/cardUtils.js';
-import { JoinGamePayload } from '@shared/types';
 
 // interface PlayerJoinData {
 //   id?: string;
@@ -52,29 +52,6 @@ interface PlayData {
 interface RejoinData {
   roomId: string;
   playerId: string;
-}
-
-interface ClientStatePlayer {
-  id: string;
-  name: string;
-  handCount?: number;
-  upCount?: number;
-  downCount?: number;
-  hand?: Card[];
-  upCards?: Card[];
-  downCards?: Card[];
-  disconnected: boolean;
-  error?: string;
-}
-
-interface ClientState {
-  players: ClientStatePlayer[];
-  pile: Card[];
-  discardCount: number;
-  deckCount: number;
-  currentPlayerId: string | undefined;
-  started: boolean;
-  lastRealCard: Card | null;
 }
 
 export class GameRoomManager {
@@ -331,9 +308,26 @@ export default class GameController {
 
   private handleJoin(
     socket: Socket,
-    playerData: PlayerJoinData,
+    playerData: JoinGamePayload,
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
+    // --- Payload validation ---
+    if (
+      typeof playerData.playerName !== 'string' ||
+      !playerData.playerName.trim() ||
+      typeof playerData.numHumans !== 'number' ||
+      typeof playerData.numCPUs !== 'number' ||
+      playerData.numHumans < 1 ||
+      playerData.numCPUs < 0 ||
+      playerData.numHumans + playerData.numCPUs < 2 ||
+      playerData.numHumans + playerData.numCPUs > this.gameState.maxPlayers
+    ) {
+      if (typeof ack === 'function') {
+        ack({ error: 'Invalid join payload: check name and player counts.' });
+      }
+      return;
+    }
+
     // console.log('[SERVER] handleJoin: playerData', playerData);
     let id = playerData.id || socket.id;
     let name =
@@ -377,7 +371,9 @@ export default class GameController {
     if (this.gameState.started) {
       this.log(`Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
       console.log('[DEBUG] Emitting ERROR_EVENT: game already started');
-      callAck({ error: 'Game has already started. Cannot join.' });
+      if (typeof ack === 'function') {
+        ack({ error: 'Game has already started. Cannot join.' });
+      }
       return;
     }
     if (this.players.size >= this.gameState.maxPlayers) {
@@ -961,7 +957,7 @@ export default class GameController {
         ? this.gameState.players[this.gameState.currentPlayerIndex]
         : undefined;
 
-    const stateForEmit: ClientState = {
+    const stateForEmit: GameStateData = {
       players: Array.from(this.players.values()).map((player: Player): ClientStatePlayer => {
         const isSelf =
           player.socketId && this.io.sockets.sockets.get(player.socketId) !== undefined;
@@ -981,7 +977,7 @@ export default class GameController {
       }),
       pile: this.gameState.pile,
       discardCount: this.gameState.discard.length,
-      deckCount: this.gameState.deck?.length || 0,
+      deckSize: this.gameState.deck?.length || 0,
       currentPlayerId: currentPlayerId,
       started: this.gameState.started,
       lastRealCard: this.gameState.lastRealCard,
@@ -992,7 +988,7 @@ export default class GameController {
       if (playerInstance.socketId && !playerInstance.disconnected) {
         const targetSocket = this.io.sockets.sockets.get(playerInstance.socketId);
         if (targetSocket) {
-          const personalizedState: ClientState = {
+          const personalizedState: GameStateData = {
             ...stateForEmit,
             players: stateForEmit.players.map((p) => ({
               ...p,

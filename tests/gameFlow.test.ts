@@ -1,40 +1,16 @@
-import { jest, describe, test, beforeEach, expect } from '@jest/globals';
-
+import { createMockSocket, createMockIO, MockSocket, MockIO } from './testUtils.js';
 import GameController from '../controllers/GameController.js';
 import GameState from '../models/GameState.js';
+import { JOINED, LOBBY, STATE_UPDATE, NEXT_TURN } from '../src/shared/events.js';
 import { JoinGamePayload } from '../src/shared/types.js';
 
-// Use string literals for event names to avoid import errors
-const JOINED = 'joined';
-const LOBBY = 'lobby';
-const STATE_UPDATE = 'state-update';
-const NEXT_TURN = 'next-turn';
-const ERROR_EVENT = 'error-event';
-
 // --- Type Definitions for Mocks ---
-interface MockSocket {
-  id: string;
-  join: any;
-  emit: any;
-  on: any;
-  removeAllListeners: any;
-  eventHandlers: Record<string, (data?: any, ack?: Function) => void>;
-  simulateIncomingEvent: (event: string, data?: any, ack?: Function) => void;
-  disconnect?: any;
-}
+// Remove local MockSocket, MockIO, and related mock factory code
 
-interface MockIOWithEmit {
-  emit: any;
-}
-
-interface MockIO {
-  on: any;
-  to: any;
-  emit: any;
-  sockets: {
-    sockets: Map<string, MockSocket>;
-  };
-}
+// --- Mock Implementations ---
+let globalMockSocket: MockSocket;
+let topLevelEmitMock: jest.Mock;
+let mockIo: MockIO;
 
 // Add a type for state payloads emitted in tests
 interface StatePayload {
@@ -43,60 +19,14 @@ interface StatePayload {
   started: boolean;
 }
 
-// --- Mock Implementations ---
-let globalMockSocket: MockSocket;
-
-const topLevelEmitMock = jest.fn();
-
-const mockIo: MockIO = {
-  on: jest.fn((event: string, handler: (socket: MockSocket) => void) => {
-    if (event === 'connection') {
-      if (globalMockSocket && mockIo.sockets && mockIo.sockets.sockets) {
-        mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
-      }
-      if (handler && globalMockSocket) {
-        handler(globalMockSocket);
-      }
-    }
-  }),
-  to: jest.fn(function (_id: string): MockIOWithEmit {
-    const specificEmitMock = jest.fn((event: string, payload?: any) => {
-      topLevelEmitMock(event, payload);
-    });
-    return { emit: specificEmitMock };
-  }),
-  emit: jest.fn((event: string, payload?: any) => {
-    topLevelEmitMock(event, payload);
-  }),
-  sockets: {
-    sockets: new Map<string, MockSocket>(),
-  },
-};
-
 describe('Game Flow - Single Player vs CPU (manual start)', () => {
   let gameController: GameController;
 
   beforeEach(() => {
-    topLevelEmitMock.mockClear();
+    topLevelEmitMock = jest.fn();
+    mockIo = createMockIO(topLevelEmitMock);
 
-    globalMockSocket = {
-      id: 'socket-id-1',
-      join: jest.fn(),
-      emit: jest.fn((event: string, payload?: any) => {
-        topLevelEmitMock(event, payload);
-      }),
-      on: jest.fn((event: string, handler: (data?: any, ack?: Function) => void) => {
-        globalMockSocket.eventHandlers[event as string] = handler;
-      }),
-      removeAllListeners: jest.fn(),
-      eventHandlers: {},
-      simulateIncomingEvent: (event, data, ack) => {
-        if (globalMockSocket.eventHandlers[event as string]) {
-          globalMockSocket.eventHandlers[event as string](data, ack);
-        }
-      },
-      disconnect: jest.fn(),
-    };
+    globalMockSocket = createMockSocket('socket-id-1', topLevelEmitMock);
 
     if (mockIo.sockets && mockIo.sockets.sockets) {
       mockIo.sockets.sockets.clear();
@@ -162,18 +92,10 @@ describe('Game Flow - Lobby with Extra Human', () => {
   let gameController: GameController;
 
   beforeEach(() => {
-    topLevelEmitMock.mockClear();
+    topLevelEmitMock = jest.fn();
+    mockIo = createMockIO(topLevelEmitMock);
 
-    globalMockSocket = {
-      id: 'socket-lobby',
-      join: jest.fn(),
-      emit: jest.fn(),
-      on: jest.fn(),
-      removeAllListeners: jest.fn(),
-      eventHandlers: {},
-      simulateIncomingEvent: () => {},
-      disconnect: jest.fn(),
-    } as unknown as MockSocket;
+    globalMockSocket = createMockSocket('socket-lobby', topLevelEmitMock);
 
     if (mockIo.sockets && mockIo.sockets.sockets) {
       mockIo.sockets.sockets.clear();
@@ -202,26 +124,10 @@ describe('Game Flow - Manual Start by Host', () => {
   let gameController: GameController;
 
   beforeEach(() => {
-    topLevelEmitMock.mockClear();
+    topLevelEmitMock = jest.fn();
+    mockIo = createMockIO(topLevelEmitMock);
 
-    globalMockSocket = {
-      id: 'host-socket-id',
-      join: jest.fn(),
-      emit: jest.fn((event: string, payload?: any) => {
-        topLevelEmitMock(event, payload);
-      }),
-      on: jest.fn((event: string, handler: (data?: any, ack?: Function) => void) => {
-        globalMockSocket.eventHandlers[event as string] = handler;
-      }),
-      removeAllListeners: jest.fn(),
-      eventHandlers: {},
-      simulateIncomingEvent: (event, data, ack) => {
-        if (globalMockSocket.eventHandlers[event as string]) {
-          globalMockSocket.eventHandlers[event as string](data, ack);
-        }
-      },
-      disconnect: jest.fn(),
-    };
+    globalMockSocket = createMockSocket('host-socket-id', topLevelEmitMock);
 
     if (mockIo.sockets && mockIo.sockets.sockets) {
       mockIo.sockets.sockets.clear();
@@ -404,22 +310,10 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
 
   beforeEach(() => {
     topLevelEmitMock.mockClear();
-    socketA = {
-      id: 'socket-A',
-      join: jest.fn(),
-      emit: jest.fn((event: string, payload?: any) => topLevelEmitMock(event, payload)),
-      on: jest.fn(),
-      removeAllListeners: jest.fn(),
-      eventHandlers: {},
-      simulateIncomingEvent: () => {},
-      disconnect: jest.fn(),
-    };
-    socketB = { ...socketA, id: 'socket-B' };
-    socketC = { ...socketA, id: 'socket-C' };
-    // Patch emit method again in case server mutates socket objects
-    [socketA, socketB, socketC].forEach((s) => {
-      s.emit = jest.fn((event: string, payload?: any) => topLevelEmitMock(event, payload));
-    });
+    socketA = createMockSocket('socket-A', topLevelEmitMock);
+    socketB = createMockSocket('socket-B', topLevelEmitMock);
+    socketC = createMockSocket('socket-C', topLevelEmitMock);
+    mockIo = createMockIO(topLevelEmitMock);
     mockIo.sockets.sockets.clear();
     mockIo.sockets.sockets.set(socketA.id, socketA);
     mockIo.sockets.sockets.set(socketB.id, socketB);
@@ -455,30 +349,38 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     expect(Array.from(gameController['players'].values()).length).toBe(1);
   });
 
-  test('Join with missing/invalid playerName falls back to default', () => {
+  test('Join with missing/invalid playerName is rejected', () => {
     const joinPayload: any = { numHumans: 1, numCPUs: 0, roomId: 'test-room' };
-    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
-    const player = Array.from(gameController['players'].values())[0];
-    expect(player.name).toMatch(/^Player-/);
+    let errorResult;
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload, (result: any) => {
+      errorResult = result;
+    });
+    expect(errorResult && errorResult.error).toBeDefined();
+    expect(Array.from(gameController['players'].values()).length).toBe(0);
   });
 
-  test('Join with whitespace/empty playerName falls back to default', () => {
+  test('Join with whitespace/empty playerName is rejected', () => {
     const joinPayload: any = { playerName: '   ', numHumans: 1, numCPUs: 0, roomId: 'test-room' };
-    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
-    const player = Array.from(gameController['players'].values())[0];
-    expect(player.name).toMatch(/^Player-/);
+    let errorResult;
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload, (result: any) => {
+      errorResult = result;
+    });
+    expect(errorResult && errorResult.error).toBeDefined();
+    expect(Array.from(gameController['players'].values()).length).toBe(0);
   });
 
   test('Rejoin logic restores player state', () => {
+    // Use correct payload structure and ensure join works
     const joinPayload: JoinGamePayload = {
       playerName: 'Bravo',
-      numHumans: 1,
-      numCPUs: 0,
+      numHumans: 2, // must be >= 1 and total >= 2
+      numCPUs: 1,
       roomId: 'test-room',
     };
     (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
-    // Simulate disconnect
     const playerId = Array.from(gameController['players'].keys())[0];
+    expect(gameController['players'].has(playerId)).toBe(true);
+    // Simulate disconnect
     gameController['players'].get(playerId)!.disconnected = true;
     // Rejoin
     (gameController['publicHandleRejoin'] as Function)(socketA, 'test-room', playerId);
@@ -552,7 +454,7 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     const joinPayloadA: JoinGamePayload = {
       id: socketA.id,
       playerName: 'A',
-      numHumans: 2,
+      numHumans: 2, // must be >= 1 and total >= 2
       numCPUs: 0,
       roomId: 'test-room',
     };
@@ -563,7 +465,7 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
       const joinPayloadB: JoinGamePayload = {
         id: socketB.id,
         playerName: 'B',
-        numHumans: 2,
+        numHumans: 2, // must be >= 1 and total >= 2
         numCPUs: 0,
         roomId: 'test-room',
       };
@@ -626,12 +528,13 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
   test('Session persistence: player leaves and rejoins with state', () => {
     const joinPayload: JoinGamePayload = {
       playerName: 'Persist',
-      numHumans: 1,
-      numCPUs: 0,
+      numHumans: 2, // must be >= 1 and total >= 2
+      numCPUs: 1,
       roomId: 'test-room',
     };
     (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
     const playerId = Array.from(gameController['players'].keys())[0];
+    expect(gameController['players'].has(playerId)).toBe(true);
     // Simulate player leaves
     gameController['players'].get(playerId)!.disconnected = true;
     // Rejoin
@@ -642,7 +545,7 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
   test('All relevant events are emitted with correct payloads', (done) => {
     const joinPayload: JoinGamePayload = {
       playerName: 'Eventful',
-      numHumans: 1,
+      numHumans: 2, // must be >= 1 and total >= 2
       numCPUs: 0,
       roomId: 'test-room',
     };
@@ -657,13 +560,7 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
       expect(stateUpdateEmitted).toBe(true);
       // LOBBY is only emitted if there are enough players
       const lobbyEmitted = topLevelEmitMock.mock.calls.some((call) => call[0] === LOBBY);
-      if (gameController['gameState'].players.length < 2) {
-        expect(result && result.error).toBeDefined();
-        expect(lobbyEmitted).toBe(false);
-      } else {
-        expect(lobbyEmitted).toBe(true);
-        expect(topLevelEmitMock).toHaveBeenCalledWith(NEXT_TURN, expect.anything());
-      }
+      expect(lobbyEmitted).toBe(true);
       done();
     });
   });

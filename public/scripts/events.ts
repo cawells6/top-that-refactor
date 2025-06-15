@@ -701,9 +701,14 @@ function handleDealClick() {
   // Add a callback to log the server's response
   state.socket.emit(JOIN_GAME, playerDataForEmit, (response) => {
     console.log('[CLIENT] Received JOIN_GAME response from server:', response);
+    const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
     if (response.error) {
       console.error('[CLIENT] JOIN_GAME error:', response.error);
       queueMessage(response.error);
+      if (dealButton) {
+        dealButton.disabled = false;
+        dealButton.textContent = "Let's Play";
+      }
     } else {
       console.log('[CLIENT] JOIN_GAME success - Room ID:', response.roomId, 'Player ID:', response.playerId);
     }
@@ -769,7 +774,9 @@ function handleJoinGameClick() {
     if (joinBtn) joinBtn.disabled = false; // Re-enable button after server response
     if (response && response.error) {
       queueMessage(response.error);
+      return;
     }
+    // ...existing code...
   });
 
   if (joinBtn) joinBtn.disabled = true;

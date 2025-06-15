@@ -71,4 +71,11 @@ Your primary directive is to prioritize clarity, thoroughness, and education ove
 - **Be Prepared to Iterate:** Sometimes the first solution isn't perfect. I will provide feedback or new information, and we can refine the solution together.
 - **If Stuck:** If we're stuck on a problem, suggest alternative debugging steps or a different angle to approach the issue.
 
-By using these more detailed instructions, you're setting clearer expectations for Copilot, guiding its expertise towards your specific project needs and learning style. This should help you get more targeted and effective assistance.
+# Copilot Notes / Instructions
+
+- Always follow best practices for code quality, maintainability, and testability.
+- Prefer DRY (Don't Repeat Yourself) principles and shared utilities for mocks and test setup.
+- Ensure all test and production code is type-safe and clear.
+- When fixing or refactoring, update both tests and implementation as needed to keep them in sync.
+- Prefer updating server logic to provide clear, consistent error handling and event emission, unless test expectations are clearly incorrect.
+- Document any non-obvious changes or design decisions in code comments or commit messages.
