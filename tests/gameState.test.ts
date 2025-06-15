@@ -130,6 +130,14 @@ describe('GameState', () => {
       gs.addToPile(card2, { isCopy: true });
       expect(gs.pile).toContainEqual({ ...card2, copied: true });
     });
+
+    test('addToPile does not mutate the original card object', () => {
+      const card = { value: '9', suit: 'hearts' };
+      const original = { ...card };
+      gs.addToPile(card);
+      gs.pile[0].value = 'CHANGED';
+      expect(card).toEqual(original); // original card object should not be mutated
+    });
   });
 
   describe('addToPile edge cases', () => {
@@ -154,6 +162,15 @@ describe('GameState', () => {
   test('clearPile on empty pile does not throw and does not affect discard', () => {
     expect(() => gs.clearPile()).not.toThrow();
     expect(gs.discard).toEqual([]);
+  });
+
+  test('clearPile does not mutate the original pile array', () => {
+    const card = { value: '8', suit: 'spades' };
+    const pile = [card];
+    gs.pile = [...pile];
+    const original = [...pile.map((c) => ({ ...c }))];
+    gs.clearPile();
+    expect(pile).toEqual(original); // original pile array should not be mutated
   });
 
   describe('isFourOfAKindOnPile', () => {
@@ -227,6 +244,38 @@ describe('GameState', () => {
     ])('returns %s for %j', (cards, expected) => {
       expect(gs.isValidPlay(cards as any)).toBe(expected);
     });
+  });
+
+  test('lastRealCard updates after addToPile and resets after clearPile', () => {
+    const cardA = { value: 'A', suit: 'hearts' };
+    const cardB = { value: 'K', suit: 'spades' };
+    gs.addToPile(cardA);
+    gs.lastRealCard = cardA;
+    expect(gs.lastRealCard).toEqual(cardA);
+    gs.addToPile(cardB);
+    gs.lastRealCard = cardB;
+    expect(gs.lastRealCard).toEqual(cardB);
+    gs.clearPile();
+    expect(gs.lastRealCard).toBeNull();
+  });
+
+  test('state after sequence: add, clear, add, check pile/discard/lastRealCard', () => {
+    const card1 = { value: '2', suit: 'hearts' };
+    const card2 = { value: '3', suit: 'spades' };
+    const card3 = { value: '4', suit: 'clubs' };
+    gs.addToPile(card1);
+    gs.lastRealCard = card1;
+    gs.addToPile(card2);
+    gs.lastRealCard = card2;
+    gs.clearPile();
+    expect(gs.pile).toEqual([]);
+    expect(gs.discard).toEqual([{ ...card1 }, { ...card2 }]);
+    expect(gs.lastRealCard).toBeNull();
+    gs.addToPile(card3);
+    gs.lastRealCard = card3;
+    expect(gs.pile).toEqual([{ ...card3 }]);
+    expect(gs.discard).toEqual([{ ...card1 }, { ...card2 }]);
+    expect(gs.lastRealCard).toEqual(card3);
   });
 
   // buildDeck and dealCards are tested separately in gameState.deck.test.js

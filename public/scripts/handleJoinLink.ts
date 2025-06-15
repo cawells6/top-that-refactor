@@ -13,14 +13,22 @@ export function handleJoinLink({ setCurrentRoom, socket, window, document }: Han
   const roomIdFromUrl = urlParams.get('room');
   const inSession = document.body.classList.contains('in-session');
   if (roomIdFromUrl && !inSession) {
-    setCurrentRoom(roomIdFromUrl);
+    try {
+      setCurrentRoom(roomIdFromUrl);
+    } catch {
+      // Ignore errors from setCurrentRoom
+    }
     const joinPayload = {
       roomId: roomIdFromUrl,
       playerName: 'Guest',
       numHumans: 1,
       numCPUs: 0,
     };
-    socket.emit(JOIN_GAME, joinPayload);
+    try {
+      socket.emit(JOIN_GAME, joinPayload);
+    } catch {
+      // Ignore errors from socket.emit
+    }
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 }

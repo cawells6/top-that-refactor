@@ -111,7 +111,7 @@ export default class GameState {
     if (options.isCopy) {
       this.pile.push({ ...card, copied: true });
     } else {
-      this.pile.push(card);
+      this.pile.push({ ...card }); // Always push a shallow copy
     }
   }
 

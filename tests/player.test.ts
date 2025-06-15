@@ -49,6 +49,33 @@ describe('Player model', () => {
     expect(p.downCards).toEqual(cards);
   });
 
+  test('setHand does not mutate the original array', () => {
+    const original = [
+      { value: 'A', suit: 'spades' },
+      { value: '2', suit: 'hearts' },
+    ];
+    const copy = [...original.map((card) => ({ ...card }))];
+    p.setHand(original);
+    p.hand.pop(); // mutate Player's hand
+    expect(original).toEqual(copy); // original should be unchanged
+  });
+
+  test('setUpCards does not mutate the original array', () => {
+    const original = [{ value: '5', suit: 'clubs' }];
+    const copy = [...original.map((card) => ({ ...card }))];
+    p.setUpCards(original);
+    p.upCards.pop();
+    expect(original).toEqual(copy);
+  });
+
+  test('setDownCards does not mutate the original array', () => {
+    const original = [{ value: '7', suit: 'diamonds' }];
+    const copy = [...original.map((card) => ({ ...card }))];
+    p.setDownCards(original);
+    p.downCards.pop();
+    expect(original).toEqual(copy);
+  });
+
   describe('playing cards', () => {
     const handCard: Card = { value: '10', suit: 'hearts' };
     const upCard: Card = { value: 'J', suit: 'clubs' };
@@ -98,6 +125,47 @@ describe('Player model', () => {
     expect(p.hand).toEqual(expectedHand);
   });
 
+  test('pickUpPile with empty pile does not change hand', () => {
+    p.setHand([{ value: '4', suit: 'hearts' }]);
+    p.pickUpPile([]);
+    expect(p.hand).toEqual([{ value: '4', suit: 'hearts' }]);
+  });
+
+  test('pickUpPile with duplicate cards adds and sorts correctly', () => {
+    p.setHand([{ value: '7', suit: 'hearts' }]);
+    const pile: Card[] = [
+      { value: '3', suit: 'diamonds' },
+      { value: '3', suit: 'spades' },
+      { value: '7', suit: 'clubs' },
+    ];
+    p.pickUpPile(pile);
+    const expectedHand: Card[] = [
+      { value: '3', suit: 'diamonds' },
+      { value: '3', suit: 'spades' },
+      { value: '7', suit: 'hearts' },
+      { value: '7', suit: 'clubs' },
+    ];
+    expect(p.hand).toEqual(expectedHand);
+  });
+
+  test('pickUpPile with special cards (2, 10, 5) sorts them by rank', () => {
+    p.setHand([{ value: 'Q', suit: 'hearts' }]);
+    const pile: Card[] = [
+      { value: '2', suit: 'diamonds' },
+      { value: '10', suit: 'spades' },
+      { value: '5', suit: 'clubs' },
+    ];
+    p.pickUpPile(pile);
+    // rank('2')=2, rank('5')=5, rank('10')=10, rank('Q')=12
+    const expectedHand: Card[] = [
+      { value: '2', suit: 'diamonds' },
+      { value: '5', suit: 'clubs' },
+      { value: '10', suit: 'spades' },
+      { value: 'Q', suit: 'hearts' },
+    ];
+    expect(p.hand).toEqual(expectedHand);
+  });
+
   describe('empty checks', () => {
     const testCard: Card = { value: '2', suit: 'hearts' };
     test('hasEmptyHand', () => {
@@ -117,6 +185,25 @@ describe('Player model', () => {
       p.setDownCards([testCard]);
       expect(p.hasEmptyDown()).toBe(false);
     });
+  });
+
+  test('can set and get socketId', () => {
+    expect(p.socketId).toBeUndefined();
+    p.socketId = 'socket-123';
+    expect(p.socketId).toBe('socket-123');
+  });
+
+  test('can set and get status and ready properties', () => {
+    expect(p.status).toBe('invited');
+    expect(p.ready).toBe(false);
+    p.status = 'ready';
+    p.ready = true;
+    expect(p.status).toBe('ready');
+    expect(p.ready).toBe(true);
+    p.status = 'host';
+    expect(p.status).toBe('host');
+    p.ready = false;
+    expect(p.ready).toBe(false);
   });
 
   // Helper to create a player with a specific hand, upCards, and downCards

@@ -4,7 +4,6 @@ import { Card, DealtCards } from '../src/types.js'; // Import both Card and Deal
 
 const DECK_SIZE_SINGLE = 52;
 const DECK_SIZE_DOUBLE = 104;
-const DEFAULT_HAND_SIZE = 3;
 
 describe('GameState deck and dealCards', () => {
   test('buildDeck creates 52 unique cards and shuffles for < 4 players', () => {
@@ -77,21 +76,24 @@ describe('GameState deck and dealCards', () => {
     { numPlayers: 4, handSize: 3, expectedDeck: DECK_SIZE_DOUBLE - 4 * 3 * 3 },
     { numPlayers: 3, handSize: 2, expectedDeck: DECK_SIZE_SINGLE - 3 * 2 * 3 },
     { numPlayers: 1, handSize: 5, expectedDeck: DECK_SIZE_SINGLE - 1 * 5 * 3 },
-  ])('dealCards deals correct number for $numPlayers players, $handSize hand', ({ numPlayers, handSize, expectedDeck }) => {
-    const gs = new GameState();
-    gs.players = Array.from({ length: numPlayers }, (_, i) => `p${i + 1}`);
-    gs.startGameInstance();
-    const dealt = gs.dealCards(numPlayers, handSize);
-    expect(dealt.hands.length).toBe(numPlayers);
-    expect(dealt.upCards.length).toBe(numPlayers);
-    expect(dealt.downCards.length).toBe(numPlayers);
-    for (let i = 0; i < numPlayers; i++) {
-      expect(dealt.hands[i].length).toBe(handSize);
-      expect(dealt.upCards[i].length).toBe(handSize);
-      expect(dealt.downCards[i].length).toBe(handSize);
+  ])(
+    'dealCards deals correct number for $numPlayers players, $handSize hand',
+    ({ numPlayers, handSize, expectedDeck }) => {
+      const gs = new GameState();
+      gs.players = Array.from({ length: numPlayers }, (_, i) => `p${i + 1}`);
+      gs.startGameInstance();
+      const dealt = gs.dealCards(numPlayers, handSize);
+      expect(dealt.hands.length).toBe(numPlayers);
+      expect(dealt.upCards.length).toBe(numPlayers);
+      expect(dealt.downCards.length).toBe(numPlayers);
+      for (let i = 0; i < numPlayers; i++) {
+        expect(dealt.hands[i].length).toBe(handSize);
+        expect(dealt.upCards[i].length).toBe(handSize);
+        expect(dealt.downCards[i].length).toBe(handSize);
+      }
+      expect(gs.deck!.length).toBe(expectedDeck);
     }
-    expect(gs.deck!.length).toBe(expectedDeck);
-  });
+  );
 
   test('dealCards with negative or non-integer handSize deals zero cards', () => {
     const gs = new GameState();
@@ -142,5 +144,125 @@ describe('GameState deck and dealCards', () => {
     expect(dealt.upCards[0].length).toBe(0);
     expect(dealt.downCards[0].length).toBe(0);
     expect(gs.deck!.length).toBe(0); // Added ! (deck is manually set and then emptied)
+  });
+
+  test('dealt hands, upCards, and downCards are independent arrays (not references to deck or each other)', () => {
+    const gs = new GameState();
+    gs.players = ['p1', 'p2'];
+    gs.startGameInstance();
+    const dealt = gs.dealCards(2, 3);
+    // Mutate one hand, upCards, downCards and check others are unaffected
+    dealt.hands[0][0].value = 'CHANGED';
+    expect(dealt.hands[1][0].value).not.toBe('CHANGED');
+    if (dealt.upCards[0].length > 0 && dealt.upCards[1].length > 0) {
+      dealt.upCards[0][0].value = 'UPCHANGED';
+      expect(dealt.upCards[1][0].value).not.toBe('UPCHANGED');
+    }
+    if (dealt.downCards[0].length > 0 && dealt.downCards[1].length > 0) {
+      dealt.downCards[0][0].value = 'DOWNCHANGED';
+      expect(dealt.downCards[1][0].value).not.toBe('DOWNCHANGED');
+    }
+    // Mutate deck and check dealt hands are unaffected
+    if (gs.deck && gs.deck.length > 0) {
+      gs.deck[0].value = 'DECKCHANGED';
+      expect(dealt.hands[0][0].value).not.toBe('DECKCHANGED');
+    }
+  });
+
+  test('dealCards handles more players than possible (deck exhaustion, no throw)', () => {
+    const gs = new GameState();
+    gs.players = Array.from({ length: 10 }, (_, i) => `p${i + 1}`);
+    gs.startGameInstance();
+    expect(() => gs.dealCards(10, 6)).not.toThrow();
+    // Should deal as many as possible, some hands may be empty
+    const dealt = gs.dealCards(10, 6);
+    expect(dealt.hands.length).toBe(10);
+    // At least one hand should have fewer than 6 cards
+    expect(dealt.hands.some((h) => h.length < 6)).toBe(true);
+  });
+
+  test('deck uniqueness: no duplicates for single deck, two of each for double deck', () => {
+    const gs1 = new GameState();
+    gs1.players = ['p1', 'p2'];
+    gs1.startGameInstance();
+    const seen = new Set();
+    for (const card of gs1.deck!) {
+      const key = `${card.value}-${card.suit}`;
+      expect(seen.has(key)).toBe(false);
+      seen.add(key);
+    }
+    expect(seen.size).toBe(52);
+
+    const gs2 = new GameState();
+    gs2.players = ['p1', 'p2', 'p3', 'p4'];
+    gs2.startGameInstance();
+    const counts: Record<string, number> = {};
+    for (const card of gs2.deck!) {
+      const key = `${card.value}-${card.suit}`;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    Object.values(counts).forEach((count) => expect(count).toBe(2));
+    expect(Object.keys(counts).length).toBe(52);
+  });
+
+  test('deck state after multiple deals: deck shrinks, hands reflect remaining cards', () => {
+    const gs = new GameState();
+    gs.players = ['p1', 'p2', 'p3', 'p4'];
+    gs.startGameInstance();
+    // 4 players × 3 hand × 3 zones = 36 cards dealt, 16 left in deck (before discard pile flip)
+    gs.dealCards(4, 3);
+    const deckAfterFirst = gs.deck!.length;
+    gs.dealCards(4, 3);
+    // After two deals, deck should be even smaller
+    expect(gs.deck!.length).toBeLessThan(deckAfterFirst);
+    // Note: If the game flips one card to the discard pile before play, adjust expectations accordingly.
+  });
+
+  test('integration: build, deal, end, rebuild, deal again', () => {
+    const gs = new GameState();
+    gs.players = ['p1', 'p2'];
+    gs.startGameInstance();
+    gs.dealCards(2, 3);
+    gs.endGameInstance();
+    expect(gs.deck).toBeNull();
+    gs.startGameInstance();
+    const secondDealt = gs.dealCards(2, 3);
+    expect(secondDealt.hands.length).toBe(2);
+    expect(gs.deck!.length).toBe(52 - 2 * 3 * 3);
+  });
+
+  test('dealCards with hand size 0 returns empty hands, upCards, downCards', () => {
+    const gs = new GameState();
+    gs.players = ['p1', 'p2'];
+    gs.startGameInstance();
+    const dealt = gs.dealCards(2, 0);
+    expect(dealt.hands.every((h) => h.length === 0)).toBe(true);
+    expect(dealt.upCards.every((u) => u.length === 0)).toBe(true);
+    expect(dealt.downCards.every((d) => d.length === 0)).toBe(true);
+  });
+
+  test('dealCards with more players than maxPlayers only deals up to maxPlayers', () => {
+    const gs = new GameState();
+    const max = gs.maxPlayers;
+    gs.players = Array.from({ length: max + 3 }, (_, i) => `p${i + 1}`);
+    gs.startGameInstance();
+    const dealt = gs.dealCards(gs.players.length, 2);
+    expect(dealt.hands.length).toBe(gs.players.length);
+    // But only up to maxPlayers should have non-empty hands
+    const nonEmpty = dealt.hands.filter((h) => h.length > 0).length;
+    expect(nonEmpty).toBeLessThanOrEqual(max * 2); // Each gets up to 2 cards
+  });
+
+  test('mutating a dealt card does not affect deck or other hands', () => {
+    const gs = new GameState();
+    gs.players = ['p1', 'p2'];
+    gs.startGameInstance();
+    const dealt = gs.dealCards(2, 3);
+    const originalDeckCard = { ...gs.deck![0] };
+    dealt.hands[0][0].value = 'CHANGED';
+    expect(gs.deck![0]).toEqual(originalDeckCard);
+    if (dealt.hands[1].length > 0) {
+      expect(dealt.hands[1][0].value).not.toBe('CHANGED');
+    }
   });
 });

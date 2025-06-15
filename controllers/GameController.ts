@@ -2,7 +2,6 @@ import { Server, Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
 import GameState from '../models/GameState.js';
-import { Card, CardValue, ClientStatePlayer, GameStateData, JoinGamePayload } from '../src/shared/types.js';
 import Player from '../models/Player.js';
 import {
   JOIN_GAME,
@@ -23,6 +22,13 @@ import {
   PLAYER_JOINED,
   LOBBY,
 } from '../src/shared/events.js';
+import {
+  Card,
+  CardValue,
+  ClientStatePlayer,
+  GameStateData,
+  JoinGamePayload,
+} from '../src/shared/types.js';
 import { InSessionLobbyState } from '../src/shared/types.js';
 import {
   normalizeCardValue,
@@ -63,7 +69,7 @@ export class GameRoomManager {
     this.rooms = new Map();
     this.io.on('connection', (socket: Socket) => {
       console.log(`[SERVER] Socket connected: ${socket.id}`);
-      
+
       socket.on(
         JOIN_GAME,
         (
@@ -119,7 +125,7 @@ export class GameRoomManager {
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
     console.log(`[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`, playerData);
-    
+
     // Use playerData.roomId instead of playerData.id
     let roomId = playerData.roomId;
     let controller: GameController | undefined;
@@ -250,7 +256,7 @@ export default class GameController {
 
   public publicHandleJoin(
     socket: Socket,
-    playerData: PlayerJoinData,
+    playerData: JoinGamePayload,
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
     console.log(`[SERVER] publicHandleJoin for socket ${socket.id}, data:`, playerData);
@@ -391,6 +397,19 @@ export default class GameController {
     if (this.players.size === 0) {
       this.hostId = id;
       player.status = 'host';
+      // Set expected player counts from payload if provided
+      if (
+        typeof playerData.numHumans === 'number' &&
+        playerData.numHumans > 0 &&
+        typeof playerData.numCPUs === 'number' &&
+        playerData.numCPUs >= 0
+      ) {
+        this.expectedHumanCount = playerData.numHumans;
+        this.expectedCpuCount = playerData.numCPUs;
+        this.log(
+          `Host set expected players: ${this.expectedHumanCount} humans, ${this.expectedCpuCount} CPUs`
+        );
+      }
     } else {
       player.status = 'joined';
     }

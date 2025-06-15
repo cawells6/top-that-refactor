@@ -1,16 +1,55 @@
-// tests/lobbyForm.test.ts
+/**
+ * Best Practice: Ensure DOM is set up before importing scripts/components that expect DOM elements.
+ * Use helpers like setupMainDOM for consistent test setup.
+ */
+
 /**
  * @jest-environment jsdom
  */
 import '@testing-library/jest-dom';
 import { fireEvent } from '@testing-library/dom';
 
-import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
-import * as render from '../public/scripts/render.js';
-import * as state from '../public/scripts/state.js'; // Stays .js for now
-// Import the client-side script under test (AFTER mocks are set up)
-// This file (public/scripts/events.js) has NOT been converted to TS yet.
+// --- Helpers for DRY test setup and error clearing ---
+function setupLobbyFormDOM() {
+  document.body.innerHTML = `
+    <form id="lobby-form">
+      <input type="text" id="player-name-input" />
+      <input type="text" id="join-code-input" />
+      <div>
+        <button id="humans-minus" type="button">-</button>
+        <input type="number" id="total-players-input" value="1" />
+        <button id="humans-plus" type="button">+</button>
+      </div>
+      <div>
+        <button id="cpus-minus" type="button">-</button>
+        <input type="number" id="cpu-players-input" value="0" />
+        <button id="cpus-plus" type="button">+</button>
+      </div>
+      <span id="total-count"></span>
+      <div id="lobby-validation-message"><div class="message-box-content"><p></p></div></div>
+      <div class="lobby-buttons-row">
+        <button id="setup-rules-button" type="button">RULES</button>
+        <button id="setup-deal-button" type="button">LET'S PLAY</button>
+        <button id="join-game-button" type="button">Join Game</button>
+      </div>
+    </form>
+  `;
+}
 
+function getErrorBox() {
+  return document.querySelector('.message-box-content') as HTMLElement;
+}
+function getErrorText() {
+  return document.querySelector('#lobby-validation-message p') as HTMLElement;
+}
+function clearErrorBox() {
+  const box = getErrorBox();
+  if (box) box.classList.remove('active');
+  const p = getErrorText();
+  if (p) p.textContent = '';
+}
+
+// --- Mocks ---
 const mockEmit = jest.fn();
 const mockOn = jest.fn();
 const mockListeners = jest.fn(() => []); // Add listeners mock
@@ -64,46 +103,11 @@ jest.mock('../src/shared/events', () => ({
 // Add this import to bring JOIN_GAME into scope for the test
 import { JOIN_GAME } from '../src/shared/events.js';
 
-// --- Helpers for DRY test setup and error clearing ---
-function setupLobbyFormDOM() {
-  document.body.innerHTML = `
-    <form id="lobby-form">
-      <input type="text" id="player-name-input" />
-      <input type="text" id="join-code-input" />
-      <div>
-        <button id="humans-minus" type="button">-</button>
-        <input type="number" id="total-players-input" value="1" />
-        <button id="humans-plus" type="button">+</button>
-      </div>
-      <div>
-        <button id="cpus-minus" type="button">-</button>
-        <input type="number" id="cpu-players-input" value="0" />
-        <button id="cpus-plus" type="button">+</button>
-      </div>
-      <span id="total-count"></span>
-      <div id="lobby-validation-message"><div class="message-box-content"><p></p></div></div>
-      <div class="lobby-buttons-row">
-        <button id="setup-rules-button" type="button">RULES</button>
-        <button id="setup-deal-button" type="button">LET'S PLAY</button>
-        <button id="join-game-button" type="button">Join Game</button>
-      </div>
-    </form>
-  `;
-}
+// --- Imports (AFTER DOM setup and mocks) ---
+import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
+import * as state from '../public/scripts/state.js'; // Stays .js for now
 
-function getErrorBox() {
-  return document.querySelector('.message-box-content') as HTMLElement;
-}
-function getErrorText() {
-  return document.querySelector('#lobby-validation-message p') as HTMLElement;
-}
-function clearErrorBox() {
-  const box = getErrorBox();
-  if (box) box.classList.remove('active');
-  const p = getErrorText();
-  if (p) p.textContent = '';
-}
-
+// --- Test suites ---
 describe('Lobby Form Submission', () => {
   let nameInput: HTMLInputElement;
   let numHumansInput: HTMLInputElement;

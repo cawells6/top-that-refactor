@@ -1,7 +1,14 @@
 import { createMockSocket, createMockIO, MockSocket, MockIO } from './testUtils.js';
 import GameController from '../controllers/GameController.js';
 import GameState from '../models/GameState.js';
-import { JOINED, LOBBY, STATE_UPDATE, NEXT_TURN } from '../src/shared/events.js';
+import {
+  JOINED,
+  LOBBY,
+  STATE_UPDATE,
+  NEXT_TURN,
+  PLAYER_READY,
+  PLAY_CARD,
+} from '../src/shared/events.ts';
 import { JoinGamePayload } from '../src/shared/types.js';
 
 // --- Type Definitions for Mocks ---
@@ -344,24 +351,24 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
       errorResult = result;
     });
     // Should return error for duplicate
-    expect(errorResult && errorResult.error).toBeDefined();
+    expect(errorResult && (errorResult as any).error).toBeDefined();
     // Only one player in the list
     expect(Array.from(gameController['players'].values()).length).toBe(1);
   });
 
   test('Join with missing/invalid playerName is rejected', () => {
     const joinPayload: any = { numHumans: 1, numCPUs: 0, roomId: 'test-room' };
-    let errorResult;
+    let errorResult: any;
     (gameController['publicHandleJoin'] as Function)(socketA, joinPayload, (result: any) => {
       errorResult = result;
     });
-    expect(errorResult && errorResult.error).toBeDefined();
+    expect(errorResult && (errorResult as any).error).toBeDefined();
     expect(Array.from(gameController['players'].values()).length).toBe(0);
   });
 
   test('Join with whitespace/empty playerName is rejected', () => {
     const joinPayload: any = { playerName: '   ', numHumans: 1, numCPUs: 0, roomId: 'test-room' };
-    let errorResult;
+    let errorResult: any;
     (gameController['publicHandleJoin'] as Function)(socketA, joinPayload, (result: any) => {
       errorResult = result;
     });
@@ -441,12 +448,12 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     };
     (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA, () => {});
     (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB, () => {});
-    let errorResult;
+    let errorResult: any;
     (gameController['publicHandleJoin'] as Function)(socketC, joinPayloadC, (result: any) => {
       errorResult = result;
     });
     // Should return error for third join
-    expect(errorResult && errorResult.error).toBeDefined();
+    expect(errorResult && (errorResult as any).error).toBeDefined();
     expect(Array.from(gameController['players'].values()).length).toBe(2);
   });
 
@@ -552,5 +559,110 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     // Should emit JOINED again
     const joinedCalls = socketA.emit.mock.calls.filter((call: any) => call[0] === JOINED);
     expect(joinedCalls.length).toBeGreaterThan(1);
+  });
+});
+
+describe('Game Flow - Automatic Start When All Humans Ready', () => {
+  let gameController: GameController;
+  let socketA: MockSocket;
+  let socketB: MockSocket;
+
+  beforeEach(() => {
+    topLevelEmitMock.mockClear();
+    socketA = createMockSocket('socket-A', topLevelEmitMock);
+    socketB = createMockSocket('socket-B', topLevelEmitMock);
+    mockIo = createMockIO(topLevelEmitMock);
+    mockIo.sockets.sockets.clear();
+    mockIo.sockets.sockets.set(socketA.id, socketA);
+    mockIo.sockets.sockets.set(socketB.id, socketB);
+    gameController = new GameController(mockIo as any, 'test-room');
+  });
+
+  test('Game auto-starts when all humans are ready', () => {
+    // Arrange
+    const joinPayloadA: JoinGamePayload = {
+      playerName: 'Alice',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    const joinPayloadB: JoinGamePayload = {
+      playerName: 'Bob',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA);
+    (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
+    // Attach event handlers so simulateIncomingEvent works
+    gameController.attachSocketEventHandlers(socketA as any);
+    gameController.attachSocketEventHandlers(socketB as any);
+    // Act
+    socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
+    socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
+    // Assert
+    expect(gameController['gameState'].started).toBe(true);
+    const stateUpdateCall = topLevelEmitMock.mock.calls.find(
+      (call) => call[0] === STATE_UPDATE && (call[1] as StatePayload)?.started === true
+    );
+    expect(stateUpdateCall).toBeDefined();
+    if (stateUpdateCall) {
+      expect((stateUpdateCall[1] as StatePayload).players.length).toBe(2);
+      expect(
+        (stateUpdateCall[1] as StatePayload).players.some((p: any) => p.name === 'Alice')
+      ).toBe(true);
+      expect((stateUpdateCall[1] as StatePayload).players.some((p: any) => p.name === 'Bob')).toBe(
+        true
+      );
+    }
+  });
+});
+
+describe('Game Flow - Invalid Card Play', () => {
+  let gameController: GameController;
+  let socketA: MockSocket;
+  let socketB: MockSocket;
+
+  beforeEach(() => {
+    topLevelEmitMock.mockClear();
+    socketA = createMockSocket('socket-A', topLevelEmitMock);
+    socketB = createMockSocket('socket-B', topLevelEmitMock);
+    mockIo = createMockIO(topLevelEmitMock);
+    mockIo.sockets.sockets.clear();
+    mockIo.sockets.sockets.set(socketA.id, socketA);
+    mockIo.sockets.sockets.set(socketB.id, socketB);
+    gameController = new GameController(mockIo as any, 'test-room');
+  });
+
+  test('Player receives error when playing card with invalid index', () => {
+    // Arrange
+    const joinPayloadA: JoinGamePayload = {
+      playerName: 'Alice',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    const joinPayloadB: JoinGamePayload = {
+      playerName: 'Bob',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA);
+    (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
+    gameController.attachSocketEventHandlers(socketA as any);
+    gameController.attachSocketEventHandlers(socketB as any);
+    // Both ready to start game
+    socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
+    socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
+    // Act: Alice tries to play a card from upCards with an invalid index
+    const invalidPlayData = { cardIndices: [99], zone: 'upCards' };
+    socketA.simulateIncomingEvent(PLAY_CARD, invalidPlayData);
+    // Assert: ERROR_EVENT should be emitted with 'Invalid card index.'
+    const errorCall = topLevelEmitMock.mock.calls.find(
+      (call) =>
+        call[0] === 'err' && typeof call[1] === 'string' && call[1].includes('Invalid card index')
+    );
+    expect(errorCall).toBeDefined();
   });
 });

@@ -688,14 +688,14 @@ function handleDealClick() {
 
   console.log('🎯 Deal button: Validations passed. Joining game with data:', playerDataForEmit);
   console.log('[CLIENT] handleDealClick: Emitting JOIN_GAME with', playerDataForEmit);
-  
+
   // Log socket connection status before attempting to emit
   console.log('[CLIENT] Socket connection status before JOIN_GAME:', {
     socketExists: !!state.socket,
     connected: state.socket?.connected,
     id: state.socket?.id,
     hasJoinedListeners: state.socket ? state.socket.listeners('joined').length : 0,
-    hasLobbyStateListeners: state.socket ? state.socket.listeners('lobby-state-update').length : 0
+    hasLobbyStateListeners: state.socket ? state.socket.listeners('lobby-state-update').length : 0,
   });
 
   // Add a callback to log the server's response
@@ -707,10 +707,15 @@ function handleDealClick() {
       queueMessage(response.error);
       if (dealButton) {
         dealButton.disabled = false;
-        dealButton.textContent = "Let's Play";
+        dealButton.textContent = "LET'S PLAY";
       }
     } else {
-      console.log('[CLIENT] JOIN_GAME success - Room ID:', response.roomId, 'Player ID:', response.playerId);
+      console.log(
+        '[CLIENT] JOIN_GAME success - Room ID:',
+        response.roomId,
+        'Player ID:',
+        response.playerId
+      );
       // --- BEST PRACTICE: Reset form fields after successful join ---
       const form = document.getElementById('lobby-form') as HTMLFormElement | null;
       if (form) form.reset();
@@ -720,11 +725,11 @@ function handleDealClick() {
   const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
   if (dealButton) {
     dealButton.disabled = true;
-    dealButton.textContent = 'Starting...';
+    dealButton.textContent = 'STARTING...';
     setTimeout(() => {
       if (dealButton) {
         dealButton.disabled = false;
-        dealButton.textContent = "Let's Play";
+        dealButton.textContent = "LET'S PLAY";
       }
     }, 3000);
   }

@@ -14,26 +14,23 @@ button, .header-btn, .modal__close-button, .btn {
   text-transform: uppercase !important;
 }
 
-#ready-up-button.header-btn, #copy-link-button.header-btn {
+#ready-up-button.header-btn,
+#copy-link-button.header-btn {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%) !important;
   color: #1b2e3c !important;
-  text-transform: uppercase !important;
-  font-weight: bold !important;
-  border: 2px solid #e6af00 !important;
-  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.3) !important;
-  font-size: 1.4rem !important;
-  border-radius: 8px !important;
-  padding: 1rem 2rem !important;
-  min-width: 200px !important;
-  letter-spacing: 0.5px !important;
-  transition: all 0.3s ease !important;
-  cursor: pointer !important;
+  border: none !important;
 }
-#ready-up-button.header-btn:hover, #copy-link-button.header-btn:hover {
-  background: linear-gradient(135deg, #e6af00 0%, #ffc300 100%) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 20px rgba(255, 195, 0, 0.5) !important;
-  letter-spacing: 1px !important;
+#ready-up-button.header-btn:hover,
+#copy-link-button.header-btn:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%) !important;
+  color: #1b2e3c !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3) !important;
+}
+#ready-up-button.header-btn:active,
+#copy-link-button.header-btn:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2) !important;
 }
 
 /* ...existing code... */

@@ -1325,6 +1325,26 @@ body {
   transform: translateY(0);
   box-shadow: 0 1px 4px rgba(33, 150, 243, 0.2);
 }
+
+/* Ready-up button in the in-session lobby should match the lobby's LET'S PLAY button */
+#ready-up-button {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c !important;
+  border: none;
+}
+
+#ready-up-button:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  color: #1b2e3c !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+}
+
+#ready-up-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
+}
+
 /* General button styling for .header-btn class */
 .header-btn {
   background-color: #007bff; /* Default blue */

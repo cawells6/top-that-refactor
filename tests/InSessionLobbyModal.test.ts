@@ -1,4 +1,9 @@
 /**
+ * Best Practice: Ensure DOM is set up before importing scripts/components that expect DOM elements.
+ * Use helpers like setupModalDOM for consistent test setup.
+ */
+
+/**
  * @jest-environment jsdom
  */
 import '@testing-library/jest-dom';
@@ -115,7 +120,9 @@ describe('InSessionLobbyModal', () => {
       ],
     });
     (modalInstance as any).render(mockLobbyState);
-    expect(screen.getAllByText('Alex').length + screen.getAllByText('Alex (You)').length).toBeGreaterThanOrEqual(2);
+    expect(
+      screen.getAllByText('Alex').length + screen.getAllByText('Alex (You)').length
+    ).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Jordan')).toBeInTheDocument();
   });
 
