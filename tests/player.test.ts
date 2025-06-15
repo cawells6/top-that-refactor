@@ -118,4 +118,59 @@ describe('Player model', () => {
       expect(p.hasEmptyDown()).toBe(false);
     });
   });
+
+  // Helper to create a player with a specific hand, upCards, and downCards
+  function makePlayer({
+    id = 'test-id',
+    hand = [],
+    upCards = [],
+    downCards = [],
+    name = '',
+    isComputer = false,
+    disconnected = false,
+    status = 'invited' as 'invited' | 'ready' | 'host' | 'joined',
+    ready = false,
+  }: Partial<{
+    id: string;
+    hand: Card[];
+    upCards: Card[];
+    downCards: Card[];
+    name: string;
+    isComputer: boolean;
+    disconnected: boolean;
+    status: 'invited' | 'ready' | 'host' | 'joined';
+    ready: boolean;
+  }> = {}) {
+    const player = new Player(id);
+    player.setHand(hand);
+    player.setUpCards(upCards);
+    player.setDownCards(downCards);
+    player.name = name;
+    player.isComputer = isComputer;
+    player.disconnected = disconnected;
+    player.status = status;
+    player.ready = ready;
+    return player;
+  }
+
+  // Edge case tests for invalid indices
+
+  describe('Player card play edge cases', () => {
+    test('playFromHand returns undefined for invalid index', () => {
+      const player = makePlayer({ hand: [{ value: 'A', suit: 'spades' }] });
+      expect(player.playFromHand(-1)).toBeUndefined();
+      expect(player.playFromHand(1)).toBeUndefined();
+    });
+
+    test('playUpCard returns undefined for invalid index', () => {
+      const player = makePlayer({ upCards: [{ value: '2', suit: 'hearts' }] });
+      expect(player.playUpCard(-1)).toBeUndefined();
+      expect(player.playUpCard(1)).toBeUndefined();
+    });
+
+    test('playDownCard returns undefined if downCards is empty', () => {
+      const player = makePlayer({ downCards: [] });
+      expect(player.playDownCard()).toBeUndefined();
+    });
+  });
 });

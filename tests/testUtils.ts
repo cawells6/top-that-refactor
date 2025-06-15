@@ -39,11 +39,13 @@ export function createMockSocket(id: string, topLevelEmitMock: any): MockSocket 
 }
 
 export function createMockIO(topLevelEmitMock: any): MockIO {
+  // Patch .to().emit to also call topLevelEmitMock directly for all events
+  const toFn = jest.fn((_id: string) => ({
+    emit: jest.fn((event: string, payload?: any) => topLevelEmitMock(event, payload)),
+  }));
   return {
     on: jest.fn(),
-    to: jest.fn((_id: string) => {
-      return { emit: jest.fn((event: string, payload?: any) => topLevelEmitMock(event, payload)) };
-    }),
+    to: toFn,
     emit: jest.fn((event: string, payload?: any) => topLevelEmitMock(event, payload)),
     sockets: { sockets: new Map() },
   };

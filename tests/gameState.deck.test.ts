@@ -2,6 +2,10 @@
 import GameState from '../models/GameState.js';
 import { Card, DealtCards } from '../src/types.js'; // Import both Card and DealtCards
 
+const DECK_SIZE_SINGLE = 52;
+const DECK_SIZE_DOUBLE = 104;
+const DEFAULT_HAND_SIZE = 3;
+
 describe('GameState deck and dealCards', () => {
   test('buildDeck creates 52 unique cards and shuffles for < 4 players', () => {
     const gs = new GameState();
@@ -54,29 +58,53 @@ describe('GameState deck and dealCards', () => {
     }
   });
 
-  test('dealCards deals correct number of cards to players', () => {
+  test('endGameInstance resets deck to null and clears pile/discard', () => {
     const gs = new GameState();
-    gs.players = ['p1', 'p2', 'p3', 'p4']; // 4 players, so 2 decks (104 cards)
-    gs.startGameInstance(); // Changed from gs.buildDeck()
+    gs.players = ['p1', 'p2'];
+    gs.startGameInstance();
+    gs.addToPile({ value: 'A', suit: 'spades' });
+    gs.discard.push({ value: 'K', suit: 'hearts' });
+    gs.endGameInstance();
+    expect(gs.deck).toBeNull();
+    expect(gs.pile).toEqual([]);
+    expect(gs.discard).toEqual([]);
+    expect(gs.lastRealCard).toBeNull();
+    expect(gs.started).toBe(false);
+  });
 
-    const numPlayers = 4;
-    const handSize = 3; // Each player gets 3 for hand, 3 for up, 3 for down
-    const cardsPerPlayerTotal = handSize * 3; // 9 cards per player
-
-    const dealt: DealtCards = gs.dealCards(numPlayers, handSize);
-
+  test.each([
+    { numPlayers: 2, handSize: 3, expectedDeck: DECK_SIZE_SINGLE - 2 * 3 * 3 },
+    { numPlayers: 4, handSize: 3, expectedDeck: DECK_SIZE_DOUBLE - 4 * 3 * 3 },
+    { numPlayers: 3, handSize: 2, expectedDeck: DECK_SIZE_SINGLE - 3 * 2 * 3 },
+    { numPlayers: 1, handSize: 5, expectedDeck: DECK_SIZE_SINGLE - 1 * 5 * 3 },
+  ])('dealCards deals correct number for $numPlayers players, $handSize hand', ({ numPlayers, handSize, expectedDeck }) => {
+    const gs = new GameState();
+    gs.players = Array.from({ length: numPlayers }, (_, i) => `p${i + 1}`);
+    gs.startGameInstance();
+    const dealt = gs.dealCards(numPlayers, handSize);
     expect(dealt.hands.length).toBe(numPlayers);
     expect(dealt.upCards.length).toBe(numPlayers);
     expect(dealt.downCards.length).toBe(numPlayers);
-
     for (let i = 0; i < numPlayers; i++) {
       expect(dealt.hands[i].length).toBe(handSize);
       expect(dealt.upCards[i].length).toBe(handSize);
       expect(dealt.downCards[i].length).toBe(handSize);
     }
+    expect(gs.deck!.length).toBe(expectedDeck);
+  });
 
-    const expectedDeckSize = 104 - numPlayers * cardsPerPlayerTotal;
-    expect(gs.deck!.length).toBe(expectedDeckSize); // Added !
+  test('dealCards with negative or non-integer handSize deals zero cards', () => {
+    const gs = new GameState();
+    gs.players = ['p1', 'p2'];
+    gs.startGameInstance();
+    const dealtNeg = gs.dealCards(2, -5);
+    const dealtFloat = gs.dealCards(2, 2.7);
+    for (const arr of [...dealtNeg.hands, ...dealtNeg.upCards, ...dealtNeg.downCards]) {
+      expect(arr.length).toBe(0);
+    }
+    for (const arr of [...dealtFloat.hands, ...dealtFloat.upCards, ...dealtFloat.downCards]) {
+      expect(arr.length).toBe(2); // Math.min(2.7, deck.length) => 2, so it truncates
+    }
   });
 
   test('dealCards handles scenario with 0 players', () => {

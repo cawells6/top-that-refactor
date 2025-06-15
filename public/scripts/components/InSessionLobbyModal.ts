@@ -73,6 +73,7 @@ export class InSessionLobbyModal {
   private readyUp(): void {
     const playerName = this.guestNameInput.value.trim();
     if (playerName) {
+      if (this.readyUpButton.disabled) return; // Prevent double emit
       console.log('[CLIENT] Emitting PLAYER_READY with', playerName);
       state.socket?.emit(PLAYER_READY, playerName);
       this.readyUpButton.disabled = true;
@@ -118,6 +119,8 @@ export class InSessionLobbyModal {
     } else {
       this.guestNameInput.style.display = '';
       this.readyUpButton.style.display = '';
+      this.guestNameInput.disabled = false;
+      this.readyUpButton.disabled = false;
       this.guestNameInput.focus();
       // Ensure the button is always all caps, even if text changes
       this.readyUpButton.textContent = this.readyUpButton.disabled ? 'STARTING...' : "LET'S PLAY";

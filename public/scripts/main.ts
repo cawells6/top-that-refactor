@@ -106,22 +106,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('🚀 [Client] Lobby explicitly made visible.');
 
   // --- START: New logic for handling join links ---
-  const urlParams = new URLSearchParams(window.location.search);
-  const roomIdFromUrl = urlParams.get('room');
-
-  // Only run join link logic if NOT in-session
-  const inSession = document.body.classList.contains('in-session');
-  if (roomIdFromUrl && !inSession) {
-    setCurrentRoom(roomIdFromUrl);
-    // Use JoinGamePayload structure
-    const joinPayload = {
-      roomId: roomIdFromUrl,
-      playerName: 'Guest', // fallback, ideally get from session or prompt
-      numHumans: 1,
-      numCPUs: 0,
-    };
-    socket.emit(JOIN_GAME, joinPayload);
-    window.history.replaceState({}, document.title, window.location.pathname);
+  /**
+   * Handles join link logic for the client, allowing dependency injection for testability.
+   */
+  function handleJoinLink({
+    setCurrentRoom,
+    socket,
+    window,
+    document,
+  }: {
+    setCurrentRoom: (room: string) => void;
+    socket: { emit: Function };
+    window: Window;
+    document: Document;
+  }) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomIdFromUrl = urlParams.get('room');
+    const inSession = document.body.classList.contains('in-session');
+    if (roomIdFromUrl && !inSession) {
+      setCurrentRoom(roomIdFromUrl);
+      const joinPayload = {
+        roomId: roomIdFromUrl,
+        playerName: 'Guest',
+        numHumans: 1,
+        numCPUs: 0,
+      };
+      socket.emit(JOIN_GAME, joinPayload);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }
   // --- END: New logic for handling join links ---
+  handleJoinLink({ setCurrentRoom, socket, window, document });
 });

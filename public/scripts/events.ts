@@ -711,6 +711,9 @@ function handleDealClick() {
       }
     } else {
       console.log('[CLIENT] JOIN_GAME success - Room ID:', response.roomId, 'Player ID:', response.playerId);
+      // --- BEST PRACTICE: Reset form fields after successful join ---
+      const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+      if (form) form.reset();
     }
   });
 
@@ -776,7 +779,9 @@ function handleJoinGameClick() {
       queueMessage(response.error);
       return;
     }
-    // ...existing code...
+    // --- BEST PRACTICE: Reset form fields after successful join ---
+    const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+    if (form) form.reset();
   });
 
   if (joinBtn) joinBtn.disabled = true;

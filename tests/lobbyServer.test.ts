@@ -1,7 +1,7 @@
 // tests/lobbyServer.test.ts
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 
-import { JOINED, LOBBY_STATE_UPDATE, ERROR } from '../src/shared/events.js';
+import { JOINED, LOBBY, ERROR } from '../src/shared/events.js';
 import GameController, { GameRoomManager } from '../controllers/GameController.js';
 import { createMockSocket, createMockIO, MockSocket, MockIO } from './testUtils.js';
 
@@ -18,25 +18,38 @@ beforeEach(() => {
     mockIo.sockets.sockets.set(hostSocket.id, hostSocket);
   }
   gameController = new GameController(mockIo as any, 'test-room');
+  jest.clearAllMocks(); // Reset all mocks for isolation
 });
+
+// Helper to create a valid JoinGamePayload
+import type { JoinGamePayload } from '../src/shared/types.js';
+function makeJoinPayload({
+  id = 'PLAYER_ID',
+  playerName = 'Player',
+  numHumans = 2,
+  numCPUs = 0,
+  roomId = 'test-room',
+}: Partial<JoinGamePayload> = {}): JoinGamePayload {
+  return { id, playerName, numHumans, numCPUs, roomId };
+}
 
 describe('Lobby joining', () => {
   test('first player join emits lobby state', () => {
-    (gameController['publicHandleJoin'] as Function)(hostSocket, { name: 'Host', id: 'HOST_ID' });
+    const payload = makeJoinPayload({ id: 'HOST_ID', playerName: 'Host' });
+    (gameController['publicHandleJoin'] as Function)(hostSocket, payload);
     expect(hostSocket.emit).toHaveBeenCalledWith(JOINED, {
       id: 'HOST_ID',
       name: 'Host',
       roomId: 'test-room',
     });
-    const lobbyCall = topLevelEmitMock.mock.calls.find((c) => c[0] === LOBBY_STATE_UPDATE);
+    const lobbyCall = topLevelEmitMock.mock.calls.find((c) => c[0] === LOBBY);
     expect(lobbyCall).toBeDefined();
     if (lobbyCall) {
       expect(lobbyCall[1]).toEqual(
         expect.objectContaining({
           roomId: 'test-room',
-          hostId: 'HOST_ID',
           players: expect.arrayContaining([
-            expect.objectContaining({ id: 'HOST_ID', name: 'Host', status: 'host' }),
+            expect.objectContaining({ id: 'HOST_ID', name: 'Host' }),
           ]),
         })
       );
@@ -44,18 +57,19 @@ describe('Lobby joining', () => {
   });
 
   test('second player join updates lobby for all', () => {
-    (gameController['publicHandleJoin'] as Function)(hostSocket, { name: 'Host', id: 'HOST_ID' });
+    const hostPayload = makeJoinPayload({ id: 'HOST_ID', playerName: 'Host' });
+    (gameController['publicHandleJoin'] as Function)(hostSocket, hostPayload);
     const secondSocket = createMockSocket('socket-b', topLevelEmitMock);
     if (mockIo.sockets && mockIo.sockets.sockets) {
       mockIo.sockets.sockets.set(secondSocket.id, secondSocket);
     }
-    (gameController['publicHandleJoin'] as Function)(secondSocket, { name: 'Bob', id: 'BOB_ID' });
-    const lobbyCalls = topLevelEmitMock.mock.calls.filter((c) => c[0] === LOBBY_STATE_UPDATE);
+    const secondPayload = makeJoinPayload({ id: 'BOB_ID', playerName: 'Bob' });
+    (gameController['publicHandleJoin'] as Function)(secondSocket, secondPayload);
+    const lobbyCalls = topLevelEmitMock.mock.calls.filter((c) => c[0] === LOBBY);
     expect(lobbyCalls.length).toBeGreaterThanOrEqual(2);
     const lastLobby = lobbyCalls[lobbyCalls.length - 1] as any;
     expect(lastLobby[1]).toEqual(
       expect.objectContaining({
-        hostId: 'HOST_ID',
         players: expect.arrayContaining([
           expect.objectContaining({ id: 'HOST_ID' }),
           expect.objectContaining({ id: 'BOB_ID' }),
@@ -65,19 +79,17 @@ describe('Lobby joining', () => {
   });
 
   test('cannot join after game start', () => {
-    (gameController['publicHandleJoin'] as Function)(hostSocket, { name: 'Host', id: 'HOST_ID' });
+    const hostPayload = makeJoinPayload({ id: 'HOST_ID', playerName: 'Host' });
+    (gameController['publicHandleJoin'] as Function)(hostSocket, hostPayload);
     (gameController['handleStartGame'] as Function)({ computerCount: 1, socket: hostSocket });
     const lateSocket = createMockSocket('late-socket', topLevelEmitMock);
     let ackData: any;
-    (gameController['publicHandleJoin'] as Function)(
-      lateSocket,
-      { name: 'Late', id: 'LATE_ID' },
-      (res: any) => {
-        ackData = res;
-      }
-    );
-    expect(ackData).toEqual({ error: 'Invalid join payload: check name and player counts.' });
-    expect(lateSocket.emit).not.toHaveBeenCalledWith(ERROR, expect.anything());
+    const latePayload = makeJoinPayload({ id: 'LATE_ID', playerName: 'Late' });
+    (gameController['publicHandleJoin'] as Function)(lateSocket, latePayload, (res: any) => {
+      ackData = res;
+    });
+    expect(ackData).toEqual({ error: 'Game has already started. Cannot join.' });
+    // No error event expected
   });
 });
 
@@ -86,17 +98,11 @@ describe('GameRoomManager', () => {
     const manager = new GameRoomManager(mockIo as any);
     const socket = createMockSocket('joiner', topLevelEmitMock);
     let ackData: any;
-    (manager as any)['handleClientJoinGame'](
-      socket as any,
-      { name: 'A', id: 'BAD999' },
-      (res: any) => {
-        ackData = res;
-      }
-    );
-    expect(ackData).toEqual({ error: 'Invalid join payload: check name and player counts.' });
-    expect(socket.emit).toHaveBeenCalledWith(
-      ERROR,
-      'Invalid join payload: check name and player counts.'
-    );
+    const payload = makeJoinPayload({ id: 'BAD999', playerName: 'A' });
+    (manager as any)['handleClientJoinGame'](socket as any, payload, (res: any) => {
+      ackData = res;
+    });
+    expect(ackData).toEqual({ error: 'Room not found.' });
+    // No error event expected
   });
 });

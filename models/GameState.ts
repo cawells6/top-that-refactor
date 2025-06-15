@@ -55,6 +55,7 @@ export default class GameState {
   }
 
   public addPlayer(playerId: string): void {
+    if (!playerId) return; // Prevent empty, null, or undefined IDs
     if (this.players.length >= this.maxPlayers) {
       console.warn('Max players reached. Cannot add more players.');
       return;
