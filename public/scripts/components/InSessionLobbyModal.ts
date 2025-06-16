@@ -243,9 +243,6 @@ export class InSessionLobbyModal extends Modal {
 
       // Update the way player names are displayed
       let playerName = player.name;
-      if (isCurrentPlayer) {
-        playerName += ' (You)';
-      }
 
       // Add player name first
       playerEl.textContent = playerName;

@@ -39,7 +39,7 @@ describe('InSessionLobbyModal', () => {
       hostId: 'host-id',
       players: [
         { id: 'host-id', name: 'Host Player', status: 'host' },
-        { id: 'my-socket-id', name: 'Me', status: 'joined' },
+        { id: 'my-socket-id', name: 'Me', status: 'ready' }, // status changed to 'ready'
       ],
     };
     document.body.innerHTML = `
@@ -66,12 +66,24 @@ describe('InSessionLobbyModal', () => {
     (modalInstance as any).render(mockLobbyState);
   });
 
-  it('should render player names correctly, identifying "You"', () => {
-    expect(screen.getByText('Host Player')).toBeInTheDocument();
-    expect(screen.getByText('Me (You)')).toBeInTheDocument();
+  it('should render player names correctly, showing host badge and no (You)', () => {
+    // Host badge present
+    const hostNode = Array.from(document.querySelectorAll('.players-container *')).find(
+      el => el.textContent && el.textContent.includes('Host Player')
+    );
+    expect(hostNode).toBeTruthy();
+    // Host badge
+    const badge = hostNode?.querySelector('.host-badge');
+    expect(badge).toBeTruthy();
+    // No player name contains (You)
+    const playersContainer = document.querySelector('.players-container');
+    expect(playersContainer?.textContent).not.toMatch(/\(You\)/);
   });
 
   it('shows the ready button for non-ready players', () => {
+    // Set current player to 'joined' so the button is visible
+    mockLobbyState.players[1].status = 'joined';
+    (modalInstance as any).render(mockLobbyState);
     const readyButton = screen.getByRole('button', { name: /Let's Play/i });
     expect(readyButton).toBeInTheDocument();
     expect(readyButton).toBeEnabled();
@@ -87,6 +99,9 @@ describe('InSessionLobbyModal', () => {
   });
 
   it('emits PLAYER_READY with name when the button is clicked', () => {
+    // Set current player to 'joined' so the button and input are visible
+    mockLobbyState.players[1].status = 'joined';
+    (modalInstance as any).render(mockLobbyState);
     const nameInput = screen.getByRole('textbox') as HTMLInputElement;
     nameInput.value = 'Tester';
 
@@ -97,9 +112,9 @@ describe('InSessionLobbyModal', () => {
   });
 
   it('should copy the game link to the clipboard when "Copy Link" is clicked', () => {
-    const copyButton = screen.getByRole('button', { name: /Copy Link/i });
+    // The button label is "Copy Invite Link" in the DOM, not "Copy Link"
+    const copyButton = screen.getByRole('button', { name: /Copy Invite Link/i });
     fireEvent.click(copyButton);
-
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       expect.stringContaining('?room=TEST12')
     );

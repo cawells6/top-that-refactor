@@ -406,15 +406,21 @@ export default class GameController {
     this.players.set(id, player);
     this.socketIdToPlayerId.set(socket.id, id);
 
-    // Update expected player counts for the host only
+    // Only the host (first player) can set numHumans/numCPUs
     if (this.players.size === 1) {
-      // If host specifies numHumans, use that value
       this.expectedHumanCount = playerData.numHumans ?? 1;
       this.expectedCpuCount = playerData.numCPUs ?? 0;
-
       this.log(
         `Host set expected players: ${this.expectedHumanCount} humans, ${this.expectedCpuCount} CPUs`
       );
+      // If all-bot or solo-host game, start immediately
+      if (this.expectedHumanCount === 0 || this.expectedHumanCount === 1) {
+        this.log('All-bot or solo-host game detected. Starting game immediately.');
+        // Delay to ensure socket joins room before game starts
+        setTimeout(() => {
+          this.handleStartGame({ computerCount: this.expectedCpuCount, socket });
+        }, 100);
+      }
     }
 
     socket.join(this.roomId);
@@ -439,7 +445,6 @@ export default class GameController {
       maxPlayers: this.gameState.maxPlayers,
     });
 
-    // Auto-start has been removed; clients must explicitly request game start
     this.pushState();
   }
 
@@ -450,7 +455,10 @@ export default class GameController {
       `Handling start game request. Computer count: ${computerCount}. Requested by: ${requestingSocket?.id}`
     );
 
+    // Only the host can start the game
     if (requestingSocket && this.socketIdToPlayerId.get(requestingSocket.id) !== this.hostId) {
+      this.log('Start game request denied: Only the host can start the game.');
+      if (requestingSocket) requestingSocket.emit(ERROR_EVENT, 'Only the host can start the game.');
       return;
     }
 
@@ -539,11 +547,9 @@ export default class GameController {
       }
     });
 
+    // --- Always deal 3 down, 3 up, 3 hand per player ---
+    // Ensure deck is initialized before dealing
     this.gameState.startGameInstance();
-    this.log(
-      `Game instance started. Players in gameState after start: ${this.gameState.players.join(', ')}`
-    );
-
     const numPlayers = this.gameState.players.length;
     if (numPlayers < 2) {
       const errorMsg = `Not enough players to start (need at least 2, have ${numPlayers}).`;
@@ -556,7 +562,8 @@ export default class GameController {
     }
 
     this.log(`Dealing cards for ${numPlayers} players: ${this.gameState.players.join(', ')}`);
-    const { hands, upCards, downCards } = this.gameState.dealCards(numPlayers);
+    // Force dealCards to always deal 3 down, 3 up, 3 hand
+    const { hands, upCards, downCards } = this.gameState.dealCards(numPlayers, 3, 3, 3);
 
     this.gameState.players.forEach((id: string, idx: number) => {
       const player = this.players.get(id);
@@ -578,18 +585,6 @@ export default class GameController {
 
     this.pushState();
     this.io.to(this.roomId).emit(NEXT_TURN, firstPlayerId);
-
-    // Only allow a human to start the game. If the first player is a CPU, do not auto-play.
-    // If you want to force a human to always be first, ensure player order is set accordingly before this point.
-    // If the first player is a CPU, do NOT call playComputerTurn.
-  }
-
-  /**
-   * Public wrapper around the private start logic so external callers (like the Lobby)
-   * can trigger the game start without exposing the full internal options type.
-   */
-  public startGame(computerCount = 0, socket?: Socket): Promise<void> {
-    return this.handleStartGame({ computerCount, socket });
   }
 
   private handlePlayCard(socket: Socket, { cardIndices, zone }: PlayData): void {
