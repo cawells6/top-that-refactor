@@ -78,6 +78,10 @@ describe('rank', () => {
     expect(rank(createCard('xyz'))).toBe(0); // normalizeCardValue('xyz') -> 'xyz', rank('xyz') -> 0
     expect(rank({ value: {}, suit: 'hearts' } as any)).toBe(0); // normalizeCardValue({}) -> '[object object]', rank -> 0
   });
+
+  test('rank handles card with missing value property', () => {
+    expect(rank({ suit: 'hearts' } as any)).toBe(0);
+  });
 });
 
 describe('isSpecialCard type checks', () => {
@@ -107,6 +111,10 @@ describe('isSpecialCard type checks', () => {
     expect(isSpecialCard('ten')).toBe(true);
     expect(isSpecialCard('ace')).toBe(false); // 'ace' normalizes to 'a'
     expect(isSpecialCard('king')).toBe(false); // 'king' normalizes to 'k'
+  });
+  test('isSpecialCard returns false for undefined and null', () => {
+    expect(isSpecialCard(undefined)).toBe(false);
+    expect(isSpecialCard(null)).toBe(false);
   });
 });
 
@@ -192,5 +200,15 @@ describe('isFourOfAKind', () => {
   test('isFourOfAKind for specific keywords like "two"', () => {
     const handTwos: Card[] = createHand(['2', 2, 'two', '2']); // All normalize to "two"
     expect(isFourOfAKind(handTwos)).toBe(true);
+  });
+
+  test('returns false if hand contains undefined or null card', () => {
+    const hand: Card[] = [
+      { value: '7', suit: 'hearts' },
+      undefined as any,
+      { value: '7', suit: 'clubs' },
+      { value: '7', suit: 'spades' },
+    ];
+    expect(isFourOfAKind(hand)).toBe(false);
   });
 });

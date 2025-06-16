@@ -138,5 +138,29 @@ describe('GameState', () => {
     });
   });
 
+  describe('edge and error cases', () => {
+    let gs: GameState;
+    beforeEach(() => {
+      gs = new GameState();
+    });
+
+    test('removePlayer does nothing if player not present', () => {
+      gs.addPlayer('p1');
+      gs.removePlayer('not-present');
+      expect(gs.players).toContain('p1');
+      expect(gs.players.length).toBe(1);
+    });
+
+    test('addToPile handles undefined card gracefully', () => {
+      expect(() => gs.addToPile(undefined as any)).not.toThrow();
+    });
+
+    test('clearPile on empty pile does not throw', () => {
+      expect(() => gs.clearPile()).not.toThrow();
+      expect(gs.pile).toEqual([]);
+      expect(gs.discard).toEqual([]);
+    });
+  });
+
   // buildDeck and dealCards are tested separately in gameState.deck.test.js
 });

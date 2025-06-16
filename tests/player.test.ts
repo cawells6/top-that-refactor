@@ -118,4 +118,33 @@ describe('Player model', () => {
       expect(p.hasEmptyDown()).toBe(false);
     });
   });
+
+  describe('edge and error cases', () => {
+    let p: Player;
+    beforeEach(() => {
+      p = new Player('test-id-1');
+    });
+
+    test('playFromHand returns undefined for out-of-bounds index', () => {
+      p.setHand([{ value: 'A', suit: 'spades' }]);
+      expect(p.playFromHand(2)).toBeUndefined();
+      expect(p.hand.length).toBe(1);
+    });
+
+    test('playUpCard returns undefined for out-of-bounds index', () => {
+      p.setUpCards([{ value: '5', suit: 'hearts' }]);
+      expect(p.playUpCard(3)).toBeUndefined();
+      expect(p.upCards.length).toBe(1);
+    });
+
+    test('playDownCard returns undefined if downCards is empty', () => {
+      expect(p.playDownCard()).toBeUndefined();
+    });
+
+    test('pickUpPile with empty pile does not change hand', () => {
+      p.setHand([{ value: 'Q', suit: 'hearts' }]);
+      p.pickUpPile([]);
+      expect(p.hand).toEqual([{ value: 'Q', suit: 'hearts' }]);
+    });
+  });
 });
