@@ -3,5 +3,6 @@
   "terminal.integrated.allowMnemonics": true,
   "terminal.integrated.copyOnSelection": true,
   "chat.agent.maxRequests": 100,
-  "inlineChat.enableV2": true
+  "inlineChat.enableV2": true,
+  "github.copilot.nextEditSuggestions.enabled": true
 }

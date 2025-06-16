@@ -115,4 +115,25 @@ describe('GameState deck and dealCards', () => {
     expect(dealt.downCards[0].length).toBe(0);
     expect(gs.deck!.length).toBe(0); // Added ! (deck is manually set and then emptied)
   });
+
+  test('dealCards with negative hand size returns empty hands', () => {
+    const gs = new GameState();
+    gs.players = ['p1'];
+    gs.startGameInstance();
+    const dealt = gs.dealCards(1, -2);
+    expect(dealt.hands[0].length).toBe(0);
+    expect(dealt.upCards[0].length).toBe(0);
+    expect(dealt.downCards[0].length).toBe(0);
+  });
+
+  test('dealCards with more players than deck can handle', () => {
+    const gs = new GameState();
+    gs.players = Array(20).fill(0).map((_, i) => `p${i}`);
+    gs.startGameInstance();
+    const dealt = gs.dealCards(20, 3);
+    // Should not throw, and hands should be as full as possible
+    expect(dealt.hands.length).toBe(20);
+    // At least some hands will be empty
+    expect(dealt.hands.some(h => h.length < 3)).toBe(true);
+  });
 });

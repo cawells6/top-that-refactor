@@ -1,5 +1,5 @@
 // tests/gameFlow.test.ts
-import { jest, describe, test, beforeEach, expect } from '@jest/globals';
+import { jest, describe, it, beforeEach, expect } from '@jest/globals';
 
 import GameController from '../controllers/GameController.js';
 
@@ -80,12 +80,56 @@ const mockIo: MockIO = {
   },
 };
 
-describe('Game Flow - Single Player vs CPU (manual start)', () => {
+describe('Game Flow - All Bots (instant start)', () => {
   let gameController: GameController;
-
   beforeEach(() => {
     topLevelEmitMock.mockClear();
+    globalMockSocket = {
+      id: 'host-socket',
+      join: jest.fn(),
+      emit: jest.fn((event: string, payload?: any) => {
+        topLevelEmitMock(event, payload);
+      }),
+      on: jest.fn((event: string, handler: (data?: any, ack?: Function) => void) => {
+        globalMockSocket.eventHandlers[event as string] = handler;
+      }),
+      removeAllListeners: jest.fn(),
+      eventHandlers: {},
+      simulateIncomingEvent: (event, data, ack) => {
+        if (globalMockSocket.eventHandlers[event as string]) {
+          globalMockSocket.eventHandlers[event as string](data, ack);
+        }
+      },
+      disconnect: jest.fn(),
+    };
+    if (mockIo.sockets && mockIo.sockets.sockets) {
+      mockIo.sockets.sockets.clear();
+      mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
+    }
+    mockIo.on.mockClear();
+    mockIo.to.mockClear();
+    gameController = new GameController(mockIo as any, 'test-room');
+  });
+  it('Host sets 1 human and 3 bots, game starts immediately', async () => {
+    const hostData = { name: 'Host', numHumans: 1, numCPUs: 3, id: 'HOST_ID' };
+    (gameController['publicHandleJoin'] as Function)(globalMockSocket, hostData);
+    // Wait for async game start
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(gameController['gameState'].started).toBe(true);
+    expect(gameController['gameState'].players.length).toBe(4);
+    for (const pid of gameController['gameState'].players) {
+      const p = gameController['players'].get(pid);
+      expect(p.hand.length).toBe(3);
+      expect(p.upCards.length).toBe(3);
+      expect(p.downCards.length).toBe(3);
+    }
+  });
+});
 
+describe('Game Flow - Single Player vs CPU (instant start)', () => {
+  let gameController: GameController;
+  beforeEach(() => {
+    topLevelEmitMock.mockClear();
     globalMockSocket = {
       id: 'socket-id-1',
       join: jest.fn(),
@@ -104,55 +148,27 @@ describe('Game Flow - Single Player vs CPU (manual start)', () => {
       },
       disconnect: jest.fn(),
     };
-
     if (mockIo.sockets && mockIo.sockets.sockets) {
       mockIo.sockets.sockets.clear();
       mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
     }
-
     mockIo.on.mockClear();
     mockIo.to.mockClear();
-    // Pass a dummy roomId for tests (required by GameController constructor)
     gameController = new GameController(mockIo as any, 'test-room');
   });
-
-  test('Player joins and host starts game with 1 CPU, initial state is broadcast', () => {
-    const playerData: PlayerJoinDataPayload = { name: 'Player1', numCPUs: 1, id: 'Player1-ID' };
-    (gameController['publicHandleJoin'] as Function)(globalMockSocket, playerData);
-
-    // Game should not auto-start for human vs CPU
-    expect(gameController['gameState'].started).toBe(false);
-    (gameController['handleStartGame'] as Function)({ computerCount: 1, socket: globalMockSocket });
-
+  it('Host joins, sets 1 human and 1 CPU, game starts instantly, all players get 9 cards', async () => {
+    const hostData = { name: 'Host', numHumans: 1, numCPUs: 1, id: 'HOST_ID' };
+    (gameController['publicHandleJoin'] as Function)(globalMockSocket, hostData);
+    // Wait for async game start
+    await new Promise((resolve) => setTimeout(resolve, 150));
     expect(gameController['gameState'].started).toBe(true);
-    expect(gameController['gameState'].players).toContain(playerData.id);
-    expect(gameController['players'].has('COMPUTER_1')).toBe(true);
-
-    // After start, CPUs should be present and game should be started
-    expect(gameController['gameState'].started).toBe(true);
-    expect(gameController['gameState'].players).toContain('COMPUTER_1');
-    expect(gameController['players'].has('COMPUTER_1')).toBe(true);
-
-    // Find the state update with started: true
-    const stateUpdateAfterStart = topLevelEmitMock.mock.calls.find(
-      (call) => call[0] === STATE_UPDATE && (call[1] as any)?.started === true
-    );
-    expect(stateUpdateAfterStart).toBeDefined();
-    const emittedState = stateUpdateAfterStart![1] as any;
-    expect(emittedState.players.length).toBe(2);
-    expect(emittedState.currentPlayerId).toBe(playerData.id);
-
-    // Check that NEXT_TURN was emitted for the human
-    const nextTurnArgs = topLevelEmitMock.mock.calls.find((call) => call[0] === NEXT_TURN);
-    expect(nextTurnArgs).toBeDefined();
-    expect(nextTurnArgs![1]).toBe(playerData.id);
-
-    // Check hands were dealt
-    const player1Instance = gameController['players'].get(playerData.id!);
-    const cpu1Instance = gameController['players'].get('COMPUTER_1');
-    expect(player1Instance!.hand.length).toBe(3);
-    expect(cpu1Instance!.hand.length).toBe(3);
-    expect(gameController['gameState'].deck!.length).toBe(52 - 2 * 9);
+    expect(gameController['gameState'].players.length).toBe(2);
+    for (const pid of gameController['gameState'].players) {
+      const p = gameController['players'].get(pid);
+      expect(p.hand.length).toBe(3);
+      expect(p.upCards.length).toBe(3);
+      expect(p.downCards.length).toBe(3);
+    }
   });
 });
 
@@ -200,10 +216,8 @@ describe('Game Flow - Lobby with Extra Human', () => {
 
 describe('Game Flow - Manual Start by Host', () => {
   let gameController: GameController;
-
   beforeEach(() => {
     topLevelEmitMock.mockClear();
-
     globalMockSocket = {
       id: 'host-socket-id',
       join: jest.fn(),
@@ -222,22 +236,16 @@ describe('Game Flow - Manual Start by Host', () => {
       },
       disconnect: jest.fn(),
     };
-
     if (mockIo.sockets && mockIo.sockets.sockets) {
       mockIo.sockets.sockets.clear();
       mockIo.sockets.sockets.set(globalMockSocket.id, globalMockSocket);
     }
-
     mockIo.on.mockClear();
     mockIo.to.mockClear();
     topLevelEmitMock.mockClear();
-    // Pass a dummy roomId for tests (required by GameController constructor)
     gameController = new GameController(mockIo as any, 'test-room');
   });
-
-  test('Host joins (no auto-CPUs), Player2 joins, Host starts game (no explicit CPUs)', async () => {
-    topLevelEmitMock.mockClear();
-
+  test('Host joins (no auto-CPUs), Player2 joins, Host starts game (no explicit CPUs)', () => {
     const originalHostSocketId = globalMockSocket.id;
     if (mockIo.sockets.sockets.has(originalHostSocketId)) {
       mockIo.sockets.sockets.delete(originalHostSocketId);
@@ -337,10 +345,11 @@ describe('Game Flow - Manual Start by Host', () => {
     (gameController['handleStartGame'] as Function)({ computerCount: 0, socket: globalMockSocket });
 
     // After starting, the gameState.deck should be initialized with cards
+    expect(gameController['gameState'].started).toBe(true);
     expect(gameController['gameState'].deck).not.toBeNull();
     expect(gameController['gameState'].deck!.length).toBe(52 - 2 * 9);
-    const playerA_Instance = gameController['players'].get(playerAData.id!);
-    const playerB_Instance = gameController['players'].get(playerBData.id!);
+    const playerA_Instance = gameController['players'].get('PlayerA-ID');
+    const playerB_Instance = gameController['players'].get('PlayerB-ID');
     expect(playerA_Instance!.hand.length).toBe(3);
     expect(playerB_Instance!.hand.length).toBe(3);
 

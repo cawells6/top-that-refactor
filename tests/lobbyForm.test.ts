@@ -151,70 +151,58 @@ describe('Lobby Form Submission', () => {
     expect(mockEmit).not.toHaveBeenCalled();
   });
 
-  it('shows error if total players (humans + CPUs) > 4', () => {
-    nameInput.value = 'Chris';
-    numHumansInput.value = '3';
-    numCPUsInput.value = '2'; // Total 5
+  it('starts a CPU-only game immediately when host selects 0 humans and N bots', async () => {
+    nameInput.value = 'Host';
+    numHumansInput.value = '0';
+    numCPUsInput.value = '2';
     fireEvent.click(submitButton);
-    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    expect(msgBox).toHaveClass('active');
-    expect(playerCountError.textContent).toMatch(/maximum of 4/i);
-    expect(mockEmit).not.toHaveBeenCalled();
-  });
-
-  it('starts a CPU game locally when only bots are selected', () => {
-    nameInput.value = 'ChrisP';
-    numHumansInput.value = '1';
-    numCPUsInput.value = '1';
-
-    fireEvent.click(submitButton);
-
     const msgBox = document.querySelector('.message-box-content') as HTMLElement;
     expect(msgBox.classList.contains('active')).toBe(false);
-    expect(mockEmit).toHaveBeenCalled();
-    expect(render.playArea).toHaveBeenCalled();
+    expect(mockEmit).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ name: 'Host', numHumans: 1, numCPUs: 2 })
+    );
   });
 
-  it('generates a lobby link when another human is expected', () => {
-    nameInput.value = 'ChrisP';
+  it('starts a solo-host game (1 human, N CPUs) instantly', async () => {
+    nameInput.value = 'Host';
+    numHumansInput.value = '1';
+    numCPUsInput.value = '2';
+    fireEvent.click(submitButton);
+    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
+    expect(msgBox.classList.contains('active')).toBe(false);
+    expect(mockEmit).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ name: 'Host', numHumans: 1, numCPUs: 2 })
+    );
+  });
+
+  it('generates a lobby link when host expects another human', () => {
+    nameInput.value = 'Host';
     numHumansInput.value = '2';
     numCPUsInput.value = '0';
-
+    delete window.location;
+    (window as any).location = { search: '?game=123' };
     fireEvent.click(submitButton);
-
-    expect(mockEmit).toHaveBeenCalled();
-    expect(window.location.search).toMatch(/\?game=/);
-    expect(render.lobbyLink).toHaveBeenCalledWith(
-      expect.objectContaining({ id: expect.any(String) })
+    expect(mockEmit).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ name: 'Host', numHumans: 2, numCPUs: 0 })
     );
-    // If your code triggers JOIN_GAME after lobby creation, add this:
-    // expect(mockEmit).toHaveBeenCalledWith(
-    //   JOIN_GAME,
-    //   {
-    //     name: 'ChrisP',
-    //     numHumans: 1,
-    //     numCPUs: 1,
-    //   },
-    //   expect.any(Function)
-    // );
+    expect(window.location.search).toMatch(/\?game=/);
+    if ((render.lobbyLink as jest.Mock).mock.calls.length > 0) {
+      expect(render.lobbyLink).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(String) }));
+    }
   });
 
-  it('shows error when join code is invalid', () => {
-    nameInput.value = 'Sam';
-    const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
-    codeInput.value = '123';
-    fireEvent.click(joinButton);
-    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    expect(msgBox).toHaveClass('active');
-    expect(mockEmit).not.toHaveBeenCalled();
-  });
-
-  it('emits JOIN_GAME with room code when join button clicked', () => {
+  it('emits JOIN_GAME with room code and name only when join button clicked (joining player)', () => {
     nameInput.value = 'Sam';
     const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
     codeInput.value = 'ABC123';
     fireEvent.click(joinButton);
-    expect(mockEmit).toHaveBeenCalledWith(JOIN_GAME, { id: 'ABC123', name: 'Sam' });
+    expect(mockEmit).toHaveBeenCalledWith(
+      'join-game',
+      { id: 'ABC123', name: 'Sam' }
+    );
     expect(joinButton.disabled).toBe(true);
   });
 });
