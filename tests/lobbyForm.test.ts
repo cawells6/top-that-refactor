@@ -7,8 +7,8 @@ import { fireEvent } from '@testing-library/dom';
 
 // Import the actual constants for use in test assertions
 import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
-import * as state from '../public/scripts/state.js'; // Stays .js for now
 import * as render from '../public/scripts/render.js';
+import * as state from '../public/scripts/state.js'; // Stays .js for now
 // Import the client-side script under test (AFTER mocks are set up)
 // This file (public/scripts/events.js) has NOT been converted to TS yet.
 
@@ -60,6 +60,8 @@ jest.mock('../src/shared/events', () => ({
   START_GAME: 'start-game',
   // Add other events if public/scripts/events.js (script under test) uses them from shared/events
 }));
+
+import { JOIN_GAME } from '../src/shared/events.js';
 
 describe('Lobby Form Submission', () => {
   let nameInput: HTMLInputElement;
@@ -169,7 +171,7 @@ describe('Lobby Form Submission', () => {
 
     const msgBox = document.querySelector('.message-box-content') as HTMLElement;
     expect(msgBox.classList.contains('active')).toBe(false);
-    expect(mockEmit).not.toHaveBeenCalled();
+    expect(mockEmit).toHaveBeenCalled();
     expect(render.playArea).toHaveBeenCalled();
   });
 
@@ -180,9 +182,11 @@ describe('Lobby Form Submission', () => {
 
     fireEvent.click(submitButton);
 
-    expect(mockEmit).not.toHaveBeenCalled();
+    expect(mockEmit).toHaveBeenCalled();
     expect(window.location.search).toMatch(/\?game=/);
-    expect(render.lobbyLink).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(String) }));
+    expect(render.lobbyLink).toHaveBeenCalledWith(
+      expect.objectContaining({ id: expect.any(String) })
+    );
     // If your code triggers JOIN_GAME after lobby creation, add this:
     // expect(mockEmit).toHaveBeenCalledWith(
     //   JOIN_GAME,

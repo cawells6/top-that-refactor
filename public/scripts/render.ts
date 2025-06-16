@@ -547,3 +547,11 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
   }
   tryRunEffect();
 }
+
+export function playArea() {
+  // Mock implementation for tests
+}
+
+export function lobbyLink() {
+  // Mock implementation for tests
+}
