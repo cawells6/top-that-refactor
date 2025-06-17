@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
-import GameState, { Card, CardValue } from '../models/GameState.js';
+import GameState from '../models/GameState.js';
 import Player from '../models/Player.js';
 import {
   JOIN_GAME,
@@ -22,6 +22,13 @@ import {
   PLAYER_JOINED,
   LOBBY,
 } from '../src/shared/events.js';
+import {
+  Card,
+  CardValue,
+  ClientStatePlayer,
+  GameStateData,
+  JoinGamePayload,
+} from '../src/shared/types.js';
 import { InSessionLobbyState } from '../src/shared/types.js';
 import {
   normalizeCardValue,
@@ -31,12 +38,12 @@ import {
   isTenCard,
 } from '../utils/cardUtils.js';
 
-interface PlayerJoinData {
-  id?: string;
-  name?: string;
-  numHumans?: number;
-  numCPUs?: number;
-}
+// interface PlayerJoinData {
+//   id?: string;
+//   name?: string;
+//   numHumans?: number;
+//   numCPUs?: number;
+// }
 
 interface StartGameOptions {
   computerCount?: number;
@@ -53,29 +60,6 @@ interface RejoinData {
   playerId: string;
 }
 
-interface ClientStatePlayer {
-  id: string;
-  name: string;
-  handCount?: number;
-  upCount?: number;
-  downCount?: number;
-  hand?: Card[];
-  upCards?: Card[];
-  downCards?: Card[];
-  disconnected: boolean;
-  error?: string;
-}
-
-interface ClientState {
-  players: ClientStatePlayer[];
-  pile: Card[];
-  discardCount: number;
-  deckCount: number;
-  currentPlayerId: string | undefined;
-  started: boolean;
-  lastRealCard: Card | null;
-}
-
 export class GameRoomManager {
   private io: Server;
   private rooms: Map<string, GameController>;
@@ -84,13 +68,15 @@ export class GameRoomManager {
     this.io = io;
     this.rooms = new Map();
     this.io.on('connection', (socket: Socket) => {
-      this.log(`New connection: ${socket.id}`);
+      console.log(`[SERVER] Socket connected: ${socket.id}`);
+
       socket.on(
         JOIN_GAME,
         (
-          playerData: PlayerJoinData,
+          playerData: JoinGamePayload,
           ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
         ) => {
+          console.log(`[SERVER] Received JOIN_GAME from ${socket.id}:`, playerData);
           this.handleClientJoinGame(socket, playerData, ack);
         }
       );
@@ -101,11 +87,17 @@ export class GameRoomManager {
           rejoinData: RejoinData,
           ack?: (response: { success: boolean; error?: string }) => void
         ) => {
+          if (!rejoinData || !rejoinData.roomId || !rejoinData.playerId) {
+            if (typeof ack === 'function') {
+              ack({ success: false, error: 'Invalid rejoin data.' });
+            }
+            socket.emit(ERROR_EVENT, 'Invalid rejoin data.');
+            return;
+          }
           const controller = this.rooms.get(rejoinData.roomId);
           if (controller) {
             controller.publicHandleRejoin(socket, rejoinData.roomId, rejoinData.playerId, ack);
           } else {
-            this.log(`Rejoin attempt for non-existent room: ${rejoinData.roomId}`);
             if (typeof ack === 'function') {
               ack({ success: false, error: 'Room not found' });
             }
@@ -127,25 +119,23 @@ export class GameRoomManager {
     }, 60000);
   }
 
-  private log(message: string, ...args: any[]): void {
-    console.log(`[GameRoomManager] ${message}`, ...args);
-  }
-
   private handleClientJoinGame(
     socket: Socket,
-    playerData: PlayerJoinData,
+    playerData: JoinGamePayload,
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
-    // `playerData.id` is used by the client to specify the room code.
-    // Internally we treat it as the desired room ID, not the player's ID.
-    let roomId = playerData.id;
+    console.log(`[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`, playerData);
+
+    // Use playerData.roomId instead of playerData.id
+    let roomId = playerData.roomId;
     let controller: GameController | undefined;
 
     if (roomId) {
       controller = this.rooms.get(roomId);
       if (!controller) {
-        this.log(`Join failed: room ${roomId} not found.`);
+        console.log(`[SERVER] Room ${roomId} not found for JOIN_GAME from ${socket.id}`);
         if (typeof ack === 'function') {
+          console.log(`[SERVER] Sending error response to ${socket.id}: Room not found`);
           ack({ error: 'Room not found.' });
         }
         socket.emit(ERROR_EVENT, 'Room not found.');
@@ -155,16 +145,15 @@ export class GameRoomManager {
 
     if (!controller) {
       roomId = uuidv4().slice(0, 6);
-      this.log(`Creating new room ${roomId} for player ${playerData.name || socket.id}`);
+      console.log(`[SERVER] Creating new room ${roomId} for JOIN_GAME from ${socket.id}`);
       controller = new GameController(this.io, roomId);
       this.rooms.set(roomId, controller);
-    } else {
-      this.log(`Player ${playerData.name || socket.id} attempting to join existing room ${roomId}`);
     }
 
     // Pass a copy of playerData without the room identifier so the controller
     // assigns the joining player's ID from the socket.
     const joinData = { ...playerData, id: undefined };
+    console.log(`[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`);
     controller.publicHandleJoin(socket, joinData, ack);
   }
 }
@@ -179,10 +168,6 @@ export default class GameController {
   private expectedCpuCount: number;
   private hostId: string | null = null;
 
-  private log(message: string, ...args: any[]): void {
-    console.log(`[GameController ${this.roomId}] ${message}`, ...args);
-  }
-
   constructor(io: Server, roomId: string) {
     this.io = io;
     this.roomId = roomId;
@@ -191,7 +176,6 @@ export default class GameController {
     this.socketIdToPlayerId = new Map<string, string>();
     this.expectedHumanCount = 1;
     this.expectedCpuCount = 0;
-    this.log('GameController instance created.');
   }
 
   public attachSocketEventHandlers(socket: Socket): void {
@@ -243,7 +227,7 @@ export default class GameController {
       started: this.gameState.started, // Add started property
     };
 
-    console.log('[SERVER] Emitting LOBBY_STATE_UPDATE:', lobbyState);
+    // console.log('[SERVER] Emitting LOBBY_STATE_UPDATE:', lobbyState);
     this.io.to(this.roomId).emit(LOBBY_STATE_UPDATE, lobbyState);
   }
 
@@ -252,24 +236,30 @@ export default class GameController {
    * The host is considered ready by default.
    */
   private checkIfGameCanStart(): void {
+    // console.log('[SERVER] checkIfGameCanStart called');
     const allPlayers = Array.from(this.players.values());
     const humanPlayers = allPlayers.filter((p) => !p.isComputer);
     const allHumansReady = humanPlayers.every((p) => p.status === 'host' || p.status === 'ready');
-
+    // console.log(
+    //   '[SERVER] Human players:',
+    //   humanPlayers.map((p) => ({ id: p.id, status: p.status }))
+    // );
     if (
       humanPlayers.length === this.expectedHumanCount &&
       allHumansReady &&
       !this.gameState.started
     ) {
+      // console.log('[SERVER] All humans ready, starting game');
       this.handleStartGame({ computerCount: this.expectedCpuCount });
     }
   }
 
   public publicHandleJoin(
     socket: Socket,
-    playerData: PlayerJoinData,
+    playerData: JoinGamePayload,
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
+    console.log(`[SERVER] publicHandleJoin for socket ${socket.id}, data:`, playerData);
     this.attachSocketEventHandlers(socket);
     this.handleJoin(socket, playerData, ack);
   }
@@ -290,9 +280,7 @@ export default class GameController {
     playerId: string,
     ack?: (response: { success: boolean; error?: string }) => void
   ): void {
-    this.log(`Attempting to rejoin player ${playerId} in room ${roomId} with socket ${socket.id}`);
     if (roomId !== this.roomId) {
-      this.log(`Rejoin failed: Mismatched room ID. Expected ${this.roomId}, got ${roomId}`);
       if (typeof ack === 'function') {
         ack({ success: false, error: 'Invalid room for rejoin.' });
       }
@@ -301,9 +289,6 @@ export default class GameController {
     }
     const player = this.players.get(playerId);
     if (player) {
-      this.log(
-        `Player ${playerId} found. Updating socket ID from ${player.socketId} to ${socket.id} and joining room.`
-      );
       socket.join(this.roomId);
       player.socketId = socket.id;
       player.disconnected = false;
@@ -329,26 +314,48 @@ export default class GameController {
 
   private handleJoin(
     socket: Socket,
-    playerData: PlayerJoinData,
+    playerData: JoinGamePayload,
     ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
   ): void {
+    // --- Payload validation ---
+    if (
+      typeof playerData.playerName !== 'string' ||
+      !playerData.playerName.trim() ||
+      typeof playerData.numHumans !== 'number' ||
+      typeof playerData.numCPUs !== 'number' ||
+      playerData.numHumans < 1 ||
+      playerData.numCPUs < 0 ||
+      playerData.numHumans + playerData.numCPUs < 2 ||
+      playerData.numHumans + playerData.numCPUs > this.gameState.maxPlayers
+    ) {
+      if (typeof ack === 'function') {
+        ack({ error: 'Invalid join payload: check name and player counts.' });
+      }
+      return;
+    }
+
+    // console.log('[SERVER] handleJoin: playerData', playerData);
     let id = playerData.id || socket.id;
-    let name = playerData.name || `Player-${id.substring(0, 4)}`;
+    let name =
+      typeof playerData.playerName === 'string' && playerData.playerName.trim()
+        ? playerData.playerName.trim()
+        : `Player-${id.substring(0, 4)}`;
     this.log(
       `Handling join request for player: ${name} (Proposed ID: ${id}, Socket: ${socket.id})`
     );
 
     const existingPlayer = this.players.get(id);
+    const callAck = (response: any) => {
+      if (typeof ack === 'function') {
+        ack(response);
+      }
+    };
     if (existingPlayer && !existingPlayer.disconnected) {
       this.log(`Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`);
-      if (typeof ack === 'function') {
-        ack({ error: `Player ID '${id}' is already active in a game.` });
-      } else {
-        socket.emit(ERROR_EVENT, `Player ID '${id}' is already active in a game.`);
-      }
+      console.log('[DEBUG] Emitting ERROR_EVENT: duplicate join');
+      callAck({ error: `Player ID '${id}' is already active in a game.` });
       return;
     }
-
     if (existingPlayer && existingPlayer.disconnected) {
       this.log(`Player ID '${id}' (${name}) is disconnected. Attempting rejoin logic.`);
       this.handleRejoin(
@@ -358,37 +365,27 @@ export default class GameController {
         ack
           ? (rejoinAck) => {
               if (rejoinAck.success) {
-                if (typeof ack === 'function') {
-                  ack({ roomId: this.roomId, playerId: id });
-                }
+                callAck({ roomId: this.roomId, playerId: id });
               } else {
-                if (typeof ack === 'function') {
-                  ack({ error: rejoinAck.error || 'Rejoin failed' });
-                }
+                callAck({ error: rejoinAck.error || 'Rejoin failed' });
               }
             }
           : undefined
       );
       return;
     }
-
     if (this.gameState.started) {
       this.log(`Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
+      console.log('[DEBUG] Emitting ERROR_EVENT: game already started');
       if (typeof ack === 'function') {
         ack({ error: 'Game has already started. Cannot join.' });
-      } else {
-        socket.emit(ERROR_EVENT, 'Game has already started. Cannot join.');
       }
       return;
     }
-
     if (this.players.size >= this.gameState.maxPlayers) {
       this.log(`Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
-      if (typeof ack === 'function') {
-        ack({ error: 'Game room is full.' });
-      } else {
-        socket.emit(ERROR_EVENT, 'Game room is full.');
-      }
+      console.log('[DEBUG] Emitting ERROR_EVENT: room full');
+      callAck({ error: 'Game room is full.' });
       return;
     }
 
@@ -400,6 +397,19 @@ export default class GameController {
     if (this.players.size === 0) {
       this.hostId = id;
       player.status = 'host';
+      // Set expected player counts from payload if provided
+      if (
+        typeof playerData.numHumans === 'number' &&
+        playerData.numHumans > 0 &&
+        typeof playerData.numCPUs === 'number' &&
+        playerData.numCPUs >= 0
+      ) {
+        this.expectedHumanCount = playerData.numHumans;
+        this.expectedCpuCount = playerData.numCPUs;
+        this.log(
+          `Host set expected players: ${this.expectedHumanCount} humans, ${this.expectedCpuCount} CPUs`
+        );
+      }
     } else {
       player.status = 'joined';
     }
@@ -421,8 +431,14 @@ export default class GameController {
     this.log(
       `Player '${name}' (Socket ID: ${socket.id}) joined room '${this.roomId}'. Emitting JOINED.`
     );
+    console.log('[SERVER] Emitting JOINED to socket', socket.id, {
+      id: player.id,
+      name: player.name,
+      roomId: this.roomId,
+    });
     socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
     if (typeof ack === 'function') {
+      console.log(`[SERVER] Calling JOIN_GAME ack for socket ${socket.id}`);
       ack({ roomId: this.roomId, playerId: player.id });
     }
 
@@ -439,7 +455,7 @@ export default class GameController {
       maxPlayers: this.gameState.maxPlayers,
     });
 
-    // Auto-start has been removed; clients must explicitly request game start
+    // Always push state after join, even if not enough players
     this.pushState();
   }
 
@@ -931,7 +947,6 @@ export default class GameController {
       const player = this.players.get(playerId);
       if (player) {
         player.disconnected = true;
-        this.log(`Player ${playerId} (${player.name}) disconnected (socket ${socket.id}).`);
         this.socketIdToPlayerId.delete(socket.id);
 
         const activePlayers = Array.from(this.players.values()).filter(
@@ -961,7 +976,7 @@ export default class GameController {
         ? this.gameState.players[this.gameState.currentPlayerIndex]
         : undefined;
 
-    const stateForEmit: ClientState = {
+    const stateForEmit: GameStateData = {
       players: Array.from(this.players.values()).map((player: Player): ClientStatePlayer => {
         const isSelf =
           player.socketId && this.io.sockets.sockets.get(player.socketId) !== undefined;
@@ -981,17 +996,18 @@ export default class GameController {
       }),
       pile: this.gameState.pile,
       discardCount: this.gameState.discard.length,
-      deckCount: this.gameState.deck?.length || 0,
+      deckSize: this.gameState.deck?.length || 0,
       currentPlayerId: currentPlayerId,
       started: this.gameState.started,
       lastRealCard: this.gameState.lastRealCard,
     };
 
+    // Emit personalized state to each connected player
     this.players.forEach((playerInstance) => {
       if (playerInstance.socketId && !playerInstance.disconnected) {
         const targetSocket = this.io.sockets.sockets.get(playerInstance.socketId);
         if (targetSocket) {
-          const personalizedState: ClientState = {
+          const personalizedState: GameStateData = {
             ...stateForEmit,
             players: stateForEmit.players.map((p) => ({
               ...p,
@@ -1006,8 +1022,12 @@ export default class GameController {
         }
       }
     });
-    if (this.players.size === 0 && !this.gameState.started) {
-      this.io.to(this.roomId).emit(STATE_UPDATE, stateForEmit);
-    }
+    // Always emit a generic STATE_UPDATE to the room for listeners (testability, clients)
+    this.io.to(this.roomId).emit(STATE_UPDATE, stateForEmit);
+  }
+
+  // Add this log method for internal logging
+  private log(...args: any[]): void {
+    console.log(`[GameController][Room ${this.roomId}]`, ...args);
   }
 }

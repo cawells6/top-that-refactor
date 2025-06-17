@@ -96,11 +96,9 @@ function createFallbackCard(value, suit) {
 async function loadCardImage(value, suit) {
   // Generate card code (e.g., "AH" for Ace of Hearts)
   const cardCode = cardToCode(value, suit);
-  console.log(`[FIXED-LOADER] 🃏 Loading card: ${value} of ${suit} (${cardCode})`);
 
   // Check cache first
   if (cardImageCache[cardCode]) {
-    console.log(`[FIXED-LOADER] ✅ Using cached image for ${cardCode}`);
     return cardImageCache[cardCode];
   }
 
@@ -116,8 +114,6 @@ async function loadCardImage(value, suit) {
 
   for (const source of sources) {
     try {
-      console.log(`[FIXED-LOADER] 🔄 Trying to load ${cardCode} from ${source}`);
-
       // Create promise to load image
       loadedImg = await new Promise((resolve, reject) => {
         const img = new Image();
@@ -130,7 +126,6 @@ async function loadCardImage(value, suit) {
         // Setup success handler
         img.onload = () => {
           clearTimeout(timeout);
-          console.log(`[FIXED-LOADER] ✅ Successfully loaded ${cardCode} from ${source}`);
           resolve(img.src);
         };
 
@@ -147,15 +142,12 @@ async function loadCardImage(value, suit) {
       // If we got here, the image loaded successfully
       break;
     } catch (err) {
-      console.warn(
-        `[FIXED-LOADER] ⚠️ Failed to load from ${sources.indexOf(source) + 1}/${sources.length}: ${err.message}`
-      );
+      // Ignore errors and try the next source
     }
   }
 
   // If all sources failed, create fallback
   if (!loadedImg) {
-    console.warn(`[FIXED-LOADER] ❌ All sources failed for ${cardCode}, creating fallback`);
     loadedImg = createFallbackCard(value, suit);
   }
 
@@ -223,31 +215,25 @@ async function createAndAddCardElement(value, suit, parentContainer) {
  * @returns {Promise<boolean>} True if successful, false if no card symbols found
  */
 async function updateRuleCardsWithImages() {
-  console.log('[FIXED-LOADER] 🎴 Updating rule cards with images');
   const cardSymbols = document.querySelectorAll('.card-symbol');
-  console.log(`[FIXED-LOADER] Found ${cardSymbols.length} card symbols to update`);
   
   if (cardSymbols.length === 0) {
-    console.warn('[FIXED-LOADER] No card symbols found - the rules modal might not be open or created yet');
     return false;
   }
   
   // Reset processed elements if we haven't processed any yet
   if (processedElements.size === 0) {
-    console.log('[FIXED-LOADER] First run detected, ensuring clean state');
   }
   
   // Log visibility of the rules modal
   const rulesModal = document.getElementById('rules-modal');
   if (rulesModal) {
     const isVisible = !rulesModal.classList.contains('modal--hidden');
-    console.log(`[FIXED-LOADER] Rules modal visibility: ${isVisible ? 'VISIBLE' : 'HIDDEN'}`);
   }
   
   // Clean up any existing cards first to prevent duplicates
   try {
     const existingCards = document.querySelectorAll('.rule-card-img[data-fixed-loader="true"]');
-    console.log(`[FIXED-LOADER] Removing ${existingCards.length} existing fixed-loader cards`);
     existingCards.forEach(card => card.remove());
   } catch (err) {
     console.error('[FIXED-LOADER] Error during cleanup:', err);
@@ -265,7 +251,6 @@ async function updateRuleCardsWithImages() {
     
     // Skip if we've already processed this element
     if (processedElements.has(uniqueId)) {
-      console.log(`[FIXED-LOADER] Skipping already processed symbol: ${uniqueId}`);
       continue;
     }
     
@@ -278,10 +263,7 @@ async function updateRuleCardsWithImages() {
     let text = symbol.textContent || '';
     if (!text.trim() && dataCardValue) {
       text = originalCardContent[dataCardValue] || '';
-      console.log(`[FIXED-LOADER] Text content empty, using stored content for ${dataCardValue}: "${text}"`);
     }
-    
-    console.log(`[FIXED-LOADER] Processing card symbol: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}" with data-card-value="${dataCardValue || 'none'}"`);
     
     // Create a new container for images
     const imageContainer = document.createElement('div');
@@ -305,18 +287,13 @@ async function updateRuleCardsWithImages() {
       // Parse card patterns from text
       const cardPattern = /(\d+|[AKQJ])([♣♠♥♦])/g;
       matches = Array.from(text.matchAll(cardPattern));
-      console.log(`[FIXED-LOADER] Found ${matches.length} card matches in text`);
-    } else {
-      console.log(`[FIXED-LOADER] No text content to parse`);
     }
     
     // Special case for data attribute but no text matches
     if (matches.length === 0 && dataCardValue) {
-      console.log(`[FIXED-LOADER] No matches in text but have data-card-value=${dataCardValue}, using it directly`);
       
       // Handle based on data-card-value
       if (dataCardValue === '2' || dataCardValue === '5' || dataCardValue === '10') {
-        console.log(`[FIXED-LOADER] Special rule case from attribute (${dataCardValue}), showing single card`);
         await createAndAddCardElement(dataCardValue, 'clubs', imageContainer); // Default to clubs
         
         // Add the images container to the symbol
@@ -326,7 +303,6 @@ async function updateRuleCardsWithImages() {
       }
       
       if (dataCardValue === 'A') {
-        console.log(`[FIXED-LOADER] Four of a Kind pattern from attribute detected, showing all four cards`);
         // Show all four suits for the Ace
         const suits = ['clubs', 'spades', 'hearts', 'diamonds'];
         for (const suit of suits) {
@@ -363,11 +339,8 @@ async function updateRuleCardsWithImages() {
       const firstCardSuitSymbol = matches[0][2];
       const firstCardSuit = suitMap[firstCardSuitSymbol];
       
-      console.log(`[FIXED-LOADER] First card: ${firstCardValue} of ${firstCardSuit}`);
-      
       // Special case: For rules starting with '2', '5', or '10', show just one card
       if (firstCardValue === '2' || firstCardValue === '5' || firstCardValue === '10') {
-        console.log(`[FIXED-LOADER] Special rule case (${firstCardValue}), showing single card`);
         if (firstCardSuit) {
           await createAndAddCardElement(firstCardValue, firstCardSuit, imageContainer);
         }
@@ -381,11 +354,9 @@ async function updateRuleCardsWithImages() {
       let isActualFourOfAKind = false;
       if (matches.length === 4) {
         isActualFourOfAKind = matches.every(match => match[1] === firstCardValue);
-        console.log(`[FIXED-LOADER] Four cards detected, isActualFourOfAKind: ${isActualFourOfAKind}`);
       }
       
       if (isActualFourOfAKind) {
-        console.log(`[FIXED-LOADER] Four of a Kind pattern detected, showing all four cards`);
         // Display all four matched cards for Four of a Kind
         for (const match of matches) {
           const value = match[1];
@@ -413,7 +384,6 @@ async function updateRuleCardsWithImages() {
       }
       
       // Default case: just show the first card
-      console.log(`[FIXED-LOADER] Standard rule, showing first card only: ${firstCardValue} of ${firstCardSuit}`);
       if (firstCardSuit) {
         await createAndAddCardElement(firstCardValue, firstCardSuit, imageContainer);
       }
@@ -423,7 +393,6 @@ async function updateRuleCardsWithImages() {
       symbol.appendChild(imageContainer);
     }
   }
-  console.log('[FIXED-LOADER] Card update completed successfully');
   return true;
 }
 
@@ -433,19 +402,12 @@ console.log('[FIXED-LOADER] Script loaded and running - Initial check');
 // Function to check if card symbols exist and count them
 function checkCardSymbols() {
   const cardSymbols = document.querySelectorAll('.card-symbol');
-  console.log(`[FIXED-LOADER] Card symbol check: Found ${cardSymbols.length} card symbols`);
   
   // Log details about each symbol
   if (cardSymbols.length > 0) {
     cardSymbols.forEach((symbol, index) => {
       const dataCardValue = symbol.getAttribute('data-card-value');
-      console.log(`[FIXED-LOADER] Symbol #${index} content: "${symbol.textContent.trim().substring(0, 30)}..."`, 
-                 `data-card-value: ${dataCardValue || 'none'}`,
-                 `Visible: ${symbol.offsetParent !== null}`, 
-                 `Parent: ${symbol.parentElement?.tagName || 'none'}`);
     });
-  } else {
-    console.warn('[FIXED-LOADER] ⚠️ No card symbols found in DOM - rules modal might be hidden');
   }
   return cardSymbols.length;
 }
@@ -653,20 +615,17 @@ const cardProtectionObserver = new MutationObserver((mutations) => {
       for (const node of mutation.removedNodes) {
         if (node instanceof HTMLElement) {
           if (node.classList?.contains('rule-card-img') && node.dataset?.fixedLoader === 'true') {
-            console.log('[FIXED-LOADER] 🚨 Detected removal of our card image! Re-adding...');
             needsUpdate = true;
             break;
           }
           
           if (node.classList?.contains('card-image-container') && node.dataset?.fixedLoaderContainer === 'true') {
-            console.log('[FIXED-LOADER] 🚨 Detected removal of our card container! Re-adding...');
             needsUpdate = true;
             break;
           }
           
           // Also check if the removed node contains any of our elements
           if (node.querySelector?.('.rule-card-img[data-fixed-loader="true"], .card-image-container[data-fixed-loader-container="true"]')) {
-            console.log('[FIXED-LOADER] 🚨 Detected removal of parent containing our cards! Re-adding...');
             needsUpdate = true;
             break;
           }
@@ -710,7 +669,6 @@ setInterval(() => {
   );
   
   if (symbolsWithoutImages.length > 0) {
-    console.log(`[FIXED-LOADER] Found ${symbolsWithoutImages.length} card symbols missing images, restoring...`);
     processedElements.clear();
     updateRuleCardsWithImages();
   } else {
@@ -721,7 +679,6 @@ setInterval(() => {
         // Get computed style to check if card is hidden
         const style = window.getComputedStyle(card);
         if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
-          console.log('[FIXED-LOADER] Found hidden card, forcing visibility');
           card.style.cssText += 'display: block !important; visibility: visible !important; opacity: 1 !important;';
         }
       }

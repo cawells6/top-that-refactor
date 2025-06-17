@@ -1,9 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="loading preload">
   <head>
     <meta charset="UTF-8" />
     <title>Top That! Card Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Immediate fix for lobby modal position - must be first -->
+    <link rel="stylesheet" href="/styles/immediate-fix.css" />
+    <!--
+      LOBBY LAYOUT MAINTENANCE:
+      - All lobby centering, sizing, and stabilization is now handled by CSS.
+      - If you need to update lobby/modal centering or appearance, edit:
+        * /styles/immediate-fix.css (initial centering, no jumps)
+        * /style.css (main modal and content sizing)
+        * /styles/modals.css (modal container flex centering)
+      - The .preload and .loaded classes on <html> control initial hiding/reveal.
+      - No JS stabilization scripts are needed anymore.
+      - See README or AGENTS.md for more details.
+    -->
+    
+    <!-- Direct position fix script - runs immediately -->
+    <!-- <script src="/scripts/position-fix.js"></script> -->
+    
+    <!-- Initial layout stabilization - must load early for execution -->
+    <!-- <script src="/scripts/initial-layout-stabilizer.js"></script> -->
 
     <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />
@@ -38,17 +58,34 @@
 
     <!-- Style and layout enhancer -->
     <script src="/scripts/style-enforcer.js"></script>
+    
+    <!-- Previous layout stabilizers - disabled in favor of initial-layout-stabilizer.js -->
+    <!-- <script src="/scripts/simple-layout-stabilizer.js"></script> -->
+    
+    <!-- Inline script for removing preload state after all resources load -->
+    <script>
+      // Ensure everything is fully loaded before showing content
+      window.addEventListener('load', function() {
+        // Force a small delay to ensure all styles are applied
+        setTimeout(function() {
+          document.documentElement.classList.remove('preload');
+          document.documentElement.classList.add('loaded');
+          console.log('[POSITION-FIX] Page fully loaded and revealed');
+        }, 50);
+      });
+    </script>
   </head>
-  <body class="body-loading" style="min-height: 100vh; display: flex; flex-direction: column">
+  <body class="body-loading">
     <!-- Header removed per user request -->
 
     <!-- <div class="notice notice--hidden" id="notice-banner"></div> -->
     <!-- <div class="notice notice--hidden" id="error-banner"></div> -->
     <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
-
-    <main class="main-content" id="main-content">
+    
+    <div class="game-viewport">
+      <main class="main-content" id="main-content">
       <!-- Lobby Screen -->
-      <div class="lobby" id="lobby-container">
+      <div class="lobby lobby--hidden" id="lobby-container">
         <div id="lobby-outer-card" class="lobby-modal-container">
           <div id="lobby-inner-content" class="game-setup-content">
             <div class="setup-header">
@@ -120,7 +157,9 @@
                     maxlength="6"
                     style="text-transform: uppercase"
                   />
-                  <button id="join-game-button" class="header-btn" type="button">Join Game</button>
+                  <button id="join-game-button" class="header-btn" type="button">
+                    Join Game
+                  </button>
                 </div>
 
                 <!-- Bots Players Section -->
@@ -189,21 +228,10 @@
             </form>
           </div>
         </div>
-
-        <!-- Waiting Room / Invite Link Section (restored) -->
-        <div id="waiting-state" class="hidden" style="width: 100%; text-align: center; margin-top: 2rem;">
-          <h3 id="waiting-heading">Waiting for players...</h3>
-          <div id="share-link-message" style="margin: 1em 0;">
-            <span>Share this link to invite friends:</span>
-            <input id="invite-link" type="text" readonly style="width: 60%; max-width: 400px; margin: 0 0.5em;" />
-            <button id="copy-link-button" class="header-btn" type="button">Copy Link</button>
-          </div>
-          <button id="start-game-button" class="header-btn" type="button" style="margin-top: 1em;">Start Game</button>
-        </div>
       </div>
 
       <!-- Game Table -->
-      <div id="game-table" class="hidden" style="width: 100%; height: 100%">
+      <div id="game-table" class="hidden table--hidden" style="width: 100%; height: 100%">
         <div class="table" style="width: 100%; height: 100%">
           <div class="table-slot-top" id="opponent-area-top"></div>
           <div class="table-slot-left" id="opponent-area-left"></div>
@@ -212,8 +240,9 @@
           <div class="table-slot-bottom" id="player-area-bottom"></div>
         </div>
       </div>
-    </main>
-
+      </main>
+    </div>
+    
     <section class="game-log game-log--hidden" id="game-log"></section>
 
     <div
@@ -461,7 +490,7 @@
     >
       <div class="game-setup-content">
         <h3 id="in-session-lobby-title" class="section-title">
-          Waiting for Players...
+          WAITING FOR PLAYERS...
         </h3>
 
         <div class="name-input-section" id="guest-name-section">
@@ -482,11 +511,9 @@
 
         <div class="lobby-buttons-row">
           <button id="copy-link-button" class="header-btn" type="button">
-            Copy Link
+            COPY LINK
           </button>
-          <button id="ready-up-button" class="header-btn" type="button">
-            Let's Play
-          </button>
+          <button id="ready-up-button" class="header-btn" type="button">LET'S PLAY</button>
         </div>
       </div>
     </div>

@@ -1,0 +1,9 @@
+// state.js
+
+// ...existing code...
+
+export function setCurrentRoom(roomId) {
+  // ...existing code or implementation...
+}
+
+// ...existing code...

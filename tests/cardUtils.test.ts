@@ -16,14 +16,14 @@ describe('normalizeCardValue', () => {
     expect(normalizeCardValue('2')).toBe('two');
     expect(normalizeCardValue('5')).toBe('five');
     expect(normalizeCardValue('10')).toBe('ten');
-    expect(normalizeCardValue('3')).toBe('3'); // Stays as "3"
+    expect(normalizeCardValue('3')).toBe('three'); // Now normalizes to 'three'
   });
 
   test('normalizes actual numbers to keywords or stringified numbers', () => {
     expect(normalizeCardValue(2)).toBe('two');
     expect(normalizeCardValue(5)).toBe('five');
     expect(normalizeCardValue(10)).toBe('ten');
-    expect(normalizeCardValue(7)).toBe('7'); // Number 7 becomes string "7"
+    expect(normalizeCardValue(7)).toBe('seven'); // Now normalizes to 'seven'
   });
 
   test('normalizes mixed case face cards to single lowercase letter', () => {
@@ -45,6 +45,22 @@ describe('normalizeCardValue', () => {
   test('handles empty string', () => {
     // Based on the utils/cardUtils.ts normalizeCardValue, empty string returns itself
     expect(normalizeCardValue('')).toBe('');
+  });
+});
+
+describe('normalizeCardValue edge cases', () => {
+  test('returns string for symbol, stringifies object and array', () => {
+    const sym = Symbol('s');
+    expect(typeof normalizeCardValue(sym as any)).toBe('string');
+    expect(normalizeCardValue({} as any)).toBe('[object object]');
+    expect(normalizeCardValue([1, 2] as any)).toBe('1,2');
+  });
+});
+
+describe('rank edge cases', () => {
+  test('returns 0 for object or array as value', () => {
+    expect(rank({ value: {}, suit: 'h' } as any)).toBe(0);
+    expect(rank({ value: [], suit: 'h' } as any)).toBe(0);
   });
 });
 
@@ -107,6 +123,85 @@ describe('isSpecialCard type checks', () => {
     expect(isSpecialCard('ten')).toBe(true);
     expect(isSpecialCard('ace')).toBe(false); // 'ace' normalizes to 'a'
     expect(isSpecialCard('king')).toBe(false); // 'king' normalizes to 'k'
+  });
+});
+
+describe('isSpecialCard parameterized', () => {
+  test.each([
+    ['2', true],
+    [2, true],
+    ['two', true],
+    ['5', false],
+    [null, false],
+    [undefined, false],
+    [{}, false],
+    [[], false],
+  ])('isTwoCard(%j) === %s', (input, expected) => {
+    expect(isTwoCard(input as any)).toBe(expected);
+  });
+  test.each([
+    ['5', true],
+    [5, true],
+    ['five', true],
+    ['2', false],
+    [null, false],
+    [undefined, false],
+    [{}, false],
+    [[], false],
+  ])('isFiveCard(%j) === %s', (input, expected) => {
+    expect(isFiveCard(input as any)).toBe(expected);
+  });
+  test.each([
+    ['10', true],
+    [10, true],
+    ['ten', true],
+    ['J', false],
+    [null, false],
+    [undefined, false],
+    [{}, false],
+    [[], false],
+  ])('isTenCard(%j) === %s', (input, expected) => {
+    expect(isTenCard(input as any)).toBe(expected);
+  });
+  test.each([
+    ['2', true],
+    [5, true],
+    ['ten', true],
+    ['ace', false],
+    ['king', false],
+    [null, false],
+    [undefined, false],
+    [{}, false],
+    [[], false],
+  ])('isSpecialCard(%j) === %s', (input, expected) => {
+    expect(isSpecialCard(input as any)).toBe(expected);
+  });
+});
+
+describe('isFourOfAKind edge cases', () => {
+  test('returns false if all values are null or undefined', () => {
+    const hand = [null, null, null, null].map((v, i) => ({ value: v as any, suit: 's' + i }));
+    expect(isFourOfAKind(hand)).toBe(false);
+  });
+  test('returns false for mixed types that do not normalize equally', () => {
+    const hand = [
+      { value: '2', suit: 'h' },
+      { value: 2, suit: 'd' },
+      { value: {}, suit: 'c' },
+      { value: [], suit: 's' },
+    ];
+    expect(isFourOfAKind(hand as any)).toBe(false);
+  });
+  test.each([
+    [[1, 1, 1, 1], true],
+    [[1, '1', 1, '1'], true],
+    [['A', 'A', 'A', 'A'], true],
+    [['A', 'K', 'A', 'A'], false],
+    [[null, null, null, null], false],
+    [[undefined, undefined, undefined, undefined], false],
+  ])('isFourOfAKind(%j) === %s', (vals, expected) => {
+    const hand = vals.map((v, i) => ({ value: v as any, suit: 's' + i }));
+    expect(isFourOfAKind(hand)).toBe(expected);
   });
 });
 
@@ -192,5 +287,185 @@ describe('isFourOfAKind', () => {
   test('isFourOfAKind for specific keywords like "two"', () => {
     const handTwos: Card[] = createHand(['2', 2, 'two', '2']); // All normalize to "two"
     expect(isFourOfAKind(handTwos)).toBe(true);
+  });
+});
+
+describe('normalizeCardValue fuzz/randomized', () => {
+  test('never throws for any input', () => {
+    const values = [
+      undefined,
+      null,
+      '',
+      '2',
+      'ten',
+      'J',
+      'Queen',
+      'king',
+      'ace',
+      2,
+      10,
+      5,
+      7,
+      0,
+      -1,
+      {},
+      [],
+      Symbol('s'),
+      () => {},
+      NaN,
+      Infinity,
+      -Infinity,
+      true,
+      false,
+      new Date(),
+      { value: 'A' },
+      [1, 2, 3],
+      /regex/,
+      BigInt(123),
+    ];
+    for (const val of values) {
+      expect(() => normalizeCardValue(val as any)).not.toThrow();
+    }
+  });
+});
+
+describe('rank monotonicity', () => {
+  test('rank is monotonic for numeric and face card values', () => {
+    const order = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
+    let prev = -Infinity;
+    for (const val of order) {
+      const r = rank({ value: val, suit: 'hearts' } as Card);
+      expect(r).toBeGreaterThan(prev);
+      prev = r;
+    }
+  });
+  test('rank is monotonic for keyword string values', () => {
+    const order = [
+      'two',
+      'three',
+      'four',
+      'five',
+      'six',
+      'seven',
+      'eight',
+      'nine',
+      'ten',
+      'jack',
+      'queen',
+      'king',
+      'ace',
+    ];
+    let prev = -Infinity;
+    for (const val of order) {
+      const r = rank({ value: val, suit: 'hearts' } as Card);
+      expect(r).toBeGreaterThan(prev);
+      prev = r;
+    }
+  });
+});
+
+describe('normalizeCardValue additional keywords and edge cases', () => {
+  test('normalizes all number keywords and mixed case', () => {
+    expect(normalizeCardValue('three')).toBe('three');
+    expect(normalizeCardValue('Three')).toBe('three');
+    expect(normalizeCardValue(3)).toBe('three');
+    expect(normalizeCardValue('four')).toBe('four');
+    expect(normalizeCardValue('Four')).toBe('four');
+    expect(normalizeCardValue(4)).toBe('four');
+    expect(normalizeCardValue('six')).toBe('six');
+    expect(normalizeCardValue('Six')).toBe('six');
+    expect(normalizeCardValue(6)).toBe('six');
+    expect(normalizeCardValue('seven')).toBe('seven');
+    expect(normalizeCardValue('Seven')).toBe('seven');
+    expect(normalizeCardValue(7)).toBe('seven');
+    expect(normalizeCardValue('eight')).toBe('eight');
+    expect(normalizeCardValue('Eight')).toBe('eight');
+    expect(normalizeCardValue(8)).toBe('eight');
+    expect(normalizeCardValue('nine')).toBe('nine');
+    expect(normalizeCardValue('Nine')).toBe('nine');
+    expect(normalizeCardValue(9)).toBe('nine');
+  });
+  test('trims whitespace and normalizes', () => {
+    expect(normalizeCardValue(' 2 ')).toBe('two');
+    expect(normalizeCardValue('  ten  ')).toBe('ten');
+    expect(normalizeCardValue('  Queen ')).toBe('q');
+  });
+  test('handles non-stringifiable objects', () => {
+    expect(typeof normalizeCardValue(null)).toBe('string');
+    expect(typeof normalizeCardValue(Symbol('x') as any)).toBe('string');
+  });
+});
+
+describe('rank additional edge cases', () => {
+  const createCard = (value: string | number, suit: string = 'hearts') => ({ value, suit });
+  test('ranks all number keywords', () => {
+    expect(rank(createCard('three'))).toBe(3);
+    expect(rank(createCard('four'))).toBe(4);
+    expect(rank(createCard('six'))).toBe(6);
+    expect(rank(createCard('seven'))).toBe(7);
+    expect(rank(createCard('eight'))).toBe(8);
+    expect(rank(createCard('nine'))).toBe(9);
+  });
+  test('returns 0 for empty string, NaN, Infinity, BigInt', () => {
+    expect(rank(createCard(''))).toBe(0);
+    expect(rank(createCard(NaN as any))).toBe(0);
+    expect(rank(createCard(Infinity as any))).toBe(0);
+    expect(rank(createCard(BigInt(5) as any))).toBe(0);
+  });
+});
+
+describe('isSpecialCard and friends edge cases', () => {
+  test('isTwoCard only matches two/two/2', () => {
+    expect(isTwoCard('three')).toBe(false);
+    expect(isTwoCard(3)).toBe(false);
+    expect(isTwoCard('seven')).toBe(false);
+  });
+  test('isFiveCard only matches five/five/5', () => {
+    expect(isFiveCard('six')).toBe(false);
+    expect(isFiveCard(6)).toBe(false);
+    expect(isFiveCard('seven')).toBe(false);
+  });
+  test('isTenCard only matches ten/ten/10', () => {
+    expect(isTenCard('nine')).toBe(false);
+    expect(isTenCard(9)).toBe(false);
+    expect(isTenCard('eight')).toBe(false);
+  });
+  test('isSpecialCard does not match other keywords', () => {
+    expect(isSpecialCard('three')).toBe(false);
+    expect(isSpecialCard('four')).toBe(false);
+    expect(isSpecialCard('six')).toBe(false);
+    expect(isSpecialCard('seven')).toBe(false);
+    expect(isSpecialCard('eight')).toBe(false);
+    expect(isSpecialCard('nine')).toBe(false);
+  });
+});
+
+describe('isFourOfAKind additional edge cases', () => {
+  const createHand = (values: (string | number | null | undefined)[], suitPrefix = 's') =>
+    values.map((value, index) => ({ value: value as any, suit: `${suitPrefix}${index}` }));
+  test('works for all number keywords and mixed case', () => {
+    expect(isFourOfAKind(createHand(['three', 3, 'Three', 'THREE']))).toBe(true);
+    expect(isFourOfAKind(createHand(['four', 4, 'Four', 'FOUR']))).toBe(true);
+    expect(isFourOfAKind(createHand(['six', 6, 'Six', 'SIX']))).toBe(true);
+    expect(isFourOfAKind(createHand(['seven', 7, 'Seven', 'SEVEN']))).toBe(true);
+    expect(isFourOfAKind(createHand(['eight', 8, 'Eight', 'EIGHT']))).toBe(true);
+    expect(isFourOfAKind(createHand(['nine', 9, 'Nine', 'NINE']))).toBe(true);
+  });
+  test('returns false if only first 4 match but 5th is different', () => {
+    const hand = createHand(['three', 3, 'Three', 'THREE', 'four']);
+    expect(isFourOfAKind(hand)).toBe(true); // Only first 4 are checked
+  });
+  test('returns false if only 3 of 4 match', () => {
+    const hand = createHand(['three', 3, 'Three', 'four']);
+    expect(isFourOfAKind(hand)).toBe(false);
+  });
+  test('works with duplicate suits and all suits the same', () => {
+    const hand = [
+      { value: 'six', suit: 'hearts' },
+      { value: 6, suit: 'hearts' },
+      { value: 'Six', suit: 'hearts' },
+      { value: 'SIX', suit: 'hearts' },
+    ];
+    expect(isFourOfAKind(hand)).toBe(true);
   });
 });

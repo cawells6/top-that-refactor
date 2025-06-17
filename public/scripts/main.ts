@@ -12,7 +12,7 @@ console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('main-content')?.classList.remove('preload-hidden');
-  console.log('🚀 [Client] DOM fully loaded and parsed (from main.ts)');
+  // console.log('🚀 [Client] DOM fully loaded and parsed (from main.ts)');
 
   // Do NOT clear session on page load! Only clear on explicit user action.
   // sessionStorage.removeItem('myId');
@@ -38,11 +38,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('[Client] Socket.IO disconnected:', reason);
     });
 
+    // Add handler for legacy 'lobby' event from server
+    socket.on('lobby', (data) => {
+      console.log('[Client] Received LOBBY event:', data);
+      // Only show the in-session lobby modal, do not call showWaitingState
+      const inSessionModal = document.getElementById('in-session-lobby-modal');
+      const waitingStateDiv = document.getElementById('waiting-state');
+      if (inSessionModal) {
+        inSessionModal.classList.remove('modal--hidden');
+      }
+      if (waitingStateDiv) {
+        waitingStateDiv.classList.add('hidden');
+      }
+      // Optionally, hide the main lobby container
+      const lobbyContainer = document.getElementById('lobby-container');
+      if (lobbyContainer) {
+        lobbyContainer.classList.add('hidden');
+      }
+    });
+
     await initializePageEventListeners();
-    console.log('🚀 [Client] initializePageEventListeners completed');
+    // console.log('🚀 [Client] initializePageEventListeners completed');
 
     initializeSocketHandlers();
-    console.log('🚀 [Client] All initialization completed');
+    // console.log('🚀 [Client] All initialization completed');
   } catch (error) {
     console.error('Error during initialization:', error);
   }
@@ -52,7 +71,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const icons = document.querySelectorAll(
       '.player-silhouette img, .player-silhouette .user-icon, .player-silhouette .robot-icon'
     );
-    console.debug('[Silhouette] Found', icons.length, 'player icon(s) to clean up');
     icons.forEach((img) => {
       (img as HTMLElement).removeAttribute('style');
       (img as HTMLElement).removeAttribute('width');
@@ -64,20 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   removePlayerIconInlineStyles();
 
   // Set up a MutationObserver on the whole body to catch any icon changes
-  const observer = new MutationObserver((mutations) => {
-    // Debug: log what mutations occurred
-    mutations.forEach((mutation) => {
-      if (mutation.type === 'attributes') {
-        console.debug(
-          `[Silhouette] Attribute mutation: ${mutation.attributeName} on`,
-          mutation.target
-        );
-      } else if (mutation.type === 'childList') {
-        console.debug(
-          `[Silhouette] ChildList mutation: added ${mutation.addedNodes.length}, removed ${mutation.removedNodes.length}`
-        );
-      }
-    });
+  const observer = new MutationObserver((_mutations) => {
     removePlayerIconInlineStyles();
   });
 
@@ -93,25 +98,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // === Unhide lobby and remove loading class ===
   document.body.classList.remove('body-loading');
+  document.body.classList.add('showing-lobby'); // Add initial state class
   const lobbyContainer = document.getElementById('lobby-container');
   if (lobbyContainer) {
     lobbyContainer.classList.remove('hidden');
-    lobbyContainer.classList.remove('lobby--hidden');
-    lobbyContainer.style.visibility = 'visible';
-    lobbyContainer.style.opacity = '1';
   }
   console.log('🚀 [Client] Lobby explicitly made visible.');
 
   // --- START: New logic for handling join links ---
-  const urlParams = new URLSearchParams(window.location.search);
-  const roomIdFromUrl = urlParams.get('room');
-
-  // Only run join link logic if NOT in-session
-  const inSession = document.body.classList.contains('in-session');
-  if (roomIdFromUrl && !inSession) {
-    setCurrentRoom(roomIdFromUrl);
-    socket.emit(JOIN_GAME, { id: roomIdFromUrl });
-    window.history.replaceState({}, document.title, window.location.pathname);
+  /**
+   * Handles join link logic for the client, allowing dependency injection for testability.
+   */
+  function handleJoinLink({
+    setCurrentRoom,
+    socket,
+    window,
+    document,
+  }: {
+    setCurrentRoom: (room: string) => void;
+    socket: { emit: Function };
+    window: Window;
+    document: Document;
+  }) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomIdFromUrl = urlParams.get('room');
+    const inSession = document.body.classList.contains('in-session');
+    if (roomIdFromUrl && !inSession) {
+      setCurrentRoom(roomIdFromUrl);
+      const joinPayload = {
+        roomId: roomIdFromUrl,
+        playerName: 'Guest',
+        numHumans: 1,
+        numCPUs: 0,
+      };
+      socket.emit(JOIN_GAME, joinPayload);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }
   // --- END: New logic for handling join links ---
+  handleJoinLink({ setCurrentRoom, socket, window, document });
 });

@@ -1,3 +1,6 @@
+import { renderGameState } from './render.js';
+import * as state from './state.js';
+import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
 import {
   JOINED,
   STATE_UPDATE,
@@ -8,12 +11,8 @@ import {
   PLAYER_READY,
   LOBBY_STATE_UPDATE,
   GAME_STARTED,
-} from '@shared/events.ts';
-import { GameStateData } from '@shared/types.ts';
-
-import { renderGameState } from './render.js';
-import * as state from './state.js';
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
+} from '../../src/shared/events.js';
+import { GameStateData } from '../../src/shared/types.js';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
@@ -51,12 +50,8 @@ export async function initializeSocketHandlers(): Promise<void> {
     showGameTable();
   });
   state.socket.on(STATE_UPDATE, (s: GameStateData) => {
-    console.log('[socketService] STATE_UPDATE received:', { started: s.started, payload: s });
     if (s.started === true) {
-      console.log('[socketService] STATE_UPDATE: Game has started, calling showGameTable()');
       showGameTable();
-    } else {
-      console.log('[socketService] STATE_UPDATE: Game not started, not showing game table.');
     }
     renderGameState(s, state.myId);
   });
@@ -67,6 +62,7 @@ export async function initializeSocketHandlers(): Promise<void> {
     // Clear stored room and player IDs if rejoin fails
     state.setCurrentRoom(null);
     state.setMyId(null);
+    state.saveSession(); // Persist cleared session
   });
 }
 
@@ -78,6 +74,6 @@ export function joinLobby(roomId: string, playerName: string): void {
   state.socket.emit(JOIN_LOBBY, roomId, playerName);
 }
 
-export function playerReady(): void {
-  state.socket.emit(PLAYER_READY, true);
+export function playerReady(playerName: string): void {
+  state.socket.emit(PLAYER_READY, playerName);
 }

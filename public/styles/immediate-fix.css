@@ -1,0 +1,71 @@
+/*
+  LOBBY LAYOUT MAINTENANCE:
+  - This file ensures the lobby modal container is centered and visible from the first render.
+  - If the lobby appears off-center or jumps, update centering rules here.
+  - See also: style.css (.lobby-modal-container, .game-setup-content) and modals.css for modal flex centering.
+  - .preload class on <html> ensures no FOUC (flash of unstyled content).
+*/
+
+/**
+ * immediate-fix.css
+ * This stylesheet ensures the lobby modal container is properly positioned from the start.
+ * It will be loaded very early to prevent any positioning shifts.
+ */
+
+/* Fix the lobby modal positioning to ensure it's centered from the beginning */
+#lobby-container {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  z-index: 1000 !important;
+}
+
+/* Ensure the lobby modal container is centered from the first render */
+.lobby-modal-container {
+  position: relative !important;
+  margin: 0 auto !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  transform: none !important;
+  max-width: 800px !important; /* Restore max-width for modal appearance */
+  width: 100% !important; /* Keep width 100% for flexibility */
+  min-width: 320px !important; /* Ensure a reasonable minimum width */
+  box-sizing: border-box !important;
+}
+
+/* Force immediate visibility (no transition) for first render */
+body:not(.loaded) #lobby-container {
+  transition: none !important;
+}
+
+/* Hide everything until we're sure styling is applied */
+html.preload {
+  visibility: hidden;
+}
+
+/* Fix for exact positioning with no jumps */
+.lobby-modal-container.centered, #lobby-outer-card {
+  position: relative !important;
+  margin: 0 auto !important;
+}
+
+/* Game setup content positioning */
+.game-setup-content {
+  position: relative !important;
+  margin: 0 auto !important;
+  max-width: 760px !important; /* Restore max-width for content appearance */
+  width: 100% !important; /* Keep width 100% for flexibility */
+  min-width: 320px !important; /* Ensure a reasonable minimum width */
+  box-sizing: border-box !important;
+}

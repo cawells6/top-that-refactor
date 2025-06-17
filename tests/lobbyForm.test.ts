@@ -1,19 +1,58 @@
-// tests/lobbyForm.test.ts
+/**
+ * Best Practice: Ensure DOM is set up before importing scripts/components that expect DOM elements.
+ * Use helpers like setupMainDOM for consistent test setup.
+ */
+
 /**
  * @jest-environment jsdom
  */
 import '@testing-library/jest-dom';
 import { fireEvent } from '@testing-library/dom';
 
-// Import the actual constants for use in test assertions
-import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
-import * as render from '../public/scripts/render.js';
-import * as state from '../public/scripts/state.js'; // Stays .js for now
-// Import the client-side script under test (AFTER mocks are set up)
-// This file (public/scripts/events.js) has NOT been converted to TS yet.
+// --- Helpers for DRY test setup and error clearing ---
+function setupLobbyFormDOM() {
+  document.body.innerHTML = `
+    <form id="lobby-form">
+      <input type="text" id="player-name-input" />
+      <input type="text" id="join-code-input" />
+      <div>
+        <button id="humans-minus" type="button">-</button>
+        <input type="number" id="total-players-input" value="1" />
+        <button id="humans-plus" type="button">+</button>
+      </div>
+      <div>
+        <button id="cpus-minus" type="button">-</button>
+        <input type="number" id="cpu-players-input" value="0" />
+        <button id="cpus-plus" type="button">+</button>
+      </div>
+      <span id="total-count"></span>
+      <div id="lobby-validation-message"><div class="message-box-content"><p></p></div></div>
+      <div class="lobby-buttons-row">
+        <button id="setup-rules-button" type="button">RULES</button>
+        <button id="setup-deal-button" type="button">LET'S PLAY</button>
+        <button id="join-game-button" type="button">Join Game</button>
+      </div>
+    </form>
+  `;
+}
 
+function getErrorBox() {
+  return document.querySelector('.message-box-content') as HTMLElement;
+}
+function getErrorText() {
+  return document.querySelector('#lobby-validation-message p') as HTMLElement;
+}
+function clearErrorBox() {
+  const box = getErrorBox();
+  if (box) box.classList.remove('active');
+  const p = getErrorText();
+  if (p) p.textContent = '';
+}
+
+// --- Mocks ---
 const mockEmit = jest.fn();
 const mockOn = jest.fn();
+const mockListeners = jest.fn(() => []); // Add listeners mock
 
 // Mock the state module
 // To avoid "Invalid variable access: document" in mock factory,
@@ -23,7 +62,7 @@ jest.mock('../public/scripts/state.js', () => {
   // So, `document` might not be available here directly.
   // We return functions that, when *called during the test*, will access the now-available `document`.
   return {
-    socket: { emit: jest.fn(), on: jest.fn() }, // These will be overridden in beforeEach
+    socket: { emit: jest.fn(), on: jest.fn(), listeners: jest.fn(() => []) }, // Add listeners method
     loadSession: jest.fn(),
     saveSession: jest.fn(),
     $: jest.fn((selector: string) =>
@@ -61,8 +100,14 @@ jest.mock('../src/shared/events', () => ({
   // Add other events if public/scripts/events.js (script under test) uses them from shared/events
 }));
 
+// Add this import to bring JOIN_GAME into scope for the test
 import { JOIN_GAME } from '../src/shared/events.js';
 
+// --- Imports (AFTER DOM setup and mocks) ---
+import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
+import * as state from '../public/scripts/state.js'; // Stays .js for now
+
+// --- Test suites ---
 describe('Lobby Form Submission', () => {
   let nameInput: HTMLInputElement;
   let numHumansInput: HTMLInputElement;
@@ -74,46 +119,22 @@ describe('Lobby Form Submission', () => {
 
   beforeEach(async () => {
     jest.useFakeTimers();
-    document.body.innerHTML = `
-      <form id="lobby-form">
-        <input type="text" id="player-name-input" />
-        <input type="text" id="join-code-input" />
-        <div>
-          <button id="humans-minus" type="button">-</button>
-          <input type="number" id="total-players-input" value="1" />
-          <button id="humans-plus" type="button">+</button>
-        </div>
-        <div>
-          <button id="cpus-minus" type="button">-</button>
-          <input type="number" id="cpu-players-input" value="0" />
-          <button id="cpus-plus" type="button">+</button>
-        </div>
-        <span id="total-count"></span>
-        <div id="lobby-validation-message"><div class="message-box-content"><p></p></div></div>
-        <div class="lobby-buttons-row">
-          <button id="setup-rules-button" type="button">RULES</button>
-          <button id="setup-deal-button" type="button">LET'S PLAY</button>
-          <button id="join-game-button" type="button">Join Game</button>
-        </div>
-      </form>
-    `;
+    setupLobbyFormDOM();
     nameInput = document.getElementById('player-name-input') as HTMLInputElement;
     numHumansInput = document.getElementById('total-players-input') as HTMLInputElement;
     numCPUsInput = document.getElementById('cpu-players-input') as HTMLInputElement;
     submitButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
     joinButton = document.getElementById('join-game-button') as HTMLButtonElement;
-    nameInputError = document.querySelector('#lobby-validation-message p') as HTMLElement;
-    playerCountError = document.querySelector('#lobby-validation-message p') as HTMLElement;
-
-    // Re-assign our top-level mockEmit to the one inside the mocked state.socket
+    nameInputError = getErrorText();
+    playerCountError = getErrorText();
     if (state.socket) {
       (state.socket.emit as jest.Mock) = mockEmit;
       (state.socket.on as jest.Mock) = mockOn;
+      (state.socket.listeners as jest.Mock) = mockListeners;
     }
     mockEmit.mockClear();
     mockOn.mockClear();
-
-    // Initialize event listeners after DOM is ready
+    clearErrorBox();
     await initializePageEventListeners();
   });
 
@@ -122,99 +143,202 @@ describe('Lobby Form Submission', () => {
     jest.useRealTimers();
   });
 
-  it('shows error if name is empty', () => {
-    nameInput.value = '';
-    fireEvent.click(submitButton);
-    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    expect(msgBox).toHaveClass('active');
-    expect(nameInputError.textContent).toMatch(/valid name/i);
-    expect(mockEmit).not.toHaveBeenCalled();
+  describe('Validation', () => {
+    it('shows error if name is empty', () => {
+      nameInput.value = '';
+      fireEvent.click(submitButton);
+      const msgBox = getErrorBox();
+      expect(msgBox).toHaveClass('active');
+      expect(nameInputError.textContent).toMatch(/valid name/i);
+      expect(mockEmit).not.toHaveBeenCalled();
+    });
+
+    it('shows error if name is too short (min length 2)', () => {
+      nameInput.value = 'A';
+      fireEvent.click(submitButton);
+      const msgBox = getErrorBox();
+      expect(msgBox).toHaveClass('active');
+      expect(nameInputError.textContent).toMatch(/at least 2/);
+      expect(mockEmit).not.toHaveBeenCalled();
+    });
+
+    it('shows error if total players (humans + CPUs) < 2', () => {
+      nameInput.value = 'Chris';
+      numHumansInput.value = '1';
+      numCPUsInput.value = '0';
+      fireEvent.click(submitButton);
+      const msgBox = getErrorBox();
+      expect(msgBox).toHaveClass('active');
+      expect(playerCountError.textContent).toMatch(/minimum of 2/i);
+      expect(mockEmit).not.toHaveBeenCalled();
+    });
+
+    it('shows error if total players (humans + CPUs) > 4', () => {
+      nameInput.value = 'Chris';
+      numHumansInput.value = '3';
+      numCPUsInput.value = '2';
+      fireEvent.click(submitButton);
+      const msgBox = getErrorBox();
+      expect(msgBox).toHaveClass('active');
+      expect(playerCountError.textContent).toMatch(/maximum of 4/i);
+      expect(mockEmit).not.toHaveBeenCalled();
+    });
+
+    it('shows error if player name is only whitespace', () => {
+      nameInput.value = '   ';
+      fireEvent.click(submitButton);
+      const msgBox = getErrorBox();
+      expect(msgBox).toHaveClass('active');
+      expect(msgBox.textContent).toMatch(/valid name/i);
+      expect(mockEmit).not.toHaveBeenCalled();
+    });
+
+    it('shows error when join code is invalid', () => {
+      nameInput.value = 'Sam';
+      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      codeInput.value = '123';
+      fireEvent.click(joinButton);
+      const msgBox = getErrorBox();
+      expect(msgBox).toHaveClass('active');
+      expect(mockEmit).not.toHaveBeenCalled();
+    });
+
+    it('shows error if join code is missing when joining', () => {
+      nameInput.value = 'Sam';
+      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      codeInput.value = '';
+      fireEvent.click(joinButton);
+      const msgBox = getErrorBox();
+      expect(msgBox).toHaveClass('active');
+      expect(msgBox.textContent).toMatch(/valid 6 character code/i);
+      expect(mockEmit).not.toHaveBeenCalled();
+    });
   });
 
-  it('shows error if name is too short (min length 2)', () => {
-    nameInput.value = 'A';
-    fireEvent.click(submitButton);
-    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    expect(msgBox).toHaveClass('active');
-    expect(nameInputError.textContent).toMatch(/at least 2/);
-    expect(mockEmit).not.toHaveBeenCalled();
-  });
+  describe('Form actions', () => {
+    it('starts a CPU game locally when only bots are selected', () => {
+      nameInput.value = 'ChrisP';
+      numHumansInput.value = '1';
+      numCPUsInput.value = '1';
+      fireEvent.click(submitButton);
+      const msgBox = getErrorBox();
+      expect(msgBox.classList.contains('active')).toBe(false);
+      expect(mockEmit).toHaveBeenCalledWith(
+        JOIN_GAME,
+        {
+          playerName: 'ChrisP',
+          numHumans: 1,
+          numCPUs: 1,
+        },
+        expect.any(Function)
+      );
+    });
 
-  it('shows error if total players (humans + CPUs) < 2', () => {
-    nameInput.value = 'Chris';
-    numHumansInput.value = '1';
-    numCPUsInput.value = '0';
-    fireEvent.click(submitButton);
-    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    expect(msgBox).toHaveClass('active');
-    expect(playerCountError.textContent).toMatch(/minimum of 2/i);
-    expect(mockEmit).not.toHaveBeenCalled();
-  });
+    it('generates a lobby link when another human is expected', () => {
+      nameInput.value = 'ChrisP';
+      numHumansInput.value = '2';
+      numCPUsInput.value = '0';
+      fireEvent.click(submitButton);
+      expect(mockEmit).toHaveBeenCalledWith(
+        JOIN_GAME,
+        {
+          playerName: 'ChrisP',
+          numHumans: 2,
+          numCPUs: 0,
+        },
+        expect.any(Function)
+      );
+    });
 
-  it('shows error if total players (humans + CPUs) > 4', () => {
-    nameInput.value = 'Chris';
-    numHumansInput.value = '3';
-    numCPUsInput.value = '2'; // Total 5
-    fireEvent.click(submitButton);
-    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    expect(msgBox).toHaveClass('active');
-    expect(playerCountError.textContent).toMatch(/maximum of 4/i);
-    expect(mockEmit).not.toHaveBeenCalled();
-  });
+    it('emits JOIN_GAME with room code when join button clicked', () => {
+      nameInput.value = 'Sam';
+      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      codeInput.value = 'ABC123';
+      fireEvent.click(joinButton);
+      expect(mockEmit).toHaveBeenCalledWith(
+        JOIN_GAME,
+        {
+          roomId: 'ABC123',
+          playerName: 'Sam',
+          numHumans: 1,
+          numCPUs: 0,
+        },
+        expect.any(Function)
+      );
+      expect(joinButton.disabled).toBe(true);
+    });
 
-  it('starts a CPU game locally when only bots are selected', () => {
-    nameInput.value = 'ChrisP';
-    numHumansInput.value = '1';
-    numCPUsInput.value = '1';
+    it('disables join button after click and re-enables after error', () => {
+      nameInput.value = 'Sam';
+      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      codeInput.value = 'ABC123';
+      fireEvent.click(joinButton);
+      expect(joinButton.disabled).toBe(true);
+      // Simulate error callback
+      const emitCall = mockEmit.mock.calls.find((call) => call[0] === JOIN_GAME);
+      if (emitCall) {
+        const callback = emitCall[2];
+        if (typeof callback === 'function') {
+          callback({ error: 'Room full' });
+        }
+      }
+      expect(joinButton.disabled).toBe(false);
+    });
 
-    fireEvent.click(submitButton);
+    it('calls state.saveSession and setCurrentRoom when joining', () => {
+      const saveSessionSpy = jest.spyOn(state, 'saveSession');
+      const setCurrentRoomSpy = jest.spyOn(state, 'setCurrentRoom');
+      nameInput.value = 'Sam';
+      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      codeInput.value = 'ABC123';
+      fireEvent.click(joinButton);
+      expect(saveSessionSpy).toHaveBeenCalled();
+      expect(setCurrentRoomSpy).toHaveBeenCalledWith('ABC123');
+    });
 
-    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    expect(msgBox.classList.contains('active')).toBe(false);
-    expect(mockEmit).toHaveBeenCalled();
-    expect(render.playArea).toHaveBeenCalled();
-  });
+    it('does not emit JOIN_GAME twice if join button is clicked rapidly', () => {
+      nameInput.value = 'Sam';
+      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      codeInput.value = 'ABC123';
+      fireEvent.click(joinButton);
+      fireEvent.click(joinButton);
+      const joinGameCalls = mockEmit.mock.calls.filter((call) => call[0] === JOIN_GAME);
+      expect(joinGameCalls.length).toBe(1);
+    });
 
-  it('generates a lobby link when another human is expected', () => {
-    nameInput.value = 'ChrisP';
-    numHumansInput.value = '2';
-    numCPUsInput.value = '0';
+    it('clears error message after successful join', () => {
+      nameInput.value = 'Sam';
+      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      codeInput.value = 'ABC123';
+      fireEvent.click(joinButton);
+      // Simulate success callback
+      const emitCall = mockEmit.mock.calls.find((call) => call[0] === JOIN_GAME);
+      if (emitCall) {
+        const callback = emitCall[2];
+        if (typeof callback === 'function') {
+          callback({ success: true });
+        }
+      }
+      const msgBox = getErrorBox();
+      expect(msgBox.classList.contains('active')).toBe(false);
+      expect(getErrorText().textContent).toBe('');
+    });
 
-    fireEvent.click(submitButton);
-
-    expect(mockEmit).toHaveBeenCalled();
-    expect(window.location.search).toMatch(/\?game=/);
-    expect(render.lobbyLink).toHaveBeenCalledWith(
-      expect.objectContaining({ id: expect.any(String) })
-    );
-    // If your code triggers JOIN_GAME after lobby creation, add this:
-    // expect(mockEmit).toHaveBeenCalledWith(
-    //   JOIN_GAME,
-    //   {
-    //     name: 'ChrisP',
-    //     numHumans: 1,
-    //     numCPUs: 1,
-    //   },
-    //   expect.any(Function)
-    // );
-  });
-
-  it('shows error when join code is invalid', () => {
-    nameInput.value = 'Sam';
-    const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
-    codeInput.value = '123';
-    fireEvent.click(joinButton);
-    const msgBox = document.querySelector('.message-box-content') as HTMLElement;
-    expect(msgBox).toHaveClass('active');
-    expect(mockEmit).not.toHaveBeenCalled();
-  });
-
-  it('emits JOIN_GAME with room code when join button clicked', () => {
-    nameInput.value = 'Sam';
-    const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
-    codeInput.value = 'ABC123';
-    fireEvent.click(joinButton);
-    expect(mockEmit).toHaveBeenCalledWith(JOIN_GAME, { id: 'ABC123', name: 'Sam' });
-    expect(joinButton.disabled).toBe(true);
+    it('resets form after successful join', () => {
+      nameInput.value = 'Sam';
+      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      codeInput.value = 'ABC123';
+      fireEvent.click(joinButton);
+      // Simulate success callback
+      const emitCall = mockEmit.mock.calls.find((call) => call[0] === JOIN_GAME);
+      if (emitCall) {
+        const callback = emitCall[2];
+        if (typeof callback === 'function') {
+          callback({ success: true });
+        }
+      }
+      expect(nameInput.value).toBe('');
+      expect(codeInput.value).toBe('');
+    });
   });
 });

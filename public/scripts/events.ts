@@ -290,39 +290,32 @@ function initializeCounterButtons() {
     const cpus = parseInt(cpuPlayersInput?.value || '0', 10);
     const total = humans + cpus;
 
-    console.log('🔧 [updateButtonStates] humans:', humans, 'cpus:', cpus, 'total:', total);
-
     // Update max attributes for inputs dynamically
     if (totalPlayersInput) {
       totalPlayersInput.max = (4 - cpus).toString(); // Max humans = 4 - current CPUs
     }
     if (cpuPlayersInput) {
       cpuPlayersInput.max = (4 - humans).toString(); // Max CPUs = 4 - current humans
-      console.log('🔧 Updated CPU input max to:', cpuPlayersInput.max);
     }
 
     // Human buttons
     if (humansMinusBtn) {
       const shouldDisable = humans <= 1;
       (humansMinusBtn as HTMLButtonElement).disabled = shouldDisable;
-      console.log('🔧 Human minus button disabled:', shouldDisable);
     }
     if (humansPlusBtn) {
       const shouldDisable = total >= 4;
       (humansPlusBtn as HTMLButtonElement).disabled = shouldDisable;
-      console.log('🔧 Human plus button disabled:', shouldDisable);
     }
 
     // CPU buttons
     if (cpusMinusBtn) {
       const shouldDisable = cpus <= 0;
       (cpusMinusBtn as HTMLButtonElement).disabled = shouldDisable;
-      console.log('🔧 CPU minus button disabled:', shouldDisable);
     }
     if (cpusPlusBtn) {
       const shouldDisable = total >= 4;
       (cpusPlusBtn as HTMLButtonElement).disabled = shouldDisable;
-      console.log('🔧 CPU plus button disabled:', shouldDisable, '(total >= 4)');
     }
   }
 
@@ -350,44 +343,26 @@ function initializeCounterButtons() {
 
   // CPU counter buttons
   if (cpusMinusBtn) {
-    console.log('✅ CPU minus button found and handler attached');
     cpusMinusBtn.onclick = () => {
-      console.log('🤖 CPU minus button clicked');
       const current = parseInt(cpuPlayersInput?.value || '0', 10);
-      console.log('🤖 Current CPU count:', current);
       if (current > 0) {
         cpuPlayersInput.value = (current - 1).toString();
-        console.log('🤖 CPU count decreased to:', cpuPlayersInput.value);
         updateTotalCount();
-      } else {
-        console.log('🤖 Cannot decrease CPU count - already at minimum (0)');
       }
     };
-  } else {
-    console.error('❌ CPU minus button not found!');
   }
 
   if (cpusPlusBtn) {
-    console.log('✅ CPU plus button found and handler attached');
     cpusPlusBtn.onclick = () => {
-      console.log('🤖 CPU plus button clicked');
       const current = parseInt(cpuPlayersInput?.value || '0', 10);
       const humans = parseInt(totalPlayersInput?.value || '1', 10);
       const total = current + humans;
-      console.log('🤖 Current CPU count:', current);
-      console.log('🤖 Current human count:', humans);
-      console.log('🤖 Total players would be:', total);
 
       if (current + humans < 4) {
         cpuPlayersInput.value = (current + 1).toString();
-        console.log('🤖 CPU count increased to:', cpuPlayersInput.value);
         updateTotalCount();
-      } else {
-        console.log('🤖 Cannot add CPU - would exceed maximum of 4 players');
       }
     };
-  } else {
-    console.error('❌ CPU plus button not found!');
   }
 
   // Initialize states
@@ -406,20 +381,15 @@ export async function initializePageEventListeners() {
 
   if (setupRulesButton) {
     setupRulesButton.addEventListener('click', handleRulesClick);
-    console.log('✅ Setup Rules button handler attached');
   }
 
   if (setupDealButton) {
     setupDealButton.addEventListener('click', handleDealClick);
-    console.log('✅ Setup Deal button handler attached');
   }
-
-  console.log('🔍 Button setup completed, proceeding with rest of initialization...');
 
   try {
     // Load state after handlers are attached
     state.loadSession();
-    console.log('✅ State loaded');
   } catch (stateError) {
     console.error('❌ Error loading state:', stateError);
   }
@@ -427,7 +397,6 @@ export async function initializePageEventListeners() {
   try {
     // Initialize socket handlers
     initializeSocketHandlers();
-    console.log('✅ Socket handlers initialized');
   } catch (socketError) {
     console.error('❌ Error initializing socket handlers:', socketError);
   }
@@ -477,10 +446,7 @@ export async function initializePageEventListeners() {
 
     // Close modal when clicking overlay
     overlay.addEventListener('click', (e) => {
-      if (
-        e.target === overlay &&
-        !rulesModal.classList.contains('modal--hidden')
-      ) {
+      if (e.target === overlay && !rulesModal.classList.contains('modal--hidden')) {
         hideRulesModalAndOverlay();
       }
     });
@@ -505,78 +471,42 @@ export async function initializePageEventListeners() {
     const updateExpandCollapseLabel = () => {
       const detailsList = getDetailsList();
       if (!expandCollapseBtn) {
-        console.log('[UpdateLabel] expandCollapseBtn not found, returning.');
         return;
       }
 
-      console.log(`[UpdateLabel] Found ${detailsList.length} details elements.`);
       detailsList.forEach((d, i) => {
         const summaryEl = d.querySelector('summary');
         const summaryText = summaryEl ? summaryEl.textContent?.trim() : 'Summary N/A';
-        console.log(`[UpdateLabel] Details[${i}] ("${summaryText}") open: ${d.open}`);
       });
 
       const allOpen = detailsList.length > 0 && detailsList.every((d) => d.open);
-      console.log('[UpdateLabel] Calculated allOpen:', allOpen);
-
       expandCollapseBtn.textContent = allOpen ? 'Collapse All' : 'Expand All';
-      console.log('[UpdateLabel] Button text set to:', expandCollapseBtn.textContent);
     };
 
     expandCollapseBtn.addEventListener('click', function () {
       const detailsList = getDetailsList();
-      console.log(
-        '[ExpandCollapse] Button clicked. Current text: %s. Details elements found: %d',
-        expandCollapseBtn.textContent,
-        detailsList.length
-      );
 
       if (detailsList.length === 0) {
-        console.log('[ExpandCollapse] No details elements found. Updating label and returning.');
         updateExpandCollapseLabel(); // Ensure label is correct
         return;
       }
 
       // Determine the desired state: if button says "Expand All", we want them open.
       const shouldBeOpen = expandCollapseBtn.textContent === 'Expand All';
-      console.log(
-        '[ExpandCollapse] Action determined from button text. Sections should be open: %s',
-        shouldBeOpen
-      );
 
       detailsList.forEach((d, index) => {
         const summaryElement = d.querySelector('summary');
         if (!summaryElement) {
-          console.warn('[ExpandCollapse] Details[%d]: No summary found, cannot click.', index);
           return; // Skip this one
         }
 
         // If the current state is different from the desired state, click the summary
         if (d.open !== shouldBeOpen) {
-          const summaryText = summaryElement.textContent?.trim() || 'N/A';
-          console.log(
-            '[ExpandCollapse] Details[%d] ("%s"): current open: %s, desired open: %s. Clicking summary.',
-            index,
-            summaryText,
-            d.open,
-            shouldBeOpen
-          );
           summaryElement.click(); // This will trigger the 'toggle' event, which calls updateExpandCollapseLabel
-        } else {
-          const summaryText = summaryElement.textContent?.trim() || 'N/A';
-          console.log(
-            '[ExpandCollapse] Details[%d] ("%s"): already in desired state (open: %s). No click needed.',
-            index,
-            summaryText,
-            d.open
-          );
         }
       });
       // The 'toggle' event listener on rulesModal (which calls updateExpandCollapseLabel)
       // should handle updating the main button's text after each programmatic click.
-      console.log(
-        '[ExpandCollapse] Finished iterating and dispatching clicks on summaries where needed.'
-      );
     });
 
     // Update label when modal is shown (handled by the main onclick handler above)
@@ -589,9 +519,6 @@ export async function initializePageEventListeners() {
           event.target instanceof HTMLDetailsElement &&
           event.target.classList.contains('rules-section')
         ) {
-          console.log(
-            '[DetailsToggle] A rules section was toggled by user. Updating expand/collapse label.'
-          );
           updateExpandCollapseLabel();
         }
       },
@@ -599,7 +526,6 @@ export async function initializePageEventListeners() {
     );
 
     // Initial label setup when the page loads
-    console.log('[InitialSetup] Setting initial expand/collapse label.');
     updateExpandCollapseLabel();
   }
   // Ensure the Start Game button is enabled/disabled when lobby updates
@@ -627,7 +553,6 @@ export async function initializePageEventListeners() {
   try {
     // Initialize counter buttons
     initializeCounterButtons();
-    console.log('✅ Counter buttons initialized');
   } catch (counterError) {
     console.error('❌ Error initializing counter buttons:', counterError);
   }
@@ -756,22 +681,55 @@ function handleDealClick() {
   state.setDesiredCpuCount(numCPUs);
 
   const playerDataForEmit = {
-    name: name,
+    playerName: name, // changed from 'name' to 'playerName' for JoinGamePayload
     numHumans: numHumans,
     numCPUs: numCPUs,
   };
 
   console.log('🎯 Deal button: Validations passed. Joining game with data:', playerDataForEmit);
-  state.socket.emit(JOIN_GAME, playerDataForEmit);
+  console.log('[CLIENT] handleDealClick: Emitting JOIN_GAME with', playerDataForEmit);
+
+  // Log socket connection status before attempting to emit
+  console.log('[CLIENT] Socket connection status before JOIN_GAME:', {
+    socketExists: !!state.socket,
+    connected: state.socket?.connected,
+    id: state.socket?.id,
+    hasJoinedListeners: state.socket ? state.socket.listeners('joined').length : 0,
+    hasLobbyStateListeners: state.socket ? state.socket.listeners('lobby-state-update').length : 0,
+  });
+
+  // Add a callback to log the server's response
+  state.socket.emit(JOIN_GAME, playerDataForEmit, (response) => {
+    console.log('[CLIENT] Received JOIN_GAME response from server:', response);
+    const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
+    if (response.error) {
+      console.error('[CLIENT] JOIN_GAME error:', response.error);
+      queueMessage(response.error);
+      if (dealButton) {
+        dealButton.disabled = false;
+        dealButton.textContent = "LET'S PLAY";
+      }
+    } else {
+      console.log(
+        '[CLIENT] JOIN_GAME success - Room ID:',
+        response.roomId,
+        'Player ID:',
+        response.playerId
+      );
+      // --- BEST PRACTICE: Reset form fields after successful join ---
+      const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+      if (form) form.reset();
+    }
+  });
 
   const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
   if (dealButton) {
     dealButton.disabled = true;
-    dealButton.textContent = 'Starting...';
+    dealButton.textContent = 'STARTING...';
     setTimeout(() => {
       if (dealButton) {
         dealButton.disabled = false;
-        dealButton.textContent = "Let's Play";
+        dealButton.textContent = "LET'S PLAY";
       }
     }, 3000);
   }
@@ -780,6 +738,12 @@ function handleDealClick() {
 function handleJoinGameClick() {
   console.log('🎯 Join game button clicked!');
   clearMessageQueueAndHide();
+
+  const joinBtn = document.getElementById('join-game-button') as HTMLButtonElement | null;
+  if (joinBtn && joinBtn.disabled) {
+    // Prevent duplicate emits if already disabled
+    return;
+  }
 
   const nameValidation = validateNameInput();
   const codeValidation = validateRoomCodeInput();
@@ -799,6 +763,7 @@ function handleJoinGameClick() {
       const nameInput = uiManager.getNameInput();
       if (nameInput) nameInput.focus();
     }
+    if (joinBtn) joinBtn.disabled = false; // Re-enable button on validation error
     return;
   }
 
@@ -806,9 +771,24 @@ function handleJoinGameClick() {
   const code = codeValidation.code;
   state.setCurrentRoom(code);
   state.saveSession();
-  state.socket.emit(JOIN_GAME, { id: code, name });
+  const joinPayload = {
+    roomId: code,
+    playerName: name,
+    numHumans: 1,
+    numCPUs: 0,
+  };
+  console.log('[CLIENT] handleJoinGameClick: Emitting JOIN_GAME with', joinPayload);
+  state.socket.emit(JOIN_GAME, joinPayload, (response: any) => {
+    if (joinBtn) joinBtn.disabled = false; // Re-enable button after server response
+    if (response && response.error) {
+      queueMessage(response.error);
+      return;
+    }
+    // --- BEST PRACTICE: Reset form fields after successful join ---
+    const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+    if (form) form.reset();
+  });
 
-  const joinBtn = document.getElementById('join-game-button') as HTMLButtonElement | null;
   if (joinBtn) joinBtn.disabled = true;
 }
 

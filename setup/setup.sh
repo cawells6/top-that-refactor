@@ -3,120 +3,108 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
+# --- Configuration ---
+# Get the directory of the currently executing script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$SCRIPT_DIR"
+ENV_EXAMPLE_FILE=".env.example"
+ENV_FILE=".env"
+
 # --- Helper Functions ---
-function check_command() {
-  if ! command -v $1 &> /dev/null
-  then
-    echo "❌ Error: $1 is not installed. Please install $1 and try again."
-    exit 1
-  fi
+print_message() {
+    local message=$1
+    local color=$2
+    local nocolor='\033[0m'
+    local color_code
+    case "$color" in
+        green)  color_code='\033[0;32m';;
+        yellow) color_code='\033[0;33m';;
+        red)    color_code='\033[0;31m';;
+        blue)   color_code='\033[0;34m';;
+        *)      color_code=$nocolor;;
+    esac
+    echo -e "${color_code}${message}${nocolor}"
 }
 
-function optional_step() {
-  echo "🔍 $1"
-  if $2; then
-    echo "✅ $3"
-  else
-    echo "⚠️ $4 - continuing anyway"
-  fi
-  echo ""
-  # Don't exit on failure for optional steps
-  return 0
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
 }
 
 # --- Main Script ---
-echo "🚀 Starting Top That! project setup..."
+cd "$PROJECT_ROOT" || { print_message "Error: Could not navigate to project root at $PROJECT_ROOT" "red"; exit 1; }
 
-# 1. Check for prerequisites (Node.js and npm)
-echo "🔍 Checking for prerequisites (Node.js and npm)..."
-check_command node
-check_command npm
+print_message "Top-That Refactor :: Project Setup" "blue"
+print_message "=================================" "blue"
+print_message "Project root detected at: $PROJECT_ROOT"
 
-# Check Node.js version
-NODE_VERSION=$(node -v | cut -d 'v' -f 2)
-NODE_MAJOR_VERSION=$(echo $NODE_VERSION | cut -d '.' -f 1)
-if [ "$NODE_MAJOR_VERSION" -lt 16 ]; then
-  echo "❌ Error: Node.js version $NODE_VERSION is too old. Please use v16 or higher."
-  exit 1
+# 1. Check for Prerequisites (Node.js and npm)
+print_message "\n[1/4] Checking for prerequisites..."
+if ! command_exists node || ! command_exists npm; then
+    print_message "Error: Node.js and/or npm are not installed or not in your PATH." "red"
+    print_message "Please install Node.js (which includes npm) and try again." "red"
+    exit 1
 fi
-echo "✅ Prerequisites found. Using Node.js $NODE_VERSION."
-echo ""
+print_message "✅ Node.js and npm are installed." "green"
+print_message "   - Node version: $(node --version)"
+print_message "   - npm version: $(npm --version)"
 
-# 2. Clean up any existing port conflicts (optional)
-echo "🧹 Cleaning up any existing port conflicts..."
-if node scripts/clean-start.cjs 2>/dev/null || node scripts/port-cleanup.cjs 2>/dev/null; then
-  echo "✅ Port cleanup successful or not needed."
+# 2. Set up environment file
+print_message "\n[2/4] Setting up environment file..."
+if [ ! -f "$ENV_FILE" ]; then
+    if [ -f "$ENV_EXAMPLE_FILE" ]; then
+        print_message "   - '.env' file not found. Copying from '.env.example'..." "yellow"
+        cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
+        print_message "   ✅ '.env' file created successfully." "green"
+    else
+        print_message "   - Warning: '.env.example' not found. Skipping '.env' creation." "yellow"
+    fi
 else
-  echo "⚠️ Port cleanup script not found or failed - continuing anyway."
+    print_message "   - '.env' file already exists. Skipping." "green"
 fi
-echo ""
 
 # 3. Install npm dependencies
-echo "📦 Installing npm dependencies from package.json..."
-npm install
-echo "✅ Dependencies installed successfully."
-echo ""
-
-# 4. Validate TypeScript configuration (required)
-echo "🔍 Validating TypeScript configuration..."
-npx tsc --noEmit
-if [ $? -eq 0 ]; then
-  echo "✅ TypeScript configuration is valid."
+print_message "\n[3/4] Installing project dependencies..."
+if [ -f "package-lock.json" ]; then
+    print_message "   - 'package-lock.json' found. Using 'npm ci' for clean installation." "yellow"
+    if npm ci; then
+        print_message "✅ Dependencies installed successfully via npm ci." "green"
+    else
+        print_message "Error: 'npm ci' failed. Please check the error messages above." "red"
+        exit 1
+    fi
 else
-  echo "❌ TypeScript validation failed. Exiting."
-  exit 1
+    print_message "   - 'package-lock.json' not found. Using 'npm install'." "yellow"
+    if npm install; then
+        print_message "✅ Dependencies installed successfully via npm install." "green"
+    else
+        print_message "Error: 'npm install' failed. Please check the error messages above." "red"
+        exit 1
+    fi
 fi
 
-echo "🔍 Running ESLint to check code quality..."
-npm run lint
-if [ $? -eq 0 ]; then
-  echo "✅ ESLint check complete."
+# 4. Build the project (TypeScript server and Vite client)
+print_message "\n[4/4] Building the project for production..."
+print_message "   - Building server code (TypeScript -> JavaScript)..."
+if npm run build; then
+    print_message "   ✅ Server built successfully." "green"
 else
-  echo "❌ ESLint found issues. Exiting."
-  exit 1
+    print_message "   Error: Server build ('npm run build') failed." "red"
+    exit 1
 fi
 
-echo "⚙️ Building server-side TypeScript code..."
-npm run build
-if [ $? -eq 0 ]; then
-  echo "✅ Server-side code built successfully."
+print_message "   - Building client assets (Vite)..."
+if npm run build:client; then
+    print_message "   ✅ Client built successfully." "green"
 else
-  echo "❌ Server-side build failed. Exiting."
-  exit 1
-fi
-echo ""
-
-echo "⚙️ Building client-side assets..."
-npm run build:client
-if [ $? -eq 0 ]; then
-  echo "✅ Client-side assets built successfully."
-else
-  echo "❌ Client-side build failed. Exiting."
-  exit 1
-fi
-echo ""
-
-echo "🔍 Running tests to verify functionality..."
-npm test
-if [ $? -eq 0 ]; then
-  echo "✅ All tests passed!"
-else
-  echo "❌ Some tests failed. Exiting."
-  exit 1
+    print_message "   Error: Client build ('npm run build:client') failed." "red"
+    exit 1
 fi
 
-echo ""
-echo "# --- Educational & Safety Notes ---"
-echo "# - This script enforces TypeScript, lint, and test checks."
-echo "# - If you need to skip a step for debugging, comment out the relevant block."
-echo "# - If you encounter persistent issues, try:"
-echo "#     rm -rf node_modules dist && npm install"
-echo "# - For Windows users: run this script in Git Bash or WSL for best results."
-echo "# - If you need to roll back, use: git checkout -- setup.sh"
-echo "# - For more help, see README.md or copilot-instructions.md."
-echo ""
-
-# --- Completion ---
-echo "🎉 Setup complete!"
-echo "Starting the development environment (both client and server)..."
-npm run dev:all
+# --- Completion Message ---
+print_message "\n🎉 Setup complete! 🎉" "green"
+print_message "======================" "green"
+print_message "You can now start the application using one of the following commands:"
+print_message "   - For development (with auto-reloading):" "yellow"
+print_message "     npm run dev"
+print_message "   - For production (uses the build artifacts):" "yellow"
+print_message "     npm start"

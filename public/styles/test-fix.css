@@ -1,0 +1,13 @@
+/* Very obvious test styles to see if our changes are being applied */
+
+body {
+  border: 10px solid red !important;
+}
+
+#game-table {
+  border: 10px solid blue !important;
+}
+
+#lobby-container {
+  border: 10px solid lime !important;
+}

@@ -17,9 +17,11 @@ export interface ClientStatePlayer {
   downCount?: number;
   hand?: Card[];
   upCards?: Card[];
+  downCards?: Card[]; // Added for server compatibility
   downCardsHidden?: number; // Number of down cards (hidden)
   disconnected?: boolean;
   isComputer?: boolean;
+  error?: string; // Added for server compatibility
 }
 
 export interface GameStateData {
@@ -45,4 +47,13 @@ export interface InSessionLobbyState {
   hostId: string | null;
   players: LobbyPlayer[];
   started?: boolean; // Added to communicate game start state
+}
+
+// Payload for joining a game (used by both client and server)
+export interface JoinGamePayload {
+  id?: string;
+  playerName: string;
+  numHumans: number;
+  numCPUs: number;
+  roomId?: string;
 }

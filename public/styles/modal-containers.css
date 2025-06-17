@@ -35,12 +35,15 @@
 
 /* Target the specific in-session lobby modal container */
 .in-session-lobby-modal .lobby-modal-container {
-  max-width: 500px;
-  width: 90%;
+  max-width: 800px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
 }
 
 /* Ensure the content div doesn't restrict width */
 .in-session-lobby-modal .game-setup-content {
-  width: 100%;
-  box-sizing: border-box;
+  max-width: 760px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
 }

@@ -55,6 +55,7 @@ export default class GameState {
   }
 
   public addPlayer(playerId: string): void {
+    if (!playerId) return; // Prevent empty, null, or undefined IDs
     if (this.players.length >= this.maxPlayers) {
       console.warn('Max players reached. Cannot add more players.');
       return;
@@ -110,7 +111,7 @@ export default class GameState {
     if (options.isCopy) {
       this.pile.push({ ...card, copied: true });
     } else {
-      this.pile.push(card);
+      this.pile.push({ ...card }); // Always push a shallow copy
     }
   }
 

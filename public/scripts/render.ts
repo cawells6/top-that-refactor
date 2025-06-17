@@ -1,6 +1,4 @@
 import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
-import { setupInSessionLobbyModal } from './components/InSessionLobbyModal.js';
-import { InSessionLobbyState } from '../../src/shared/types.js';
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 export function code(card: CardType): string {
@@ -34,13 +32,11 @@ export function cardImg(
   img.style.visibility = 'hidden';
 
   const cardCode = card.back ? 'back' : code(card);
-  console.log(
-    `Creating card image: ${card.back ? 'back' : `${card.value} of ${card.suit}`}, code=${cardCode}`
-  );
+  // [REMOVED NOISY LOGS]
 
   // Try using direct URLs instead of the proxy
   const imgSrc = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
-  console.log(`Card image src: ${imgSrc}`);
+  // [REMOVED NOISY LOGS]
 
   img.src = imgSrc;
   img.alt = card.back ? 'Card back' : `${card.value} of ${card.suit}`;
@@ -48,7 +44,7 @@ export function cardImg(
   // Set up onload and error handling
   img.onload = () => {
     img.style.visibility = 'visible';
-    console.log(`✅ Card loaded successfully: ${img.src}`);
+    // [REMOVED NOISY LOGS]
     if (onLoad) onLoad(img);
   };
 
