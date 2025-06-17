@@ -67,9 +67,12 @@ describe('Game Flow - Single Player vs CPU (manual start)', () => {
     expect(player).toBeDefined();
     expect(gameController['players'].has('COMPUTER_1')).toBe(true);
 
+    // Check that a CPU player was added (robust to ID changes)
+    const cpuPlayer = Array.from(gameController['players'].values()).find((p) => p.isComputer);
+    expect(cpuPlayer).toBeDefined();
     // After start, CPUs should be present and game should be started
     expect(gameController['gameState'].started).toBe(true);
-    expect(gameController['players'].has('COMPUTER_1')).toBe(true);
+    expect(cpuPlayer).toBeDefined();
 
     // Find the state update with started: true
     const stateUpdateAfterStart = topLevelEmitMock.mock.calls.find(
@@ -88,9 +91,9 @@ describe('Game Flow - Single Player vs CPU (manual start)', () => {
     const playerInstance = Array.from(gameController['players'].values()).find(
       (p) => p.name === joinPayload.playerName
     );
-    const cpu1Instance = gameController['players'].get('COMPUTER_1');
+    // Use the found CPU player for hand check
     expect(playerInstance && playerInstance.hand.length).toBe(3);
-    expect(cpu1Instance && cpu1Instance.hand.length).toBe(3);
+    expect(cpuPlayer && cpuPlayer.hand.length).toBe(3);
     expect(gameController['gameState'].deck!.length).toBe(52 - 2 * 9);
   });
 });
@@ -679,12 +682,12 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
     topLevelEmitMock.mockClear();
     sockets = [];
     playerData = [
-      { name: 'Host', id: 'HOST_ID' },
-      { name: 'Alice', id: 'ALICE_ID' },
-      { name: 'CPU', id: 'COMPUTER_1' },
+      // Use full JoinGamePayload for robust CPU logic
+      { playerName: 'Host', id: 'HOST_ID', numHumans: 3, numCPUs: 1, roomId: 'test-room' },
+      { playerName: 'Alice', id: 'ALICE_ID', numHumans: 3, numCPUs: 1, roomId: 'test-room' }
     ];
-    // Create 3 mock sockets
-    for (let i = 0; i < 3; i++) {
+    // Create 2 mock sockets (for humans only)
+    for (let i = 0; i < 2; i++) {
       const s: MockSocket = {
         id: `socket-${i}`,
         join: jest.fn(),
@@ -720,7 +723,9 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
     (gameController['publicHandleJoin'] as Function)(sockets[1], playerData[1]);
     // Add CPU by starting game with computerCount: 1
     (gameController['handleStartGame'] as Function)({ computerCount: 1, socket: sockets[0] });
+    // Robust check for CPU player
     expect(gameController['players'].has('COMPUTER_1')).toBe(true);
+    expect(gameController['players'].get('COMPUTER_1')?.isComputer).toBe(true);
     expect(gameController['gameState'].players.length).toBe(3);
 
     // 2. Start game (already started above)
@@ -732,41 +737,32 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
     }
 
     // 3. Simulate valid card plays and turn advancement
-    // For simplicity, simulate each player playing their first card in hand
     for (let turn = 0; turn < 3; turn++) {
       const currentPlayerId = gameController['gameState'].players[gameController['gameState'].currentPlayerIndex];
       const player = gameController['players'].get(currentPlayerId)!;
-      // Play first card from hand
       const cardIndices = [0];
       const zone = 'hand';
-      // Simulate playCard event
       (gameController as any)['handlePlayCardInternal'](player, cardIndices, zone, [player.hand[0]]);
     }
 
     // 4. Simulate a player winning (empty hand, up, down)
-    // Force one player to have empty hand, upCards, and downCards
     const winnerId = gameController['gameState'].players[0];
     const winner = gameController['players'].get(winnerId)!;
     winner.hand = [];
     winner.upCards = [];
     winner.downCards = [];
-    // End game
     gameController['gameState'].started = false;
     topLevelEmitMock.mockClear();
-    // Simulate GAME_OVER emission
     gameController['io'].to(gameController['roomId']).emit('game-over', winnerId);
     const gameOverCall = topLevelEmitMock.mock.calls.find((call) => call[0] === 'game-over');
     expect(gameOverCall).toBeDefined();
     expect(gameOverCall![1]).toEqual(winnerId);
 
     // 5. Optionally, simulate restart
-    // Reset state
     gameController['gameState'].started = false;
     gameController['gameState'].deck = null;
-    // Players rejoin (simulate by calling join again)
     (gameController['publicHandleJoin'] as Function)(sockets[0], playerData[0]);
     (gameController['publicHandleJoin'] as Function)(sockets[1], playerData[1]);
-    // Add CPU by starting game with computerCount: 1
     (gameController['handleStartGame'] as Function)({ computerCount: 1, socket: sockets[0] });
     expect(gameController['gameState'].started).toBe(true);
     for (const id of gameController['gameState'].players) {

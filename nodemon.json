@@ -1,9 +1,11 @@
 {
-  "verbose": true,
-  "watch": ["src", "server.ts", "controllers", "models"],
+  "watch": ["server.ts", "models/", "controllers/", "utils/", "src/shared/"],
   "ext": "ts,js,json",
+  "ignore": ["node_modules/", "dist/", "public/", ".git/", "*.test.ts"],
+  "exec": "node --no-warnings --loader ts-node/esm ./server.ts",
   "events": {
-    "restart": "node ./scripts/nodemon-restart.js"
+    "restart": "node scripts/nodemon-restart.js"
   },
-  "delay": "500"
+  "delay": "1000",
+  "signal": "SIGTERM"
 }

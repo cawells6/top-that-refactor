@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Simplified port status checker
- * This script only checks and displays ports 3000 and 5173
+ * Simple utility to check port status without killing processes
  */
 
 const { exec } = require('child_process');
@@ -9,9 +8,9 @@ const os = require('os');
 const util = require('util');
 
 const execAsync = util.promisify(exec);
-const PORTS_TO_CHECK = [3000, 5173]; // Only server and Vite ports
+const TARGET_PORTS = [3000, 5173]; // Only server and Vite ports
 
-async function getPortStatus(ports) {
+async function getPortProcesses(ports) {
   const platform = os.platform();
   const portStatus = new Map();
 
@@ -60,34 +59,49 @@ async function getPortStatus(ports) {
   }
 }
 
-async function main() {
-  console.log('\n=== PORT STATUS - SIMPLIFIED ===');
-  console.log('Only checking ports 3000 and 5173');
+async function displayPortStatus(processes) {
+  console.log('📊 Port Status:');
+  TARGET_PORTS.forEach((port, index) => {
+    const portInfo = processes.get(port);
+    if (!portInfo) {
+      console.log(`[${index}] Port ${port}: Unknown status (null portInfo)`);
+      return;
+    }
+    const statusText = portInfo.inUse ? `🔴 IN USE (PID: ${portInfo.pid})` : '🟢 FREE';
+    console.log(`[${index}] Port ${port}: ${statusText}`);
+  });
 
-  try {
-    console.log('Getting port status...');
-    const status = await getPortStatus(PORTS_TO_CHECK);
-    console.log('Status received, displaying results');
-
-    PORTS_TO_CHECK.forEach((port, index) => {
-      const portInfo = status.get(port);
-      if (!portInfo) {
-        console.log(`[${index}] Port ${port}: Unknown status (null portInfo)`);
-        return;
-      }
-      const statusText = portInfo.inUse ? `🔴 IN USE (PID: ${portInfo.pid})` : '🟢 FREE';
-      console.log(`[${index}] Port ${port}: ${statusText}`);
-    });
-
-    console.log(`[${PORTS_TO_CHECK.length}] ==================`);
-  } catch (error) {
-    console.error('Error displaying port status:', error.message);
-    console.error(error.stack);
-  }
+  console.log(`[${TARGET_PORTS.length}] ==================`);
 }
 
-// Run the main function
-console.log('Starting port check...');
-main().catch((error) => {
-  console.error('Fatal error:', error);
-});
+async function checkPortStatus() {
+  console.log('📊 Checking status of development ports...');
+  const processes = await getPortProcesses(TARGET_PORTS);
+  displayPortStatus(processes);
+
+  // Return summary information
+  return {
+    total: TARGET_PORTS.length,
+    occupied: processes.size,
+    free: TARGET_PORTS.length - processes.size,
+    details: Array.from(processes.entries()).map(([port, proc]) => ({
+      port,
+      pid: proc.pid,
+      state: proc.state
+    }))
+  };
+}
+
+// Run directly
+if (require.main === module) {
+  checkPortStatus()
+    .then(summary => {
+      console.log(`Summary: ${summary.free} free, ${summary.occupied} occupied`);
+    })
+    .catch(err => {
+      console.error('Error checking port status:', err);
+      process.exit(1);
+    });
+}
+
+module.exports = checkPortStatus;

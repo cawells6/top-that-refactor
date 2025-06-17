@@ -5,6 +5,13 @@
  * For tests that intentionally test missing DOM, mock InSessionLobbyModal to avoid constructor errors.
  */
 
+/**
+ * Best Practice: Use setupModalDOM() or mockInSessionLobbyModal() from tests/utils/domSetup for modal-related tests.
+ *   - setupModalDOM(): For tests that require the modal DOM structure.
+ *   - mockInSessionLobbyModal(): For tests that intentionally omit DOM setup but import/require the modal.
+ */
+import { setupModalDOM, mockInSessionLobbyModal } from './utils/domSetup';
+
 describe('Client Main Script (main.ts) - Join Link Only', () => {
   beforeEach(() => {
     jest.resetModules();
@@ -26,6 +33,12 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
         <input id="guest-player-name-input" />
       </div>
       <div id="waiting-state" class="hidden"></div>
+      <!-- Minimal .player-silhouette structure for main.ts DOM queries -->
+      <div class="player-silhouette">
+        <img src="" alt="player" />
+        <span class="user-icon"></span>
+        <span class="robot-icon"></span>
+      </div>
     `;
     document.body.className = 'body-loading';
   }
@@ -46,22 +59,28 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
   }
 
   it('should handle join link in URL and emit JOIN_GAME', async () => {
-    // Best Practice: Always call setupMainDOM() before requiring main.js for DOM-dependent tests.
     jest.resetModules();
-    jest.doMock('../public/scripts/state.js', () => getStateMock(), { virtual: true });
     setupMainDOM();
     window.history.replaceState({}, document.title, '/?room=ROOM123');
-    await jest.isolateModulesAsync(async () => {
-      require('../public/scripts/main.js');
-      document.dispatchEvent(new Event('DOMContentLoaded'));
-      await Promise.resolve();
+    // Import initMain from main.ts
+    const { initMain } = await import('../public/scripts/main.ts');
+    // Create mocks
+    const setCurrentRoom = jest.fn();
+    const emit = jest.fn();
+    const socket = { emit, on: jest.fn(), id: 'mock-socket-id' };
+    // Call initMain with injected mocks
+    await initMain({
+      injectedSetCurrentRoom: setCurrentRoom,
+      injectedSocket: socket,
+      injectedWindow: window,
+      injectedDocument: document,
     });
-    const stateModule = jest.requireMock('../public/scripts/state.js');
-    expect(stateModule.setCurrentRoom).toHaveBeenCalledWith('ROOM123');
-    expect(stateModule.socket.emit).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ roomId: 'ROOM123', playerName: 'Guest' })
-    );
+    // Debug output for diagnosis
+    console.log('setCurrentRoom calls:', setCurrentRoom.mock.calls);
+    console.log('socket.emit calls:', emit.mock.calls);
+    // Robust: Check that setCurrentRoom and socket.emit were called at least once with expected args
+    expect(setCurrentRoom.mock.calls.some(call => call[0] === 'ROOM123')).toBe(true);
+    expect(emit.mock.calls.some(call => call[1]?.roomId === 'ROOM123' && call[1]?.playerName === 'Guest')).toBe(true);
     expect(window.location.search).toBe('');
   });
 
@@ -113,43 +132,49 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
 
   it('should handle room param with whitespace and special characters', async () => {
     jest.resetModules();
-    jest.doMock('../public/scripts/state.js', () => getStateMock(), { virtual: true });
     setupMainDOM();
     window.history.replaceState({}, document.title, '/?room=%20ROOM%20%40%23%24');
-    await jest.isolateModulesAsync(async () => {
-      require('../public/scripts/main.js');
-      document.dispatchEvent(new Event('DOMContentLoaded'));
-      await Promise.resolve();
+    const { initMain } = await import('../public/scripts/main.ts');
+    const setCurrentRoom = jest.fn();
+    const emit = jest.fn();
+    const socket = { emit, on: jest.fn(), id: 'mock-socket-id' };
+    await initMain({
+      injectedSetCurrentRoom: setCurrentRoom,
+      injectedSocket: socket,
+      injectedWindow: window,
+      injectedDocument: document,
     });
-    const stateModule = jest.requireMock('../public/scripts/state.js');
-    expect(stateModule.setCurrentRoom).toHaveBeenCalledWith(' ROOM @#$');
-    expect(stateModule.socket.emit).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ roomId: ' ROOM @#$', playerName: 'Guest' })
-    );
+    expect(setCurrentRoom.mock.calls.some(call => call[0] === ' ROOM @#$')).toBe(true);
+    expect(emit.mock.calls.some(call => call[1]?.roomId === ' ROOM @#$' && call[1]?.playerName === 'Guest')).toBe(true);
   });
 
   it('should use first room param if multiple present', async () => {
     jest.resetModules();
-    jest.doMock('../public/scripts/state.js', () => getStateMock(), { virtual: true });
     setupMainDOM();
     window.history.replaceState({}, document.title, '/?room=FIRST&room=SECOND');
-    await jest.isolateModulesAsync(async () => {
-      require('../public/scripts/main.js');
-      document.dispatchEvent(new Event('DOMContentLoaded'));
-      await Promise.resolve();
+    const { initMain } = await import('../public/scripts/main.ts');
+    const setCurrentRoom = jest.fn();
+    const emit = jest.fn();
+    const socket = { emit, on: jest.fn(), id: 'mock-socket-id' };
+    await initMain({
+      injectedSetCurrentRoom: setCurrentRoom,
+      injectedSocket: socket,
+      injectedWindow: window,
+      injectedDocument: document,
     });
-    const stateModule = jest.requireMock('../public/scripts/state.js');
-    expect(stateModule.setCurrentRoom).toHaveBeenCalledWith('FIRST');
-    expect(stateModule.socket.emit).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ roomId: 'FIRST', playerName: 'Guest' })
-    );
+    expect(setCurrentRoom.mock.calls.some(call => call[0] === 'FIRST')).toBe(true);
+    expect(emit.mock.calls.some(call => call[1]?.roomId === 'FIRST' && call[1]?.playerName === 'Guest')).toBe(true);
   });
 
   it('should not throw if DOM is missing elements', async () => {
     jest.resetModules();
     jest.doMock('../public/scripts/state.js', () => getStateMock(), { virtual: true });
+    // Best Practice: Mock InSessionLobbyModal to avoid constructor errors when DOM is missing
+    jest.doMock(
+      '../public/scripts/components/InSessionLobbyModal.js',
+      () => ({ InSessionLobbyModal: jest.fn() }),
+      { virtual: true }
+    );
     document.body.innerHTML = '';
     window.history.replaceState({}, document.title, '/?room=ROOMSAFE');
     await expect(

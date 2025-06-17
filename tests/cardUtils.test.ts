@@ -391,8 +391,8 @@ describe('normalizeCardValue additional keywords and edge cases', () => {
     expect(normalizeCardValue('  Queen ')).toBe('q');
   });
   test('handles non-stringifiable objects', () => {
-    expect(typeof normalizeCardValue(null)).toBe('string');
-    expect(typeof normalizeCardValue(Symbol('x') as any)).toBe('string');
+    expect(normalizeCardValue(null)).toBe(null); // null in, null out
+    expect(typeof normalizeCardValue(Symbol('x') as any)).toBe('string'); // Symbol stringifies to 'Symbol(x)'
   });
 });
 

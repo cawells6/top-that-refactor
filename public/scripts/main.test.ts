@@ -49,6 +49,13 @@ jest.mock(
   { virtual: true }
 );
 
+/**
+ * Best Practice: Use setupModalDOM() or mockInSessionLobbyModal() from tests/utils/domSetup for modal-related tests.
+ *   - setupModalDOM(): For tests that require the modal DOM structure.
+ *   - mockInSessionLobbyModal(): For tests that intentionally omit DOM setup but import/require the modal.
+ */
+import { setupModalDOM, mockInSessionLobbyModal } from '../../tests/utils/domSetup';
+
 function setupMainDOM({ withLobby = true, withModal = true } = {}) {
   document.body.innerHTML = `
     <div id="main-content" class="preload-hidden"></div>
@@ -65,6 +72,12 @@ function setupMainDOM({ withLobby = true, withModal = true } = {}) {
         : ''
     }
     <div id="waiting-state" class="hidden"></div>
+    <!-- Minimal .player-silhouette structure for main.ts DOM queries -->
+    <div class="player-silhouette">
+      <img src="" alt="player" />
+      <span class="user-icon"></span>
+      <span class="robot-icon"></span>
+    </div>
   `;
   document.body.className = 'body-loading';
 }

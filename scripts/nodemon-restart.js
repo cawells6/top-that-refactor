@@ -1,18 +1,11 @@
 #!/usr/bin/env node
 /**
  * Custom script to run before nodemon restarts the server
- * This script performs port cleanup specifically for server port (3000)
- * It ignores the Vite port to avoid disrupting the client
+ * This script performs targeted port cleanup specifically for server port (3000)
  */
 
 const path = require('path');
 const fs = require('fs');
-
-// Set a timeout to avoid hanging the restart process
-const EXECUTION_TIMEOUT = 5000; // 5 seconds max execution time
-const timeoutPromise = new Promise((_, reject) => {
-  setTimeout(() => reject(new Error('Script execution timed out')), EXECUTION_TIMEOUT);
-});
 
 // Import helper functions from port-cleanup.cjs
 let portCleanup;
@@ -40,11 +33,9 @@ const SERVER_PORT = 3000;
 /**
  * Attempt to read current-port.txt file to get the actual server port
  * Falls back to SERVER_PORT (3000) if file doesn't exist or can't be read
- * @returns {number} The port number the server is running on
  */
 function getCurrentServerPort() {
   try {
-    // We already have fs imported at the top
     const portPath = path.resolve(__dirname, '../current-port.txt');
 
     if (fs.existsSync(portPath)) {
@@ -72,22 +63,31 @@ async function cleanupServerPort() {
   const port = getCurrentServerPort();
 
   try {
-    // Use Promise.race to implement timeout
-    await Promise.race([
-      (async () => {
-        console.log(`🔍 Using cleanupPorts for port ${port} only`);
-        // Important: Only pass the server port, not the default array which includes the Vite port
-        await portCleanup.cleanupPorts([port]);
-      })(),
-      timeoutPromise,
-    ]);
-
+    console.log(`🔍 Using cleanupPorts for port ${port} only`);
+    // Important: Only pass the server port, not the default array which includes the Vite port
+    await portCleanup.cleanupPorts([port]);
     console.log('✅ Port cleanup complete - proceeding with server restart');
     return true;
   } catch (error) {
-    if (error.message === 'Script execution timed out') {
-      console.error('⏱️ Port cleanup timed out - continuing with restart anyway');
-    } else {
+    console.error('❌ Error during port cleanup:', error);
+    // Still return success so nodemon continues with restart
+    return true;
+  }
+}
+
+async function main() {
+  try {
+    await cleanupServerPort();
+    process.exit(0); // Success
+  } catch (error) {
+    console.error('❌ Fatal error during port cleanup:', error);
+    // Exit with success code anyway to allow nodemon to continue
+    process.exit(0);
+  }
+}
+
+// Start the cleanup process
+main();
       console.error('❌ Error during port cleanup:', error);
     }
     // Still return success so nodemon continues with restart

@@ -1,34 +1,50 @@
 // scripts/clean-start.cjs
 // Cross-platform Node.js script to kill lingering node and vite processes before dev start
-// Windows: kills node.exe and vite.exe; other OS: prints a warning (customize as needed)
 
 const path = require('path');
-const os = require('os');
+const fs = require('fs');
 
-function killWindowsProcesses() {
-  // IMPORTANT: Instead of killing all node processes (which is too aggressive),
-  // we'll leverage the port-cleanup.cjs script to target only the processes on our specific ports
+/**
+ * Clean start function that handles port cleanup before starting the application
+ */
+function cleanStart() {
+  console.log('🧹 Starting application with port cleanup...');
+
+  // Only run the cleanup once
+  const cleanupPath = path.join(__dirname, 'port-cleanup.cjs');
+  console.log(`Looking for port cleanup module at: ${cleanupPath}`);
+
   try {
-    console.log('🔍 Looking for processes on game server ports...');
-    const portCleanupPath = path.resolve(__dirname, './port-cleanup.cjs');
-    const portCleanup = require(portCleanupPath);
-
-    // Only clean up the server port 3000, leave Vite port alone (5173)
-    portCleanup.cleanupPorts([3000]);
-
-    console.log('✅ Cleaned up server port processes.');
+    if (fs.existsSync(cleanupPath)) {
+      console.log('Running port cleanup...');
+      const { cleanupPorts } = require(cleanupPath);
+      const success = cleanupPorts(true);
+      
+      if (success) {
+        console.log('✅ Port cleanup successful. Application can now start.');
+      } else {
+        console.warn('⚠️ Some ports could not be freed. Application may not start correctly.');
+      }
+      
+      return success;
+    } else {
+      console.error('❌ Port cleanup module not found.');
+      return false;
+    }
   } catch (error) {
-    console.log(`⚠️ Port cleanup failed: ${error.message}. Continuing anyway.`);
+    console.error('❌ Error during port cleanup:', error);
+    console.log('Continuing application startup despite cleanup failure...');
+    return false;
   }
 }
 
-function main() {
-  if (os.platform() === 'win32') {
-    killWindowsProcesses();
-  } else {
-    // Optionally, implement pkill for Unix here
-    console.warn('⚠️  Process cleanup is only implemented for Windows.');
+// Run the cleanup when this script is executed directly
+if (require.main === module) {
+  const success = cleanStart();
+  if (!success) {
+    console.log('🚀 Continuing with application startup despite cleanup warnings...');
+    // Don't exit with error to allow startup to continue
   }
 }
 
-main();
+module.exports = cleanStart;

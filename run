@@ -1,5 +1,10 @@
 #!/bin/bash
-# Simple script to start the development server
-echo "Starting development servers..."
-npx concurrently "npm run dev:client 2>&1 | grep -v '\[nodemon\]' | grep -v 'ExperimentalWarning' | grep -v 'DeprecationWarning'" \
-             "npm run dev:server 2>&1 | grep -v '\[nodemon\]' | grep -v 'ExperimentalWarning' | grep -v 'DeprecationWarning'"
+
+# Ultra-minimal development starter
+# No duplicate cleanup or verbose messages
+
+# Just run the script directly
+./run.js
+
+# Use the exit code from the script
+exit $?
