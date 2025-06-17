@@ -11,10 +11,14 @@ export PATH="$PATH:$PROJECT_DIR"
 # Alias for gpush to call the batch file directly
 alias gpush="$PROJECT_DIR/gpush.bat"
 
-# Top-That-Refactor run alias
-alias run="npm run dev:all & disown"
+# Alias for Top-That-Refactor dev workflow (foreground, no conflicts)
+alias pop="node $PROJECT_DIR/run.js"
+# Usage: type 'pop' to start the dev workflow
 
-# Top-That-Refactor run alias
-alias run="npm run dev:all & disown"
+# Always set run alias to the correct script (foreground)
+unalias run 2>/dev/null
+alias run="node $PROJECT_DIR/run.js"
+# After any shell restart, always run: source scripts/bash_aliases
 
 echo "✅ Top-That-Refactor aliases loaded!"
+# To activate these aliases, run: source scripts/bash_aliases
