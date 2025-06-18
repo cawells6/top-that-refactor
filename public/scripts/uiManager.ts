@@ -1,7 +1,12 @@
 import { renderGameState } from './render.js';
 import * as state from './state.js';
-import { JOINED, LOBBY_STATE_UPDATE, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
-import { GameStateData } from '../../src/shared/types.js';
+import {
+  JOINED,
+  LOBBY_STATE_UPDATE,
+  STATE_UPDATE,
+  REJOIN,
+} from '../../src/types/events.js';
+import { GameStateData } from '../../src/types/types.js';
 
 export const getLobbyContainer = (): HTMLElement | null =>
   document.getElementById('lobby-container');
@@ -12,7 +17,8 @@ export const getLobbyFormContent = (): HTMLElement | null =>
 export const getWaitingStateDiv = (): HTMLElement | null =>
   document.getElementById('waiting-state');
 
-export const getGameTable = (): HTMLElement | null => document.getElementById('game-table'); // Corrected getter
+export const getGameTable = (): HTMLElement | null =>
+  document.getElementById('game-table'); // Corrected getter
 
 export const getPlayerAreaBottom = (): HTMLElement | null =>
   document.getElementById('player-area-bottom');
@@ -35,9 +41,11 @@ export const getRulesButton = (): HTMLButtonElement | null =>
 export const getDealButton = (): HTMLButtonElement | null =>
   document.getElementById('header-deal-button') as HTMLButtonElement | null;
 
-export const getRulesModal = (): HTMLElement | null => document.getElementById('rules-modal');
+export const getRulesModal = (): HTMLElement | null =>
+  document.getElementById('rules-modal');
 
-export const getModalOverlay = (): HTMLElement | null => document.getElementById('modal-overlay');
+export const getModalOverlay = (): HTMLElement | null =>
+  document.getElementById('modal-overlay');
 
 export const getBackToLobbyButton = (): HTMLButtonElement | null =>
   document.getElementById('back-to-lobby-button') as HTMLButtonElement | null;
@@ -48,7 +56,8 @@ export const getGameLogEntries = (): HTMLElement | null =>
 export const getNameInput = (): HTMLInputElement | null =>
   document.getElementById('player-name-input') as HTMLInputElement | null;
 
-export const $ = (id: string): HTMLElement | null => document.getElementById(id);
+export const $ = (id: string): HTMLElement | null =>
+  document.getElementById(id);
 
 export function showLobbyForm(): void {
   const lobbyContainer = getLobbyContainer();
@@ -57,7 +66,9 @@ export function showLobbyForm(): void {
   const mainContent = document.getElementById('main-content');
 
   if (!lobbyContainer) {
-    console.warn('[uiManager] showLobbyForm: #lobby-container element not found!');
+    console.warn(
+      '[uiManager] showLobbyForm: #lobby-container element not found!'
+    );
     return;
   }
 
@@ -151,8 +162,16 @@ export function initializeSocketHandlers(): void {
 
   state.socket.on(
     LOBBY_STATE_UPDATE,
-    (data: { roomId: string; players: { id: string; name: string; ready: boolean }[] }) => {
-      showWaitingState(data.roomId, data.players.length, data.players.length, data.players);
+    (data: {
+      roomId: string;
+      players: { id: string; name: string; ready: boolean }[];
+    }) => {
+      showWaitingState(
+        data.roomId,
+        data.players.length,
+        data.players.length,
+        data.players
+      );
     }
   );
 

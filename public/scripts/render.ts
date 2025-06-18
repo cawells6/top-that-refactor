@@ -1,4 +1,8 @@
-import { Card as CardType, GameStateData, ClientStatePlayer } from '../../src/shared/types.js';
+import {
+  Card as CardType,
+  GameStateData,
+  ClientStatePlayer,
+} from '../../src/types/types.js';
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 export function code(card: CardType): string {
@@ -6,7 +10,10 @@ export function code(card: CardType): string {
     // Simplified null/undefined check
     return 'ERR';
   }
-  const v = String(card.value).toUpperCase() === '10' ? '0' : String(card.value).toUpperCase();
+  const v =
+    String(card.value).toUpperCase() === '10'
+      ? '0'
+      : String(card.value).toUpperCase();
   const suitMap: { [key: string]: string } = {
     hearts: 'H',
     diamonds: 'D',
@@ -64,11 +71,15 @@ export function cardImg(
       const currentSrcIndex = fallbacks.indexOf(img.src);
 
       if (currentSrcIndex < fallbacks.length - 1) {
-        console.log(`🔄 Trying alternative source: ${fallbacks[currentSrcIndex + 1]}`);
+        console.log(
+          `🔄 Trying alternative source: ${fallbacks[currentSrcIndex + 1]}`
+        );
         img.src = fallbacks[currentSrcIndex + 1];
       } else {
         // Create a fallback visual representation
-        console.warn(`⚠️ All image sources failed for ${cardCode}, using fallback`);
+        console.warn(
+          `⚠️ All image sources failed for ${cardCode}, using fallback`
+        );
         img.style.visibility = 'visible';
         container.style.border = '1px solid #ccc';
         container.style.borderRadius = '8px';
@@ -85,20 +96,25 @@ export function cardImg(
           valueDisplay.style.fontSize = '18px';
           valueDisplay.style.fontWeight = 'bold';
           valueDisplay.style.color =
-            card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : 'black';
+            card.suit === 'hearts' || card.suit === 'diamonds'
+              ? 'red'
+              : 'black';
           valueDisplay.textContent = String(card.value);
 
           const suitDisplay = document.createElement('div');
           suitDisplay.style.fontSize = '24px';
           suitDisplay.style.color =
-            card.suit === 'hearts' || card.suit === 'diamonds' ? 'red' : 'black';
+            card.suit === 'hearts' || card.suit === 'diamonds'
+              ? 'red'
+              : 'black';
           const suitMap: Record<string, string> = {
             hearts: '♥',
             diamonds: '♦',
             clubs: '♣',
             spades: '♠',
           };
-          suitDisplay.textContent = suitMap[card.suit as keyof typeof suitMap] || '';
+          suitDisplay.textContent =
+            suitMap[card.suit as keyof typeof suitMap] || '';
 
           container.appendChild(valueDisplay);
           container.appendChild(suitDisplay);
@@ -119,7 +135,10 @@ export function cardImg(
     img.style.touchAction = 'manipulation';
     container.addEventListener('click', () => {
       img.classList.toggle('selected');
-      container.classList.toggle('selected-container', img.classList.contains('selected'));
+      container.classList.toggle(
+        'selected-container',
+        img.classList.contains('selected')
+      );
     });
   }
 
@@ -131,12 +150,23 @@ export function cardImg(
  * Main render function to update the entire game view
  * @param {GameStateData} gameState - Full game state from server
  */
-export function renderGameState(gameState: GameStateData, localPlayerId: string | null): void {
+export function renderGameState(
+  gameState: GameStateData,
+  localPlayerId: string | null
+): void {
   // Corrected selectors to use IDs from index.html
-  const slotTop = document.getElementById('opponent-area-top') as HTMLElement | null;
-  const slotBottom = document.getElementById('player-area-bottom') as HTMLElement | null;
-  const slotLeft = document.getElementById('opponent-area-left') as HTMLElement | null;
-  const slotRight = document.getElementById('opponent-area-right') as HTMLElement | null;
+  const slotTop = document.getElementById(
+    'opponent-area-top'
+  ) as HTMLElement | null;
+  const slotBottom = document.getElementById(
+    'player-area-bottom'
+  ) as HTMLElement | null;
+  const slotLeft = document.getElementById(
+    'opponent-area-left'
+  ) as HTMLElement | null;
+  const slotRight = document.getElementById(
+    'opponent-area-right'
+  ) as HTMLElement | null;
 
   if (!gameState || !gameState.players) {
     console.warn('Render: No game state or players to render.');
@@ -166,10 +196,14 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
     slotRight.innerHTML = '';
     slotRight.style.backgroundColor = lightGreen;
   }
-  document.querySelectorAll('.player-area.active').forEach((el) => el.classList.remove('active'));
+  document
+    .querySelectorAll('.player-area.active')
+    .forEach((el) => el.classList.remove('active'));
 
   const players = gameState.players;
-  const meIdx = localPlayerId ? players.findIndex((p) => p.id === localPlayerId) : -1;
+  const meIdx = localPlayerId
+    ? players.findIndex((p) => p.id === localPlayerId)
+    : -1;
 
   // --- NEW: Rotate players array so local player is always index 0 ---
   let rotatedPlayers: ClientStatePlayer[] = [];
@@ -208,7 +242,8 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
     // Name header - blue banner with gold letters, full width of player board
     const nameHeader = document.createElement('div');
     nameHeader.className =
-      'player-name-header ' + (player.isComputer ? 'player-cpu' : 'player-human');
+      'player-name-header ' +
+      (player.isComputer ? 'player-cpu' : 'player-human');
     nameHeader.style.width = '100%';
     nameHeader.style.textAlign = 'center';
     nameHeader.style.marginBottom = '5px';
@@ -238,7 +273,8 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
           const canInteract = gameState.currentPlayerId === localPlayerId;
           const cardElement = cardImg(card, canInteract);
           const imgEl = cardElement.querySelector('.card-img');
-          if (imgEl && imgEl instanceof HTMLImageElement) imgEl.dataset.idx = String(i);
+          if (imgEl && imgEl instanceof HTMLImageElement)
+            imgEl.dataset.idx = String(i);
           handRow.appendChild(cardElement);
         } else {
           // Empty slot - show placeholder
@@ -312,8 +348,13 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
         col.style.position = 'relative';
 
         if ((player.downCount ?? 0) > i) {
-          const downCard = cardImg({ value: '', suit: '', back: true } as CardType, false);
-          const downImg = downCard.querySelector('.card-img') as HTMLImageElement | null;
+          const downCard = cardImg(
+            { value: '', suit: '', back: true } as CardType,
+            false
+          );
+          const downImg = downCard.querySelector(
+            '.card-img'
+          ) as HTMLImageElement | null;
           if (downImg) downImg.classList.add('down-card');
           col.appendChild(downCard);
         }
@@ -322,7 +363,9 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
           gameState.currentPlayerId === localPlayerId &&
           player.handCount === 0;
         const upCard = cardImg(c, canPlayUp);
-        const upImg = upCard.querySelector('.card-img') as HTMLImageElement | null;
+        const upImg = upCard.querySelector(
+          '.card-img'
+        ) as HTMLImageElement | null;
         if (upImg) {
           upImg.classList.add('up-card');
           if (player.id === localPlayerId) upImg.dataset.idx = String(i + 1000);
@@ -346,10 +389,13 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
           { value: '', suit: '', back: true } as CardType,
           canPlayDown && i === 0
         );
-        const downImg = downCard.querySelector('.card-img') as HTMLImageElement | null;
+        const downImg = downCard.querySelector(
+          '.card-img'
+        ) as HTMLImageElement | null;
         if (downImg) {
           downImg.classList.add('down-card');
-          if (player.id === localPlayerId) downImg.dataset.idx = String(i + 2000);
+          if (player.id === localPlayerId)
+            downImg.dataset.idx = String(i + 2000);
         }
         col.appendChild(downCard);
         if (canPlayDown && i === 0) col.classList.add('playable-stack');
@@ -415,7 +461,8 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
     discardContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
 
     // Show actual discard card if available, otherwise show placeholder
-    const pile = gameState.pile && gameState.pile.length > 0 ? gameState.pile : null;
+    const pile =
+      gameState.pile && gameState.pile.length > 0 ? gameState.pile : null;
     if (pile) {
       const discardCard = cardImg(pile[pile.length - 1], false);
       discardCard.style.position = 'absolute';
@@ -442,23 +489,34 @@ export function renderGameState(gameState: GameStateData, localPlayerId: string 
 /**
  * Overlay special card symbol on top of discard pile card
  */
-export function showCardEvent(cardValue: number | string | null, type: string): void {
+export function showCardEvent(
+  cardValue: number | string | null,
+  type: string
+): void {
   // Query for the pile top card image directly, as it's now consistently used.
-  let discardImg = document.getElementById('pile-top-card') as HTMLImageElement | null;
+  let discardImg = document.getElementById(
+    'pile-top-card'
+  ) as HTMLImageElement | null;
 
   // If pile-top-card is not visible (e.g. pile is empty), try to find a card in a .discard container if that structure still exists from old code.
   // This is a fallback, ideally the pile-top-card is the single source of truth for the top discard image.
   if (!discardImg || discardImg.style.display === 'none') {
-    discardImg = document.querySelector('.discard .card-img') as HTMLImageElement | null;
+    discardImg = document.querySelector(
+      '.discard .card-img'
+    ) as HTMLImageElement | null;
   }
 
   let retries = 0;
   function tryRunEffect() {
     if (!discardImg || discardImg.style.display === 'none') {
       if (retries < 1) {
-        discardImg = document.querySelector('.discard .card-img') as HTMLImageElement | null;
+        discardImg = document.querySelector(
+          '.discard .card-img'
+        ) as HTMLImageElement | null;
       }
-      console.warn('showCardEvent: Could not find discard image to overlay effect.');
+      console.warn(
+        'showCardEvent: Could not find discard image to overlay effect.'
+      );
     }
 
     if (!discardImg && retries < 5) {
@@ -467,7 +525,9 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
       return;
     }
     if (!discardImg) {
-      console.warn('showCardEvent: Could not find discard image to overlay effect.');
+      console.warn(
+        'showCardEvent: Could not find discard image to overlay effect.'
+      );
       return;
     }
 
@@ -481,8 +541,10 @@ export function showCardEvent(cardValue: number | string | null, type: string): 
       icon.className = 'special-icon';
       let src = '';
       if (type === 'two' || cardValue === 2) src = '/assets/effects/reset.png';
-      else if (type === 'five' || cardValue === 5) src = '/assets/effects/copy.png';
-      else if (type === 'ten' || cardValue === 10) src = '/assets/effects/burn.png';
+      else if (type === 'five' || cardValue === 5)
+        src = '/assets/effects/copy.png';
+      else if (type === 'ten' || cardValue === 10)
+        src = '/assets/effects/burn.png';
       else if (type === 'four') src = '/assets/effects/4ofakind.png';
       else if (type === 'invalid') src = '/assets/effects/invalid.png';
       else if (type === 'take') src = '/assets/effects/take.png';

@@ -91,9 +91,7 @@ function main() {
       );
       process.exit(1);
     }
-    console.log(
-      '\x1b[42m\x1b[30m✔️  Ports are free. Starting development servers...\x1b[0m'
-    );
+    console.log('\x1b[42m\x1b[30m✔️  Ports are free. Starting development servers...\x1b[0m');
     const npm = isWindows ? 'npm.cmd' : 'npm';
     let serverExited = false;
     let clientExited = false;
@@ -130,14 +128,10 @@ function main() {
     });
     function finish() {
       if (serverCode === 0 && clientCode === 0) {
-        console.log(
-          '\x1b[42m\x1b[30m✔️  Both dev servers exited successfully.\x1b[0m'
-        );
+        console.log('\x1b[42m\x1b[30m✔️  Both dev servers exited successfully.\x1b[0m');
         process.exit(0);
       } else {
-        console.error(
-          '\x1b[41mOne or both dev servers exited with errors.\x1b[0m'
-        );
+        console.error('\x1b[41mOne or both dev servers exited with errors.\x1b[0m');
         process.exit(serverCode || clientCode || 1);
       }
     }

@@ -74,7 +74,9 @@ jest.mock('../public/scripts/state.js', () => {
     getRulesButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
-    getRulesModal: jest.fn(() => (global.document ? global.document.createElement('div') : null)),
+    getRulesModal: jest.fn(() =>
+      global.document ? global.document.createElement('div') : null
+    ),
     getBackToLobbyButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
@@ -92,7 +94,7 @@ jest.mock('../public/scripts/render.js', () => ({
 }));
 
 // Mock the shared events module
-jest.mock('../src/shared/events', () => ({
+jest.mock('../src/types/events', () => ({
   // Path to events.ts (without extension)
   __esModule: true, // Use if events.ts is an ES module
   JOIN_GAME: 'join-game',
@@ -101,11 +103,11 @@ jest.mock('../src/shared/events', () => ({
 }));
 
 // Add this import to bring JOIN_GAME into scope for the test
-import { JOIN_GAME } from '../src/shared/events.js';
 
 // --- Imports (AFTER DOM setup and mocks) ---
 import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
 import * as state from '../public/scripts/state.js'; // Stays .js for now
+import { JOIN_GAME } from '../src/types/events.js';
 
 // --- Test suites ---
 describe('Lobby Form Submission', () => {
@@ -120,11 +122,21 @@ describe('Lobby Form Submission', () => {
   beforeEach(async () => {
     jest.useFakeTimers();
     setupLobbyFormDOM();
-    nameInput = document.getElementById('player-name-input') as HTMLInputElement;
-    numHumansInput = document.getElementById('total-players-input') as HTMLInputElement;
-    numCPUsInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-    submitButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
-    joinButton = document.getElementById('join-game-button') as HTMLButtonElement;
+    nameInput = document.getElementById(
+      'player-name-input'
+    ) as HTMLInputElement;
+    numHumansInput = document.getElementById(
+      'total-players-input'
+    ) as HTMLInputElement;
+    numCPUsInput = document.getElementById(
+      'cpu-players-input'
+    ) as HTMLInputElement;
+    submitButton = document.getElementById(
+      'setup-deal-button'
+    ) as HTMLButtonElement;
+    joinButton = document.getElementById(
+      'join-game-button'
+    ) as HTMLButtonElement;
     nameInputError = getErrorText();
     playerCountError = getErrorText();
     if (state.socket) {
@@ -195,7 +207,9 @@ describe('Lobby Form Submission', () => {
 
     it('shows error when join code is invalid', () => {
       nameInput.value = 'Sam';
-      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      const codeInput = document.getElementById(
+        'join-code-input'
+      ) as HTMLInputElement;
       codeInput.value = '123';
       fireEvent.click(joinButton);
       const msgBox = getErrorBox();
@@ -205,7 +219,9 @@ describe('Lobby Form Submission', () => {
 
     it('shows error if join code is missing when joining', () => {
       nameInput.value = 'Sam';
-      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      const codeInput = document.getElementById(
+        'join-code-input'
+      ) as HTMLInputElement;
       codeInput.value = '';
       fireEvent.click(joinButton);
       const msgBox = getErrorBox();
@@ -252,7 +268,9 @@ describe('Lobby Form Submission', () => {
 
     it('emits JOIN_GAME with room code when join button clicked', () => {
       nameInput.value = 'Sam';
-      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      const codeInput = document.getElementById(
+        'join-code-input'
+      ) as HTMLInputElement;
       codeInput.value = 'ABC123';
       fireEvent.click(joinButton);
       expect(mockEmit).toHaveBeenCalledWith(
@@ -270,12 +288,16 @@ describe('Lobby Form Submission', () => {
 
     it('disables join button after click and re-enables after error', () => {
       nameInput.value = 'Sam';
-      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      const codeInput = document.getElementById(
+        'join-code-input'
+      ) as HTMLInputElement;
       codeInput.value = 'ABC123';
       fireEvent.click(joinButton);
       expect(joinButton.disabled).toBe(true);
       // Simulate error callback
-      const emitCall = mockEmit.mock.calls.find((call) => call[0] === JOIN_GAME);
+      const emitCall = mockEmit.mock.calls.find(
+        (call) => call[0] === JOIN_GAME
+      );
       if (emitCall) {
         const callback = emitCall[2];
         if (typeof callback === 'function') {
@@ -289,7 +311,9 @@ describe('Lobby Form Submission', () => {
       const saveSessionSpy = jest.spyOn(state, 'saveSession');
       const setCurrentRoomSpy = jest.spyOn(state, 'setCurrentRoom');
       nameInput.value = 'Sam';
-      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      const codeInput = document.getElementById(
+        'join-code-input'
+      ) as HTMLInputElement;
       codeInput.value = 'ABC123';
       fireEvent.click(joinButton);
       expect(saveSessionSpy).toHaveBeenCalled();
@@ -298,21 +322,29 @@ describe('Lobby Form Submission', () => {
 
     it('does not emit JOIN_GAME twice if join button is clicked rapidly', () => {
       nameInput.value = 'Sam';
-      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      const codeInput = document.getElementById(
+        'join-code-input'
+      ) as HTMLInputElement;
       codeInput.value = 'ABC123';
       fireEvent.click(joinButton);
       fireEvent.click(joinButton);
-      const joinGameCalls = mockEmit.mock.calls.filter((call) => call[0] === JOIN_GAME);
+      const joinGameCalls = mockEmit.mock.calls.filter(
+        (call) => call[0] === JOIN_GAME
+      );
       expect(joinGameCalls.length).toBe(1);
     });
 
     it('clears error message after successful join', () => {
       nameInput.value = 'Sam';
-      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      const codeInput = document.getElementById(
+        'join-code-input'
+      ) as HTMLInputElement;
       codeInput.value = 'ABC123';
       fireEvent.click(joinButton);
       // Simulate success callback
-      const emitCall = mockEmit.mock.calls.find((call) => call[0] === JOIN_GAME);
+      const emitCall = mockEmit.mock.calls.find(
+        (call) => call[0] === JOIN_GAME
+      );
       if (emitCall) {
         const callback = emitCall[2];
         if (typeof callback === 'function') {
@@ -326,11 +358,15 @@ describe('Lobby Form Submission', () => {
 
     it('resets form after successful join', () => {
       nameInput.value = 'Sam';
-      const codeInput = document.getElementById('join-code-input') as HTMLInputElement;
+      const codeInput = document.getElementById(
+        'join-code-input'
+      ) as HTMLInputElement;
       codeInput.value = 'ABC123';
       fireEvent.click(joinButton);
       // Simulate success callback
-      const emitCall = mockEmit.mock.calls.find((call) => call[0] === JOIN_GAME);
+      const emitCall = mockEmit.mock.calls.find(
+        (call) => call[0] === JOIN_GAME
+      );
       if (emitCall) {
         const callback = emitCall[2];
         if (typeof callback === 'function') {

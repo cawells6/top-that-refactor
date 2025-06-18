@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    // ...existing code...
+  },
+  "include": [
+    "../src/**/*",
+    "../public/**/*",
+    "../tests/**/*"
+  ]
+}

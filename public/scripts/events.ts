@@ -1,7 +1,7 @@
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
-import { JOIN_GAME } from '../../src/shared/events.js';
+import { JOIN_GAME } from '../../src/types/events.js';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -67,7 +67,9 @@ function removeNameErrorsFromQueue() {
 
 function hasNameErrorInQueue(): boolean {
   const nameErrorKeywords = ['name', 'Name'];
-  return messageQueue.some((msg) => nameErrorKeywords.some((keyword) => msg.includes(keyword)));
+  return messageQueue.some((msg) =>
+    nameErrorKeywords.some((keyword) => msg.includes(keyword))
+  );
 }
 
 function isCurrentlyShowingNameError(): boolean {
@@ -107,7 +109,10 @@ function setButtonDisabled(el: HTMLElement | null, disabled: boolean) {
 }
 
 // Create a player silhouette element
-function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLElement {
+function createPlayerSilhouette(
+  type: 'human' | 'cpu',
+  index: number
+): HTMLElement {
   const silhouette = document.createElement('div');
   silhouette.className = `player-silhouette ${type}`;
   silhouette.setAttribute('data-index', index.toString());
@@ -150,9 +155,14 @@ function createPlayerSilhouette(type: 'human' | 'cpu', index: number): HTMLEleme
 
 // Update player silhouettes based on current counts
 function updatePlayerSilhouettes() {
-  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
-  const humanSilhouettesContainer = document.getElementById('human-silhouettes');
+  const totalPlayersInput = document.getElementById(
+    'total-players-input'
+  ) as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById(
+    'cpu-players-input'
+  ) as HTMLInputElement;
+  const humanSilhouettesContainer =
+    document.getElementById('human-silhouettes');
   const cpuSilhouettesContainer = document.getElementById('cpu-silhouettes');
 
   if (!humanSilhouettesContainer || !cpuSilhouettesContainer) return;
@@ -198,8 +208,12 @@ function updateSilhouettesInContainer(
 
 // Validation functions that only check, don't show messages
 function validatePlayerCounts(): { isValid: boolean; message: string } {
-  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+  const totalPlayersInput = document.getElementById(
+    'total-players-input'
+  ) as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById(
+    'cpu-players-input'
+  ) as HTMLInputElement;
 
   if (!totalPlayersInput || !cpuPlayersInput) {
     return { isValid: false, message: 'Form inputs not found.' };
@@ -210,7 +224,10 @@ function validatePlayerCounts(): { isValid: boolean; message: string } {
   const totalPlayers = numHumans + numCPUs;
 
   if (totalPlayers < 2) {
-    return { isValid: false, message: 'Minimum of 2 participants are required.' };
+    return {
+      isValid: false,
+      message: 'Minimum of 2 participants are required.',
+    };
   }
   if (totalPlayers > 4) {
     return { isValid: false, message: 'Maximum of 4 players are allowed.' };
@@ -218,7 +235,11 @@ function validatePlayerCounts(): { isValid: boolean; message: string } {
   return { isValid: true, message: '' };
 }
 
-function validateNameInput(): { isValid: boolean; message: string; name: string } {
+function validateNameInput(): {
+  isValid: boolean;
+  message: string;
+  name: string;
+} {
   const nameInput = uiManager.getNameInput();
   if (!nameInput) {
     return { isValid: false, message: 'Name input not found.', name: '' };
@@ -228,13 +249,23 @@ function validateNameInput(): { isValid: boolean; message: string; name: string 
     return { isValid: false, message: 'Please enter a valid name.', name };
   }
   if (name.length < 2) {
-    return { isValid: false, message: 'Name must be at least 2 characters.', name };
+    return {
+      isValid: false,
+      message: 'Name must be at least 2 characters.',
+      name,
+    };
   }
   return { isValid: true, message: '', name };
 }
 
-function validateRoomCodeInput(): { isValid: boolean; message: string; code: string } {
-  const codeInput = document.getElementById('join-code-input') as HTMLInputElement | null;
+function validateRoomCodeInput(): {
+  isValid: boolean;
+  message: string;
+  code: string;
+} {
+  const codeInput = document.getElementById(
+    'join-code-input'
+  ) as HTMLInputElement | null;
   if (!codeInput) {
     return { isValid: false, message: 'Game code input not found.', code: '' };
   }
@@ -253,7 +284,10 @@ function updatePlayerRequirementMessage() {
 }
 
 // Helper function to update the contextual name validation message
-function updateNameValidationMessage(_message: string = '', _showDefault: boolean = false) {
+function updateNameValidationMessage(
+  _message: string = '',
+  _showDefault: boolean = false
+) {
   // This function is no longer needed since we're using the queue system
   // All validation messages are now shown only when Deal button is clicked
   // Keeping function for compatibility but it does nothing
@@ -265,8 +299,12 @@ function initializeCounterButtons() {
   const humansPlusBtn = document.getElementById('humans-plus');
   const cpusMinusBtn = document.getElementById('cpus-minus');
   const cpusPlusBtn = document.getElementById('cpus-plus');
-  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+  const totalPlayersInput = document.getElementById(
+    'total-players-input'
+  ) as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById(
+    'cpu-players-input'
+  ) as HTMLInputElement;
   const totalCountSpan = document.getElementById('total-count');
 
   function updateTotalCount() {
@@ -410,7 +448,9 @@ export async function initializePageEventListeners() {
   const copyLinkBtn = uiManager.getCopyLinkBtn();
   if (copyLinkBtn) {
     copyLinkBtn.onclick = () => {
-      const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
+      const inviteInput = document.getElementById(
+        'invite-link'
+      ) as HTMLInputElement | null;
       const linkToCopy = inviteInput ? inviteInput.value : window.location.href;
       navigator.clipboard.writeText(linkToCopy);
     };
@@ -419,9 +459,15 @@ export async function initializePageEventListeners() {
   const shareLinkBtn = document.getElementById('share-link-button');
   if (shareLinkBtn && navigator.share) {
     shareLinkBtn.onclick = () => {
-      const inviteInput = document.getElementById('invite-link') as HTMLInputElement | null;
-      const linkToShare = inviteInput ? inviteInput.value : window.location.href;
-      navigator.share({ url: linkToShare }).catch((err) => console.warn('Share failed', err));
+      const inviteInput = document.getElementById(
+        'invite-link'
+      ) as HTMLInputElement | null;
+      const linkToShare = inviteInput
+        ? inviteInput.value
+        : window.location.href;
+      navigator
+        .share({ url: linkToShare })
+        .catch((err) => console.warn('Share failed', err));
     };
   }
 
@@ -439,14 +485,19 @@ export async function initializePageEventListeners() {
 
   if (rulesModal && overlay) {
     // Close button in rules modal
-    const closeBtn = rulesModal.querySelector('.modal__close-button') as HTMLButtonElement;
+    const closeBtn = rulesModal.querySelector(
+      '.modal__close-button'
+    ) as HTMLButtonElement;
     if (closeBtn) {
       closeBtn.onclick = hideRulesModalAndOverlay;
     }
 
     // Close modal when clicking overlay
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay && !rulesModal.classList.contains('modal--hidden')) {
+      if (
+        e.target === overlay &&
+        !rulesModal.classList.contains('modal--hidden')
+      ) {
         hideRulesModalAndOverlay();
       }
     });
@@ -476,10 +527,13 @@ export async function initializePageEventListeners() {
 
       detailsList.forEach((d, i) => {
         const summaryEl = d.querySelector('summary');
-        const summaryText = summaryEl ? summaryEl.textContent?.trim() : 'Summary N/A';
+        const summaryText = summaryEl
+          ? summaryEl.textContent?.trim()
+          : 'Summary N/A';
       });
 
-      const allOpen = detailsList.length > 0 && detailsList.every((d) => d.open);
+      const allOpen =
+        detailsList.length > 0 && detailsList.every((d) => d.open);
       expandCollapseBtn.textContent = allOpen ? 'Collapse All' : 'Expand All';
     };
 
@@ -535,8 +589,12 @@ export async function initializePageEventListeners() {
     observer.observe(playerList, { childList: true, subtree: false });
   }
   // Lobby form validation and error handling
-  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+  const totalPlayersInput = document.getElementById(
+    'total-players-input'
+  ) as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById(
+    'cpu-players-input'
+  ) as HTMLInputElement;
 
   // Initialize input event listeners for real-time player count validation
   if (totalPlayersInput) {
@@ -604,11 +662,18 @@ function updateStartGameButton() {
   // Update to target the setup Deal button instead of header button
   const startGameBtn = document.getElementById('setup-deal-button');
   if (startGameBtn) {
-    const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-    const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+    const totalPlayersInput = document.getElementById(
+      'total-players-input'
+    ) as HTMLInputElement;
+    const cpuPlayersInput = document.getElementById(
+      'cpu-players-input'
+    ) as HTMLInputElement;
     const humanCount = parseInt(totalPlayersInput?.value || '1', 10);
     const computerCount = parseInt(cpuPlayersInput?.value || '1', 10);
-    setButtonDisabled(startGameBtn, !(humanCount > 0 && humanCount + computerCount >= 2));
+    setButtonDisabled(
+      startGameBtn,
+      !(humanCount > 0 && humanCount + computerCount >= 2)
+    );
   }
 }
 
@@ -673,8 +738,12 @@ function handleDealClick() {
 
   // --- If all validations pass, proceed with game logic ---
   const name = nameValidation.name;
-  const totalPlayersInput = document.getElementById('total-players-input') as HTMLInputElement;
-  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
+  const totalPlayersInput = document.getElementById(
+    'total-players-input'
+  ) as HTMLInputElement;
+  const cpuPlayersInput = document.getElementById(
+    'cpu-players-input'
+  ) as HTMLInputElement;
   const numHumans = parseInt(totalPlayersInput.value, 10) || 1;
   const numCPUs = parseInt(cpuPlayersInput.value, 10) || 0;
 
@@ -686,22 +755,34 @@ function handleDealClick() {
     numCPUs: numCPUs,
   };
 
-  console.log('🎯 Deal button: Validations passed. Joining game with data:', playerDataForEmit);
-  console.log('[CLIENT] handleDealClick: Emitting JOIN_GAME with', playerDataForEmit);
+  console.log(
+    '🎯 Deal button: Validations passed. Joining game with data:',
+    playerDataForEmit
+  );
+  console.log(
+    '[CLIENT] handleDealClick: Emitting JOIN_GAME with',
+    playerDataForEmit
+  );
 
   // Log socket connection status before attempting to emit
   console.log('[CLIENT] Socket connection status before JOIN_GAME:', {
     socketExists: !!state.socket,
     connected: state.socket?.connected,
     id: state.socket?.id,
-    hasJoinedListeners: state.socket ? state.socket.listeners('joined').length : 0,
-    hasLobbyStateListeners: state.socket ? state.socket.listeners('lobby-state-update').length : 0,
+    hasJoinedListeners: state.socket
+      ? state.socket.listeners('joined').length
+      : 0,
+    hasLobbyStateListeners: state.socket
+      ? state.socket.listeners('lobby-state-update').length
+      : 0,
   });
 
   // Add a callback to log the server's response
-  state.socket.emit(JOIN_GAME, playerDataForEmit, (response) => {
+  state.socket.emit(JOIN_GAME, playerDataForEmit, (response: any) => {
     console.log('[CLIENT] Received JOIN_GAME response from server:', response);
-    const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
+    const dealButton = document.getElementById(
+      'setup-deal-button'
+    ) as HTMLButtonElement;
     if (response.error) {
       console.error('[CLIENT] JOIN_GAME error:', response.error);
       queueMessage(response.error);
@@ -717,12 +798,16 @@ function handleDealClick() {
         response.playerId
       );
       // --- BEST PRACTICE: Reset form fields after successful join ---
-      const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+      const form = document.getElementById(
+        'lobby-form'
+      ) as HTMLFormElement | null;
       if (form) form.reset();
     }
   });
 
-  const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
+  const dealButton = document.getElementById(
+    'setup-deal-button'
+  ) as HTMLButtonElement;
   if (dealButton) {
     dealButton.disabled = true;
     dealButton.textContent = 'STARTING...';
@@ -739,7 +824,9 @@ function handleJoinGameClick() {
   console.log('🎯 Join game button clicked!');
   clearMessageQueueAndHide();
 
-  const joinBtn = document.getElementById('join-game-button') as HTMLButtonElement | null;
+  const joinBtn = document.getElementById(
+    'join-game-button'
+  ) as HTMLButtonElement | null;
   if (joinBtn && joinBtn.disabled) {
     // Prevent duplicate emits if already disabled
     return;
@@ -777,7 +864,10 @@ function handleJoinGameClick() {
     numHumans: 1,
     numCPUs: 0,
   };
-  console.log('[CLIENT] handleJoinGameClick: Emitting JOIN_GAME with', joinPayload);
+  console.log(
+    '[CLIENT] handleJoinGameClick: Emitting JOIN_GAME with',
+    joinPayload
+  );
   state.socket.emit(JOIN_GAME, joinPayload, (response: any) => {
     if (joinBtn) joinBtn.disabled = false; // Re-enable button after server response
     if (response && response.error) {
@@ -785,7 +875,9 @@ function handleJoinGameClick() {
       return;
     }
     // --- BEST PRACTICE: Reset form fields after successful join ---
-    const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+    const form = document.getElementById(
+      'lobby-form'
+    ) as HTMLFormElement | null;
     if (form) form.reset();
   });
 

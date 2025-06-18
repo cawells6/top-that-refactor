@@ -1,18 +1,23 @@
 import { renderGameState } from './render.js';
 import * as state from './state.js';
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
+import {
+  showLobbyForm,
+  showWaitingState,
+  showGameTable,
+  showError,
+} from './uiManager.js';
 import {
   JOINED,
+  LOBBY_STATE_UPDATE,
   STATE_UPDATE,
   REJOIN,
-  CREATE_LOBBY,
   LOBBY_CREATED,
+  GAME_STARTED,
+  CREATE_LOBBY,
   JOIN_LOBBY,
   PLAYER_READY,
-  LOBBY_STATE_UPDATE,
-  GAME_STARTED,
-} from '../../src/shared/events.js';
-import { GameStateData } from '../../src/shared/types.js';
+} from '../../src/types/events.js';
+import { GameStateData } from '../../src/types/types.js';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
@@ -36,7 +41,12 @@ export async function initializeSocketHandlers(): Promise<void> {
       players: { id: string; name: string; ready: boolean }[];
       hostId: string | null;
     }) => {
-      showWaitingState(data.roomId, data.players.length, data.players.length, data.players);
+      showWaitingState(
+        data.roomId,
+        data.players.length,
+        data.players.length,
+        data.players
+      );
     }
   );
 

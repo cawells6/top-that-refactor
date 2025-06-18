@@ -16,3 +16,4 @@ coverage/
 # Other generated files or directories
 .DS_Store
 *.log
+logs/

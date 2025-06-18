@@ -1,2 +1,0 @@
-// wait.js has been archived as its port-killing logic is no longer needed.
-// See server.js for new EADDRINUSE handling and manual instructions.

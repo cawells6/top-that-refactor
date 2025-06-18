@@ -10,7 +10,7 @@
     // Paths should be relative to baseUrl (which is now project root)
     "paths": {
       "@models/*": ["models/*"],
-      "@shared/*": ["src/shared/*"],
+      "@shared/*": ["src/types/*"],
       "@publicScripts/*": ["public/scripts/*"],
       "@srcTypes/*": ["src/types/*"], // Use wildcard pattern for all types
       "@srcTypes/types": ["src/types.ts"] // Direct alias for types.ts
@@ -19,11 +19,10 @@
     "allowImportingTsExtensions": true // Keep this
   },
   "include": [
-    "./**/*.ts", // Include all .ts files within public/scripts
-    "./socketHandlers.ts", // Explicitly include socketHandlers.ts for ESLint/TS
-    "../../models/**/*.ts", // Corrected path for models
-    "../../src/shared/**/*.ts", // Corrected path for shared files
-    "../../src/types.ts" // Corrected path for the main types file
-    ,"../../utils/**/*.ts" // Include utils for Player.ts dependencies
+    "./**/*.ts",
+    "./socketHandlers.ts",
+    "../../models/**/*.ts",
+    "../../src/types/**/*.ts",
+    "../../utils/**/*.ts"
   ]
 }

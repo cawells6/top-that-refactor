@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
-import { GameStateData } from '../../src/shared/types.js';
+
+import { GameStateData } from '../../src/types/types.js';
 
 let socket: Socket;
 let socketReady: Promise<void>;
