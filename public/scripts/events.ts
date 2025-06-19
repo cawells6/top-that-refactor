@@ -394,7 +394,6 @@ function initializeCounterButtons() {
     cpusPlusBtn.onclick = () => {
       const current = parseInt(cpuPlayersInput?.value || '0', 10);
       const humans = parseInt(totalPlayersInput?.value || '1', 10);
-      const total = current + humans;
 
       if (current + humans < 4) {
         cpuPlayersInput.value = (current + 1).toString();
@@ -525,11 +524,8 @@ export async function initializePageEventListeners() {
         return;
       }
 
-      detailsList.forEach((d, i) => {
-        const summaryEl = d.querySelector('summary');
-        const summaryText = summaryEl
-          ? summaryEl.textContent?.trim()
-          : 'Summary N/A';
+      detailsList.forEach((_d) => {
+        // Removed unused summaryEl and summaryText assignment
       });
 
       const allOpen =
@@ -548,12 +544,11 @@ export async function initializePageEventListeners() {
       // Determine the desired state: if button says "Expand All", we want them open.
       const shouldBeOpen = expandCollapseBtn.textContent === 'Expand All';
 
-      detailsList.forEach((d, index) => {
+      detailsList.forEach((d) => {
         const summaryElement = d.querySelector('summary');
         if (!summaryElement) {
           return; // Skip this one
         }
-
         // If the current state is different from the desired state, click the summary
         if (d.open !== shouldBeOpen) {
           summaryElement.click(); // This will trigger the 'toggle' event, which calls updateExpandCollapseLabel
