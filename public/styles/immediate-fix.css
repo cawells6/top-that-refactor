@@ -69,3 +69,9 @@ html.preload {
   min-width: 320px !important; /* Ensure a reasonable minimum width */
   box-sizing: border-box !important;
 }
+
+/* Restrict lobby modal and content width for consistent sizing across all screens */
+.lobby-modal-container,
+.game-setup-content {
+  max-width: 760px !important;
+}

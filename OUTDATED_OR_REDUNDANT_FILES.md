@@ -60,6 +60,14 @@ The following files are now deprecated and can be deleted:
 
 These are no longer used in the dev workflow. All port cleanup and dev startup logic is now handled by run.js.
 
+The following files are obsolete and should be deleted as part of the GameController lobby authority refactor:
+
+- `models/Lobby.ts`
+- `models/LobbyManager.ts`
+- `src/lobby/LobbyManager.js`
+
+These files are no longer referenced or used in the server. All lobby and game management is now handled by `GameController` and `GameRoomManager`.
+
 ---
 
 ## How to Use This File

@@ -4,8 +4,6 @@ import http from 'http';
 import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 
-import LobbyManager from './models/LobbyManager.js';
-import { CREATE_LOBBY, LOBBY_CREATED, JOIN_LOBBY, ERROR } from './src/shared/events.js';
 import { GameRoomManager } from './controllers/GameController.js';
 
 const app: Express = express();
@@ -30,62 +28,12 @@ function startServer(port: number, retries = 0) {
   // Create a single HTTP server and assign to the outer server variable
   server = http.createServer(app);
   // Attach Socket.IO to the same HTTP server
-  const io: SocketIOServer = new SocketIOServer(server, { cors: { origin: '*' } });
-
-  // Attach GameRoomManager to handle game events
-  new GameRoomManager(io);
-
-  io.on('connection', (socket) => {
-    console.log(`[SERVER] New socket connection: ${socket.id}`);
-
-    // Log all registered event listeners for debugging
-    console.log(`[SERVER] Socket ${socket.id} events:`, socket.eventNames());
-
-    socket.on('disconnect', (reason) => {
-      console.log(`[SERVER] Socket ${socket.id} disconnected: ${reason}`);
-    });
-
-    const lobbyManager = LobbyManager.getInstance(io);
-
-    socket.on(CREATE_LOBBY, (playerName: string, ack?: (roomId: string) => void) => {
-      const lobby = lobbyManager.createLobby();
-      lobby.addPlayer(socket, playerName);
-      if (ack) ack(lobby.roomId);
-      socket.emit(LOBBY_CREATED, lobby.roomId);
-    });
-
-    socket.on(
-      JOIN_LOBBY,
-      (roomId: string, playerName: string, ack?: (success: boolean) => void) => {
-        const lobby = lobbyManager.getLobby(roomId);
-        if (lobby) {
-          lobby.addPlayer(socket, playerName);
-          if (ack) ack(true);
-        } else {
-          if (ack) ack(false);
-          socket.emit(ERROR, 'Lobby not found');
-        }
-      }
-    );
-
-    // REMOVE legacy PLAYER_READY handler (handled by GameController now)
-    // socket.on(PLAYER_READY, (ready: boolean) => {
-    //   const lobby = lobbyManager.findLobbyBySocketId(socket.id);
-    //   if (lobby) {
-    //     lobby.setPlayerReady(socket.id, ready);
-    //   }
-    // });
-
-    socket.on('disconnect', () => {
-      const lobby = lobbyManager.findLobbyBySocketId(socket.id);
-      if (lobby) {
-        lobby.removePlayer(socket.id);
-        if (lobby.players.size === 0) {
-          lobbyManager.removeLobby(lobby.roomId);
-        }
-      }
-    });
+  const io: SocketIOServer = new SocketIOServer(server, {
+    cors: { origin: '*' },
   });
+
+  // Attach GameRoomManager to handle all game/lobby events
+  new GameRoomManager(io);
 
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'EADDRINUSE' && retries < MAX_RETRIES) {
