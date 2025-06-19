@@ -9,7 +9,7 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PATH="$PATH:$PROJECT_DIR"
 
 # Alias for gpush to call the batch file directly
-alias gpush="$PROJECT_DIR/gpush.bat"
+# alias gpush="$PROJECT_DIR/gpush.bat"  # DISABLED: use global gpush instead
 
 # Alias for Top-That-Refactor dev workflow (foreground, no conflicts)
 alias pop="node $PROJECT_DIR/run.js"

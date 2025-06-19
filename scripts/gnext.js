@@ -3,6 +3,7 @@
 // Usage: node scripts/gnext.js "Your commit message"
 
 import { execSync } from 'child_process';
+import readline from 'readline';
 
 function run(cmd) {
   try {
@@ -26,15 +27,20 @@ try {
 run('git push');
 
 const curBranch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
-if (!/^\d+\.\d+$/.test(curBranch)) {
-  console.error(
-    `Current branch (${curBranch}) is not in expected format (e.g., 4.1)`
-  );
-  process.exit(1);
-}
-const [major, minor] = curBranch.split('.').map(Number);
-const nextBranch = `${major}.${minor + 1}`;
-run(`git checkout -b ${nextBranch}`);
-run(`git push -u origin ${nextBranch}`);
-run(`git push origin --delete ${curBranch}`);
-run(`git branch -D ${curBranch}`);
+console.log(`Current branch: ${curBranch}`);
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+rl.question('Enter new branch name: ', (nextBranch) => {
+  if (!nextBranch) {
+    console.error('No branch name provided. Aborting.');
+    process.exit(1);
+  }
+  run(`git checkout -b ${nextBranch}`);
+  run(`git push -u origin ${nextBranch}`);
+  run(`git push origin --delete ${curBranch}`);
+  run(`git branch -D ${curBranch}`);
+  rl.close();
+});
