@@ -1,6 +1,5 @@
 // public/scripts/main.ts
-import { JOIN_GAME } from '@shared/events.ts';
-
+import { emitJoinGame } from './acknowledgmentUtils.js';
 import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { EnhancedSocketService } from './enhancedSocketService.js';
 import { initializePageEventListeners } from './events.js';
@@ -43,7 +42,18 @@ function handleJoinLink({
       numHumans: 1,
       numCPUs: 0,
     };
-    socket.emit(JOIN_GAME, joinPayload);
+    
+    // Use acknowledgment utility for reliable join attempt
+    emitJoinGame(socket, joinPayload, {
+      onSuccess: (response) => {
+        console.log('[handleJoinLink] Join successful:', response);
+      },
+      onError: (error) => {
+        console.warn('[handleJoinLink] Join failed:', error);
+        // Don't show user errors for automatic join attempts
+      }
+    });
+    
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 }

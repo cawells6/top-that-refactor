@@ -3,6 +3,7 @@ import { Modal } from './Modal.js';
 import { LOBBY_STATE_UPDATE, START_GAME } from '../../../src/shared/events.js';
 import { InSessionLobbyState } from '../../../src/shared/types.js';
 import * as state from '../state.js';
+import { emitStartGame } from '../acknowledgmentUtils.js';
 
 export class InSessionLobbyModal {
   private modal: Modal;
@@ -79,8 +80,18 @@ export class InSessionLobbyModal {
 
   private startGame(): void {
     if (!state.socket || !this.roomId) return;
-    state.socket.emit(START_GAME, { roomId: this.roomId });
-    this.hide();
+    
+    emitStartGame(state.socket, { roomId: this.roomId }, {
+      onSuccess: (response) => {
+        console.log('[InSessionLobbyModal] START_GAME success:', response);
+        this.hide();
+      },
+      onError: (error) => {
+        console.error('[InSessionLobbyModal] START_GAME error:', error);
+        // Could show error message to user here if needed
+        this.hide();
+      }
+    });
   }
 
   public render(lobbyState: InSessionLobbyState): void {

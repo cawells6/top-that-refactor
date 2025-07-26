@@ -1,9 +1,9 @@
 // Pure join link handler for testability
-import { JOIN_GAME } from '../../src/shared/events.ts';
+import { emitJoinGame } from './acknowledgmentUtils.js';
 
 export interface HandleJoinLinkDeps {
   setCurrentRoom: (room: string) => void;
-  socket: { emit: Function };
+  socket: any;
   window: Window;
   document: Document;
 }
@@ -25,9 +25,17 @@ export function handleJoinLink({ setCurrentRoom, socket, window, document }: Han
       numCPUs: 0,
     };
     try {
-      socket.emit(JOIN_GAME, joinPayload);
+      emitJoinGame(socket, joinPayload, {
+        onSuccess: (response) => {
+          console.log('[handleJoinLink] Join successful:', response);
+        },
+        onError: (error) => {
+          console.warn('[handleJoinLink] Join failed:', error);
+          // Don't show user errors for automatic join attempts
+        }
+      });
     } catch {
-      // Ignore errors from socket.emit
+      // Ignore errors from emitJoinGame
     }
     window.history.replaceState({}, document.title, window.location.pathname);
   }

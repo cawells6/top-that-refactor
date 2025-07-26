@@ -1,7 +1,10 @@
+import {
+  emitJoinGame,
+  initializeConnectionMonitoring,
+} from './acknowledgmentUtils.js';
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
-import { JOIN_GAME } from '../../src/types/events.js';
 import {
   validateJoinGamePayload,
   validateRejoinData,
@@ -786,39 +789,42 @@ function handleDealClick() {
       : 0,
   });
 
-  // Add a callback to log the server's response
-  state.socket.emit(JOIN_GAME, playerDataForEmit, (response: any) => {
-    console.log('[CLIENT] Received JOIN_GAME response from server:', response);
-    const dealButton = document.getElementById(
-      'setup-deal-button'
-    ) as HTMLButtonElement;
-    if (response.error) {
-      console.error('[CLIENT] JOIN_GAME error:', response.error);
+  // Use new acknowledgment utility with timeout and retry logic
+  const dealButton = document.getElementById(
+    'setup-deal-button'
+  ) as HTMLButtonElement;
+  
+  if (dealButton) {
+    dealButton.disabled = true;
+    dealButton.textContent = 'JOINING...';
+  }
+
+  emitJoinGame(state.socket, playerDataForEmit, {
+    onSuccess: (response) => {
+      console.log('[CLIENT] JOIN_GAME success:', response);
       
-      // Use enhanced error handling with fallback for user-friendly messages
-      let userMessage = response.error;
-      if (response.code) {
-        // If we have an error code, we could map it to user-friendly messages
-        console.log('[CLIENT] Error code:', response.code);
-        switch (response.code) {
-          case 'GAME_FULL':
-            userMessage =
-              'This game is full. Please try joining another game or create a new one.';
-            break;
-          case 'GAME_ALREADY_STARTED':
-            userMessage =
-              'This game has already started. Please create a new game.';
-            break;
-          case 'INVALID_PAYLOAD':
-            userMessage = 'Please check your player name and settings.';
-            break;
-          case 'ROOM_NOT_FOUND':
-            userMessage = 'Game room not found. Please check the room code.';
-            break;
-          default:
-            // Keep the server's error message as fallback
-            break;
-        }
+      // Reset form fields after successful join
+      const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+      if (form) form.reset();
+      
+      if (dealButton) {
+        dealButton.disabled = false;
+        dealButton.textContent = "LET'S PLAY";
+      }
+    },
+    onError: (error) => {
+      console.error('[CLIENT] JOIN_GAME error:', error);
+      
+      // Enhanced error handling with user-friendly messages
+      let userMessage = error;
+      if (error.includes('GAME_FULL')) {
+        userMessage = 'This game is full. Please try joining another game or create a new one.';
+      } else if (error.includes('GAME_ALREADY_STARTED')) {
+        userMessage = 'This game has already started. Please create a new game.';
+      } else if (error.includes('INVALID_PAYLOAD')) {
+        userMessage = 'Please check your player name and settings.';
+      } else if (error.includes('ROOM_NOT_FOUND')) {
+        userMessage = 'Game room not found. Please check the room code.';
       }
       
       queueMessage(userMessage);
@@ -826,34 +832,8 @@ function handleDealClick() {
         dealButton.disabled = false;
         dealButton.textContent = "LET'S PLAY";
       }
-    } else {
-      console.log(
-        '[CLIENT] JOIN_GAME success - Room ID:',
-        response.roomId,
-        'Player ID:',
-        response.playerId
-      );
-      // --- BEST PRACTICE: Reset form fields after successful join ---
-      const form = document.getElementById(
-        'lobby-form'
-      ) as HTMLFormElement | null;
-      if (form) form.reset();
     }
   });
-
-  const dealButton = document.getElementById(
-    'setup-deal-button'
-  ) as HTMLButtonElement;
-  if (dealButton) {
-    dealButton.disabled = true;
-    dealButton.textContent = 'STARTING...';
-    setTimeout(() => {
-      if (dealButton) {
-        dealButton.disabled = false;
-        dealButton.textContent = "LET'S PLAY";
-      }
-    }, 3000);
-  }
 }
 
 function handleJoinGameClick() {
@@ -917,45 +897,38 @@ function handleJoinGameClick() {
     '[CLIENT] handleJoinGameClick: Emitting JOIN_GAME with',
     joinPayload
   );
-  state.socket.emit(JOIN_GAME, joinPayload, (response: any) => {
-    if (joinBtn) joinBtn.disabled = false; // Re-enable button after server response
-    if (response && response.error) {
-      // Enhanced error handling with user-friendly messages
-      let userMessage = response.error;
-      if (response.code) {
-        console.log('[CLIENT] Join error code:', response.code);
-        switch (response.code) {
-          case 'ROOM_NOT_FOUND':
-            userMessage =
-              'Game room not found. Please check the room code and try again.';
-            break;
-          case 'GAME_FULL':
-            userMessage =
-              'This game is full. Please try a different room code.';
-            break;
-          case 'GAME_ALREADY_STARTED':
-            userMessage =
-              'This game has already started. Please try a different room code.';
-            break;
-          case 'INVALID_PAYLOAD':
-            userMessage = 'Please check your player name and try again.';
-            break;
-          default:
-            // Keep the server's error message as fallback
-            break;
-        }
-      }
-      queueMessage(userMessage);
-      return;
-    }
-    // --- BEST PRACTICE: Reset form fields after successful join ---
-    const form = document.getElementById(
-      'lobby-form'
-    ) as HTMLFormElement | null;
-    if (form) form.reset();
-  });
 
   if (joinBtn) joinBtn.disabled = true;
+
+  emitJoinGame(state.socket, joinPayload, {
+    onSuccess: (response) => {
+      console.log('[CLIENT] JOIN_GAME success:', response);
+      
+      // Reset form fields after successful join
+      const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+      if (form) form.reset();
+      
+      if (joinBtn) joinBtn.disabled = false;
+    },
+    onError: (error) => {
+      console.error('[CLIENT] JOIN_GAME error:', error);
+      
+      // Enhanced error handling with user-friendly messages
+      let userMessage = error;
+      if (error.includes('ROOM_NOT_FOUND')) {
+        userMessage = 'Game room not found. Please check the room code and try again.';
+      } else if (error.includes('GAME_FULL')) {
+        userMessage = 'This game is full. Please try a different room code.';
+      } else if (error.includes('GAME_ALREADY_STARTED')) {
+        userMessage = 'This game has already started. Please try a different room code.';
+      } else if (error.includes('INVALID_PAYLOAD')) {
+        userMessage = 'Please check your player name and try again.';
+      }
+      
+      queueMessage(userMessage);
+      if (joinBtn) joinBtn.disabled = false;
+    }
+  });
 }
 
 // Failsafe: Always hide overlay when hiding rules modal
