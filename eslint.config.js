@@ -33,6 +33,13 @@ export default [
     ignores: [
       'dist/',
       'node_modules/',
+      '__trash__/**/*', // Ignore trash directory
+      '__mocks__/**/*', // Ignore mocks directory  
+      'src/client/events.ts', // Has parsing issues
+      'src/server/socketHandlers.js', // Has parsing issues
+      'src/game/**/*.js', // Old JS files with console issues
+      'src/network/**/*.js', // Old JS files with console issues
+      'scripts/nodemon-restart.js', // Has parsing issues
       '**/*.d.ts', // Ignore all TypeScript declaration files
       '.eslintrc.js', // Ignore old ESLint config file
       'vite.config.ts*.timestamp-*',

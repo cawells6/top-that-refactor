@@ -173,7 +173,9 @@ export class ConnectionManager {
       reason !== 'client namespace disconnect';
 
     if (shouldReconnect) {
-      console.log('[ConnectionManager] Auto-reconnect enabled, starting reconnection process');
+      console.log(
+        '[ConnectionManager] Auto-reconnect enabled, starting reconnection process'
+      );
       this.scheduleReconnection();
     } else {
       console.log(
@@ -220,7 +222,9 @@ export class ConnectionManager {
 
   private attemptReconnection(): void {
     if (!this.socket) {
-      console.error('[ConnectionManager] Cannot reconnect: no socket available');
+      console.error(
+        '[ConnectionManager] Cannot reconnect: no socket available'
+      );
       return;
     }
 
@@ -231,7 +235,10 @@ export class ConnectionManager {
     try {
       this.socket.connect();
     } catch (error) {
-      console.error('[ConnectionManager] Error during reconnection attempt:', error);
+      console.error(
+        '[ConnectionManager] Error during reconnection attempt:',
+        error
+      );
       this.handleReconnectionFailure(
         error instanceof Error ? error.message : 'Unknown error'
       );
@@ -292,7 +299,8 @@ export class ConnectionManager {
       }
 
       if (this.metrics.averageLatency) {
-        this.metrics.averageLatency = (this.metrics.averageLatency + latency) / 2;
+        this.metrics.averageLatency =
+          (this.metrics.averageLatency + latency) / 2;
       } else {
         this.metrics.averageLatency = latency;
       }
@@ -303,7 +311,9 @@ export class ConnectionManager {
     const oldStatus = this.state.status;
     if (oldStatus !== newStatus) {
       this.state.status = newStatus;
-      console.log(`[ConnectionManager] Status changed: ${oldStatus} -> ${newStatus}`);
+      console.log(
+        `[ConnectionManager] Status changed: ${oldStatus} -> ${newStatus}`
+      );
     }
   }
 

@@ -50,11 +50,10 @@ jest.mock(
 );
 
 /**
- * Best Practice: Use setupModalDOM() or mockInSessionLobbyModal() from tests/utils/domSetup for modal-related tests.
- *   - setupModalDOM(): For tests that require the modal DOM structure.
+ * Helper DOM Setup Functions:
+ *   - setupModalDOM(): For setting up modal components for tests.
  *   - mockInSessionLobbyModal(): For tests that intentionally omit DOM setup but import/require the modal.
  */
-import { setupModalDOM, mockInSessionLobbyModal } from '../../tests/utils/domSetup';
 
 function setupMainDOM({ withLobby = true, withModal = true } = {}) {
   document.body.innerHTML = `

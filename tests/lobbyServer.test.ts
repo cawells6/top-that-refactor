@@ -128,7 +128,7 @@ describe('GameRoomManager', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({ 
+    expect(ackData).toEqual({
       error: 'Game room not found. Please check the room code.',
       code: 'ROOM_NOT_FOUND',
     });
@@ -147,10 +147,12 @@ describe('Lobby joining edge cases', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual(expect.objectContaining({ 
-      error: expect.any(String), 
-      code: expect.any(String) 
-    }));
+    expect(ackData).toEqual(
+      expect.objectContaining({
+        error: expect.any(String),
+        code: expect.any(String),
+      })
+    );
   });
 
   test('joining with duplicate id does not create new player', () => {
@@ -228,10 +230,12 @@ describe('Lobby joining edge cases', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual(expect.objectContaining({ 
-      error: expect.any(String), 
-      code: expect.any(String) 
-    }));
+    expect(ackData).toEqual(
+      expect.objectContaining({
+        error: expect.any(String),
+        code: expect.any(String),
+      })
+    );
   });
 
   test('player can leave and rejoin, lobby state updates', () => {

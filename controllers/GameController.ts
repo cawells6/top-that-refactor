@@ -4,51 +4,47 @@ import { v4 as uuidv4 } from 'uuid';
 import GameState from '../models/GameState.js';
 import Player from '../models/Player.js';
 import {
+  createErrorResponse,
+  ERROR_MESSAGES,
+} from '../src/shared/errorCodes.js';
+import {
+  ERROR as ERROR_EVENT,
+  GAME_OVER,
   JOIN_GAME,
   JOINED,
-  STATE_UPDATE,
-  SPECIAL_CARD_EFFECT,
-  REJOIN,
-  START_GAME,
-  NEXT_TURN,
-  GAME_OVER,
-  CARD_PLAYED,
-  PILE_PICKED_UP,
-  ERROR as ERROR_EVENT,
-  PLAY_CARD,
-  PICK_UP_PILE,
-  LOBBY_STATE_UPDATE,
-  PLAYER_READY,
-  PLAYER_JOINED,
   LOBBY,
+  LOBBY_STATE_UPDATE,
+  NEXT_TURN,
+  PICK_UP_PILE,
+  PILE_PICKED_UP,
+  PLAY_CARD,
+  PLAYER_JOINED,
+  PLAYER_READY,
+  REJOIN,
+  SPECIAL_CARD_EFFECT,
+  START_GAME,
+  STATE_UPDATE,
 } from '../src/shared/events.js';
 import {
-  ERROR_CODES,
-  ERROR_MESSAGES,
-  createErrorResponse,
-} from '../src/shared/errorCodes.js';
+  validateJoinGamePayloadServer,
+  validateRejoinDataServer,
+} from '../src/shared/serverValidation.js';
 import {
   Card,
   CardValue,
   ClientStatePlayer,
   GameStateData,
+  InSessionLobbyState,
   JoinGamePayload,
   RejoinData,
 } from '../src/shared/types.js';
-import { InSessionLobbyState } from '../src/shared/types.js';
 import {
-  normalizeCardValue,
-  isSpecialCard,
-  isTwoCard,
   isFiveCard,
+  isSpecialCard,
   isTenCard,
+  isTwoCard,
+  normalizeCardValue,
 } from '../utils/cardUtils.js';
-import {
-  validateJoinGamePayloadServer,
-  validateRejoinDataServer,
-  validatePlayCardData,
-  validateStartGameOptions,
-} from '../src/shared/serverValidation.js';
 
 // interface PlayerJoinData {
 //   id?: string;
@@ -81,10 +77,14 @@ export class GameRoomManager {
         JOIN_GAME,
         (
           playerData: JoinGamePayload,
-          ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+          ack?: (
+            response: { roomId: string; playerId: string } | { error: string }
+          ) => void
         ) => {
-          console.log(`[SERVER] Received JOIN_GAME from ${socket.id}:`, playerData);
-          
+          console.log(
+            `[SERVER] Received JOIN_GAME from ${socket.id}:`,
+            playerData
+          );
           // Validate payload on server side
           const validation = validateJoinGamePayloadServer(playerData);
           if (!validation.isValid && validation.errorResponse) {
@@ -94,7 +94,7 @@ export class GameRoomManager {
             socket.emit(ERROR_EVENT, validation.errorResponse.error);
             return;
           }
-          
+
           this.handleClientJoinGame(socket, playerData, ack);
         }
       );
@@ -103,7 +103,11 @@ export class GameRoomManager {
         REJOIN,
         (
           rejoinData: RejoinData,
-          ack?: (response: { success: boolean; error?: string; code?: string }) => void
+          ack?: (response: {
+            success: boolean;
+            error?: string;
+            code?: string;
+          }) => void
         ) => {
           // Validate rejoin data on server side
           const validation = validateRejoinDataServer(rejoinData);
@@ -118,17 +122,26 @@ export class GameRoomManager {
             socket.emit(ERROR_EVENT, validation.errorResponse.error);
             return;
           }
-          
+
           const controller = this.rooms.get(rejoinData.roomId);
           if (controller) {
-            controller.publicHandleRejoin(socket, rejoinData.roomId, rejoinData.playerId, ack);
+            controller.publicHandleRejoin(
+              socket,
+              rejoinData.roomId,
+              rejoinData.playerId,
+              ack
+            );
           } else {
             const errorResponse = createErrorResponse(
               'ROOM_NOT_FOUND',
               ERROR_MESSAGES.ROOM_NOT_FOUND
             );
             if (typeof ack === 'function') {
-              ack({ success: false, error: errorResponse.error, code: errorResponse.code });
+              ack({
+                success: false,
+                error: errorResponse.error,
+                code: errorResponse.code,
+              });
             }
             socket.emit(ERROR_EVENT, errorResponse.error);
           }
@@ -138,22 +151,45 @@ export class GameRoomManager {
 
     setInterval(() => {
       for (const [roomId, controller] of this.rooms.entries()) {
-        const hasActivePlayers = Array.from(controller['players'].values()).some(
-          (p) => !p.disconnected
-        );
+        const hasActivePlayers = Array.from(
+          controller['players'].values()
+        ).some((p) => !p.disconnected);
         if (!hasActivePlayers && !controller['gameState'].started) {
+          this.log(`Cleaning up empty room: ${roomId}`);
+          controller.destroy(); // 🔥 CRITICAL: Properly destroy controller
           this.rooms.delete(roomId);
         }
       }
     }, 60000);
   }
 
+  // 🔥 CRITICAL: Add proper shutdown method
+  public shutdown(): void {
+    this.log('Shutting down GameRoomManager and cleaning up all rooms');
+    for (const [roomId, controller] of this.rooms.entries()) {
+      this.log(`Destroying room: ${roomId}`);
+      controller.destroy();
+    }
+    this.rooms.clear();
+  }
+
+  private log(...args: any[]): void {
+    console.log('[GameRoomManager]', ...args);
+  }
+
   private handleClientJoinGame(
     socket: Socket,
     playerData: JoinGamePayload,
-    ack?: (response: { roomId: string; playerId: string } | { error: string; code?: string }) => void
+    ack?: (
+      response:
+        | { roomId: string; playerId: string }
+        | { error: string; code?: string }
+    ) => void
   ): void {
-    console.log(`[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`, playerData);
+    console.log(
+      `[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`,
+      playerData
+    );
 
     // Use playerData.roomId instead of playerData.id
     let roomId = playerData.roomId;
@@ -162,13 +198,17 @@ export class GameRoomManager {
     if (roomId) {
       controller = this.rooms.get(roomId);
       if (!controller) {
-        console.log(`[SERVER] Room ${roomId} not found for JOIN_GAME from ${socket.id}`);
+        console.log(
+          `[SERVER] Room ${roomId} not found for JOIN_GAME from ${socket.id}`
+        );
         const errorResponse = createErrorResponse(
           'ROOM_NOT_FOUND',
           ERROR_MESSAGES.ROOM_NOT_FOUND
         );
         if (typeof ack === 'function') {
-          console.log(`[SERVER] Sending error response to ${socket.id}: Room not found`);
+          console.log(
+            `[SERVER] Sending error response to ${socket.id}: Room not found`
+          );
           ack({ error: errorResponse.error, code: errorResponse.code });
         }
         socket.emit(ERROR_EVENT, errorResponse.error);
@@ -178,7 +218,9 @@ export class GameRoomManager {
 
     if (!controller) {
       roomId = uuidv4().slice(0, 6);
-      console.log(`[SERVER] Creating new room ${roomId} for JOIN_GAME from ${socket.id}`);
+      console.log(
+        `[SERVER] Creating new room ${roomId} for JOIN_GAME from ${socket.id}`
+      );
       controller = new GameController(this.io, roomId);
       this.rooms.set(roomId, controller);
     }
@@ -186,7 +228,9 @@ export class GameRoomManager {
     // Pass a copy of playerData without the room identifier so the controller
     // assigns the joining player's ID from the socket.
     const joinData = { ...playerData, id: undefined };
-    console.log(`[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`);
+    console.log(
+      `[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`
+    );
     controller.publicHandleJoin(socket, joinData, ack);
   }
 }
@@ -200,6 +244,19 @@ export default class GameController {
   private expectedHumanCount: number;
   private expectedCpuCount: number;
   private hostId: string | null = null;
+
+  // 🔥 CRITICAL: Race condition prevention and memory management
+  // Add timeout tracking and turn management for race condition prevention
+  private gameTimeouts: Set<NodeJS.Timeout> = new Set();
+  private turnLock: boolean = false;
+  private stateUpdateScheduled: boolean = false;
+  private destroyed: boolean = false;
+
+  // Performance optimization: event throttling and batching
+  private lastStateEmit: number = 0;
+  private pendingStateUpdates: Set<string> = new Set();
+  private eventThrottleDelay: number = 50; // Minimum ms between state updates
+  private batchedEventQueue: Map<string, any[]> = new Map();
 
   constructor(io: Server, roomId: string) {
     this.io = io;
@@ -217,8 +274,10 @@ export default class GameController {
     // Remove ALL listeners first to prevent duplicates
     socket.removeAllListeners();
 
-    socket.on(START_GAME, (opts: Pick<StartGameOptions, 'computerCount'> = {}) =>
-      this.handleStartGame({ ...opts, socket })
+    socket.on(
+      START_GAME,
+      (opts: Pick<StartGameOptions, 'computerCount'> = {}) =>
+        this.handleStartGame({ ...opts, socket })
     );
     socket.on(PLAY_CARD, (data: PlayData) => this.handlePlayCard(socket, data));
     socket.on(PICK_UP_PILE, () => this.handlePickUpPile(socket));
@@ -238,7 +297,11 @@ export default class GameController {
     socket.on('disconnect', () => this.handleDisconnect(socket));
   }
 
-  private getLobbyPlayerList(): { id: string; name: string; disconnected: boolean }[] {
+  private getLobbyPlayerList(): {
+    id: string;
+    name: string;
+    disconnected: boolean;
+  }[] {
     return Array.from(this.players.values()).map((p: Player) => ({
       id: p.id,
       name: p.name,
@@ -272,7 +335,9 @@ export default class GameController {
     // console.log('[SERVER] checkIfGameCanStart called');
     const allPlayers = Array.from(this.players.values());
     const humanPlayers = allPlayers.filter((p) => !p.isComputer);
-    const allHumansReady = humanPlayers.every((p) => p.status === 'host' || p.status === 'ready');
+    const allHumansReady = humanPlayers.every(
+      (p) => p.status === 'host' || p.status === 'ready'
+    );
     // console.log(
     //   '[SERVER] Human players:',
     //   humanPlayers.map((p) => ({ id: p.id, status: p.status }))
@@ -290,9 +355,14 @@ export default class GameController {
   public publicHandleJoin(
     socket: Socket,
     playerData: JoinGamePayload,
-    ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+    ack?: (
+      response: { roomId: string; playerId: string } | { error: string }
+    ) => void
   ): void {
-    console.log(`[SERVER] publicHandleJoin for socket ${socket.id}, data:`, playerData);
+    console.log(
+      `[SERVER] publicHandleJoin for socket ${socket.id}, data:`,
+      playerData
+    );
     this.attachSocketEventHandlers(socket);
     this.handleJoin(socket, playerData, ack);
   }
@@ -327,19 +397,28 @@ export default class GameController {
       player.disconnected = false;
       this.socketIdToPlayerId.set(socket.id, playerId);
 
-      socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
+      socket.emit(JOINED, {
+        id: player.id,
+        name: player.name,
+        roomId: this.roomId,
+      });
       this.log(`Emitted JOINED to rejoining player ${player.name}`);
 
       this.pushState();
       this.pushLobbyState();
-      this.log(`Pushed state and lobby info to room ${this.roomId} after rejoin.`);
+      this.log(
+        `Pushed state and lobby info to room ${this.roomId} after rejoin.`
+      );
       if (typeof ack === 'function') {
         ack({ success: true });
       }
     } else {
       this.log(`Rejoin failed: Player ${playerId} not found in this room.`);
       if (typeof ack === 'function') {
-        ack({ success: false, error: `Player ${playerId} not found for rejoin.` });
+        ack({
+          success: false,
+          error: `Player ${playerId} not found for rejoin.`,
+        });
       }
       socket.emit(ERROR_EVENT, `Player ${playerId} not found for rejoin.`);
     }
@@ -348,7 +427,11 @@ export default class GameController {
   private handleJoin(
     socket: Socket,
     playerData: JoinGamePayload,
-    ack?: (response: { roomId: string; playerId: string } | { error: string; code?: string }) => void
+    ack?: (
+      response:
+        | { roomId: string; playerId: string }
+        | { error: string; code?: string }
+    ) => void
   ): void {
     // --- Payload validation ---
     if (
@@ -373,9 +456,13 @@ export default class GameController {
     }
 
     // console.log('[SERVER] handleJoin: playerData', playerData);
-    
+
     // Validate playerName
-    if (!playerData.playerName || typeof playerData.playerName !== 'string' || !playerData.playerName.trim()) {
+    if (
+      !playerData.playerName ||
+      typeof playerData.playerName !== 'string' ||
+      !playerData.playerName.trim()
+    ) {
       this.log(`Invalid or missing player name. Emitting ERROR_EVENT.`);
       const errorResponse = createErrorResponse(
         'INVALID_PLAYER_NAME',
@@ -386,7 +473,7 @@ export default class GameController {
       }
       return;
     }
-    
+
     let id = playerData.id || socket.id;
     let name = playerData.playerName.trim();
     this.log(
@@ -400,7 +487,9 @@ export default class GameController {
       }
     };
     if (existingPlayer && !existingPlayer.disconnected) {
-      this.log(`Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`);
+      this.log(
+        `Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`
+      );
       console.log('[DEBUG] Emitting ERROR_EVENT: duplicate join');
       const errorResponse = createErrorResponse(
         'DUPLICATE_JOIN',
@@ -410,7 +499,9 @@ export default class GameController {
       return;
     }
     if (existingPlayer && existingPlayer.disconnected) {
-      this.log(`Player ID '${id}' (${name}) is disconnected. Attempting rejoin logic.`);
+      this.log(
+        `Player ID '${id}' (${name}) is disconnected. Attempting rejoin logic.`
+      );
       this.handleRejoin(
         socket,
         this.roomId,
@@ -428,7 +519,9 @@ export default class GameController {
       return;
     }
     if (this.gameState.started) {
-      this.log(`Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
+      this.log(
+        `Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`
+      );
       console.log('[DEBUG] Emitting ERROR_EVENT: game already started');
       const errorResponse = createErrorResponse(
         'GAME_ALREADY_STARTED',
@@ -440,7 +533,9 @@ export default class GameController {
       return;
     }
     if (this.players.size >= this.gameState.maxPlayers) {
-      this.log(`Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
+      this.log(
+        `Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`
+      );
       console.log('[DEBUG] Emitting ERROR_EVENT: room full');
       const errorResponse = createErrorResponse(
         'GAME_FULL',
@@ -497,7 +592,11 @@ export default class GameController {
       name: player.name,
       roomId: this.roomId,
     });
-    socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
+    socket.emit(JOINED, {
+      id: player.id,
+      name: player.name,
+      roomId: this.roomId,
+    });
     if (typeof ack === 'function') {
       console.log(`[SERVER] Calling JOIN_GAME ack for socket ${socket.id}`);
       ack({ roomId: this.roomId, playerId: player.id });
@@ -527,7 +626,10 @@ export default class GameController {
       `Handling start game request. Computer count: ${computerCount}. Requested by: ${requestingSocket?.id}`
     );
 
-    if (requestingSocket && this.socketIdToPlayerId.get(requestingSocket.id) !== this.hostId) {
+    if (
+      requestingSocket &&
+      this.socketIdToPlayerId.get(requestingSocket.id) !== this.hostId
+    ) {
       return;
     }
 
@@ -541,7 +643,9 @@ export default class GameController {
     this.players.forEach((player) => {
       if (!this.gameState.players.includes(player.id)) {
         this.gameState.addPlayer(player.id);
-        this.log(`Added player ${player.id} to gameState.players before starting.`);
+        this.log(
+          `Added player ${player.id} to gameState.players before starting.`
+        );
       }
     });
 
@@ -570,13 +674,15 @@ export default class GameController {
     );
 
     if (currentHumanPlayers === 0 && computerCount < 2) {
-      const errorMsg = 'At least two players (humans or CPUs) are required to start.';
+      const errorMsg =
+        'At least two players (humans or CPUs) are required to start.';
       this.log(`Start game failed: ${errorMsg}`);
       if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
       return;
     }
     if (currentHumanPlayers > 0 && currentHumanPlayers + computerCount < 2) {
-      const errorMsg = 'At least two total players (humans + CPUs) are required.';
+      const errorMsg =
+        'At least two total players (humans + CPUs) are required.';
       this.log(`Start game failed: ${errorMsg}`);
       if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
       return;
@@ -602,7 +708,9 @@ export default class GameController {
         if (!this.gameState.players.includes(cpuId)) {
           this.gameState.addPlayer(cpuId);
         }
-        this.log(`Added CPU player ${cpuId}. Total players now: ${this.players.size}`);
+        this.log(
+          `Added CPU player ${cpuId}. Total players now: ${this.players.size}`
+        );
       }
     }
     this.log(
@@ -632,7 +740,9 @@ export default class GameController {
       return;
     }
 
-    this.log(`Dealing cards for ${numPlayers} players: ${this.gameState.players.join(', ')}`);
+    this.log(
+      `Dealing cards for ${numPlayers} players: ${this.gameState.players.join(', ')}`
+    );
     const { hands, upCards, downCards } = this.gameState.dealCards(numPlayers);
 
     this.gameState.players.forEach((id: string, idx: number) => {
@@ -648,7 +758,8 @@ export default class GameController {
     this.gameState.started = true;
     this.gameState.currentPlayerIndex = 0;
 
-    const firstPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
+    const firstPlayerId =
+      this.gameState.players[this.gameState.currentPlayerIndex];
     this.log(
       `Game started successfully. First player: ${firstPlayerId}. Emitting NEXT_TURN and pushing state.`
     );
@@ -669,7 +780,10 @@ export default class GameController {
     return this.handleStartGame({ computerCount, socket });
   }
 
-  private handlePlayCard(socket: Socket, { cardIndices, zone }: PlayData): void {
+  private handlePlayCard(
+    socket: Socket,
+    { cardIndices, zone }: PlayData
+  ): void {
     const playerId = this.socketIdToPlayerId.get(socket.id);
     this.log(
       `Handling play card request from socket ${socket.id} (Player ID: ${playerId}). Zone: ${zone}, Indices: ${cardIndices}`
@@ -685,7 +799,9 @@ export default class GameController {
       return;
     }
 
-    if (this.gameState.players[this.gameState.currentPlayerIndex] !== playerId) {
+    if (
+      this.gameState.players[this.gameState.currentPlayerIndex] !== playerId
+    ) {
       socket.emit(ERROR_EVENT, 'Not your turn.');
       return;
     }
@@ -733,7 +849,9 @@ export default class GameController {
         cardsToPlay
       )}`
     );
-    if (this.gameState.players[this.gameState.currentPlayerIndex] !== player.id) {
+    if (
+      this.gameState.players[this.gameState.currentPlayerIndex] !== player.id
+    ) {
       this.log(
         `Play card rejected: Not player ${player.id}'s turn. Current player: ${this.gameState.players[this.gameState.currentPlayerIndex]}`
       );
@@ -765,16 +883,22 @@ export default class GameController {
           }
         }
       } else {
-        this.log(`Computer player ${player.id} made an invalid play. Forcing pickup.`);
+        this.log(
+          `Computer player ${player.id} made an invalid play. Forcing pickup.`
+        );
         this.handlePickUpPileInternal(player);
       }
       return;
     }
 
     if (zone === 'hand') {
-      player.setHand(player.hand.filter((_: Card, i: number) => !cardIndices.includes(i)));
+      player.setHand(
+        player.hand.filter((_: Card, i: number) => !cardIndices.includes(i))
+      );
     } else if (zone === 'upCards') {
-      player.setUpCards(player.upCards.filter((_: Card, i: number) => !cardIndices.includes(i)));
+      player.setUpCards(
+        player.upCards.filter((_: Card, i: number) => !cardIndices.includes(i))
+      );
     } else if (zone === 'downCards') {
       player.playDownCard();
     }
@@ -784,13 +908,25 @@ export default class GameController {
       const playedCardForPile: Card = { ...card, value: normalizedValue };
       this.gameState.addToPile(playedCardForPile);
 
-      if (!isSpecialCard(normalizedValue) && !this.gameState.isFourOfAKindOnPile()) {
+      if (
+        !isSpecialCard(normalizedValue) &&
+        !this.gameState.isFourOfAKindOnPile()
+      ) {
         this.gameState.lastRealCard = playedCardForPile;
       }
     });
 
-    this.io.to(this.roomId).emit(CARD_PLAYED, { playerId: player.id, cards: cardsToPlay, zone });
-    this.log(`Emitted CARD_PLAYED for player ${player.id}. Cards: ${JSON.stringify(cardsToPlay)}`);
+    // 🚀 PERFORMANCE: Batch card played events for better scalability
+    this.batchEvent('card-played', {
+      playerId: player.id,
+      cards: cardsToPlay,
+      zone,
+      timestamp: Date.now(),
+    });
+
+    this.log(
+      `Batched CARD_PLAYED for player ${player.id}. Cards: ${JSON.stringify(cardsToPlay)}`
+    );
 
     const lastPlayedCard = cardsToPlay[0];
     const lastPlayedNormalizedValue = normalizeCardValue(lastPlayedCard.value);
@@ -798,14 +934,20 @@ export default class GameController {
     let pileClearedBySpecial = false;
     if (isTwoCard(lastPlayedNormalizedValue)) {
       this.log(`Special card: 2 played by ${player.id}. Resetting pile.`);
-      this.io
-        .to(this.roomId)
-        .emit(SPECIAL_CARD_EFFECT, { type: 'two', value: lastPlayedNormalizedValue });
+      this.io.to(this.roomId).emit(SPECIAL_CARD_EFFECT, {
+        type: 'two',
+        value: lastPlayedNormalizedValue,
+      });
       this.gameState.clearPile();
       pileClearedBySpecial = true;
-    } else if (this.gameState.isFourOfAKindOnPile() || isTenCard(lastPlayedNormalizedValue)) {
+    } else if (
+      this.gameState.isFourOfAKindOnPile() ||
+      isTenCard(lastPlayedNormalizedValue)
+    ) {
       const effectType = isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four';
-      this.log(`Special card: ${effectType} played by ${player.id}. Burning pile.`);
+      this.log(
+        `Special card: ${effectType} played by ${player.id}. Burning pile.`
+      );
       this.io.to(this.roomId).emit(SPECIAL_CARD_EFFECT, {
         type: effectType,
         value: lastPlayedNormalizedValue,
@@ -824,18 +966,28 @@ export default class GameController {
         }
       }
     } else if (isFiveCard(lastPlayedNormalizedValue)) {
-      this.log(`Special card: 5 played by ${player.id}. Copying last real card.`);
-      this.io
-        .to(this.roomId)
-        .emit(SPECIAL_CARD_EFFECT, { type: 'five', value: lastPlayedNormalizedValue });
+      this.log(
+        `Special card: 5 played by ${player.id}. Copying last real card.`
+      );
+      this.io.to(this.roomId).emit(SPECIAL_CARD_EFFECT, {
+        type: 'five',
+        value: lastPlayedNormalizedValue,
+      });
       if (this.gameState.lastRealCard) {
-        this.gameState.addToPile({ ...this.gameState.lastRealCard, copied: true });
+        this.gameState.addToPile({
+          ...this.gameState.lastRealCard,
+          copied: true,
+        });
       }
     }
 
     if (player.hasEmptyHand() && player.hasEmptyUp() && player.hasEmptyDown()) {
-      this.log(`Player ${player.id} (${player.name}) has played all cards. Game Over!`);
-      this.io.to(this.roomId).emit(GAME_OVER, { winnerId: player.id, winnerName: player.name });
+      this.log(
+        `Player ${player.id} (${player.name}) has played all cards. Game Over!`
+      );
+      this.io
+        .to(this.roomId)
+        .emit(GAME_OVER, { winnerId: player.id, winnerName: player.name });
       this.gameState.endGameInstance();
       this.pushState();
       return;
@@ -850,25 +1002,33 @@ export default class GameController {
     }
 
     if (pileClearedBySpecial) {
-      this.log(`Pile cleared by special card. Player ${player.id} plays again.`);
-      this.pushState();
+      this.log(
+        `Pile cleared by special card. Player ${player.id} plays again.`
+      );
+      this.scheduleStateUpdate();
       this.io.to(this.roomId).emit(NEXT_TURN, player.id);
       if (player.isComputer) {
-        this.log(`Computer player ${player.id} plays again. Scheduling their turn.`);
-        setTimeout(() => this.playComputerTurn(player), 1200);
+        this.log(
+          `Computer player ${player.id} plays again. Scheduling their turn.`
+        );
+        this.scheduleComputerTurn(player, 1200);
       }
     } else {
       this.log('Proceeding to next turn.');
       this.handleNextTurn();
     }
-    this.pushState();
+    this.scheduleStateUpdate();
   }
 
   private handlePickUpPile(socket: Socket): void {
     const playerId = this.socketIdToPlayerId.get(socket.id);
-    this.log(`Handling pick up pile request from socket ${socket.id} (Player ID: ${playerId})`);
+    this.log(
+      `Handling pick up pile request from socket ${socket.id} (Player ID: ${playerId})`
+    );
     if (!playerId) {
-      this.log(`Pick up pile failed: Player not recognized for socket ${socket.id}`);
+      this.log(
+        `Pick up pile failed: Player not recognized for socket ${socket.id}`
+      );
       socket.emit(ERROR_EVENT, 'Player not recognized.');
       return;
     }
@@ -880,7 +1040,9 @@ export default class GameController {
       return;
     }
 
-    if (this.gameState.players[this.gameState.currentPlayerIndex] !== playerId) {
+    if (
+      this.gameState.players[this.gameState.currentPlayerIndex] !== playerId
+    ) {
       this.log(
         `Pick up pile rejected: Not player ${playerId}'s turn. Current player: ${this.gameState.players[this.gameState.currentPlayerIndex]}`
       );
@@ -909,7 +1071,7 @@ export default class GameController {
     }
 
     this.handleNextTurn();
-    this.pushState();
+    this.scheduleStateUpdate();
   }
 
   private handleNextTurn(): void {
@@ -917,43 +1079,87 @@ export default class GameController {
       this.log('Attempted to advance turn, but game has not started.');
       return;
     }
-    this.gameState.advancePlayer();
-    const nextPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
-    const nextPlayer = this.players.get(nextPlayerId);
 
-    this.log(
-      `Advancing turn. Current player index: ${this.gameState.currentPlayerIndex}, Next player ID: ${nextPlayerId}`
-    );
-
-    if (!nextPlayer) {
+    // 🔥 CRITICAL: Prevent race conditions with turn lock
+    if (this.turnLock) {
       this.log(
-        `Error: Next player with ID ${nextPlayerId} not found in 'this.players' map. This should not happen.`
+        'Turn change already in progress, skipping duplicate handleNextTurn'
       );
+      return;
+    }
+
+    this.turnLock = true;
+
+    try {
+      this.gameState.advancePlayer();
+      const nextPlayerId =
+        this.gameState.players[this.gameState.currentPlayerIndex];
+      const nextPlayer = this.players.get(nextPlayerId);
+
+      this.log(
+        `Advancing turn. Current player index: ${this.gameState.currentPlayerIndex}, Next player ID: ${nextPlayerId}`
+      );
+
+      if (!nextPlayer) {
+        this.log(
+          `Error: Next player with ID ${nextPlayerId} not found in 'this.players' map. This should not happen.`
+        );
+        this.io.to(this.roomId).emit(NEXT_TURN, nextPlayerId);
+        return;
+      }
+
+      if (nextPlayer.disconnected) {
+        this.log(
+          `Next player ${nextPlayerId} (${nextPlayer.name}) is disconnected. Skipping turn.`
+        );
+        // Recursive call is safe here because we'll release the lock first
+        this.turnLock = false;
+        this.handleNextTurn();
+        return;
+      }
+
       this.io.to(this.roomId).emit(NEXT_TURN, nextPlayerId);
-      return;
-    }
+      this.log(
+        `Emitted NEXT_TURN for player ${nextPlayerId} (${nextPlayer.name})`
+      );
 
-    if (nextPlayer.disconnected) {
-      this.log(`Next player ${nextPlayerId} (${nextPlayer.name}) is disconnected. Skipping turn.`);
-      this.handleNextTurn();
-      return;
-    }
-
-    this.io.to(this.roomId).emit(NEXT_TURN, nextPlayerId);
-    this.log(`Emitted NEXT_TURN for player ${nextPlayerId} (${nextPlayer.name})`);
-
-    if (nextPlayer.isComputer) {
-      this.log(`Next player ${nextPlayerId} is a CPU. Scheduling their turn.`);
-      setTimeout(() => this.playComputerTurn(nextPlayer), 1200);
+      if (nextPlayer.isComputer) {
+        this.log(
+          `Next player ${nextPlayerId} is a CPU. Scheduling their turn.`
+        );
+        this.scheduleComputerTurn(nextPlayer, 1200);
+      }
+    } finally {
+      this.turnLock = false;
     }
   }
 
   private playComputerTurn(computerPlayer: Player): void {
+    // 🔥 CRITICAL: Additional validation to prevent invalid computer turns
+    if (this.destroyed || !this.gameState.started) {
+      this.log(
+        `CPU ${computerPlayer.id} turn skipped: game destroyed or not started.`
+      );
+      return;
+    }
+
     if (
-      !this.gameState.started ||
-      this.gameState.players[this.gameState.currentPlayerIndex] !== computerPlayer.id
+      this.gameState.players[this.gameState.currentPlayerIndex] !==
+      computerPlayer.id
     ) {
-      this.log(`CPU ${computerPlayer.id} turn skipped: not their turn or game not started.`);
+      this.log(
+        `CPU ${computerPlayer.id} turn skipped: not their turn. Current player: ${
+          this.gameState.players[this.gameState.currentPlayerIndex]
+        }`
+      );
+      return;
+    }
+
+    if (computerPlayer.disconnected) {
+      this.log(
+        `CPU ${computerPlayer.id} turn skipped: player is disconnected.`
+      );
+      this.handleNextTurn();
       return;
     }
 
@@ -962,10 +1168,17 @@ export default class GameController {
       this.findBestPlayForComputer(computerPlayer, 'upCards');
 
     if (bestPlay) {
-      this.handlePlayCardInternal(computerPlayer, bestPlay.indices, bestPlay.zone, bestPlay.cards);
+      this.handlePlayCardInternal(
+        computerPlayer,
+        bestPlay.indices,
+        bestPlay.zone,
+        bestPlay.cards
+      );
     } else if (computerPlayer.downCards.length > 0) {
       const downCardToPlay = computerPlayer.downCards[0];
-      this.handlePlayCardInternal(computerPlayer, [0], 'downCards', [downCardToPlay]);
+      this.handlePlayCardInternal(computerPlayer, [0], 'downCards', [
+        downCardToPlay,
+      ]);
     } else {
       this.handlePickUpPileInternal(computerPlayer);
     }
@@ -1010,35 +1223,55 @@ export default class GameController {
         player.disconnected = true;
         player.disconnectedAt = new Date();
         this.socketIdToPlayerId.delete(socket.id);
-        
-        this.log(`Player ${player.name} (${playerId}) disconnected. Setting grace period for reconnection.`);
+
+        this.log(
+          `Player ${player.name} (${playerId}) disconnected. Setting grace period for reconnection.`
+        );
 
         const activePlayers = Array.from(this.players.values()).filter(
           (p: Player) => !p.disconnected
         );
-        
+
         if (activePlayers.length === 0 && this.gameState.started) {
           // Don't immediately end the game, give players time to reconnect
-          this.log('All players disconnected, but keeping game alive for potential reconnections');
-          setTimeout(() => {
-            const stillAllDisconnected = Array.from(this.players.values()).every(p => p.disconnected);
-            if (stillAllDisconnected) {
-              this.log('All players still disconnected after grace period, ending game');
-              this.gameState.endGameInstance();
+          this.log(
+            'All players disconnected, but keeping game alive for potential reconnections'
+          );
+          // 🔥 Use tracked timeout system
+          const timeoutId = setTimeout(() => {
+            this.gameTimeouts.delete(timeoutId);
+            if (!this.destroyed) {
+              const stillAllDisconnected = Array.from(
+                this.players.values()
+              ).every((p) => p.disconnected);
+              if (stillAllDisconnected) {
+                this.log(
+                  'All players still disconnected after grace period, ending game'
+                );
+                this.gameState.endGameInstance();
+              }
             }
           }, 300000); // 5 minute grace period
+          this.gameTimeouts.add(timeoutId);
         } else if (
           this.gameState.started &&
           playerId === this.gameState.players[this.gameState.currentPlayerIndex]
         ) {
-          this.log(`Current player ${player.name} disconnected, advancing turn after delay`);
+          this.log(
+            `Current player ${player.name} disconnected, advancing turn after delay`
+          );
           // Give the player a chance to reconnect before skipping their turn
-          setTimeout(() => {
-            const currentPlayer = this.players.get(playerId);
-            if (currentPlayer && currentPlayer.disconnected) {
-              this.handleNextTurn();
+          // 🔥 Use tracked timeout system
+          const timeoutId = setTimeout(() => {
+            this.gameTimeouts.delete(timeoutId);
+            if (!this.destroyed) {
+              const currentPlayer = this.players.get(playerId);
+              if (currentPlayer && currentPlayer.disconnected) {
+                this.handleNextTurn();
+              }
             }
           }, 30000); // 30 second grace period for current player's turn
+          this.gameTimeouts.add(timeoutId);
           return;
         }
       }
@@ -1047,7 +1280,33 @@ export default class GameController {
     this.pushLobbyState();
   }
 
+  // 🔥 CRITICAL: Throttled state pushing to prevent spam and improve performance
   private pushState(): void {
+    // Disable throttling in test environments for immediate state updates
+    if (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID) {
+      this.executePushState();
+      return;
+    }
+
+    // Only throttle if we've had recent rapid emissions
+    const now = Date.now();
+    const timeSinceLastEmit = now - this.lastStateEmit;
+
+    // Allow immediate emission for the first call or after sufficient delay
+    if (
+      this.lastStateEmit === 0 ||
+      timeSinceLastEmit >= this.eventThrottleDelay
+    ) {
+      this.lastStateEmit = now;
+      this.executePushState();
+    } else {
+      // Queue this update for throttled emission
+      this.pendingStateUpdates.add('state-update');
+      this.scheduleThrottledUpdate();
+    }
+  }
+
+  private executePushState(): void {
     const currentPlayerId =
       this.gameState.started &&
       this.gameState.players.length > 0 &&
@@ -1057,23 +1316,28 @@ export default class GameController {
         : undefined;
 
     const stateForEmit: GameStateData = {
-      players: Array.from(this.players.values()).map((player: Player): ClientStatePlayer => {
-        const isSelf =
-          player.socketId && this.io.sockets.sockets.get(player.socketId) !== undefined;
-        return {
-          id: player.id,
-          name: player.name,
-          hand: isSelf || player.isComputer ? player.hand : undefined,
-          handCount: player.hand.length,
-          upCards: player.upCards,
-          upCount: player.upCards.length,
-          downCards: isSelf
-            ? player.downCards
-            : player.downCards.map(() => ({ value: '?', suit: '?', back: true }) as Card),
-          downCount: player.downCards.length,
-          disconnected: player.disconnected,
-        };
-      }),
+      players: Array.from(this.players.values()).map(
+        (player: Player): ClientStatePlayer => {
+          const isSelf =
+            player.socketId &&
+            this.io.sockets.sockets.get(player.socketId) !== undefined;
+          return {
+            id: player.id,
+            name: player.name,
+            hand: isSelf || player.isComputer ? player.hand : undefined,
+            handCount: player.hand.length,
+            upCards: player.upCards,
+            upCount: player.upCards.length,
+            downCards: isSelf
+              ? player.downCards
+              : player.downCards.map(
+                  () => ({ value: '?', suit: '?', back: true }) as Card
+                ),
+            downCount: player.downCards.length,
+            disconnected: player.disconnected,
+          };
+        }
+      ),
       pile: this.gameState.pile,
       discardCount: this.gameState.discard.length,
       deckSize: this.gameState.deck?.length || 0,
@@ -1085,7 +1349,9 @@ export default class GameController {
     // Emit personalized state to each connected player
     this.players.forEach((playerInstance) => {
       if (playerInstance.socketId && !playerInstance.disconnected) {
-        const targetSocket = this.io.sockets.sockets.get(playerInstance.socketId);
+        const targetSocket = this.io.sockets.sockets.get(
+          playerInstance.socketId
+        );
         if (targetSocket) {
           const personalizedState: GameStateData = {
             ...stateForEmit,
@@ -1095,7 +1361,9 @@ export default class GameController {
               downCards:
                 p.id === playerInstance.id
                   ? p.downCards
-                  : p.downCards?.map(() => ({ value: '?', suit: '?', back: true }) as Card),
+                  : p.downCards?.map(
+                      () => ({ value: '?', suit: '?', back: true }) as Card
+                    ),
             })),
           };
           targetSocket.emit(STATE_UPDATE, personalizedState);
@@ -1104,6 +1372,109 @@ export default class GameController {
     });
     // Always emit a generic STATE_UPDATE to the room for listeners (testability, clients)
     this.io.to(this.roomId).emit(STATE_UPDATE, stateForEmit);
+  }
+
+  // 🔥 CRITICAL: Race condition prevention methods
+  private scheduleComputerTurn(player: Player, delay: number): void {
+    if (this.destroyed) return;
+
+    const timeoutId = setTimeout(() => {
+      this.gameTimeouts.delete(timeoutId);
+      if (!this.destroyed) {
+        this.playComputerTurn(player);
+      }
+    }, delay);
+    this.gameTimeouts.add(timeoutId);
+  }
+
+  private scheduleStateUpdate(): void {
+    if (this.destroyed || this.stateUpdateScheduled) return;
+
+    this.stateUpdateScheduled = true;
+    process.nextTick(() => {
+      if (!this.destroyed) {
+        this.pushState();
+      }
+      this.stateUpdateScheduled = false;
+    });
+  }
+
+  // 🚀 PERFORMANCE: Event throttling and batching for better scalability
+  private scheduleThrottledUpdate(): void {
+    if (this.destroyed) return;
+
+    const delay = Math.max(
+      this.eventThrottleDelay - (Date.now() - this.lastStateEmit),
+      0
+    );
+
+    const timeoutId = setTimeout(() => {
+      this.gameTimeouts.delete(timeoutId);
+      if (!this.destroyed && this.pendingStateUpdates.has('state-update')) {
+        this.pendingStateUpdates.delete('state-update');
+        this.executePushState();
+      }
+    }, delay);
+    this.gameTimeouts.add(timeoutId);
+  }
+
+  private batchEvent(eventType: string, data: any): void {
+    if (this.destroyed) return;
+
+    if (!this.batchedEventQueue.has(eventType)) {
+      this.batchedEventQueue.set(eventType, []);
+    }
+
+    this.batchedEventQueue.get(eventType)!.push(data);
+
+    // Process batched events on next tick
+    process.nextTick(() => this.processBatchedEvents());
+  }
+
+  private processBatchedEvents(): void {
+    if (this.destroyed || this.batchedEventQueue.size === 0) return;
+
+    for (const [eventType, events] of this.batchedEventQueue) {
+      if (events.length > 0) {
+        // For state updates, only send the latest one
+        if (eventType === 'state-update') {
+          this.executePushState();
+        } else {
+          // For other events, send them all as a batch
+          this.io.to(this.roomId).emit(`${eventType}-batch`, events);
+        }
+      }
+    }
+
+    this.batchedEventQueue.clear();
+  }
+
+  private clearAllTimeouts(): void {
+    this.gameTimeouts.forEach((id) => clearTimeout(id));
+    this.gameTimeouts.clear();
+  }
+
+  public destroy(): void {
+    this.log('Destroying GameController and cleaning up resources');
+    this.destroyed = true;
+    this.clearAllTimeouts();
+
+    // 🚀 PERFORMANCE: Comprehensive memory cleanup
+    this.pendingStateUpdates.clear();
+    this.batchedEventQueue.clear();
+
+    // Clear all socket listeners to prevent memory leaks
+    this.players.forEach((player) => {
+      if (player.socketId) {
+        const socket = this.io.sockets.sockets.get(player.socketId);
+        if (socket) {
+          socket.removeAllListeners();
+        }
+      }
+    });
+
+    this.players.clear();
+    this.socketIdToPlayerId.clear();
   }
 
   // Add this log method for internal logging

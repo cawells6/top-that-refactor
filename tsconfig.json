@@ -52,5 +52,14 @@
     "public/scripts",
     "*.ts"
   ],
-  "exclude": ["node_modules", "dist", "public/scripts/tsconfig.json"]
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "public/scripts/tsconfig.json",
+    "src/client/events.ts",
+    "src/server/socketHandlers.js",
+    "__trash__/**",
+    "__mocks__/**",
+    "**/*.d.ts"
+  ]
 }

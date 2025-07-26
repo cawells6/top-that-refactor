@@ -9,10 +9,10 @@ describe('render.ts', () => {
   });
 
   it('returns ERR for missing value or suit', () => {
-    expect(code({ value: null, suit: 'hearts' })).toBe('ERR');
-    expect(code({ value: 5, suit: null })).toBe('ERR');
-    expect(code({ value: undefined, suit: 'spades' })).toBe('ERR');
-    expect(code({ value: 7, suit: undefined })).toBe('ERR');
+    expect(code({ value: null as any, suit: 'hearts' })).toBe('ERR');
+    expect(code({ value: 5, suit: null as any })).toBe('ERR');
+    expect(code({ value: undefined as any, suit: 'spades' })).toBe('ERR');
+    expect(code({ value: 7, suit: undefined as any })).toBe('ERR');
   });
 
   it('returns ERR for missing value or suit (robustness test)', () => {

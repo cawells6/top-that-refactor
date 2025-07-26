@@ -1,13 +1,9 @@
-import {
-  emitJoinGame,
-  initializeConnectionMonitoring,
-} from './acknowledgmentUtils.js';
+import { emitJoinGame } from './acknowledgmentUtils.js';
 import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 import {
   validateJoinGamePayload,
-  validateRejoinData,
   displayValidationErrors,
   clearValidationErrors,
 } from './validation.js';
@@ -793,7 +789,7 @@ function handleDealClick() {
   const dealButton = document.getElementById(
     'setup-deal-button'
   ) as HTMLButtonElement;
-  
+
   if (dealButton) {
     dealButton.disabled = true;
     dealButton.textContent = 'JOINING...';
@@ -802,11 +798,13 @@ function handleDealClick() {
   emitJoinGame(state.socket, playerDataForEmit, {
     onSuccess: (response) => {
       console.log('[CLIENT] JOIN_GAME success:', response);
-      
+
       // Reset form fields after successful join
-      const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+      const form = document.getElementById(
+        'lobby-form'
+      ) as HTMLFormElement | null;
       if (form) form.reset();
-      
+
       if (dealButton) {
         dealButton.disabled = false;
         dealButton.textContent = "LET'S PLAY";
@@ -814,25 +812,27 @@ function handleDealClick() {
     },
     onError: (error) => {
       console.error('[CLIENT] JOIN_GAME error:', error);
-      
+
       // Enhanced error handling with user-friendly messages
       let userMessage = error;
       if (error.includes('GAME_FULL')) {
-        userMessage = 'This game is full. Please try joining another game or create a new one.';
+        userMessage =
+          'This game is full. Please try joining another game or create a new one.';
       } else if (error.includes('GAME_ALREADY_STARTED')) {
-        userMessage = 'This game has already started. Please create a new game.';
+        userMessage =
+          'This game has already started. Please create a new game.';
       } else if (error.includes('INVALID_PAYLOAD')) {
         userMessage = 'Please check your player name and settings.';
       } else if (error.includes('ROOM_NOT_FOUND')) {
         userMessage = 'Game room not found. Please check the room code.';
       }
-      
+
       queueMessage(userMessage);
       if (dealButton) {
         dealButton.disabled = false;
         dealButton.textContent = "LET'S PLAY";
       }
-    }
+    },
   });
 }
 
@@ -873,7 +873,7 @@ function handleJoinGameClick() {
 
   const name = nameValidation.name;
   const code = codeValidation.code;
-  
+
   // Create join payload and validate it
   const joinPayload = {
     roomId: code,
@@ -892,7 +892,7 @@ function handleJoinGameClick() {
 
   state.setCurrentRoom(code);
   state.saveSession();
-  
+
   console.log(
     '[CLIENT] handleJoinGameClick: Emitting JOIN_GAME with',
     joinPayload
@@ -903,31 +903,35 @@ function handleJoinGameClick() {
   emitJoinGame(state.socket, joinPayload, {
     onSuccess: (response) => {
       console.log('[CLIENT] JOIN_GAME success:', response);
-      
+
       // Reset form fields after successful join
-      const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+      const form = document.getElementById(
+        'lobby-form'
+      ) as HTMLFormElement | null;
       if (form) form.reset();
-      
+
       if (joinBtn) joinBtn.disabled = false;
     },
     onError: (error) => {
       console.error('[CLIENT] JOIN_GAME error:', error);
-      
+
       // Enhanced error handling with user-friendly messages
       let userMessage = error;
       if (error.includes('ROOM_NOT_FOUND')) {
-        userMessage = 'Game room not found. Please check the room code and try again.';
+        userMessage =
+          'Game room not found. Please check the room code and try again.';
       } else if (error.includes('GAME_FULL')) {
         userMessage = 'This game is full. Please try a different room code.';
       } else if (error.includes('GAME_ALREADY_STARTED')) {
-        userMessage = 'This game has already started. Please try a different room code.';
+        userMessage =
+          'This game has already started. Please try a different room code.';
       } else if (error.includes('INVALID_PAYLOAD')) {
         userMessage = 'Please check your player name and try again.';
       }
-      
+
       queueMessage(userMessage);
       if (joinBtn) joinBtn.disabled = false;
-    }
+    },
   });
 }
 

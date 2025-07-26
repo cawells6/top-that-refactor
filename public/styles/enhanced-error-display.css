@@ -1,0 +1,372 @@
+/* Enhanced Error Display Styles - Recommendation #7 */
+
+/* Error Toast Styles */
+.error-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10001;
+  min-width: 300px;
+  max-width: 450px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  border-left: 4px solid #dc3545;
+}
+
+.error-toast--show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Error Types */
+.error-toast--error {
+  border-left-color: #dc3545;
+}
+
+.error-toast--warning {
+  border-left-color: #ff9800;
+}
+
+.error-toast--info {
+  border-left-color: #2196f3;
+}
+
+.error-toast--success {
+  border-left-color: #4caf50;
+}
+
+/* Error Toast Content */
+.error-toast__content {
+  padding: 16px 20px;
+}
+
+.error-toast__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.error-toast__icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.error-toast__message {
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+  flex-grow: 1;
+}
+
+.error-toast__code {
+  font-size: 12px;
+  color: #666;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 8px 0;
+  display: inline-block;
+}
+
+.error-toast__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.error-toast__button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.error-toast__button--retry {
+  background-color: #2196f3;
+  color: white;
+}
+
+.error-toast__button--retry:hover {
+  background-color: #1976d2;
+  transform: translateY(-1px);
+}
+
+.error-toast__button--dismiss {
+  background-color: #f5f5f5;
+  color: #666;
+  padding: 6px 10px;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.error-toast__button--dismiss:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+/* Progress Indicator Styles */
+.progress-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10002;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.progress-indicator--show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.progress-indicator__content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+  min-width: 250px;
+}
+
+.progress-indicator__message {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Progress Animations */
+.progress-indicator__animation {
+  flex-shrink: 0;
+}
+
+/* Spinner Animation */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #2196f3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Dots Animation */
+.dots {
+  display: flex;
+  gap: 4px;
+}
+
+.dots span {
+  width: 8px;
+  height: 8px;
+  background-color: #2196f3;
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.dots span:nth-child(1) { animation-delay: -0.32s; }
+.dots span:nth-child(2) { animation-delay: -0.16s; }
+.dots span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Progress Bar Animation */
+.progress-bar {
+  width: 40px;
+  height: 4px;
+  background-color: #f3f3f3;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background-color: #2196f3;
+  border-radius: 2px;
+  animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% {
+    width: 0%;
+    margin-left: 0%;
+  }
+  50% {
+    width: 75%;
+    margin-left: 10%;
+  }
+  100% {
+    width: 0%;
+    margin-left: 100%;
+  }
+}
+
+/* Enhanced Connection Status (improvements to existing) */
+.connection-status-container {
+  /* Keep existing styles but add enhancements */
+  transition: all 0.3s ease;
+}
+
+.connection-status {
+  /* Enhanced existing connection status */
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.connection-status--error .connection-status {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .error-toast {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .progress-indicator__content {
+    padding: 20px 24px;
+    min-width: 200px;
+  }
+
+  .progress-indicator__message {
+    font-size: 14px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .error-toast {
+    background: #2d2d2d;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .error-toast__message {
+    color: #f0f0f0;
+  }
+
+  .error-toast__code {
+    background: #404040;
+    color: #f0f0f0;
+  }
+
+  .error-toast__actions {
+    border-top-color: #404040;
+  }
+
+  .error-toast__button--dismiss {
+    background-color: #404040;
+    color: #f0f0f0;
+  }
+
+  .error-toast__button--dismiss:hover {
+    background-color: #505050;
+  }
+
+  .progress-indicator {
+    background: rgba(45, 45, 45, 0.95);
+  }
+
+  .progress-indicator__message {
+    color: #f0f0f0;
+  }
+
+  .spinner {
+    border-color: #404040;
+    border-top-color: #2196f3;
+  }
+
+  .dots span {
+    background-color: #2196f3;
+  }
+
+  .progress-bar {
+    background-color: #404040;
+  }
+}
+
+/* Accessibility Improvements */
+/* 
+ * For proper accessibility, ensure HTML elements have:
+ * - .error-toast elements: role="alert" aria-live="polite"
+ * - .error-toast--error elements: aria-live="assertive"
+ * These are HTML attributes, not CSS properties.
+ */
+
+.error-toast__button:focus {
+  outline: 2px solid #2196f3;
+  outline-offset: 2px;
+}
+
+.error-toast__button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .error-toast {
+    border: 2px solid;
+  }
+
+  .error-toast--error {
+    border-color: #dc3545;
+  }
+
+  .error-toast--warning {
+    border-color: #ff9800;
+  }
+
+  .error-toast--info {
+    border-color: #2196f3;
+  }
+
+  .error-toast--success {
+    border-color: #4caf50;
+  }
+}

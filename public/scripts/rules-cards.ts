@@ -46,7 +46,8 @@ export function createRuleCardImage(
     // Add fallback text
     const fallback = document.createElement('span');
     fallback.textContent = `${value}${suit === 'hearts' || suit === 'diamonds' ? '♥' : '♠'}`;
-    fallback.style.color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
+    fallback.style.color =
+      suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
     img.appendChild(fallback);
   };
 
@@ -86,7 +87,9 @@ function updateRuleCardsWithImages() {
     for (let i = 0; i < cardCount; i++) {
       // For demo, use four different values for Four of a Kind, or one for others
       const value = isFourOfAKind ? ['A', 'A', 'A', 'A'][i] : 'A';
-      const suit = isFourOfAKind ? ['spades', 'hearts', 'diamonds', 'clubs'][i] : 'spades';
+      const suit = isFourOfAKind
+        ? ['spades', 'hearts', 'diamonds', 'clubs'][i]
+        : 'spades';
       const cardImg = createRuleCardImage(value, suit, { height: '60px' });
       cardImg.style.border = 'none'; // Remove border if any
       symbolEl.appendChild(cardImg);

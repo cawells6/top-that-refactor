@@ -217,10 +217,12 @@ export function showElement(el: HTMLElement | null): void {
 /**
  * Show connection status to the user
  */
-export function showConnectionStatus(status: 'connected' | 'disconnected' | 'reconnecting'): void {
+export function showConnectionStatus(
+  status: 'connected' | 'disconnected' | 'reconnecting'
+): void {
   // Create or update connection status indicator
   let statusIndicator = document.getElementById('connection-status-indicator');
-  
+
   if (!statusIndicator) {
     statusIndicator = document.createElement('div');
     statusIndicator.id = 'connection-status-indicator';

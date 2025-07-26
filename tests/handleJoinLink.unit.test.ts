@@ -25,16 +25,30 @@ describe('handleJoinLink', () => {
     window.history.replaceState({}, document.title, '/');
   });
 
-  it('should handle join link in URL and emit JOIN_GAME', () => {
+  it('should handle join link in URL and emit JOIN_GAME', async () => {
     setupMainDOM();
     window.history.replaceState({}, document.title, '/?room=ROOM123');
     const setCurrentRoom = jest.fn();
-    const socket = { emit: jest.fn() };
+    const socket = {
+      connected: true, // Make socket appear connected
+      emit: jest.fn((event, data, callback) => {
+        // Simulate successful acknowledgment
+        if (typeof callback === 'function') {
+          setTimeout(() => callback({ success: true }), 0);
+        }
+      }),
+    };
+
     handleJoinLink({ setCurrentRoom, socket, window, document });
     expect(setCurrentRoom).toHaveBeenCalledWith('ROOM123');
+
+    // Wait for async emitJoinGame to complete
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
     expect(socket.emit).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ roomId: 'ROOM123', playerName: 'Guest' })
+      'join-game',
+      expect.objectContaining({ roomId: 'ROOM123', playerName: 'Guest' }),
+      expect.any(Function)
     );
     expect(window.location.search).toBe('');
   });
@@ -70,43 +84,79 @@ describe('handleJoinLink', () => {
     expect(socket.emit).not.toHaveBeenCalled();
   });
 
-  it('should handle room param with whitespace and trim', () => {
+  it('should handle room param with whitespace and trim', async () => {
     setupMainDOM();
     window.history.replaceState({}, document.title, '/?room=%20ROOM789%20');
     const setCurrentRoom = jest.fn();
-    const socket = { emit: jest.fn() };
+    const socket = {
+      connected: true, // Make socket appear connected
+      emit: jest.fn((event, data, callback) => {
+        if (typeof callback === 'function') {
+          setTimeout(() => callback({ success: true }), 0);
+        }
+      }),
+    };
     handleJoinLink({ setCurrentRoom, socket, window, document });
     // Should not trim, should use as-is
     expect(setCurrentRoom).toHaveBeenCalledWith(' ROOM789 ');
+
+    // Wait for async emitJoinGame to complete
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
     expect(socket.emit).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ roomId: ' ROOM789 ', playerName: 'Guest' })
+      'join-game',
+      expect.objectContaining({ roomId: ' ROOM789 ', playerName: 'Guest' }),
+      expect.any(Function)
     );
   });
 
-  it('should handle room param with special characters', () => {
+  it('should handle room param with special characters', async () => {
     setupMainDOM();
     window.history.replaceState({}, document.title, '/?room=R%40%23%24%25');
     const setCurrentRoom = jest.fn();
-    const socket = { emit: jest.fn() };
+    const socket = {
+      connected: true, // Make socket appear connected
+      emit: jest.fn((event, data, callback) => {
+        if (typeof callback === 'function') {
+          setTimeout(() => callback({ success: true }), 0);
+        }
+      }),
+    };
     handleJoinLink({ setCurrentRoom, socket, window, document });
     expect(setCurrentRoom).toHaveBeenCalledWith('R@#$%');
+
+    // Wait for async emitJoinGame to complete
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
     expect(socket.emit).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ roomId: 'R@#$%', playerName: 'Guest' })
+      'join-game',
+      expect.objectContaining({ roomId: 'R@#$%', playerName: 'Guest' }),
+      expect.any(Function)
     );
   });
 
-  it('should handle multiple room params (first wins)', () => {
+  it('should handle multiple room params (first wins)', async () => {
     setupMainDOM();
     window.history.replaceState({}, document.title, '/?room=FIRST&room=SECOND');
     const setCurrentRoom = jest.fn();
-    const socket = { emit: jest.fn() };
+    const socket = {
+      connected: true, // Make socket appear connected
+      emit: jest.fn((event, data, callback) => {
+        if (typeof callback === 'function') {
+          setTimeout(() => callback({ success: true }), 0);
+        }
+      }),
+    };
     handleJoinLink({ setCurrentRoom, socket, window, document });
     expect(setCurrentRoom).toHaveBeenCalledWith('FIRST');
+
+    // Wait for async emitJoinGame to complete
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
     expect(socket.emit).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ roomId: 'FIRST', playerName: 'Guest' })
+      'join-game',
+      expect.objectContaining({ roomId: 'FIRST', playerName: 'Guest' }),
+      expect.any(Function)
     );
   });
 
@@ -117,7 +167,11 @@ describe('handleJoinLink', () => {
     const socket = { emit: jest.fn() };
     const spy = jest.spyOn(window.history, 'replaceState');
     handleJoinLink({ setCurrentRoom, socket, window, document });
-    expect(spy).toHaveBeenCalledWith({}, document.title, window.location.pathname);
+    expect(spy).toHaveBeenCalledWith(
+      {},
+      document.title,
+      window.location.pathname
+    );
     spy.mockRestore();
   });
 
@@ -132,7 +186,9 @@ describe('handleJoinLink', () => {
         throw new Error('fail');
       }),
     };
-    expect(() => handleJoinLink({ setCurrentRoom, socket, window, document })).not.toThrow();
+    expect(() =>
+      handleJoinLink({ setCurrentRoom, socket, window, document })
+    ).not.toThrow();
   });
 
   it('should do nothing if document.body is missing', () => {
@@ -142,7 +198,9 @@ describe('handleJoinLink', () => {
     window.history.replaceState({}, document.title, '/?room=ROOMZ');
     const setCurrentRoom = jest.fn();
     const socket = { emit: jest.fn() };
-    expect(() => handleJoinLink({ setCurrentRoom, socket, window, document })).not.toThrow();
+    expect(() =>
+      handleJoinLink({ setCurrentRoom, socket, window, document })
+    ).not.toThrow();
     // @ts-ignore
     document.body = origBody;
   });

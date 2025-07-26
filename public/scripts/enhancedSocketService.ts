@@ -3,9 +3,9 @@
 import { io, Socket } from 'socket.io-client';
 
 import { ConnectionManager } from './connectionManager.js';
-import { ConnectionStatus } from './types/connectionTypes.js';
 import { renderGameState } from './render.js';
 import * as state from './state.js';
+import { ConnectionStatus } from './types/connectionTypes.js';
 import {
   showLobbyForm,
   showWaitingState,
@@ -71,7 +71,9 @@ export class EnhancedSocketService {
 
   public setExistingSocket(socket: Socket): void {
     if (this.isInitialized) {
-      console.log('[EnhancedSocketService] Socket already initialized, replacing with new socket');
+      console.log(
+        '[EnhancedSocketService] Socket already initialized, replacing with new socket'
+      );
     }
 
     this.socket = socket;
@@ -79,7 +81,8 @@ export class EnhancedSocketService {
     this.isInitialized = true;
 
     console.log('[EnhancedSocketService] Using existing socket:', socket.id);
-  }  public getConnectionStatus(): ConnectionStatus {
+  }
+  public getConnectionStatus(): ConnectionStatus {
     return this.connectionManager.getState().status;
   }
 
@@ -104,7 +107,9 @@ export class EnhancedSocketService {
     if (this.socket?.connected) {
       this.socket.emit(event, ...args);
     } else {
-      console.warn(`[EnhancedSocketService] Cannot emit ${event}: socket not connected`);
+      console.warn(
+        `[EnhancedSocketService] Cannot emit ${event}: socket not connected`
+      );
     }
   }
 
@@ -127,18 +132,23 @@ export class EnhancedSocketService {
 
     // Handle successful connection and potential rejoin
     this.socket.on('connect', () => {
-      console.log('[EnhancedSocketService] Socket connected, checking for rejoin');
+      console.log(
+        '[EnhancedSocketService] Socket connected, checking for rejoin'
+      );
       this.handleConnectionEstablished();
     });
 
     // Game state and lobby events
-    this.socket.on(JOINED, (data: { id: string; name: string; roomId: string }) => {
-      console.log('[EnhancedSocketService] Received JOINED event:', data);
-      state.setMyId(data.id);
-      state.setCurrentRoom(data.roomId);
-      state.saveSession();
-      this.reconnectionInProgress = false;
-    });
+    this.socket.on(
+      JOINED,
+      (data: { id: string; name: string; roomId: string }) => {
+        console.log('[EnhancedSocketService] Received JOINED event:', data);
+        state.setMyId(data.id);
+        state.setCurrentRoom(data.roomId);
+        state.saveSession();
+        this.reconnectionInProgress = false;
+      }
+    );
 
     this.socket.on(
       LOBBY_STATE_UPDATE,
@@ -148,17 +158,20 @@ export class EnhancedSocketService {
         hostId: string | null;
         started?: boolean;
       }) => {
-        console.log('[EnhancedSocketService] Received LOBBY_STATE_UPDATE:', data);
-        
+        console.log(
+          '[EnhancedSocketService] Received LOBBY_STATE_UPDATE:',
+          data
+        );
+
         if (data.started) {
           showGameTable();
         } else {
           // Convert status to ready boolean for compatibility
-          const playersWithReady = data.players.map(player => ({
+          const playersWithReady = data.players.map((player) => ({
             ...player,
             ready: player.status === 'ready' || player.status === 'host',
           }));
-          
+
           showWaitingState(
             data.roomId,
             playersWithReady.length,
@@ -178,11 +191,17 @@ export class EnhancedSocketService {
     });
 
     this.socket.on(ERROR_EVENT, (errorMessage: string) => {
-      console.error('[EnhancedSocketService] Received error event:', errorMessage);
+      console.error(
+        '[EnhancedSocketService] Received error event:',
+        errorMessage
+      );
       showError(errorMessage);
-      
+
       // If this is a rejoin-related error, clear session and show lobby
-      if (errorMessage.includes('not found') || errorMessage.includes('rejoin')) {
+      if (
+        errorMessage.includes('not found') ||
+        errorMessage.includes('rejoin')
+      ) {
         this.clearSessionAndShowLobby();
       }
     });
@@ -196,23 +215,31 @@ export class EnhancedSocketService {
   }
 
   private handleConnectionEstablished(): void {
-    console.log('[EnhancedSocketService] Connection established, checking session...');
-    
+    console.log(
+      '[EnhancedSocketService] Connection established, checking session...'
+    );
+
     // Update UI to show connected status
     showConnectionStatus('connected');
 
     if (state.myId && state.currentRoom && !this.reconnectionInProgress) {
-      console.log('[EnhancedSocketService] Attempting rejoin with stored session');
+      console.log(
+        '[EnhancedSocketService] Attempting rejoin with stored session'
+      );
       this.attemptRejoin();
     } else {
-      console.log('[EnhancedSocketService] No stored session, showing lobby form');
+      console.log(
+        '[EnhancedSocketService] No stored session, showing lobby form'
+      );
       showLobbyForm();
     }
   }
 
   private attemptRejoin(): void {
     if (!this.socket?.connected || !state.myId || !state.currentRoom) {
-      console.log('[EnhancedSocketService] Cannot rejoin: missing requirements');
+      console.log(
+        '[EnhancedSocketService] Cannot rejoin: missing requirements'
+      );
       this.clearSessionAndShowLobby();
       return;
     }
@@ -227,18 +254,22 @@ export class EnhancedSocketService {
     };
 
     // Set up one-time acknowledgment handler
-    this.socket.emit(REJOIN, rejoinData, (response: { success: boolean; error?: string }) => {
-      console.log('[EnhancedSocketService] Rejoin response:', response);
-      
-      if (response.success) {
-        console.log('[EnhancedSocketService] Rejoin successful');
-        showConnectionStatus('connected');
-        this.reconnectionInProgress = false;
-      } else {
-        console.log('[EnhancedSocketService] Rejoin failed:', response.error);
-        this.clearSessionAndShowLobby();
+    this.socket.emit(
+      REJOIN,
+      rejoinData,
+      (response: { success: boolean; error?: string }) => {
+        console.log('[EnhancedSocketService] Rejoin response:', response);
+
+        if (response.success) {
+          console.log('[EnhancedSocketService] Rejoin successful');
+          showConnectionStatus('connected');
+          this.reconnectionInProgress = false;
+        } else {
+          console.log('[EnhancedSocketService] Rejoin failed:', response.error);
+          this.clearSessionAndShowLobby();
+        }
       }
-    });
+    );
 
     // Timeout for rejoin attempt
     setTimeout(() => {
@@ -251,27 +282,27 @@ export class EnhancedSocketService {
 
   private clearSessionAndShowLobby(): void {
     console.log('[EnhancedSocketService] Clearing session and showing lobby');
-    
+
     state.setCurrentRoom(null);
     state.setMyId(null);
     state.saveSession();
     this.reconnectionInProgress = false;
-    
+
     showLobbyForm();
     showConnectionStatus('connected');
   }
 
   public destroy(): void {
     console.log('[EnhancedSocketService] Destroying socket service');
-    
+
     this.connectionManager.destroy();
-    
+
     if (this.socket) {
       this.socket.removeAllListeners();
       this.socket.disconnect();
       this.socket = null;
     }
-    
+
     this.isInitialized = false;
   }
 }

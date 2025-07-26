@@ -49,10 +49,11 @@ export function validateJoinGamePayload(
     errors.push('Maximum 5 CPU players allowed');
   }
 
-  // Validate total players
+  // Validate total players (only for new game creation, not for joining existing games)
   if (
     typeof payload.numHumans === 'number' &&
-    typeof payload.numCPUs === 'number'
+    typeof payload.numCPUs === 'number' &&
+    !payload.roomId // Skip player count validation when joining existing rooms
   ) {
     const totalPlayers = payload.numHumans + payload.numCPUs;
     if (totalPlayers < 2) {

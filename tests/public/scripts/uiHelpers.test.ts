@@ -1,5 +1,9 @@
 // tests/public/scripts/uiHelpers.test.ts
-import { showGameOverMessage, validateName, showToast } from '../../../public/scripts/uiHelpers.js';
+import {
+  showGameOverMessage,
+  validateName,
+  showToast,
+} from '../../../public/scripts/uiHelpers.js';
 
 describe('uiHelpers', () => {
   beforeEach(() => {

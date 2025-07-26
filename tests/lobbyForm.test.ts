@@ -27,6 +27,7 @@ function setupLobbyFormDOM() {
       </div>
       <span id="total-count"></span>
       <div id="lobby-validation-message"><div class="message-box-content"><p></p></div></div>
+      <div id="error-container" style="display: none;"></div>
       <div class="lobby-buttons-row">
         <button id="setup-rules-button" type="button">RULES</button>
         <button id="setup-deal-button" type="button">LET'S PLAY</button>
@@ -54,6 +55,21 @@ const mockEmit = jest.fn();
 const mockOn = jest.fn();
 const mockListeners = jest.fn(() => []); // Add listeners mock
 
+// Mock window.alert for JSDOM
+Object.defineProperty(window, 'alert', {
+  writable: true,
+  value: jest.fn(),
+});
+
+// Mock the acknowledgmentUtils module to capture socket.emit calls
+jest.mock('../public/scripts/acknowledgmentUtils.js', () => ({
+  emitJoinGame: jest.fn().mockImplementation((socket, payload, options) => {
+    // Simulate the underlying socket.emit call that tests expect
+    socket.emit('join-game', payload, options.onSuccess || jest.fn());
+    return Promise.resolve({ success: true });
+  }),
+}));
+
 // Mock the state module
 // To avoid "Invalid variable access: document" in mock factory,
 // we ensure `document` is accessed only when the mocked functions are called.
@@ -62,7 +78,13 @@ jest.mock('../public/scripts/state.js', () => {
   // So, `document` might not be available here directly.
   // We return functions that, when *called during the test*, will access the now-available `document`.
   return {
-    socket: { emit: jest.fn(), on: jest.fn(), listeners: jest.fn(() => []) }, // Add listeners method
+    socket: {
+      emit: jest.fn(),
+      on: jest.fn(),
+      listeners: jest.fn(() => []),
+      connected: true,
+      off: jest.fn(),
+    }, // Add listeners method
     loadSession: jest.fn(),
     saveSession: jest.fn(),
     $: jest.fn((selector: string) =>
@@ -105,6 +127,7 @@ jest.mock('../src/types/events', () => ({
 // Add this import to bring JOIN_GAME into scope for the test
 
 // --- Imports (AFTER DOM setup and mocks) ---
+import * as acknowledgmentUtils from '../public/scripts/acknowledgmentUtils.js';
 import { initializePageEventListeners } from '../public/scripts/events.js'; // Stays .js for now
 import * as state from '../public/scripts/state.js'; // Stays .js for now
 import { JOIN_GAME } from '../src/types/events.js';
@@ -146,6 +169,8 @@ describe('Lobby Form Submission', () => {
     }
     mockEmit.mockClear();
     mockOn.mockClear();
+    // Clear acknowledgment mock
+    (acknowledgmentUtils.emitJoinGame as jest.Mock).mockClear();
     clearErrorBox();
     await initializePageEventListeners();
   });

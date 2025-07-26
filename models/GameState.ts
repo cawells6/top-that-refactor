@@ -62,7 +62,11 @@ export default class GameState {
     }
     if (!this.players.includes(playerId)) {
       this.players.push(playerId);
-      if (this.currentPlayerIndex === -1 && this.players.length > 0 && !this.started) {
+      if (
+        this.currentPlayerIndex === -1 &&
+        this.players.length > 0 &&
+        !this.started
+      ) {
         // Set the first player to join as the current player if game hasn't started
         this.currentPlayerIndex = 0;
       }
@@ -104,7 +108,8 @@ export default class GameState {
       this.currentPlayerIndex = -1;
       return;
     }
-    this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+    this.currentPlayerIndex =
+      (this.currentPlayerIndex + 1) % this.players.length;
   }
 
   public addToPile(card: Card, options: AddToPileOptions = {}): void {
@@ -131,7 +136,21 @@ export default class GameState {
   private buildDeck(): void {
     // Changed to private as it's an internal part of startGameInstance
     const suits: string[] = ['hearts', 'diamonds', 'clubs', 'spades'];
-    const values: CardValue[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
+    const values: CardValue[] = [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      'J',
+      'Q',
+      'K',
+      'A',
+    ];
     this.deck = []; // Initialize deck
     let numDecks = 1;
     if (this.players.length >= 4) {
@@ -170,9 +189,21 @@ export default class GameState {
 
     for (let p = 0; p < numPlayers; p++) {
       // Ensure we don't try to splice more cards than available
-      hands.push(this.deck ? this.deck.splice(0, Math.min(handSize, this.deck.length)) : []);
-      upCards.push(this.deck ? this.deck.splice(0, Math.min(handSize, this.deck.length)) : []);
-      downCards.push(this.deck ? this.deck.splice(0, Math.min(handSize, this.deck.length)) : []);
+      hands.push(
+        this.deck
+          ? this.deck.splice(0, Math.min(handSize, this.deck.length))
+          : []
+      );
+      upCards.push(
+        this.deck
+          ? this.deck.splice(0, Math.min(handSize, this.deck.length))
+          : []
+      );
+      downCards.push(
+        this.deck
+          ? this.deck.splice(0, Math.min(handSize, this.deck.length))
+          : []
+      );
     }
     return { hands, upCards, downCards };
   }

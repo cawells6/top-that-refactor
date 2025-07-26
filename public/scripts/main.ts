@@ -42,7 +42,7 @@ function handleJoinLink({
       numHumans: 1,
       numCPUs: 0,
     };
-    
+
     // Use acknowledgment utility for reliable join attempt
     emitJoinGame(socket, joinPayload, {
       onSuccess: (response) => {
@@ -51,9 +51,9 @@ function handleJoinLink({
       onError: (error) => {
         console.warn('[handleJoinLink] Join failed:', error);
         // Don't show user errors for automatic join attempts
-      }
+      },
     });
-    
+
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 }
@@ -77,10 +77,10 @@ export async function initMain({
   try {
     new InSessionLobbyModal();
     await socketReady;
-    
+
     // Initialize enhanced socket service with existing socket
     enhancedSocketService.setExistingSocket(socket);
-    
+
     socket.on('connect', () => {
       console.log(
         '[Client] Socket.IO connected to backend! Socket ID:',
@@ -119,6 +119,11 @@ export async function initMain({
     console.error('Error during initialization:', error);
   }
   function removePlayerIconInlineStyles() {
+    // Guard against undefined document (test environment)
+    if (typeof document === 'undefined' || !document.querySelectorAll) {
+      return;
+    }
+    
     const icons = document.querySelectorAll(
       '.player-silhouette img, .player-silhouette .user-icon, .player-silhouette .robot-icon'
     );
@@ -132,12 +137,16 @@ export async function initMain({
   const observer = new MutationObserver((_mutations) => {
     removePlayerIconInlineStyles();
   });
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['style', 'width', 'height'],
-  });
+  
+  // Guard against undefined document.body in test environment
+  if (typeof document !== 'undefined' && document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'width', 'height'],
+    });
+  }
   document.body.classList.remove('body-loading');
   document.body.classList.add('showing-lobby');
   const lobbyContainer = document.getElementById('lobby-container');
@@ -219,6 +228,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Helper to remove inline styles from player icons
   function removePlayerIconInlineStyles() {
+    // Guard against undefined document (test environment)
+    if (typeof document === 'undefined' || !document.querySelectorAll) {
+      return;
+    }
+    
     const icons = document.querySelectorAll(
       '.player-silhouette img, .player-silhouette .user-icon, .player-silhouette .robot-icon'
     );

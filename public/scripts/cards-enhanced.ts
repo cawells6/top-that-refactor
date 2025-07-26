@@ -58,7 +58,9 @@ export function enhanceCardImage(
     }
 
     // All sources failed, create visual fallback
-    console.warn(`All sources failed for ${cardCode}, creating visual fallback`);
+    console.warn(
+      `All sources failed for ${cardCode}, creating visual fallback`
+    );
     img.style.visibility = 'visible';
 
     // Show fallback in container

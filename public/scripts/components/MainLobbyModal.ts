@@ -17,9 +17,12 @@ export class MainLobbyModal extends Modal {
     super(modalElement);
 
     // Initialize DOM element references
-    this.playersContainer = this.modalElement.querySelector('#players-container')!;
+    this.playersContainer =
+      this.modalElement.querySelector('#players-container')!;
     this.copyLinkBtn = this.modalElement.querySelector('#copy-link-button')!;
-    this.guestNameInput = this.modalElement.querySelector('#guest-player-name-input')!;
+    this.guestNameInput = this.modalElement.querySelector(
+      '#guest-player-name-input'
+    )!;
 
     // Set consistent width that will match the in-session lobby
     this.setModalWidth(500);
@@ -28,7 +31,9 @@ export class MainLobbyModal extends Modal {
     this.applyProfessionalStyling();
 
     // Add this to the constructor or an appropriate initialization method:
-    const letsPlayHeading = this.modalElement.querySelector('h2, h3, .modal-title, .section-title');
+    const letsPlayHeading = this.modalElement.querySelector(
+      'h2, h3, .modal-title, .section-title'
+    );
     if (letsPlayHeading) {
       // Apply the same exact styling as in the in-session lobby
       letsPlayHeading.setAttribute(
@@ -75,7 +80,9 @@ export class MainLobbyModal extends Modal {
     }
 
     // Add shadow and adjust padding
-    const modalContent = this.modalElement.querySelector('.modal-content, .card');
+    const modalContent = this.modalElement.querySelector(
+      '.modal-content, .card'
+    );
     if (modalContent) {
       modalContent.className += ' shadow-lg';
       modalContent.setAttribute(
@@ -93,7 +100,9 @@ export class MainLobbyModal extends Modal {
     }
 
     // Adjust spacing above buttons and increase margin for copy link button
-    const buttonRow = this.modalElement.querySelector('.lobby-buttons-row, .button-container');
+    const buttonRow = this.modalElement.querySelector(
+      '.lobby-buttons-row, .button-container'
+    );
     if (buttonRow) {
       buttonRow.className += ' mt-4';
       buttonRow.setAttribute('style', 'margin-top: 24px;');
@@ -101,11 +110,16 @@ export class MainLobbyModal extends Modal {
 
     // Add more space around the copy link button
     if (this.copyLinkBtn) {
-      this.copyLinkBtn.setAttribute('style', 'margin-top: 16px; font-weight: 600;');
+      this.copyLinkBtn.setAttribute(
+        'style',
+        'margin-top: 16px; font-weight: 600;'
+      );
     }
 
     // Apply consistent font weights to other buttons
-    const buttons = this.modalElement.querySelectorAll('button:not(#copy-link-button)');
+    const buttons = this.modalElement.querySelectorAll(
+      'button:not(#copy-link-button)'
+    );
     buttons.forEach((button) => {
       button.setAttribute('style', 'font-weight: 600;');
     });
@@ -122,7 +136,10 @@ export class MainLobbyModal extends Modal {
 
     // Make the input field half as wide
     if (this.guestNameInput) {
-      this.guestNameInput.setAttribute('style', 'width: 50%; max-width: 200px; margin: 0 auto;');
+      this.guestNameInput.setAttribute(
+        'style',
+        'width: 50%; max-width: 200px; margin: 0 auto;'
+      );
     }
   }
 

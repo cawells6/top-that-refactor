@@ -10,7 +10,7 @@
  *   - setupModalDOM(): For tests that require the modal DOM structure.
  *   - mockInSessionLobbyModal(): For tests that intentionally omit DOM setup but import/require the modal.
  */
-import { setupModalDOM, mockInSessionLobbyModal } from './utils/domSetup';
+// Helper DOM Setup Functions available but not used in this test file
 
 describe('Client Main Script (main.ts) - Join Link Only', () => {
   beforeEach(() => {
@@ -46,14 +46,15 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
   // Helper for consistent state mock
   function getStateMock(overrides = {}) {
     return {
-      socket: { on: jest.fn(), emit: jest.fn(), id: 'mock-socket-id' },
-      myId: null,
-      currentRoom: null,
-      setMyId: jest.fn(),
+      socket: {
+        on: jest.fn(),
+        off: jest.fn(),
+        emit: jest.fn(),
+        id: 'mock-socket-id',
+        connected: true,
+      },
       setCurrentRoom: jest.fn(),
-      saveSession: jest.fn(),
-      loadSession: jest.fn(),
-      socketReady: Promise.resolve(),
+      socketReady: Promise.resolve(true),
       ...overrides,
     };
   }
@@ -67,7 +68,13 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
     // Create mocks
     const setCurrentRoom = jest.fn();
     const emit = jest.fn();
-    const socket = { emit, on: jest.fn(), id: 'mock-socket-id' };
+    const socket = {
+      emit,
+      on: jest.fn(),
+      off: jest.fn(),
+      id: 'mock-socket-id',
+      connected: true,
+    } as any;
     // Call initMain with injected mocks
     await initMain({
       injectedSetCurrentRoom: setCurrentRoom,
@@ -79,14 +86,23 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
     console.log('setCurrentRoom calls:', setCurrentRoom.mock.calls);
     console.log('socket.emit calls:', emit.mock.calls);
     // Robust: Check that setCurrentRoom and socket.emit were called at least once with expected args
-    expect(setCurrentRoom.mock.calls.some(call => call[0] === 'ROOM123')).toBe(true);
-    expect(emit.mock.calls.some(call => call[1]?.roomId === 'ROOM123' && call[1]?.playerName === 'Guest')).toBe(true);
+    expect(
+      setCurrentRoom.mock.calls.some((call) => call[0] === 'ROOM123')
+    ).toBe(true);
+    expect(
+      emit.mock.calls.some(
+        (call) =>
+          call[1]?.roomId === 'ROOM123' && call[1]?.playerName === 'Guest'
+      )
+    ).toBe(true);
     expect(window.location.search).toBe('');
   });
 
   it('should do nothing if no room param in URL', async () => {
     jest.resetModules();
-    jest.doMock('../public/scripts/state.js', () => getStateMock(), { virtual: true });
+    jest.doMock('../public/scripts/state.js', () => getStateMock(), {
+      virtual: true,
+    });
     setupMainDOM();
     window.history.replaceState({}, document.title, '/');
     await jest.isolateModulesAsync(async () => {
@@ -101,7 +117,9 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
 
   it('should do nothing if room param is empty', async () => {
     jest.resetModules();
-    jest.doMock('../public/scripts/state.js', () => getStateMock(), { virtual: true });
+    jest.doMock('../public/scripts/state.js', () => getStateMock(), {
+      virtual: true,
+    });
     setupMainDOM();
     window.history.replaceState({}, document.title, '/?room=');
     await jest.isolateModulesAsync(async () => {
@@ -116,7 +134,9 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
 
   it('should not join if already in-session', async () => {
     jest.resetModules();
-    jest.doMock('../public/scripts/state.js', () => getStateMock(), { virtual: true });
+    jest.doMock('../public/scripts/state.js', () => getStateMock(), {
+      virtual: true,
+    });
     setupMainDOM();
     document.body.classList.add('in-session');
     window.history.replaceState({}, document.title, '/?room=ROOMX');
@@ -133,19 +153,36 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
   it('should handle room param with whitespace and special characters', async () => {
     jest.resetModules();
     setupMainDOM();
-    window.history.replaceState({}, document.title, '/?room=%20ROOM%20%40%23%24');
+    window.history.replaceState(
+      {},
+      document.title,
+      '/?room=%20ROOM%20%40%23%24'
+    );
     const { initMain } = await import('../public/scripts/main.ts');
     const setCurrentRoom = jest.fn();
     const emit = jest.fn();
-    const socket = { emit, on: jest.fn(), id: 'mock-socket-id' };
+    const socket = {
+      emit,
+      on: jest.fn(),
+      off: jest.fn(),
+      id: 'mock-socket-id',
+      connected: true,
+    } as any;
     await initMain({
       injectedSetCurrentRoom: setCurrentRoom,
       injectedSocket: socket,
       injectedWindow: window,
       injectedDocument: document,
     });
-    expect(setCurrentRoom.mock.calls.some(call => call[0] === ' ROOM @#$')).toBe(true);
-    expect(emit.mock.calls.some(call => call[1]?.roomId === ' ROOM @#$' && call[1]?.playerName === 'Guest')).toBe(true);
+    expect(
+      setCurrentRoom.mock.calls.some((call) => call[0] === ' ROOM @#$')
+    ).toBe(true);
+    expect(
+      emit.mock.calls.some(
+        (call) =>
+          call[1]?.roomId === ' ROOM @#$' && call[1]?.playerName === 'Guest'
+      )
+    ).toBe(true);
   });
 
   it('should use first room param if multiple present', async () => {
@@ -155,20 +192,34 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
     const { initMain } = await import('../public/scripts/main.ts');
     const setCurrentRoom = jest.fn();
     const emit = jest.fn();
-    const socket = { emit, on: jest.fn(), id: 'mock-socket-id' };
+    const socket = {
+      emit,
+      on: jest.fn(),
+      off: jest.fn(),
+      id: 'mock-socket-id',
+      connected: true,
+    } as any;
     await initMain({
       injectedSetCurrentRoom: setCurrentRoom,
       injectedSocket: socket,
       injectedWindow: window,
       injectedDocument: document,
     });
-    expect(setCurrentRoom.mock.calls.some(call => call[0] === 'FIRST')).toBe(true);
-    expect(emit.mock.calls.some(call => call[1]?.roomId === 'FIRST' && call[1]?.playerName === 'Guest')).toBe(true);
+    expect(setCurrentRoom.mock.calls.some((call) => call[0] === 'FIRST')).toBe(
+      true
+    );
+    expect(
+      emit.mock.calls.some(
+        (call) => call[1]?.roomId === 'FIRST' && call[1]?.playerName === 'Guest'
+      )
+    ).toBe(true);
   });
 
   it('should not throw if DOM is missing elements', async () => {
     jest.resetModules();
-    jest.doMock('../public/scripts/state.js', () => getStateMock(), { virtual: true });
+    jest.doMock('../public/scripts/state.js', () => getStateMock(), {
+      virtual: true,
+    });
     // Best Practice: Mock InSessionLobbyModal to avoid constructor errors when DOM is missing
     jest.doMock(
       '../public/scripts/components/InSessionLobbyModal.js',

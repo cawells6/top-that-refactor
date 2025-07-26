@@ -59,7 +59,7 @@ export function emitWithAck(
 
     const attemptEmit = () => {
       attempts++;
-      
+
       if (showUserFeedback && attempts > 1 && onRetry) {
         onRetry(attempts);
       }
@@ -67,32 +67,32 @@ export function emitWithAck(
       const timeoutId = setTimeout(() => {
         // Timeout occurred
         const timeElapsed = Date.now() - startTime;
-        
+
         if (attempts <= retries) {
           // Retry
           connectionStatus.retryCount++;
           connectionStatus.isRetrying = true;
-          
+
           if (showUserFeedback) {
             showConnectionStatus(
               `Connection timeout. Retrying... (${attempts}/${retries})`
             );
           }
-          
+
           setTimeout(() => attemptEmit(), Math.min(1000 * attempts, 5000)); // Exponential backoff
         } else {
           // All retries exhausted
           connectionStatus.isRetrying = false;
-          
+
           if (showUserFeedback) {
             showConnectionStatus(
               'Connection failed. Please check your network and try again.',
               'error'
             );
           }
-          
+
           if (onTimeout) onTimeout();
-          
+
           resolve({
             success: false,
             error: 'Connection timeout after retries',
@@ -106,10 +106,10 @@ export function emitWithAck(
       socket.emit(event, data, (response: any) => {
         clearTimeout(timeoutId);
         const timeElapsed = Date.now() - startTime;
-        
+
         connectionStatus.isRetrying = false;
         connectionStatus.lastPing = Date.now();
-        
+
         if (showUserFeedback && attempts > 1) {
           showConnectionStatus('Connection restored!', 'success');
           setTimeout(() => hideConnectionStatus(), 2000);
@@ -118,7 +118,7 @@ export function emitWithAck(
         // Check if response indicates an error
         if (response && (response.error || response.success === false)) {
           if (onError) onError(response.error || 'Unknown error');
-          
+
           resolve({
             success: false,
             error: response.error || 'Request failed',
@@ -128,7 +128,7 @@ export function emitWithAck(
           });
         } else {
           if (onSuccess) onSuccess(response);
-          
+
           resolve({
             success: true,
             data: response,
@@ -142,14 +142,14 @@ export function emitWithAck(
     // Check socket connection before attempting
     if (!socket || !socket.connected) {
       connectionStatus.isConnected = false;
-      
+
       if (showUserFeedback) {
         showConnectionStatus(
           'Not connected to server. Attempting to reconnect...',
           'warning'
         );
       }
-      
+
       resolve({
         success: false,
         error: 'Socket not connected',
@@ -251,7 +251,7 @@ function showConnectionStatus(
   type: 'info' | 'warning' | 'error' | 'success' = 'info'
 ) {
   let container = document.getElementById('connection-status-container');
-  
+
   if (!container) {
     container = document.createElement('div');
     container.id = 'connection-status-container';
@@ -267,7 +267,7 @@ function showConnectionStatus(
       <span class="connection-status__message">${message}</span>
     </div>
   `;
-  
+
   container.style.display = 'block';
   container.classList.add('connection-status--show');
 }
@@ -297,19 +297,25 @@ export function initializeConnectionMonitoring(socket: any) {
     connectionStatus.lastPing = Date.now();
     connectionStatus.retryCount = 0;
     connectionStatus.isRetrying = false;
-    
+
     hideConnectionStatus();
   });
 
   socket.on('disconnect', (reason: string) => {
     connectionStatus.isConnected = false;
-    
+
     if (reason === 'io server disconnect') {
       // Server disconnected the socket, show permanent message
-      showConnectionStatus('Disconnected from server. Please refresh the page.', 'error');
+      showConnectionStatus(
+        'Disconnected from server. Please refresh the page.',
+        'error'
+      );
     } else {
       // Network issue, show temporary message
-      showConnectionStatus('Connection lost. Attempting to reconnect...', 'warning');
+      showConnectionStatus(
+        'Connection lost. Attempting to reconnect...',
+        'warning'
+      );
     }
   });
 
@@ -322,7 +328,7 @@ export function initializeConnectionMonitoring(socket: any) {
   setInterval(() => {
     if (connectionStatus.isConnected && !connectionStatus.isRetrying) {
       const timeSinceLastPing = Date.now() - connectionStatus.lastPing;
-      
+
       // If no activity for 30 seconds, ping the server
       if (timeSinceLastPing > 30000) {
         socket.emit('ping', { timestamp: Date.now() }, (_response: any) => {

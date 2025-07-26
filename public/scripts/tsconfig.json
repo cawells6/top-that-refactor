@@ -23,6 +23,7 @@
     "./socketHandlers.ts",
     "../../models/**/*.ts",
     "../../src/types/**/*.ts",
+    "../../src/shared/**/*.ts",
     "../../utils/**/*.ts"
   ]
 }

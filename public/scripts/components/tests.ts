@@ -1,9 +1,9 @@
 // public/scripts/components/InSessionLobbyModal.ts
 import { Modal } from './Modal.js';
-import { LOBBY_STATE_UPDATE, START_GAME } from '../../../src/shared/events.js';
+import { LOBBY_STATE_UPDATE } from '../../../src/shared/events.js';
 import { InSessionLobbyState } from '../../../src/shared/types.js';
-import * as state from '../state.js';
 import { emitStartGame } from '../acknowledgmentUtils.js';
+import * as state from '../state.js';
 
 export class InSessionLobbyModal {
   private modal: Modal;
@@ -80,18 +80,22 @@ export class InSessionLobbyModal {
 
   private startGame(): void {
     if (!state.socket || !this.roomId) return;
-    
-    emitStartGame(state.socket, { roomId: this.roomId }, {
-      onSuccess: (response) => {
-        console.log('[InSessionLobbyModal] START_GAME success:', response);
-        this.hide();
-      },
-      onError: (error) => {
-        console.error('[InSessionLobbyModal] START_GAME error:', error);
-        // Could show error message to user here if needed
-        this.hide();
+
+    emitStartGame(
+      state.socket,
+      { roomId: this.roomId },
+      {
+        onSuccess: (response) => {
+          console.log('[InSessionLobbyModal] START_GAME success:', response);
+          this.hide();
+        },
+        onError: (error) => {
+          console.error('[InSessionLobbyModal] START_GAME error:', error);
+          // Could show error message to user here if needed
+          this.hide();
+        },
       }
-    });
+    );
   }
 
   public render(lobbyState: InSessionLobbyState): void {
@@ -108,7 +112,8 @@ export class InSessionLobbyModal {
     // Render players
     playersContainer.innerHTML = '';
     if (lobbyState.players.length === 0) {
-      playersContainer.innerHTML = '<p class="no-players">No players have joined yet</p>';
+      playersContainer.innerHTML =
+        '<p class="no-players">No players have joined yet</p>';
     } else {
       lobbyState.players.forEach((player) => {
         const playerEl = document.createElement('div');

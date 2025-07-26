@@ -1,0 +1,73 @@
+/* Enhanced Button States - Recommendation #7: Enhanced Error Display & UX */
+
+/* Button loading states */
+.button.loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.button.loading::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: button-spin 0.8s ease infinite;
+}
+
+/* Success state */
+.button.success {
+  background-color: #22c55e !important;
+  border-color: #16a34a !important;
+  color: white !important;
+  transition: all 0.3s ease;
+}
+
+.button.success:hover {
+  background-color: #16a34a !important;
+}
+
+/* Error state */
+.button.error {
+  background-color: #ef4444 !important;
+  border-color: #dc2626 !important;
+  color: white !important;
+  transition: all 0.3s ease;
+}
+
+.button.error:hover {
+  background-color: #dc2626 !important;
+}
+
+/* Button animations */
+@keyframes button-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Dark mode support for buttons */
+@media (prefers-color-scheme: dark) {
+  .button.loading::before {
+    border-color: #ffffff;
+    border-top-color: transparent;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .button.success {
+    background-color: #16a34a !important;
+    border: 2px solid #065f46 !important;
+  }
+  
+  .button.error {
+    background-color: #dc2626 !important;
+    border: 2px solid #7f1d1d !important;
+  }
+}

@@ -55,7 +55,7 @@ export async function initializeSocketHandlers(): Promise<void> {
       );
       const rejoinData = {
         playerId: state.myId,
-        roomId: state.currentRoom
+        roomId: state.currentRoom,
       };
       state.socket.emit(REJOIN, rejoinData);
     } else {

@@ -43,7 +43,10 @@ export function createCardElement(
 
     container.addEventListener('click', () => {
       img.classList.toggle('selected');
-      container.classList.toggle('selected-container', img.classList.contains('selected'));
+      container.classList.toggle(
+        'selected-container',
+        img.classList.contains('selected')
+      );
 
       if (onSelect) onSelect(card, img.classList.contains('selected'));
     });

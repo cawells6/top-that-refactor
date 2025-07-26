@@ -100,19 +100,27 @@ export function rank(card: Card): number {
   }
 }
 
-export function isTwoCard(cardValue: string | number | null | undefined): boolean {
+export function isTwoCard(
+  cardValue: string | number | null | undefined
+): boolean {
   return normalizeCardValue(cardValue) === 'two';
 }
 
-export function isFiveCard(cardValue: string | number | null | undefined): boolean {
+export function isFiveCard(
+  cardValue: string | number | null | undefined
+): boolean {
   return normalizeCardValue(cardValue) === 'five';
 }
 
-export function isTenCard(cardValue: string | number | null | undefined): boolean {
+export function isTenCard(
+  cardValue: string | number | null | undefined
+): boolean {
   return normalizeCardValue(cardValue) === 'ten';
 }
 
-export function isSpecialCard(cardValue: string | number | null | undefined): boolean {
+export function isSpecialCard(
+  cardValue: string | number | null | undefined
+): boolean {
   const normalized = normalizeCardValue(cardValue);
   return normalized === 'two' || normalized === 'five' || normalized === 'ten';
 }

@@ -36,7 +36,9 @@ async function gitCommitAndPush() {
   const commitMessage = process.argv.slice(2).join(' ') || 'Update files';
 
   if (commitMessage.length < 3) {
-    console.error('❌ Please provide a meaningful commit message (at least 3 characters)');
+    console.error(
+      '❌ Please provide a meaningful commit message (at least 3 characters)'
+    );
     process.exit(1);
   }
 
@@ -74,7 +76,9 @@ async function gitCommitAndPush() {
     console.log('✅ Successfully pushed changes to remote repository!');
   } else {
     console.error('❌ Failed to push changes to remote repository.');
-    console.log('💡 You might need to pull changes first or there might be network issues.');
+    console.log(
+      '💡 You might need to pull changes first or there might be network issues.'
+    );
     process.exit(1);
   }
 }
