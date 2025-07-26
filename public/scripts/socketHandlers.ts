@@ -53,7 +53,11 @@ export async function initializeSocketHandlers(): Promise<void> {
         'Room:',
         state.currentRoom
       );
-      state.socket.emit(REJOIN, state.myId, state.currentRoom);
+      const rejoinData = {
+        playerId: state.myId,
+        roomId: state.currentRoom
+      };
+      state.socket.emit(REJOIN, rejoinData);
     } else {
       console.log('[CLIENT] No saved session, showing lobby form');
       showLobbyForm();

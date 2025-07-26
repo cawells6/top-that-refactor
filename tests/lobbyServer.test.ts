@@ -108,7 +108,8 @@ describe('Lobby joining', () => {
       }
     );
     expect(ackData).toEqual({
-      error: 'Game has already started. Cannot join.',
+      error: 'This game has already started. You cannot join now.',
+      code: 'GAME_ALREADY_STARTED',
     });
     // No error event expected
   });
@@ -127,7 +128,10 @@ describe('GameRoomManager', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({ error: 'Room not found.' });
+    expect(ackData).toEqual({ 
+      error: 'Game room not found. Please check the room code.',
+      code: 'ROOM_NOT_FOUND',
+    });
     // No error event expected
   });
 });
@@ -143,7 +147,10 @@ describe('Lobby joining edge cases', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({ error: expect.any(String) });
+    expect(ackData).toEqual(expect.objectContaining({ 
+      error: expect.any(String), 
+      code: expect.any(String) 
+    }));
   });
 
   test('joining with duplicate id does not create new player', () => {
@@ -221,7 +228,10 @@ describe('Lobby joining edge cases', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({ error: expect.any(String) });
+    expect(ackData).toEqual(expect.objectContaining({ 
+      error: expect.any(String), 
+      code: expect.any(String) 
+    }));
   });
 
   test('player can leave and rejoin, lobby state updates', () => {

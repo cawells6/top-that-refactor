@@ -1,8 +1,10 @@
 import { Server, Socket } from 'socket.io';
 
-import Player from './Player.js';
-import GameController from '../controllers/GameController.js';
+// Use correct import path and extension for Player
+import Player from '../models/Player';
+import GameController from '../controllers/GameController';
 import { LOBBY_STATE_UPDATE, GAME_STARTED } from '../src/shared/events.js';
+import { JoinGamePayload } from '../src/shared/types';
 
 export interface LobbyPlayer {
   id: string;
@@ -82,7 +84,15 @@ export default class Lobby {
     for (const [socketId, player] of this.players.entries()) {
       const socket = this.sockets.get(socketId);
       if (socket) {
-        this.gameController.publicHandleJoin(socket, { id: player.id, name: player.name });
+        // Use correct JoinGamePayload properties
+        const joinPayload: JoinGamePayload = {
+          id: player.id,
+          playerName: player.name,
+          numHumans: this.players.size, // or track actual value
+          numCPUs: 0, // or track actual value
+          roomId: this.roomId,
+        };
+        this.gameController.publicHandleJoin(socket, joinPayload);
       }
     }
     const hostSocket = this.hostId ? this.sockets.get(this.hostId) : undefined;

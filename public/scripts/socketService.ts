@@ -23,7 +23,11 @@ export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
   state.socket.on('connect', () => {
     if (state.currentRoom) {
-      state.socket.emit(REJOIN, state.myId, state.currentRoom);
+      const rejoinData = {
+        playerId: state.myId,
+        roomId: state.currentRoom,
+      };
+      state.socket.emit(REJOIN, rejoinData);
       // Do NOT call showLobbyForm() here. Wait for server response.
     } else {
       showLobbyForm();

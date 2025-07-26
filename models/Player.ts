@@ -11,6 +11,7 @@ export default class Player {
   public name: string;
   public isComputer: boolean;
   public disconnected: boolean;
+  public disconnectedAt?: Date;
 
   // Track the player's status in the lobby. A player can be:
   // 'host' (the room creator), 'invited' (before joining), 'joined' (connected but not ready), or 'ready' (clicked the "Let's Play" button).

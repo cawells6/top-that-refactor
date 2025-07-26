@@ -23,11 +23,17 @@ import {
   LOBBY,
 } from '../src/shared/events.js';
 import {
+  ERROR_CODES,
+  ERROR_MESSAGES,
+  createErrorResponse,
+} from '../src/shared/errorCodes.js';
+import {
   Card,
   CardValue,
   ClientStatePlayer,
   GameStateData,
   JoinGamePayload,
+  RejoinData,
 } from '../src/shared/types.js';
 import { InSessionLobbyState } from '../src/shared/types.js';
 import {
@@ -37,6 +43,12 @@ import {
   isFiveCard,
   isTenCard,
 } from '../utils/cardUtils.js';
+import {
+  validateJoinGamePayloadServer,
+  validateRejoinDataServer,
+  validatePlayCardData,
+  validateStartGameOptions,
+} from '../src/shared/serverValidation.js';
 
 // interface PlayerJoinData {
 //   id?: string;
@@ -53,11 +65,6 @@ interface StartGameOptions {
 interface PlayData {
   cardIndices: number[];
   zone: 'hand' | 'upCards' | 'downCards';
-}
-
-interface RejoinData {
-  roomId: string;
-  playerId: string;
 }
 
 export class GameRoomManager {
@@ -77,6 +84,17 @@ export class GameRoomManager {
           ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
         ) => {
           console.log(`[SERVER] Received JOIN_GAME from ${socket.id}:`, playerData);
+          
+          // Validate payload on server side
+          const validation = validateJoinGamePayloadServer(playerData);
+          if (!validation.isValid && validation.errorResponse) {
+            if (typeof ack === 'function') {
+              ack({ error: validation.errorResponse.error });
+            }
+            socket.emit(ERROR_EVENT, validation.errorResponse.error);
+            return;
+          }
+          
           this.handleClientJoinGame(socket, playerData, ack);
         }
       );
@@ -85,23 +103,34 @@ export class GameRoomManager {
         REJOIN,
         (
           rejoinData: RejoinData,
-          ack?: (response: { success: boolean; error?: string }) => void
+          ack?: (response: { success: boolean; error?: string; code?: string }) => void
         ) => {
-          if (!rejoinData || !rejoinData.roomId || !rejoinData.playerId) {
+          // Validate rejoin data on server side
+          const validation = validateRejoinDataServer(rejoinData);
+          if (!validation.isValid && validation.errorResponse) {
             if (typeof ack === 'function') {
-              ack({ success: false, error: 'Invalid rejoin data.' });
+              ack({
+                success: false,
+                error: validation.errorResponse.error,
+                code: validation.errorResponse.code,
+              });
             }
-            socket.emit(ERROR_EVENT, 'Invalid rejoin data.');
+            socket.emit(ERROR_EVENT, validation.errorResponse.error);
             return;
           }
+          
           const controller = this.rooms.get(rejoinData.roomId);
           if (controller) {
             controller.publicHandleRejoin(socket, rejoinData.roomId, rejoinData.playerId, ack);
           } else {
+            const errorResponse = createErrorResponse(
+              'ROOM_NOT_FOUND',
+              ERROR_MESSAGES.ROOM_NOT_FOUND
+            );
             if (typeof ack === 'function') {
-              ack({ success: false, error: 'Room not found' });
+              ack({ success: false, error: errorResponse.error, code: errorResponse.code });
             }
-            socket.emit(ERROR_EVENT, 'Room not found for rejoin.');
+            socket.emit(ERROR_EVENT, errorResponse.error);
           }
         }
       );
@@ -122,7 +151,7 @@ export class GameRoomManager {
   private handleClientJoinGame(
     socket: Socket,
     playerData: JoinGamePayload,
-    ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+    ack?: (response: { roomId: string; playerId: string } | { error: string; code?: string }) => void
   ): void {
     console.log(`[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`, playerData);
 
@@ -134,11 +163,15 @@ export class GameRoomManager {
       controller = this.rooms.get(roomId);
       if (!controller) {
         console.log(`[SERVER] Room ${roomId} not found for JOIN_GAME from ${socket.id}`);
+        const errorResponse = createErrorResponse(
+          'ROOM_NOT_FOUND',
+          ERROR_MESSAGES.ROOM_NOT_FOUND
+        );
         if (typeof ack === 'function') {
           console.log(`[SERVER] Sending error response to ${socket.id}: Room not found`);
-          ack({ error: 'Room not found.' });
+          ack({ error: errorResponse.error, code: errorResponse.code });
         }
-        socket.emit(ERROR_EVENT, 'Room not found.');
+        socket.emit(ERROR_EVENT, errorResponse.error);
         return;
       }
     }
@@ -315,7 +348,7 @@ export default class GameController {
   private handleJoin(
     socket: Socket,
     playerData: JoinGamePayload,
-    ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+    ack?: (response: { roomId: string; playerId: string } | { error: string; code?: string }) => void
   ): void {
     // --- Payload validation ---
     if (
@@ -328,18 +361,34 @@ export default class GameController {
       playerData.numHumans + playerData.numCPUs < 2 ||
       playerData.numHumans + playerData.numCPUs > this.gameState.maxPlayers
     ) {
+      const errorResponse = createErrorResponse(
+        'INVALID_PAYLOAD',
+        ERROR_MESSAGES.INVALID_PAYLOAD
+      );
       if (typeof ack === 'function') {
-        ack({ error: 'Invalid join payload: check name and player counts.' });
+        ack({ error: errorResponse.error, code: errorResponse.code });
       }
+      socket.emit(ERROR_EVENT, errorResponse.error);
       return;
     }
 
     // console.log('[SERVER] handleJoin: playerData', playerData);
+    
+    // Validate playerName
+    if (!playerData.playerName || typeof playerData.playerName !== 'string' || !playerData.playerName.trim()) {
+      this.log(`Invalid or missing player name. Emitting ERROR_EVENT.`);
+      const errorResponse = createErrorResponse(
+        'INVALID_PLAYER_NAME',
+        ERROR_MESSAGES.INVALID_PLAYER_NAME
+      );
+      if (typeof ack === 'function') {
+        ack({ error: errorResponse.error, code: errorResponse.code });
+      }
+      return;
+    }
+    
     let id = playerData.id || socket.id;
-    let name =
-      typeof playerData.playerName === 'string' && playerData.playerName.trim()
-        ? playerData.playerName.trim()
-        : `Player-${id.substring(0, 4)}`;
+    let name = playerData.playerName.trim();
     this.log(
       `Handling join request for player: ${name} (Proposed ID: ${id}, Socket: ${socket.id})`
     );
@@ -353,7 +402,11 @@ export default class GameController {
     if (existingPlayer && !existingPlayer.disconnected) {
       this.log(`Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`);
       console.log('[DEBUG] Emitting ERROR_EVENT: duplicate join');
-      callAck({ error: `Player ID '${id}' is already active in a game.` });
+      const errorResponse = createErrorResponse(
+        'DUPLICATE_JOIN',
+        ERROR_MESSAGES.DUPLICATE_JOIN
+      );
+      callAck({ error: errorResponse.error, code: errorResponse.code });
       return;
     }
     if (existingPlayer && existingPlayer.disconnected) {
@@ -377,15 +430,23 @@ export default class GameController {
     if (this.gameState.started) {
       this.log(`Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
       console.log('[DEBUG] Emitting ERROR_EVENT: game already started');
+      const errorResponse = createErrorResponse(
+        'GAME_ALREADY_STARTED',
+        ERROR_MESSAGES.GAME_ALREADY_STARTED
+      );
       if (typeof ack === 'function') {
-        ack({ error: 'Game has already started. Cannot join.' });
+        ack({ error: errorResponse.error, code: errorResponse.code });
       }
       return;
     }
     if (this.players.size >= this.gameState.maxPlayers) {
       this.log(`Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
       console.log('[DEBUG] Emitting ERROR_EVENT: room full');
-      callAck({ error: 'Game room is full.' });
+      const errorResponse = createErrorResponse(
+        'GAME_FULL',
+        ERROR_MESSAGES.GAME_FULL
+      );
+      callAck({ error: errorResponse.error, code: errorResponse.code });
       return;
     }
 
@@ -947,18 +1008,37 @@ export default class GameController {
       const player = this.players.get(playerId);
       if (player) {
         player.disconnected = true;
+        player.disconnectedAt = new Date();
         this.socketIdToPlayerId.delete(socket.id);
+        
+        this.log(`Player ${player.name} (${playerId}) disconnected. Setting grace period for reconnection.`);
 
         const activePlayers = Array.from(this.players.values()).filter(
           (p: Player) => !p.disconnected
         );
+        
         if (activePlayers.length === 0 && this.gameState.started) {
-          this.gameState.endGameInstance();
+          // Don't immediately end the game, give players time to reconnect
+          this.log('All players disconnected, but keeping game alive for potential reconnections');
+          setTimeout(() => {
+            const stillAllDisconnected = Array.from(this.players.values()).every(p => p.disconnected);
+            if (stillAllDisconnected) {
+              this.log('All players still disconnected after grace period, ending game');
+              this.gameState.endGameInstance();
+            }
+          }, 300000); // 5 minute grace period
         } else if (
           this.gameState.started &&
           playerId === this.gameState.players[this.gameState.currentPlayerIndex]
         ) {
-          this.handleNextTurn();
+          this.log(`Current player ${player.name} disconnected, advancing turn after delay`);
+          // Give the player a chance to reconnect before skipping their turn
+          setTimeout(() => {
+            const currentPlayer = this.players.get(playerId);
+            if (currentPlayer && currentPlayer.disconnected) {
+              this.handleNextTurn();
+            }
+          }, 30000); // 30 second grace period for current player's turn
           return;
         }
       }

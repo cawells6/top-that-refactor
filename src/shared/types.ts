@@ -57,3 +57,35 @@ export interface JoinGamePayload {
   numCPUs: number;
   roomId?: string;
 }
+
+// Payload for rejoining a game (used by both client and server)
+export interface RejoinData {
+  playerId: string;
+  roomId: string;
+}
+
+// Standardized success/error response types for Socket.IO acknowledgments
+export interface SuccessResponse<T = any> {
+  success: true;
+  data: T;
+}
+
+export interface ErrorResponse {
+  success: false;
+  error: string;
+  code?: string; // Optional error code for specific error types
+}
+
+export type AckResponse<T = any> = SuccessResponse<T> | ErrorResponse;
+
+// Specific response types for game operations
+export interface JoinGameSuccessResponse {
+  roomId: string;
+  playerId: string;
+}
+
+export interface RejoinSuccessResponse {
+  roomId: string;
+  playerId: string;
+  reconnected: true;
+}

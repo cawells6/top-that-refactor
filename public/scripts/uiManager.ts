@@ -148,7 +148,11 @@ export function initializeSocketHandlers(): void {
 
   state.socket.on('connect', () => {
     if (state.myId && state.currentRoom) {
-      state.socket.emit(REJOIN, state.myId, state.currentRoom);
+      const rejoinData = {
+        playerId: state.myId,
+        roomId: state.currentRoom,
+      };
+      state.socket.emit(REJOIN, rejoinData);
     } else {
       showLobbyForm();
     }
@@ -208,4 +212,67 @@ export function showElement(el: HTMLElement | null): void {
   } else {
     (el as any).style.display = '';
   }
+}
+
+/**
+ * Show connection status to the user
+ */
+export function showConnectionStatus(status: 'connected' | 'disconnected' | 'reconnecting'): void {
+  // Create or update connection status indicator
+  let statusIndicator = document.getElementById('connection-status-indicator');
+  
+  if (!statusIndicator) {
+    statusIndicator = document.createElement('div');
+    statusIndicator.id = 'connection-status-indicator';
+    statusIndicator.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 9999;
+      transition: all 0.3s ease;
+    `;
+    document.body.appendChild(statusIndicator);
+  }
+
+  let bgColor: string;
+  let textColor: string;
+  let text: string;
+
+  switch (status) {
+    case 'connected':
+      bgColor = '#4CAF50';
+      textColor = 'white';
+      text = '● Connected';
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        if (statusIndicator && statusIndicator.textContent === text) {
+          statusIndicator.style.opacity = '0';
+          setTimeout(() => {
+            if (statusIndicator && statusIndicator.style.opacity === '0') {
+              statusIndicator.remove();
+            }
+          }, 300);
+        }
+      }, 3000);
+      break;
+    case 'disconnected':
+      bgColor = '#f44336';
+      textColor = 'white';
+      text = '● Disconnected';
+      break;
+    case 'reconnecting':
+      bgColor = '#ff9800';
+      textColor = 'white';
+      text = '● Reconnecting...';
+      break;
+  }
+
+  statusIndicator.style.backgroundColor = bgColor;
+  statusIndicator.style.color = textColor;
+  statusIndicator.style.opacity = '1';
+  statusIndicator.textContent = text;
 }

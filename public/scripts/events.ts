@@ -2,6 +2,12 @@ import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 import { JOIN_GAME } from '../../src/types/events.js';
+import {
+  validateJoinGamePayload,
+  validateRejoinData,
+  displayValidationErrors,
+  clearValidationErrors,
+} from './validation.js';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -708,6 +714,7 @@ function handleRulesClick() {
 function handleDealClick() {
   console.log('🎯 Deal button clicked!');
   clearMessageQueueAndHide(); // Clear any old messages first
+  clearValidationErrors(); // Clear any previous validation errors
 
   const nameValidation = validateNameInput();
   const playerCountValidation = validatePlayerCounts();
@@ -750,6 +757,13 @@ function handleDealClick() {
     numCPUs: numCPUs,
   };
 
+  // Validate payload using new validation utilities
+  const payloadValidation = validateJoinGamePayload(playerDataForEmit);
+  if (!payloadValidation.isValid) {
+    displayValidationErrors(payloadValidation.errors);
+    return;
+  }
+
   console.log(
     '🎯 Deal button: Validations passed. Joining game with data:',
     playerDataForEmit
@@ -780,7 +794,34 @@ function handleDealClick() {
     ) as HTMLButtonElement;
     if (response.error) {
       console.error('[CLIENT] JOIN_GAME error:', response.error);
-      queueMessage(response.error);
+      
+      // Use enhanced error handling with fallback for user-friendly messages
+      let userMessage = response.error;
+      if (response.code) {
+        // If we have an error code, we could map it to user-friendly messages
+        console.log('[CLIENT] Error code:', response.code);
+        switch (response.code) {
+          case 'GAME_FULL':
+            userMessage =
+              'This game is full. Please try joining another game or create a new one.';
+            break;
+          case 'GAME_ALREADY_STARTED':
+            userMessage =
+              'This game has already started. Please create a new game.';
+            break;
+          case 'INVALID_PAYLOAD':
+            userMessage = 'Please check your player name and settings.';
+            break;
+          case 'ROOM_NOT_FOUND':
+            userMessage = 'Game room not found. Please check the room code.';
+            break;
+          default:
+            // Keep the server's error message as fallback
+            break;
+        }
+      }
+      
+      queueMessage(userMessage);
       if (dealButton) {
         dealButton.disabled = false;
         dealButton.textContent = "LET'S PLAY";
@@ -818,6 +859,7 @@ function handleDealClick() {
 function handleJoinGameClick() {
   console.log('🎯 Join game button clicked!');
   clearMessageQueueAndHide();
+  clearValidationErrors(); // Clear any previous validation errors
 
   const joinBtn = document.getElementById(
     'join-game-button'
@@ -851,14 +893,26 @@ function handleJoinGameClick() {
 
   const name = nameValidation.name;
   const code = codeValidation.code;
-  state.setCurrentRoom(code);
-  state.saveSession();
+  
+  // Create join payload and validate it
   const joinPayload = {
     roomId: code,
     playerName: name,
     numHumans: 1,
     numCPUs: 0,
   };
+
+  // Validate payload using new validation utilities
+  const payloadValidation = validateJoinGamePayload(joinPayload);
+  if (!payloadValidation.isValid) {
+    displayValidationErrors(payloadValidation.errors);
+    if (joinBtn) joinBtn.disabled = false;
+    return;
+  }
+
+  state.setCurrentRoom(code);
+  state.saveSession();
+  
   console.log(
     '[CLIENT] handleJoinGameClick: Emitting JOIN_GAME with',
     joinPayload
@@ -866,7 +920,32 @@ function handleJoinGameClick() {
   state.socket.emit(JOIN_GAME, joinPayload, (response: any) => {
     if (joinBtn) joinBtn.disabled = false; // Re-enable button after server response
     if (response && response.error) {
-      queueMessage(response.error);
+      // Enhanced error handling with user-friendly messages
+      let userMessage = response.error;
+      if (response.code) {
+        console.log('[CLIENT] Join error code:', response.code);
+        switch (response.code) {
+          case 'ROOM_NOT_FOUND':
+            userMessage =
+              'Game room not found. Please check the room code and try again.';
+            break;
+          case 'GAME_FULL':
+            userMessage =
+              'This game is full. Please try a different room code.';
+            break;
+          case 'GAME_ALREADY_STARTED':
+            userMessage =
+              'This game has already started. Please try a different room code.';
+            break;
+          case 'INVALID_PAYLOAD':
+            userMessage = 'Please check your player name and try again.';
+            break;
+          default:
+            // Keep the server's error message as fallback
+            break;
+        }
+      }
+      queueMessage(userMessage);
       return;
     }
     // --- BEST PRACTICE: Reset form fields after successful join ---

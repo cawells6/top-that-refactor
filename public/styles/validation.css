@@ -1,0 +1,92 @@
+/* Enhanced validation error styles */
+#validation-errors-container,
+#join-validation-errors-container {
+  margin: 1rem 0;
+}
+
+.validation-errors-list {
+  background-color: #f8d7da;
+  border: 2px solid #f5c6cb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.validation-error-item {
+  color: #721c24;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin: 0.5rem 0;
+  padding: 0.25rem 0;
+}
+
+.validation-error-item:first-child {
+  margin-top: 0;
+}
+
+.validation-error-item:last-child {
+  margin-bottom: 0;
+}
+
+.validation-error-item::before {
+  content: "⚠️ ";
+  margin-right: 0.5rem;
+}
+
+/* Show/hide animation for validation errors */
+#validation-errors-container.show,
+#join-validation-errors-container.show {
+  display: block;
+  animation: slideDown 0.3s ease-out;
+}
+
+#validation-errors-container.hide,
+#join-validation-errors-container.hide {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+    display: none;
+  }
+}
+
+/* Field validation styling */
+.validation-field-error {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.validation-field-error:focus {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Success validation styling */
+.validation-field-success {
+  border-color: #28a745 !important;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.validation-field-success:focus {
+  border-color: #28a745 !important;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
