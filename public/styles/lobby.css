@@ -161,7 +161,7 @@
 
 .in-session-lobby-container .section-title,
 .player-section .section-title {
-  /* Match main lobby .section-title and use 'Users' verbiage */
+  /* Match main lobby .section-title and use 'USERS' verbiage */
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

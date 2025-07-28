@@ -37,7 +37,7 @@ export class InSessionLobbyModal {
   private setupSocketListeners(): void {
     if (!state.socket) {
       console.error('[InSessionLobbyModal] Socket not available');
-      uiManager.showError('Unable to connect to game server. Please refresh the page.');
+      uiManager.showError('UNABLE TO CONNECT TO GAME SERVER. PLEASE REFRESH THE PAGE.');
       return;
     }
 
@@ -53,7 +53,7 @@ export class InSessionLobbyModal {
 
     state.socket.on('disconnect', () => {
       console.warn('[InSessionLobbyModal] Socket disconnected');
-      uiManager.showError('Connection lost. Please refresh.');
+      uiManager.showError('CONNECTION LOST. PLEASE REFRESH.');
     });
   }
 
@@ -66,8 +66,8 @@ export class InSessionLobbyModal {
     const link = `${window.location.origin}?room=${this.currentRoomId}`;
     navigator.clipboard
       .writeText(link)
-      .then(() => showToast('Invite Link Copied!', 'success'))
-      .catch(() => showToast('Failed to copy link.', 'error'));
+      .then(() => showToast('INVITE LINK COPIED!', 'success'))
+      .catch(() => showToast('FAILED TO COPY LINK.', 'error'));
   }
 
   private readyUp(): void {
@@ -79,7 +79,7 @@ export class InSessionLobbyModal {
       this.readyUpButton.disabled = true;
       this.guestNameInput.disabled = true;
     } else {
-      showToast('Please enter your name!', 'error');
+      showToast('PLEASE ENTER YOUR NAME!', 'error');
     }
   }
 
@@ -104,7 +104,7 @@ export class InSessionLobbyModal {
 
       if (player.id === lobbyState.hostId) {
         const hostBadge = document.createElement('span');
-        hostBadge.textContent = 'Host';
+        hostBadge.textContent = 'HOST';
         hostBadge.className = 'host-badge';
         hostBadge.setAttribute('aria-label', 'Host player');
         playerEl.appendChild(hostBadge);

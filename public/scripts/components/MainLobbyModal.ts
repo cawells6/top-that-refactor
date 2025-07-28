@@ -55,7 +55,7 @@ export class MainLobbyModal extends Modal {
     // Fix the "Awaiting Players" heading styling to match other text
     const heading = this.modalElement.querySelector('h2, h3, .modal-title');
     if (heading) {
-      heading.textContent = 'Awaiting Players';
+      heading.textContent = 'AWAITING PLAYERS';
 
       // Remove any existing classes that might add shading or gradients
       heading.className = '';
