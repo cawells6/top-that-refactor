@@ -202,7 +202,7 @@ function validatePlayerCounts(): { isValid: boolean; message: string } {
   const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement;
 
   if (!totalPlayersInput || !cpuPlayersInput) {
-    return { isValid: false, message: 'Form inputs not found.' };
+    return { isValid: false, message: 'FORM INPUTS NOT FOUND.' };
   }
 
   const numHumans = parseInt(totalPlayersInput.value || '1', 10);
@@ -210,10 +210,10 @@ function validatePlayerCounts(): { isValid: boolean; message: string } {
   const totalPlayers = numHumans + numCPUs;
 
   if (totalPlayers < 2) {
-    return { isValid: false, message: 'Minimum of 2 participants are required.' };
+    return { isValid: false, message: 'MINIMUM OF 2 PARTICIPANTS ARE REQUIRED.' };
   }
   if (totalPlayers > 4) {
-    return { isValid: false, message: 'Maximum of 4 players are allowed.' };
+    return { isValid: false, message: 'MAXIMUM OF 4 PLAYERS ARE ALLOWED.' };
   }
   return { isValid: true, message: '' };
 }
@@ -221,14 +221,14 @@ function validatePlayerCounts(): { isValid: boolean; message: string } {
 function validateNameInput(): { isValid: boolean; message: string; name: string } {
   const nameInput = uiManager.getNameInput();
   if (!nameInput) {
-    return { isValid: false, message: 'Name input not found.', name: '' };
+    return { isValid: false, message: 'NAME INPUT NOT FOUND.', name: '' };
   }
   const name = nameInput.value.trim();
   if (!name) {
-    return { isValid: false, message: 'Please enter a valid name.', name };
+    return { isValid: false, message: 'PLEASE ENTER A VALID NAME.', name };
   }
   if (name.length < 2) {
-    return { isValid: false, message: 'Name must be at least 2 characters.', name };
+    return { isValid: false, message: 'NAME MUST BE AT LEAST 2 CHARACTERS.', name };
   }
   return { isValid: true, message: '', name };
 }
@@ -236,11 +236,11 @@ function validateNameInput(): { isValid: boolean; message: string; name: string 
 function validateRoomCodeInput(): { isValid: boolean; message: string; code: string } {
   const codeInput = document.getElementById('join-code-input') as HTMLInputElement | null;
   if (!codeInput) {
-    return { isValid: false, message: 'Game code input not found.', code: '' };
+    return { isValid: false, message: 'GAME CODE INPUT NOT FOUND.', code: '' };
   }
   const code = codeInput.value.trim().toUpperCase();
   if (code.length !== 6) {
-    return { isValid: false, message: 'Enter a valid 6 character code.', code };
+    return { isValid: false, message: 'ENTER A VALID 6 CHARACTER CODE.', code };
   }
   return { isValid: true, message: '', code };
 }
