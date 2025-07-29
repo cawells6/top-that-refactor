@@ -220,8 +220,10 @@ body {
 .player-selection .player-section .section-title {
   font-size: 2.86rem; /* 30% larger than original 2.2rem */
   text-transform: uppercase;
-  /* Improved vertical centering relative to control buttons */
+  /* Enhanced styling for better readability */
   margin-bottom: 0.5rem; /* Reduced from default to better center relative to controls */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle text shadow for depth */
+  letter-spacing: 0.05em; /* Slightly increased letter spacing for clarity */
   /* Ensure other styles from .section-title are inherited or explicitly set if needed */
 }
 
@@ -1409,7 +1411,7 @@ body {
 }
 
 #player-name-input::placeholder {
-  color: #999;
+  color: #666; /* Improved contrast to match join code input */
   font-weight: normal;
 }
 
@@ -1430,6 +1432,13 @@ body {
 #join-code-input::placeholder {
   color: #666; /* Better contrast for placeholder text */
   font-weight: normal;
+}
+
+/* Specific styling for Join Game button to improve visual consistency */
+#join-game-button {
+  padding: 1rem 2.5rem; /* Increased horizontal padding for better visual weight */
+  font-size: 1.5rem; /* Slightly larger to match visual prominence */
+  min-width: 160px; /* Consistent minimum width with other main buttons */
 }
 
 /* --- Player Silhouette Icon Sizing (authoritative) --- */
