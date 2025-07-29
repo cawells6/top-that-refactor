@@ -189,8 +189,8 @@ body {
   min-height: 210px; /* User's current */
   width: auto; /* User's current */
   box-sizing: border-box; /* User's current */
-  /* ADDED */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  /* Enhanced box-shadow for better depth and visual separation */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 1.5rem;
 }
 
@@ -220,6 +220,8 @@ body {
 .player-selection .player-section .section-title {
   font-size: 2.86rem; /* 30% larger than original 2.2rem */
   text-transform: uppercase;
+  /* Improved vertical centering relative to control buttons */
+  margin-bottom: 0.5rem; /* Reduced from default to better center relative to controls */
   /* Ensure other styles from .section-title are inherited or explicitly set if needed */
 }
 
@@ -1352,7 +1354,7 @@ body {
   border: none;
   padding: 1rem 2rem; /* Increased padding */
   font-size: 1.4rem; /* Increased font size */
-  border-radius: 8px;
+  border-radius: 12px; /* Updated to match RULES and LET'S PLAY buttons */
   cursor: pointer;
   transition:
     background-color 0.2s ease-in-out,
@@ -1389,7 +1391,7 @@ body {
 
 /* Name Input Section */
 .name-input-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2.5rem; /* Increased from 1.5rem to add 10px more spacing */
   display: flex;
   justify-content: center;
 }
@@ -1398,7 +1400,7 @@ body {
 #player-name-input {
   font-size: 1.8rem;
   padding: 0.75rem 1rem;
-  border: 2px solid #ccc;
+  border: 2px solid #888; /* Improved contrast from #ccc to #888 for better accessibility */
   border-radius: 8px;
   text-align: center;
   width: 80%;
@@ -1408,6 +1410,25 @@ body {
 
 #player-name-input::placeholder {
   color: #999;
+  font-weight: normal;
+}
+
+/* Join Game Code Input styling for better accessibility */
+#join-code-input {
+  font-size: 1.6rem; /* Slightly larger for better readability */
+  padding: 0.75rem 1rem;
+  border: 2px solid #888; /* Improved contrast for better accessibility */
+  border-radius: 8px;
+  text-align: center;
+  width: 80%;
+  max-width: 300px;
+  margin-bottom: 0.75rem;
+  box-sizing: border-box;
+  font-weight: 600; /* Slightly bolder for game codes */
+}
+
+#join-code-input::placeholder {
+  color: #666; /* Better contrast for placeholder text */
   font-weight: normal;
 }
 
