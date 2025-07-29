@@ -1411,6 +1411,43 @@ body {
   font-weight: normal;
 }
 
+/* Join Game Code Section */
+.join-code-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Join Game Code Input Styling */
+#join-code-input {
+  font-size: 1.4rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  text-align: center;
+  width: 100%;
+  max-width: 300px;
+  min-width: 240px;
+  box-sizing: border-box;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+#join-code-input::placeholder {
+  color: #999;
+  font-weight: normal;
+  letter-spacing: 0.05em;
+}
+
+#join-code-input:focus {
+  outline: none;
+  border-color: var(--accent, #ffc300);
+  box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.2);
+}
+
 /* --- Player Silhouette Icon Sizing (authoritative) --- */
 .player-silhouette img,
 .player-silhouette svg,
