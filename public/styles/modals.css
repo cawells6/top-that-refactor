@@ -62,7 +62,7 @@
   /* Additional styling specific to rules modal content */
   font-size: 1.15rem; /* Slightly increased from 1.1rem for better readability */
   line-height: 1.7; /* Increased from 1.6 for better spacing */
-  max-height: 85vh; /* Ensure it fits on screen */
+  max-height: 95vh; /* Increased from 85vh to reduce scrolling */
   overflow-y: auto;
   box-sizing: border-box;
   font-family:
@@ -92,7 +92,7 @@
   /* Maintain other styling specific to rules content */
   font-size: 1.15rem; /* Slightly increased from 1.1rem for better readability */
   line-height: 1.7; /* Increased from 1.6 for better spacing */
-  max-height: 85vh; /* Ensure it fits on screen */
+  max-height: 95vh; /* Increased from 85vh to reduce scrolling */
   overflow-y: auto;
 }
 

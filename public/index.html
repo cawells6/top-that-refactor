@@ -25,6 +25,9 @@
     <!-- Initial layout stabilization - must load early for execution -->
     <!-- <script src="/scripts/initial-layout-stabilizer.js"></script> -->
 
+    <!-- Google Fonts for logo-style section titles -->
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+
     <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/styles/modals.css" />
@@ -148,18 +151,21 @@
                   </div>
                 </div>
 
-                <!-- Join Game Code Input -->
-                <div class="join-code-section" style="margin-top: 1rem">
-                  <input
-                    type="text"
-                    id="join-code-input"
-                    placeholder="ENTER GAME CODE"
-                    maxlength="6"
-                    style="text-transform: uppercase"
-                  />
-                  <button id="join-game-button" class="header-btn" type="button">
-                    JOIN GAME
-                  </button>
+                <!-- Join Game Code Section -->
+                <div class="player-section join-code-section">
+                  <h3 class="section-title">JOIN GAME</h3>
+                  <div class="join-code-inputs">
+                    <input
+                      type="text"
+                      id="join-code-input"
+                      placeholder="ENTER GAME CODE"
+                      maxlength="6"
+                      style="text-transform: uppercase"
+                    />
+                    <button id="join-game-button" class="header-btn" type="button">
+                      JOIN GAME
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Bots Players Section -->
@@ -194,29 +200,10 @@
               <!-- Single lobby validation message area - always reserves space -->
               <div
                 id="lobby-validation-message"
-                style="display: flex; justify-content: center; margin: 1rem 0"
+                class="validation-message-container"
               >
-                <div
-                  class="message-box-content"
-                  style="
-                    padding: 1rem;
-                    border: 2px solid transparent;
-                    border-radius: 0.5rem;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                    width: 280px;
-                    text-align: center;
-                    background-color: #f8d7da;
-                  "
-                >
-                  <p
-                    style="
-                      margin: 0;
-                      font-weight: 700;
-                      font-size: 1.1rem;
-                      line-height: 1.2;
-                      color: #721c24;
-                    "
-                  ></p>
+                <div class="message-box-content">
+                  <p class="validation-text"></p>
                 </div>
               </div>
 

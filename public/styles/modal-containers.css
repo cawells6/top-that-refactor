@@ -1,4 +1,11 @@
 /* modal-containers.css - Standardized modal container styles for lobby and rules modals */
+/* 
+  MODAL SIZING SYSTEM:
+  - All modal widths now use CSS variables defined in style.css :root
+  - To change modal widths, update the variables in style.css:
+    --modal-container-width: 1200px (main container)
+    --modal-content-width: 1160px (inner content)
+*/
 
 /* Common modal container class for standardizing both modal types */
 .standard-modal-container {
@@ -26,7 +33,7 @@
     0 8px 25px rgba(0, 0, 0, 0.1),
     0 0 0 1px rgba(255, 195, 0, 0.2);
   padding: 2rem 2.5rem;
-  max-width: 960px;
+  max-width: var(--modal-content-width); /* Using CSS variable */
   width: 90vw;
   margin: 0;
   position: relative;
@@ -35,14 +42,14 @@
 
 /* Target the specific in-session lobby modal container */
 .in-session-lobby-modal .lobby-modal-container {
-  max-width: 800px !important;
+  max-width: var(--modal-container-width) !important; /* Using CSS variable */
   width: 100% !important;
   margin: 0 auto !important;
 }
 
 /* Ensure the content div doesn't restrict width */
 .in-session-lobby-modal .game-setup-content {
-  max-width: 760px !important;
+  max-width: var(--modal-content-width) !important; /* Using CSS variable */
   width: 100% !important;
   margin: 0 auto !important;
   box-sizing: border-box !important;
