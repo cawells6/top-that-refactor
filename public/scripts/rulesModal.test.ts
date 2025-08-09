@@ -38,7 +38,9 @@ jest.mock(
     getRulesButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
-    getRulesModal: jest.fn(() => (global.document ? global.document.createElement('div') : null)),
+    getRulesModal: jest.fn(() =>
+      global.document ? global.document.createElement('div') : null
+    ),
     getBackToLobbyButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
@@ -46,9 +48,13 @@ jest.mock(
   { virtual: true }
 );
 
-jest.mock('./socketService.js', () => ({ initializeSocketHandlers: jest.fn() }), {
-  virtual: true,
-});
+jest.mock(
+  './socketService.js',
+  () => ({ initializeSocketHandlers: jest.fn() }),
+  {
+    virtual: true,
+  }
+);
 
 import { handleRulesClick, hideRulesModalAndOverlay } from './events.js';
 

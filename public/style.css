@@ -220,6 +220,10 @@ body {
 .player-selection .player-section .section-title {
   font-size: 2.86rem; /* 30% larger than original 2.2rem */
   text-transform: uppercase;
+  /* Improved vertical centering relative to control buttons */
+  margin-bottom: 0.5rem; /* Reduced from default to better center relative to controls */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle text shadow for depth */
+  letter-spacing: 0.05em; /* Slightly increased letter spacing for clarity */
   /* Ensure other styles from .section-title are inherited or explicitly set if needed */
 }
 
@@ -1254,21 +1258,37 @@ body {
 
 /* Rules button - bright blue styling */
 #setup-rules-button {
-  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
-  color: #ffffff !important; /* White text for blue background */
-  border: none; /* Removed border to match Deal button */
+  background: #007bff;
+  color: #fff !important;
+  border: none;
+  padding: 1rem 2.5rem;
+  font-size: 1.5rem;
+  min-width: 160px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  font-weight: bold;
+  text-transform: none;
+  letter-spacing: normal;
+  transition:
+    background-color 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out,
+    transform 0.1s ease-in-out;
 }
 
 #setup-rules-button:hover {
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-  color: #ffffff !important;
+  background: #0056b3;
+  color: #fff !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.18);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.18);
 }
 
 #setup-rules-button:active {
   transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(33, 150, 243, 0.2);
+  background: #004da0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transform: translateY(1px);
 }
 
 /* Deal button (Let's Play) - goldish color scheme styling */
@@ -1389,7 +1409,7 @@ body {
 
 /* Name Input Section */
 .name-input-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2.5rem; /* Increased from 1.5rem to add 10px more spacing */
   display: flex;
   justify-content: center;
 }
@@ -1398,7 +1418,7 @@ body {
 #player-name-input {
   font-size: 1.8rem;
   padding: 0.75rem 1rem;
-  border: 2px solid #ccc;
+  border: 2px solid #888; /* Improved contrast from #ccc to #888 for better accessibility */
   border-radius: 8px;
   text-align: center;
   width: 80%;
@@ -1407,8 +1427,34 @@ body {
 }
 
 #player-name-input::placeholder {
-  color: #999;
+  color: #666; /* Improved contrast to match join code input */
   font-weight: normal;
+}
+/* Join Game Code Input styling for better accessibility */
+#join-code-input {
+  font-size: 1.5rem; /* Match join game button */
+  padding: 1rem 2.5rem; /* Match join game button */
+  border: 2px solid #888; /* Improved contrast for better accessibility */
+  border-radius: 8px;
+  text-align: center;
+  width: 160px; /* Match min-width of join game button */
+  min-width: 160px;
+  max-width: 320px;
+  margin-bottom: 0.75rem;
+  box-sizing: border-box;
+  font-weight: 600; /* Slightly bolder for game codes */
+}
+
+#join-code-input::placeholder {
+  color: #666; /* Better contrast for placeholder text */
+  font-weight: normal;
+}
+
+/* Specific styling for Join Game button to improve visual consistency */
+#join-game-button {
+  padding: 1rem 2.5rem; /* Increased horizontal padding for better visual weight */
+  font-size: 1.5rem; /* Slightly larger to match visual prominence */
+  min-width: 160px; /* Consistent minimum width with other main buttons */
 }
 
 /* --- Player Silhouette Icon Sizing (authoritative) --- */

@@ -8,7 +8,12 @@ export interface HandleJoinLinkDeps {
   document: Document;
 }
 
-export function handleJoinLink({ setCurrentRoom, socket, window, document }: HandleJoinLinkDeps) {
+export function handleJoinLink({
+  setCurrentRoom,
+  socket,
+  window,
+  document,
+}: HandleJoinLinkDeps) {
   const urlParams = new URLSearchParams(window.location.search);
   const roomIdFromUrl = urlParams.get('room');
   const inSession = document.body.classList.contains('in-session');

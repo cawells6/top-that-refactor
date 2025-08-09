@@ -1,13 +1,13 @@
 /**
  * lobby-position-fix.js
- * 
+ *
  * This script fixes the initial positioning of the lobby modal
  * to ensure it's centered from the very first render with NO SHIFTING.
  */
 
-(function() {
+(function () {
   console.log('[LOBBY-POSITION-FIX] Starting up with enhanced positioning...');
-  
+
   // Inject critical CSS to fix initial position - more aggressive version
   const style = document.createElement('style');
   style.id = 'lobby-position-fix';
@@ -62,10 +62,10 @@
       align-items: center !important;
     }
   `;
-  
+
   // Add to document head immediately as the first child
   document.head.insertBefore(style, document.head.firstChild);
-  
+
   // Apply styles directly to elements as soon as possible
   function applyDirectStyles() {
     const lobbyContainer = document.getElementById('lobby-container');
@@ -73,9 +73,11 @@
     const innerContent = document.getElementById('lobby-inner-content');
     const mainContent = document.getElementById('main-content');
     const gameViewport = document.querySelector('.game-viewport');
-    
+
     if (lobbyContainer) {
-      console.log('[LOBBY-POSITION-FIX] Applying position fix to lobby container');
+      console.log(
+        '[LOBBY-POSITION-FIX] Applying position fix to lobby container'
+      );
       Object.assign(lobbyContainer.style, {
         display: 'flex',
         alignItems: 'center',
@@ -88,12 +90,14 @@
         right: '0',
         bottom: '0',
         padding: '0',
-        margin: '0'
+        margin: '0',
       });
     }
-    
+
     if (modalContainer) {
-      console.log('[LOBBY-POSITION-FIX] Applying position fix to modal container');
+      console.log(
+        '[LOBBY-POSITION-FIX] Applying position fix to modal container'
+      );
       Object.assign(modalContainer.style, {
         width: '100%',
         maxWidth: '800px', // Increased from 640px for more space
@@ -109,7 +113,7 @@
         boxSizing: 'border-box',
       });
     }
-    
+
     if (innerContent) {
       Object.assign(innerContent.style, {
         width: '100%',
@@ -119,32 +123,32 @@
         boxSizing: 'border-box',
       });
     }
-    
+
     if (mainContent) {
       Object.assign(mainContent.style, {
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
       });
     }
-    
+
     if (gameViewport) {
       Object.assign(gameViewport.style, {
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
       });
     }
   }
-  
+
   // Try to apply styles immediately
   if (document.readyState === 'loading') {
     // If still loading, set up event listeners
     document.addEventListener('DOMContentLoaded', applyDirectStyles);
-    
+
     // Also try periodically until elements are found
     let attempts = 0;
-    const checkAndApply = setInterval(function() {
+    const checkAndApply = setInterval(function () {
       if (document.getElementById('lobby-container') || attempts > 20) {
         clearInterval(checkAndApply);
         applyDirectStyles();
@@ -155,6 +159,6 @@
     // DOM already loaded, apply right away
     applyDirectStyles();
   }
-  
+
   console.log('[LOBBY-POSITION-FIX] Enhanced initialization complete');
 })();

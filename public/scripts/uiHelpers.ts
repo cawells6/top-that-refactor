@@ -28,7 +28,10 @@ export function validateName(): string | null {
   return null;
 }
 
-export function showToast(message: string, type: 'success' | 'error' = 'success') {
+export function showToast(
+  message: string,
+  type: 'success' | 'error' = 'success'
+) {
   // Simple toast implementation
   const toast = document.createElement('div');
   toast.className = `toast toast--${type}`;

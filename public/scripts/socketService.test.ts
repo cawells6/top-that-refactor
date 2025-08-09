@@ -58,12 +58,27 @@ describe('socketService', () => {
 
   it('registers socket event handlers and calls UI functions', async () => {
     await initializeSocketHandlers();
-    expect(state.socket.on).toHaveBeenCalledWith('connect', expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(LOBBY_CREATED, expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(LOBBY_STATE_UPDATE, expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(GAME_STARTED, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith(
+      'connect',
+      expect.any(Function)
+    );
+    expect(state.socket.on).toHaveBeenCalledWith(
+      LOBBY_CREATED,
+      expect.any(Function)
+    );
+    expect(state.socket.on).toHaveBeenCalledWith(
+      LOBBY_STATE_UPDATE,
+      expect.any(Function)
+    );
+    expect(state.socket.on).toHaveBeenCalledWith(
+      GAME_STARTED,
+      expect.any(Function)
+    );
     expect(state.socket.on).toHaveBeenCalledWith(JOINED, expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith(STATE_UPDATE, expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith(
+      STATE_UPDATE,
+      expect.any(Function)
+    );
     expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
     expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
   });
@@ -92,9 +107,18 @@ describe('socketService', () => {
     const lobbyHandler = (state.socket.on as jest.Mock).mock.calls.find(
       ([event]) => event === LOBBY_STATE_UPDATE
     )[1];
-    const data = { roomId: 'R', players: [{ id: '1', name: 'A', ready: false }], maxPlayers: 4 };
+    const data = {
+      roomId: 'R',
+      players: [{ id: '1', name: 'A', ready: false }],
+      maxPlayers: 4,
+    };
     lobbyHandler(data);
-    expect(uiManager.showWaitingState).toHaveBeenCalledWith('R', 1, 1, data.players);
+    expect(uiManager.showWaitingState).toHaveBeenCalledWith(
+      'R',
+      1,
+      1,
+      data.players
+    );
   });
   it('calls renderGameState and showGameTable on STATE_UPDATE', async () => {
     await initializeSocketHandlers();

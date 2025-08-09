@@ -13,7 +13,7 @@ import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobby
 import * as state from '../public/scripts/state.js';
 import { PLAYER_READY } from '../src/shared/events.js';
 import { InSessionLobbyState } from '../src/shared/types.js';
-import { setupModalDOM, mockInSessionLobbyModal } from './utils/domSetup';
+import { setupModalDOM, mockInSessionLobbyModal } from './utils/domSetup.js';
 
 jest.mock('../public/scripts/state', () => ({
   socket: {
@@ -35,7 +35,9 @@ Object.assign(navigator, {
 });
 
 // --- Helpers for DRY setup ---
-function makeLobbyState(overrides: Partial<InSessionLobbyState> = {}): InSessionLobbyState {
+function makeLobbyState(
+  overrides: Partial<InSessionLobbyState> = {}
+): InSessionLobbyState {
   return {
     roomId: 'TEST12',
     hostId: 'host-id',
@@ -83,7 +85,9 @@ describe('InSessionLobbyModal', () => {
     expect(screen.getByText('Host Player')).toBeInTheDocument();
     expect(screen.getByText('Me (You)')).toBeInTheDocument();
     // Ready button should be hidden
-    const readyButton = document.getElementById('ready-up-button') as HTMLButtonElement;
+    const readyButton = document.getElementById(
+      'ready-up-button'
+    ) as HTMLButtonElement;
     expect(readyButton).toHaveStyle('display: none');
   });
 
@@ -104,7 +108,8 @@ describe('InSessionLobbyModal', () => {
     });
     (modalInstance as any).render(mockLobbyState);
     expect(
-      screen.getAllByText('Alex').length + screen.getAllByText('Alex (You)').length
+      screen.getAllByText('Alex').length +
+        screen.getAllByText('Alex (You)').length
     ).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Jordan')).toBeInTheDocument();
   });
@@ -143,7 +148,9 @@ describe('InSessionLobbyModal', () => {
   });
 
   it('handles clipboard error gracefully', async () => {
-    (navigator.clipboard.writeText as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    (navigator.clipboard.writeText as jest.Mock).mockRejectedValueOnce(
+      new Error('fail')
+    );
     const copyButton = screen.getByRole('button', { name: /Copy Link/i });
     await fireEvent.click(copyButton);
     // No throw, test passes if no error is thrown

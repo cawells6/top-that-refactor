@@ -71,7 +71,7 @@ async function killProcess(pid) {
  * Wait for the specified amount of time
  */
 function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -79,12 +79,12 @@ function wait(ms) {
  */
 async function cleanupPorts() {
   console.log('🧹 Starting enhanced port cleanup...\n');
-  
+
   // Check initial port status
   let portStatus = await Promise.all(
-    PORTS.map(async port => ({ port, pid: await checkPort(port) }))
+    PORTS.map(async (port) => ({ port, pid: await checkPort(port) }))
   );
-  
+
   console.log('📊 Initial port status:');
   displayPortStatus(portStatus);
 
@@ -105,7 +105,9 @@ async function cleanupPorts() {
 
   // If we killed anything, wait for cleanup
   if (killed) {
-    console.log(`\n⏳ Waiting ${WAIT_TIME/1000} seconds for processes to fully terminate...`);
+    console.log(
+      `\n⏳ Waiting ${WAIT_TIME / 1000} seconds for processes to fully terminate...`
+    );
     await wait(WAIT_TIME);
   }
 
@@ -113,32 +115,34 @@ async function cleanupPorts() {
   for (let i = 0; i < MAX_RETRIES; i++) {
     // Check if all ports are free
     portStatus = await Promise.all(
-      PORTS.map(async port => ({ port, pid: await checkPort(port) }))
+      PORTS.map(async (port) => ({ port, pid: await checkPort(port) }))
     );
 
     const allFree = portStatus.every(({ pid }) => !pid);
     if (allFree) break;
-    
+
     // If still occupied, try once more
     if (i < MAX_RETRIES - 1) {
-      console.log(`\n⚠️ Some ports still in use. Retry ${i+1}/${MAX_RETRIES}...`);
-      
+      console.log(
+        `\n⚠️ Some ports still in use. Retry ${i + 1}/${MAX_RETRIES}...`
+      );
+
       for (const { port, pid } of portStatus) {
         if (pid) {
           console.log(`🎯 Retrying kill on port ${port} (PID: ${pid})...`);
           await killProcess(pid);
         }
       }
-      
+
       await wait(1000); // Wait between retries
     }
   }
 
   // Final check to ensure ports are free
   portStatus = await Promise.all(
-    PORTS.map(async port => ({ port, pid: await checkPort(port) }))
+    PORTS.map(async (port) => ({ port, pid: await checkPort(port) }))
   );
-  
+
   console.log('\n📊 Final port status:');
   displayPortStatus(portStatus);
 
@@ -147,26 +151,32 @@ async function cleanupPorts() {
     console.log('🎉 All target ports are now free!');
     return true;
   } else {
-    console.log('⚠️ Some ports are still in use. You may need to manually terminate processes.');
+    console.log(
+      '⚠️ Some ports are still in use. You may need to manually terminate processes.'
+    );
     return false;
   }
 }
 
 // Execute main function when run directly
 if (process.argv[1] === new URL(import.meta.url).pathname) {
-  cleanupPorts().then(success => {
-    if (success) {
-      console.log('🚀 Ready to start development servers!');
-      process.exit(0);
-    } else {
-      console.error('⚠️ Could not free all ports. Check for blocking processes.');
-      // Exit with success anyway to not block further scripts
-      process.exit(0);
-    }
-  }).catch(err => {
-    console.error('❌ Error during port cleanup:', err);
-    process.exit(1);
-  });
+  cleanupPorts()
+    .then((success) => {
+      if (success) {
+        console.log('🚀 Ready to start development servers!');
+        process.exit(0);
+      } else {
+        console.error(
+          '⚠️ Could not free all ports. Check for blocking processes.'
+        );
+        // Exit with success anyway to not block further scripts
+        process.exit(0);
+      }
+    })
+    .catch((err) => {
+      console.error('❌ Error during port cleanup:', err);
+      process.exit(1);
+    });
 }
 
 // Export functions for programmatic use

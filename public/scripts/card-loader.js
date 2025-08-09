@@ -8,7 +8,8 @@ const cardImageCache = new Map();
  * @returns {string} Card code (e.g. "AH", "10S", "KD")
  */
 export function cardToCode(value, suit) {
-  const v = String(value).toUpperCase() === '10' ? '0' : String(value).toUpperCase();
+  const v =
+    String(value).toUpperCase() === '10' ? '0' : String(value).toUpperCase();
   const suitMap = {
     hearts: 'H',
     diamonds: 'D',

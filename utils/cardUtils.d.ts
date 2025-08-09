@@ -3,10 +3,18 @@ export declare function normalizeCardValue(
   cardValue: string | number | null | undefined
 ): string | null | undefined;
 export declare function rank(card: Card): number;
-export declare function isTwoCard(cardValue: string | number | null | undefined): boolean;
-export declare function isFiveCard(cardValue: string | number | null | undefined): boolean;
-export declare function isTenCard(cardValue: string | number | null | undefined): boolean;
-export declare function isSpecialCard(cardValue: string | number | null | undefined): boolean;
+export declare function isTwoCard(
+  cardValue: string | number | null | undefined
+): boolean;
+export declare function isFiveCard(
+  cardValue: string | number | null | undefined
+): boolean;
+export declare function isTenCard(
+  cardValue: string | number | null | undefined
+): boolean;
+export declare function isSpecialCard(
+  cardValue: string | number | null | undefined
+): boolean;
 export declare function isFourOfAKind(hand: Card[]): boolean;
 declare const cardUtils: {
   normalizeCardValue: typeof normalizeCardValue;

@@ -28,7 +28,7 @@ export default class Player {
     this.isComputer = false;
     this.disconnected = false;
     this.status = 'invited'; // Default status
-    this.ready = false;      // Default ready state
+    this.ready = false; // Default ready state
   }
 
   setHand(cards: Card[]): void {

@@ -1,8 +1,15 @@
 // tests/lobbyServer.test.ts
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
 
-import { createMockSocket, createMockIO, MockSocket, MockIO } from './testUtils.js';
-import GameController, { GameRoomManager } from '../controllers/GameController.js';
+import {
+  createMockSocket,
+  createMockIO,
+  MockSocket,
+  MockIO,
+} from './testUtils.js';
+import GameController, {
+  GameRoomManager,
+} from '../controllers/GameController.js';
 import { JOINED, LOBBY } from '../src/shared/events.js';
 import type { JoinGamePayload } from '../src/shared/types.js';
 
@@ -64,8 +71,13 @@ describe('Lobby joining', () => {
       mockIo.sockets.sockets.set(secondSocket.id, secondSocket);
     }
     const secondPayload = makeJoinPayload({ id: 'BOB_ID', playerName: 'Bob' });
-    (gameController['publicHandleJoin'] as Function)(secondSocket, secondPayload);
-    const lobbyCalls = topLevelEmitMock.mock.calls.filter((c) => c[0] === LOBBY);
+    (gameController['publicHandleJoin'] as Function)(
+      secondSocket,
+      secondPayload
+    );
+    const lobbyCalls = topLevelEmitMock.mock.calls.filter(
+      (c) => c[0] === LOBBY
+    );
     expect(lobbyCalls.length).toBeGreaterThanOrEqual(2);
     const lastLobby = lobbyCalls[lobbyCalls.length - 1] as any;
     expect(lastLobby[1]).toEqual(
@@ -81,14 +93,23 @@ describe('Lobby joining', () => {
   test('cannot join after game start', () => {
     const hostPayload = makeJoinPayload({ id: 'HOST_ID', playerName: 'Host' });
     (gameController['publicHandleJoin'] as Function)(hostSocket, hostPayload);
-    (gameController['handleStartGame'] as Function)({ computerCount: 1, socket: hostSocket });
+    (gameController['handleStartGame'] as Function)({
+      computerCount: 1,
+      socket: hostSocket,
+    });
     const lateSocket = createMockSocket('late-socket', topLevelEmitMock);
     let ackData: any;
     const latePayload = makeJoinPayload({ id: 'LATE_ID', playerName: 'Late' });
-    (gameController['publicHandleJoin'] as Function)(lateSocket, latePayload, (res: any) => {
-      ackData = res;
+    (gameController['publicHandleJoin'] as Function)(
+      lateSocket,
+      latePayload,
+      (res: any) => {
+        ackData = res;
+      }
+    );
+    expect(ackData).toEqual({
+      error: 'Game has already started. Cannot join.',
     });
-    expect(ackData).toEqual({ error: 'Game has already started. Cannot join.' });
     // No error event expected
   });
 });
@@ -99,9 +120,13 @@ describe('GameRoomManager', () => {
     const socket = createMockSocket('joiner', topLevelEmitMock);
     let ackData: any;
     const payload = makeJoinPayload({ id: 'BAD999', playerName: 'A' });
-    (manager as any)['handleClientJoinGame'](socket as any, payload, (res: any) => {
-      ackData = res;
-    });
+    (manager as any)['handleClientJoinGame'](
+      socket as any,
+      payload,
+      (res: any) => {
+        ackData = res;
+      }
+    );
     expect(ackData).toEqual({ error: 'Room not found.' });
     // No error event expected
   });
@@ -111,9 +136,13 @@ describe('Lobby joining edge cases', () => {
   test('joining with missing playerName returns error', () => {
     const payload = { ...makeJoinPayload(), playerName: undefined };
     let ackData: any;
-    (gameController['publicHandleJoin'] as Function)(hostSocket, payload, (res: any) => {
-      ackData = res;
-    });
+    (gameController['publicHandleJoin'] as Function)(
+      hostSocket,
+      payload,
+      (res: any) => {
+        ackData = res;
+      }
+    );
     expect(ackData).toEqual({ error: expect.any(String) });
   });
 
@@ -149,7 +178,9 @@ describe('Lobby joining edge cases', () => {
     }
     (gameController['publicHandleJoin'] as Function)(specialSocket, payload);
     const players = (gameController as any).players;
-    const found = Array.from(players.values()).find((p: any) => p.name === specialName);
+    const found = Array.from(players.values()).find(
+      (p: any) => p.name === specialName
+    );
     expect(found).toBeDefined();
   });
 
@@ -168,18 +199,28 @@ describe('Lobby joining edge cases', () => {
   test('ack callback is called with correct data on success', () => {
     const payload = makeJoinPayload({ id: 'ACK_ID', playerName: 'Ack' });
     let ackData: any;
-    (gameController['publicHandleJoin'] as Function)(hostSocket, payload, (res: any) => {
-      ackData = res;
-    });
-    expect(ackData).toEqual(expect.objectContaining({ roomId: 'test-room', playerId: 'ACK_ID' }));
+    (gameController['publicHandleJoin'] as Function)(
+      hostSocket,
+      payload,
+      (res: any) => {
+        ackData = res;
+      }
+    );
+    expect(ackData).toEqual(
+      expect.objectContaining({ roomId: 'test-room', playerId: 'ACK_ID' })
+    );
   });
 
   test('ack callback is called with error on invalid join', () => {
     const payload = { ...makeJoinPayload(), playerName: undefined };
     let ackData: any;
-    (gameController['publicHandleJoin'] as Function)(hostSocket, payload, (res: any) => {
-      ackData = res;
-    });
+    (gameController['publicHandleJoin'] as Function)(
+      hostSocket,
+      payload,
+      (res: any) => {
+        ackData = res;
+      }
+    );
     expect(ackData).toEqual({ error: expect.any(String) });
   });
 
@@ -191,7 +232,11 @@ describe('Lobby joining edge cases', () => {
     const player = players.get('REJOIN_ID');
     player.disconnected = true;
     // Rejoin
-    (gameController['publicHandleRejoin'] as Function)(hostSocket, 'test-room', 'REJOIN_ID');
+    (gameController['publicHandleRejoin'] as Function)(
+      hostSocket,
+      'test-room',
+      'REJOIN_ID'
+    );
     expect(player.disconnected).toBe(false);
   });
 });

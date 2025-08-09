@@ -23,7 +23,21 @@ describe('GameState deck and dealCards', () => {
 
     // Very basic shuffle check: compare to an unshuffled deck string.
     const suits: string[] = ['hearts', 'diamonds', 'clubs', 'spades'];
-    const values: (string | number)[] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'];
+    const values: (string | number)[] = [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      'J',
+      'Q',
+      'K',
+      'A',
+    ];
     let orderedDeckString = '';
     for (const suit of suits) {
       for (const value of values) {
@@ -101,10 +115,18 @@ describe('GameState deck and dealCards', () => {
     gs.startGameInstance();
     const dealtNeg = gs.dealCards(2, -5);
     const dealtFloat = gs.dealCards(2, 2.7);
-    for (const arr of [...dealtNeg.hands, ...dealtNeg.upCards, ...dealtNeg.downCards]) {
+    for (const arr of [
+      ...dealtNeg.hands,
+      ...dealtNeg.upCards,
+      ...dealtNeg.downCards,
+    ]) {
       expect(arr.length).toBe(0);
     }
-    for (const arr of [...dealtFloat.hands, ...dealtFloat.upCards, ...dealtFloat.downCards]) {
+    for (const arr of [
+      ...dealtFloat.hands,
+      ...dealtFloat.upCards,
+      ...dealtFloat.downCards,
+    ]) {
       expect(arr.length).toBe(2); // Math.min(2.7, deck.length) => 2, so it truncates
     }
   });

@@ -15,12 +15,12 @@ function checkPort(port) {
     let command = isWindows
       ? `netstat -ano | findstr :${port} | findstr LISTENING`
       : `lsof -i :${port} -sTCP:LISTEN -t`;
-    
-    const result = execSync(command, { 
-      encoding: 'utf8', 
-      stdio: ['pipe', 'pipe', 'ignore'] 
+
+    const result = execSync(command, {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore'],
     }).trim();
-    
+
     if (result) {
       return isWindows ? result.split(/\s+/).pop() : result;
     }
@@ -35,13 +35,15 @@ function checkPort(port) {
  */
 async function killProcessesOnPorts() {
   console.log('Cleaning ports...');
-  
+
   for (const port of PORTS) {
     const pid = checkPort(port);
     if (pid) {
       try {
         if (isWindows) {
-          execSync(`taskkill /F /PID ${pid}`, { stdio: ['ignore', 'ignore', 'ignore'] });
+          execSync(`taskkill /F /PID ${pid}`, {
+            stdio: ['ignore', 'ignore', 'ignore'],
+          });
         } else {
           execSync(`kill -9 ${pid}`, { stdio: ['ignore', 'ignore', 'ignore'] });
         }
@@ -53,15 +55,17 @@ async function killProcessesOnPorts() {
       console.log(`✓ Port ${port} already available`);
     }
   }
-  
+
   // Wait a moment for processes to terminate
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 // Run cleanup
-killProcessesOnPorts().then(() => {
-  console.log('All ports ready for development server');
-}).catch(() => {
-  // Always exit successfully even if there were errors
-  process.exit(0);
-});
+killProcessesOnPorts()
+  .then(() => {
+    console.log('All ports ready for development server');
+  })
+  .catch(() => {
+    // Always exit successfully even if there were errors
+    process.exit(0);
+  });

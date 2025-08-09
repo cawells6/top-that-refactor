@@ -4,7 +4,7 @@
  * to prevent it from appearing in the corner before moving to the center.
  */
 
-(function() {
+(function () {
   // Create and apply inline styles immediately
   const styleEl = document.createElement('style');
   styleEl.id = 'position-fix-styles';
@@ -32,17 +32,17 @@
       transform: none !important;
     }
   `;
-  
+
   // Insert at the very beginning of the head
   if (document.head) {
     document.head.insertBefore(styleEl, document.head.firstChild);
   }
-  
+
   // When DOM is ready, apply position directly to elements
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const lobbyContainer = document.getElementById('lobby-container');
     const lobbyOuterCard = document.getElementById('lobby-outer-card');
-    
+
     if (lobbyContainer) {
       Object.assign(lobbyContainer.style, {
         display: 'flex',
@@ -58,7 +58,7 @@
         background: 'none',
         padding: '0',
         margin: '0',
-        zIndex: 1000
+        zIndex: 1000,
       });
     }
 
@@ -72,10 +72,10 @@
         transform: 'none',
         maxWidth: '800px',
         width: '100%',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
       });
     }
-    
+
     console.log('[POSITION-FIX] Applied direct element positioning');
   });
 })();

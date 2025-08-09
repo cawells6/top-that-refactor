@@ -97,7 +97,8 @@ export class InSessionLobbyModal {
     // Render players
     playersContainer.innerHTML = '';
     if (lobbyState.players.length === 0) {
-      playersContainer.innerHTML = '<p class="no-players">No players have joined yet</p>';
+      playersContainer.innerHTML =
+        '<p class="no-players">No players have joined yet</p>';
     } else {
       lobbyState.players.forEach((player) => {
         const playerEl = document.createElement('div');

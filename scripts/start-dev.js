@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Advanced Development Environment Starter
- * 
+ *
  * This script:
  * 1. Cleans up ports 3000 and 5173
  * 2. Starts the development server (npm run dev:all)
@@ -23,9 +23,12 @@ function arePotentiallyBlocking() {
       let command = isWindows
         ? `netstat -ano | findstr :${port} | findstr LISTENING`
         : `lsof -i :${port} -sTCP:LISTEN -t`;
-        
+
       try {
-        const output = execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+        const output = execSync(command, {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'ignore'],
+        });
         if (output.trim()) {
           return true; // At least one port is in use
         }
@@ -48,25 +51,29 @@ console.log('------------------------------------------');
 // Check if ports are blocked
 if (arePotentiallyBlocking()) {
   console.log('⚠️ Some target ports appear to be in use');
-  
+
   // Run the full port cleanup
   try {
     console.log('🧹 Running port cleanup...');
     const cleanupPath = path.join(__dirname, 'port-cleanup.cjs');
-    
+
     if (fs.existsSync(cleanupPath)) {
       execSync(`node "${cleanupPath}" cleanup`, { stdio: 'inherit' });
     } else {
-      console.error('❌ Port cleanup script not found! Using built-in cleanup logic');
-      execSync(isWindows 
-        ? `for %i in (${TARGET_PORTS.join(' ')}) do @(for /f "tokens=5" %a in ('netstat -ano ^| find ":%i" ^| find "LISTENING"') do @taskkill /F /PID %a)`
-        : `for port in ${TARGET_PORTS.join(' ')}; do lsof -ti:$port | xargs -r kill -9; done`,
-        { stdio: 'inherit' });
+      console.error(
+        '❌ Port cleanup script not found! Using built-in cleanup logic'
+      );
+      execSync(
+        isWindows
+          ? `for %i in (${TARGET_PORTS.join(' ')}) do @(for /f "tokens=5" %a in ('netstat -ano ^| find ":%i" ^| find "LISTENING"') do @taskkill /F /PID %a)`
+          : `for port in ${TARGET_PORTS.join(' ')}; do lsof -ti:$port | xargs -r kill -9; done`,
+        { stdio: 'inherit' }
+      );
     }
   } catch (error) {
     console.error('⚠️ Port cleanup had some issues:', error.message);
   }
-  
+
   // Wait a moment for ports to clear
   console.log('⏳ Waiting for port release...');
   const wait = isWindows ? 'timeout /t 2' : 'sleep 2';
@@ -88,7 +95,7 @@ console.log('------------------------------------------\n');
 const npmCommand = isWindows ? 'npm.cmd' : 'npm';
 const devProcess = spawn(npmCommand, ['run', 'dev:all'], {
   stdio: 'inherit',
-  shell: true
+  shell: true,
 });
 
 // Handle process exit
@@ -97,7 +104,9 @@ devProcess.on('close', (code) => {
     console.log('\n✅ Development environment exited successfully');
   } else {
     console.error(`\n⚠️ Development environment exited with code: ${code}`);
-    console.log('For more details, check the logs or run `node scripts/port-cleanup.cjs status`');
+    console.log(
+      'For more details, check the logs or run `node scripts/port-cleanup.cjs status`'
+    );
   }
 });
 

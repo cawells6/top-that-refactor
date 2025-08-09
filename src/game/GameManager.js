@@ -12,9 +12,9 @@ class GameManager {
     this.games[gameId] = {
       config: config,
       players: [],
-      state: 'waiting'
+      state: 'waiting',
     };
-    
+
     console.log(`[GAME] Game created with ID: ${gameId}`);
     return gameId;
   }
@@ -38,9 +38,9 @@ class GameManager {
       success: true,
       currentPlayerCount: currentCount,
       maxPlayers: maxPlayers,
-      isGameFull: isGameFull
+      isGameFull: isGameFull,
     });
-    
+
     return true;
   }
 
@@ -59,9 +59,9 @@ class GameManager {
 
     console.log(`[GAME] Game ${gameId} started successfully:`, {
       playerCount: playerCount,
-      gameState: gameState
+      gameState: gameState,
     });
-    
+
     return true;
   }
 

@@ -117,7 +117,11 @@ describe('handleJoinLink', () => {
     const socket = { emit: jest.fn() };
     const spy = jest.spyOn(window.history, 'replaceState');
     handleJoinLink({ setCurrentRoom, socket, window, document });
-    expect(spy).toHaveBeenCalledWith({}, document.title, window.location.pathname);
+    expect(spy).toHaveBeenCalledWith(
+      {},
+      document.title,
+      window.location.pathname
+    );
     spy.mockRestore();
   });
 
@@ -132,7 +136,9 @@ describe('handleJoinLink', () => {
         throw new Error('fail');
       }),
     };
-    expect(() => handleJoinLink({ setCurrentRoom, socket, window, document })).not.toThrow();
+    expect(() =>
+      handleJoinLink({ setCurrentRoom, socket, window, document })
+    ).not.toThrow();
   });
 
   it('should do nothing if document.body is missing', () => {
@@ -142,7 +148,9 @@ describe('handleJoinLink', () => {
     window.history.replaceState({}, document.title, '/?room=ROOMZ');
     const setCurrentRoom = jest.fn();
     const socket = { emit: jest.fn() };
-    expect(() => handleJoinLink({ setCurrentRoom, socket, window, document })).not.toThrow();
+    expect(() =>
+      handleJoinLink({ setCurrentRoom, socket, window, document })
+    ).not.toThrow();
     // @ts-ignore
     document.body = origBody;
   });

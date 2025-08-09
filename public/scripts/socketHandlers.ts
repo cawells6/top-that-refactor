@@ -3,31 +3,56 @@
 
 import { renderGameState } from './render.js';
 import * as state from './state.js';
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
-import { JOINED, LOBBY_STATE_UPDATE, STATE_UPDATE, REJOIN } from '../../src/shared/events.js';
+import {
+  showLobbyForm,
+  showWaitingState,
+  showGameTable,
+  showError,
+} from './uiManager.js';
+import {
+  JOINED,
+  LOBBY_STATE_UPDATE,
+  STATE_UPDATE,
+  REJOIN,
+} from '../../src/shared/events.js';
 import { GameStateData } from '../../src/shared/types.js';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
-  console.log('[CLIENT] initializeSocketHandlers: Socket ready, setting up event listeners');
+  console.log(
+    '[CLIENT] initializeSocketHandlers: Socket ready, setting up event listeners'
+  );
 
   // Debug existing listeners using the public API
   if (state.socket) {
     const allEvents = [
-      'connect', 'disconnect', 'joined', 'lobby-state-update', 'state-update', 'err',
+      'connect',
+      'disconnect',
+      'joined',
+      'lobby-state-update',
+      'state-update',
+      'err',
       // Add any other events you want to check
     ];
-    const listenersSummary = allEvents.reduce((acc, event) => {
-      acc[event] = state.socket.listeners(event).length;
-      return acc;
-    }, {} as Record<string, number>);
+    const listenersSummary = allEvents.reduce(
+      (acc, event) => {
+        acc[event] = state.socket.listeners(event).length;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
     console.log('[CLIENT] Existing socket listeners:', listenersSummary);
   }
 
   state.socket.on('connect', () => {
     console.log('[CLIENT] Socket connected! ID:', state.socket.id);
     if (state.myId && state.currentRoom) {
-      console.log('[CLIENT] Attempting to rejoin with ID:', state.myId, 'Room:', state.currentRoom);
+      console.log(
+        '[CLIENT] Attempting to rejoin with ID:',
+        state.myId,
+        'Room:',
+        state.currentRoom
+      );
       state.socket.emit(REJOIN, state.myId, state.currentRoom);
     } else {
       console.log('[CLIENT] No saved session, showing lobby form');
@@ -44,9 +69,17 @@ export async function initializeSocketHandlers(): Promise<void> {
 
   state.socket.on(
     LOBBY_STATE_UPDATE,
-    (data: { roomId: string; players: { id: string; name: string; ready: boolean }[] }) => {
+    (data: {
+      roomId: string;
+      players: { id: string; name: string; ready: boolean }[];
+    }) => {
       console.log('[CLIENT] Received LOBBY_STATE_UPDATE:', data);
-      showWaitingState(data.roomId, data.players.length, data.players.length, data.players);
+      showWaitingState(
+        data.roomId,
+        data.players.length,
+        data.players.length,
+        data.players
+      );
     }
   );
 

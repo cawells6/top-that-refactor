@@ -16,7 +16,9 @@ const isWindows = os.platform() === 'win32';
  */
 function checkPort(port) {
   try {
-    const pid = execSync(`lsof -i :${port} -sTCP:LISTEN -t`, { encoding: 'utf8' }).trim();
+    const pid = execSync(`lsof -i :${port} -sTCP:LISTEN -t`, {
+      encoding: 'utf8',
+    }).trim();
     return pid || null;
   } catch (error) {
     return null; // Port is free (command returns error when no process found)
@@ -55,7 +57,7 @@ function killProcess(pid) {
  * Wait for the specified amount of time
  */
 function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -63,10 +65,10 @@ function wait(ms) {
  */
 async function cleanupPorts() {
   console.log('🧹 Starting port cleanup...\n');
-  
+
   // Check initial port status
-  let portStatus = PORTS.map(port => ({ port, pid: checkPort(port) }));
-  
+  let portStatus = PORTS.map((port) => ({ port, pid: checkPort(port) }));
+
   console.log('📊 Initial port status:');
   displayPortStatus(portStatus);
 
@@ -87,19 +89,23 @@ async function cleanupPorts() {
 
   // If we killed anything, wait for cleanup
   if (killed) {
-    console.log(`\n⏳ Waiting ${WAIT_TIME/1000} seconds for processes to fully terminate...`);
+    console.log(
+      `\n⏳ Waiting ${WAIT_TIME / 1000} seconds for processes to fully terminate...`
+    );
     await wait(WAIT_TIME);
   }
 
   // Final check to ensure ports are free
-  portStatus = PORTS.map(port => ({ port, pid: checkPort(port) }));
+  portStatus = PORTS.map((port) => ({ port, pid: checkPort(port) }));
   displayPortStatus(portStatus);
 
   const allFree = portStatus.every(({ pid }) => !pid);
   if (allFree) {
     console.log('🎉 All target ports are now free!');
   } else {
-    console.log('⚠️ Some ports are still in use. You may need to manually terminate processes.');
+    console.log(
+      '⚠️ Some ports are still in use. You may need to manually terminate processes.'
+    );
     process.exit(1);
   }
 }
@@ -139,28 +145,30 @@ async function getProcessIdOnPort(port) {
  * Kill processes on multiple ports
  */
 async function killProcessesOnPorts(ports = PORTS) {
-  const results = await Promise.all(ports.map(async (port) => {
-    const pid = await getProcessIdOnPort(port);
-    if (pid) {
-      const success = killProcess(pid);
-      return { port, pid, success };
-    }
-    return { port, pid: null, success: true };
-  }));
-  
+  const results = await Promise.all(
+    ports.map(async (port) => {
+      const pid = await getProcessIdOnPort(port);
+      if (pid) {
+        const success = killProcess(pid);
+        return { port, pid, success };
+      }
+      return { port, pid: null, success: true };
+    })
+  );
+
   // Wait a bit for any killed processes to fully terminate
-  const anyKilled = results.some(r => r.pid && r.success);
+  const anyKilled = results.some((r) => r.pid && r.success);
   if (anyKilled) {
     await wait(WAIT_TIME);
   }
-  
+
   return results;
 }
 
 // Execute the cleanup when the script is run directly
 if (process.argv[1] === new URL(import.meta.url).pathname) {
   cleanupPorts()
-    .then(success => {
+    .then((success) => {
       if (success) {
         console.log('Open http://localhost:5173 in your browser.');
         process.exit(0);
@@ -170,7 +178,7 @@ if (process.argv[1] === new URL(import.meta.url).pathname) {
         process.exit(0);
       }
     })
-    .catch(err => {
+    .catch((err) => {
       console.error('Error during port cleanup:', err);
       process.exit(1);
     });

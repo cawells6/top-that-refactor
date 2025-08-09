@@ -93,7 +93,10 @@ async function loadCard(value, suit) {
       debugLog(`Direct URL response OK: ${response.status}`, 'success');
       return directURL;
     } else {
-      debugLog(`Direct URL failed: ${response.status} ${response.statusText}`, 'error');
+      debugLog(
+        `Direct URL failed: ${response.status} ${response.statusText}`,
+        'error'
+      );
     }
   } catch (error) {
     debugLog(`Error fetching direct URL: ${error.message}`, 'error');
@@ -110,7 +113,10 @@ async function loadCard(value, suit) {
       debugLog(`Proxy URL response OK: ${response.status}`, 'success');
       return proxyURL;
     } else {
-      debugLog(`Proxy URL failed: ${response.status} ${response.statusText}`, 'error');
+      debugLog(
+        `Proxy URL failed: ${response.status} ${response.statusText}`,
+        'error'
+      );
     }
   } catch (error) {
     debugLog(`Error fetching proxy URL: ${error.message}`, 'error');
@@ -231,7 +237,8 @@ async function replaceCardSymbols() {
         placeholder.style.left = '50%';
         placeholder.style.transform = 'translate(-50%, -50%)';
         placeholder.style.fontSize = '16px';
-        placeholder.style.color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
+        placeholder.style.color =
+          suit === 'hearts' || suit === 'diamonds' ? 'red' : 'black';
 
         // Create a wrapper to hold both
         const wrapper = document.createElement('div');
@@ -245,24 +252,36 @@ async function replaceCardSymbols() {
         // Load the actual card image
         try {
           const imgSrc = await loadCard(value, suit);
-          debugLog(`Retrieved card source: ${imgSrc.substring(0, 50)}...`, 'success');
+          debugLog(
+            `Retrieved card source: ${imgSrc.substring(0, 50)}...`,
+            'success'
+          );
 
           // Remove placeholder when image loads
           imgElement.onload = () => {
             placeholder.remove();
             imgElement.style.backgroundColor = 'transparent';
             imgElement.style.minWidth = 'auto';
-            debugLog(`Card image loaded successfully: ${value} of ${suit}`, 'success');
+            debugLog(
+              `Card image loaded successfully: ${value} of ${suit}`,
+              'success'
+            );
           };
 
           imgElement.onerror = () => {
-            debugLog(`Failed to display card image: ${value} of ${suit}`, 'error');
+            debugLog(
+              `Failed to display card image: ${value} of ${suit}`,
+              'error'
+            );
             imgElement.style.display = 'none';
           };
 
           imgElement.src = imgSrc;
         } catch (err) {
-          debugLog(`Error loading card ${value} of ${suit}: ${err.message}`, 'error');
+          debugLog(
+            `Error loading card ${value} of ${suit}: ${err.message}`,
+            'error'
+          );
         }
       }
     }

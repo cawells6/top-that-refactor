@@ -10,10 +10,10 @@ const processedElements = new Set();
 
 // Store original content of card symbols to re-use when needed
 const originalCardContent = {
-  '2': '2♣ 2♠ 2♥ 2♦',
-  '5': '5♣ 5♠ 5♥ 5♦',
-  '10': '10♣ 10♠ 10♥ 10♦',
-  'A': 'A♣ A♠ A♥ A♦'
+  2: '2♣ 2♠ 2♥ 2♦',
+  5: '5♣ 5♠ 5♥ 5♦',
+  10: '10♣ 10♠ 10♥ 10♦',
+  A: 'A♣ A♠ A♥ A♦',
 };
 
 /**
@@ -21,7 +21,8 @@ const originalCardContent = {
  */
 function cardToCode(value, suit) {
   // Convert 10 to 0 as per API requirements
-  const v = String(value).toUpperCase() === '10' ? '0' : String(value).toUpperCase();
+  const v =
+    String(value).toUpperCase() === '10' ? '0' : String(value).toUpperCase();
 
   // Map suit names to single characters
   const suitMap = {
@@ -58,7 +59,8 @@ function createFallbackCard(value, suit) {
   ctx.strokeRect(0, 0, 80, 112);
 
   // Text color (red for hearts/diamonds)
-  ctx.fillStyle = suit === 'hearts' || suit === 'diamonds' ? '#D40000' : '#000000';
+  ctx.fillStyle =
+    suit === 'hearts' || suit === 'diamonds' ? '#D40000' : '#000000';
 
   // Card value at top left
   ctx.font = 'bold 18px Arial';
@@ -179,34 +181,42 @@ async function createAndAddCardElement(value, suit, parentContainer) {
     cardElement.dataset.cardSuit = suit; // Store card suit for future reference
     cardElement.style.display = 'block !important'; // Force display
     cardElement.style.visibility = 'visible !important'; // Force visibility
-    
+
     // Add to DOM
     parentContainer.appendChild(cardElement);
-    
+
     // Load image
     const imgSrc = await loadCardImage(value, suit);
     cardElement.src = imgSrc;
     cardElement.style.width = 'auto'; // Reset width after load
     cardElement.style.backgroundColor = 'transparent';
-    
+
     // Remove hover effects
     cardElement.style.transform = 'none !important';
     cardElement.style.transition = 'none !important';
-    
+
     // Add stronger CSS protections after a short delay to ensure rendering
     setTimeout(() => {
-      cardElement.style.cssText += 'display: block !important; visibility: visible !important; opacity: 1 !important; transform: none !important; transition: none !important;';
-      
+      cardElement.style.cssText +=
+        'display: block !important; visibility: visible !important; opacity: 1 !important; transform: none !important; transition: none !important;';
+
       // Add event listener to prevent hover effects
-      cardElement.addEventListener('mouseenter', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        cardElement.style.transform = 'none !important';
-        cardElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2) !important';
-      }, true);
+      cardElement.addEventListener(
+        'mouseenter',
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          cardElement.style.transform = 'none !important';
+          cardElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2) !important';
+        },
+        true
+      );
     }, 100);
   } catch (err) {
-    console.error(`[FIXED-LOADER] Error creating card image for ${value} of ${suit}:`, err);
+    console.error(
+      `[FIXED-LOADER] Error creating card image for ${value} of ${suit}:`,
+      err
+    );
   }
 }
 
@@ -216,47 +226,50 @@ async function createAndAddCardElement(value, suit, parentContainer) {
  */
 async function updateRuleCardsWithImages() {
   const cardSymbols = document.querySelectorAll('.card-symbol');
-  
+
   if (cardSymbols.length === 0) {
     return false;
   }
-  
+
   // Reset processed elements if we haven't processed any yet
   if (processedElements.size === 0) {
   }
-  
+
   // Log visibility of the rules modal
   const rulesModal = document.getElementById('rules-modal');
   if (rulesModal) {
     const isVisible = !rulesModal.classList.contains('modal--hidden');
   }
-  
+
   // Clean up any existing cards first to prevent duplicates
   try {
-    const existingCards = document.querySelectorAll('.rule-card-img[data-fixed-loader="true"]');
-    existingCards.forEach(card => card.remove());
+    const existingCards = document.querySelectorAll(
+      '.rule-card-img[data-fixed-loader="true"]'
+    );
+    existingCards.forEach((card) => card.remove());
   } catch (err) {
     console.error('[FIXED-LOADER] Error during cleanup:', err);
   }
-  
+
   for (const symbol of cardSymbols) {
     // Generate a unique ID for this element to track processing
-    const uniqueId = symbol.id || 
-                     symbol.getAttribute('data-id') || 
-                     `card-symbol-${Math.random().toString(36).substring(2, 10)}`;
-                     
+    const uniqueId =
+      symbol.id ||
+      symbol.getAttribute('data-id') ||
+      `card-symbol-${Math.random().toString(36).substring(2, 10)}`;
+
     if (!symbol.id && !symbol.getAttribute('data-id')) {
       symbol.setAttribute('data-id', uniqueId);
     }
-    
+
     // Skip if we've already processed this element
     if (processedElements.has(uniqueId)) {
       continue;
     }
-    
+
     // Add to processed set
     processedElements.add(uniqueId);
-    
+
     // Get card value from data attribute
     const dataCardValue = symbol.getAttribute('data-card-value');
     // Try to get text content, or use our stored original content if empty
@@ -264,10 +277,11 @@ async function updateRuleCardsWithImages() {
     if (!text.trim() && dataCardValue) {
       text = originalCardContent[dataCardValue] || '';
     }
-    
+
     // Create a new container for images
     const imageContainer = document.createElement('div');
-    imageContainer.className = 'card-image-container fixed-card-container-permanent';
+    imageContainer.className =
+      'card-image-container fixed-card-container-permanent';
     imageContainer.style.border = 'none !important';
     imageContainer.style.boxShadow = 'none !important';
     imageContainer.style.padding = '0 !important';
@@ -280,35 +294,43 @@ async function updateRuleCardsWithImages() {
 
     // Determine the card value and suits based on data-card-value or text patterns
     let firstCardValue = dataCardValue || '';
-    let suitMap = { '♣': 'clubs', '♠': 'spades', '♥': 'hearts', '♦': 'diamonds' };
+    let suitMap = {
+      '♣': 'clubs',
+      '♠': 'spades',
+      '♥': 'hearts',
+      '♦': 'diamonds',
+    };
     let matches = [];
-    
+
     if (text) {
       // Parse card patterns from text
       const cardPattern = /(\d+|[AKQJ])([♣♠♥♦])/g;
       matches = Array.from(text.matchAll(cardPattern));
     }
-    
+
     // Special case for data attribute but no text matches
     if (matches.length === 0 && dataCardValue) {
-      
       // Handle based on data-card-value
-      if (dataCardValue === '2' || dataCardValue === '5' || dataCardValue === '10') {
+      if (
+        dataCardValue === '2' ||
+        dataCardValue === '5' ||
+        dataCardValue === '10'
+      ) {
         await createAndAddCardElement(dataCardValue, 'clubs', imageContainer); // Default to clubs
-        
+
         // Add the images container to the symbol
         while (symbol.firstChild) symbol.removeChild(symbol.firstChild);
         symbol.appendChild(imageContainer);
         continue; // Skip to next symbol
       }
-      
+
       if (dataCardValue === 'A') {
         // Show all four suits for the Ace
         const suits = ['clubs', 'spades', 'hearts', 'diamonds'];
         for (const suit of suits) {
           await createAndAddCardElement('A', suit, imageContainer);
         }
-        
+
         // Add "Four of a Kind" text indicator
         const indicator = document.createElement('div');
         indicator.className = 'four-kind-indicator';
@@ -318,44 +340,54 @@ async function updateRuleCardsWithImages() {
         indicator.style.fontWeight = 'bold';
         indicator.style.textAlign = 'center';
         indicator.style.width = '100%';
-        
+
         // Add the container and indicator to the symbol
         while (symbol.firstChild) symbol.removeChild(symbol.firstChild);
         symbol.appendChild(imageContainer);
         symbol.appendChild(indicator);
         continue; // Skip to next symbol
       }
-      
+
       // Default: just show one card if we have a data-card-value
       await createAndAddCardElement(dataCardValue, 'clubs', imageContainer); // Default to clubs
       while (symbol.firstChild) symbol.removeChild(symbol.firstChild);
       symbol.appendChild(imageContainer);
       continue; // Skip to next symbol
     }
-    
+
     if (matches.length > 0) {
       // Get first card details
       const firstCardValue = matches[0][1];
       const firstCardSuitSymbol = matches[0][2];
       const firstCardSuit = suitMap[firstCardSuitSymbol];
-      
+
       // Special case: For rules starting with '2', '5', or '10', show just one card
-      if (firstCardValue === '2' || firstCardValue === '5' || firstCardValue === '10') {
+      if (
+        firstCardValue === '2' ||
+        firstCardValue === '5' ||
+        firstCardValue === '10'
+      ) {
         if (firstCardSuit) {
-          await createAndAddCardElement(firstCardValue, firstCardSuit, imageContainer);
+          await createAndAddCardElement(
+            firstCardValue,
+            firstCardSuit,
+            imageContainer
+          );
         }
         // Add the images container to the symbol
         while (symbol.firstChild) symbol.removeChild(symbol.firstChild);
         symbol.appendChild(imageContainer);
         continue; // Skip rest of processing
       }
-      
+
       // Check for Four of a Kind (when all 4 cards have the same value)
       let isActualFourOfAKind = false;
       if (matches.length === 4) {
-        isActualFourOfAKind = matches.every(match => match[1] === firstCardValue);
+        isActualFourOfAKind = matches.every(
+          (match) => match[1] === firstCardValue
+        );
       }
-      
+
       if (isActualFourOfAKind) {
         // Display all four matched cards for Four of a Kind
         for (const match of matches) {
@@ -365,7 +397,7 @@ async function updateRuleCardsWithImages() {
             await createAndAddCardElement(value, suit, imageContainer);
           }
         }
-        
+
         // Add "Four of a Kind" text indicator
         const indicator = document.createElement('div');
         indicator.className = 'four-kind-indicator';
@@ -375,19 +407,23 @@ async function updateRuleCardsWithImages() {
         indicator.style.fontWeight = 'bold';
         indicator.style.textAlign = 'center';
         indicator.style.width = '100%';
-        
+
         // Add the container and indicator to the symbol
         while (symbol.firstChild) symbol.removeChild(symbol.firstChild);
         symbol.appendChild(imageContainer);
         symbol.appendChild(indicator);
         continue; // Skip rest of processing
       }
-      
+
       // Default case: just show the first card
       if (firstCardSuit) {
-        await createAndAddCardElement(firstCardValue, firstCardSuit, imageContainer);
+        await createAndAddCardElement(
+          firstCardValue,
+          firstCardSuit,
+          imageContainer
+        );
       }
-      
+
       // Add the container to the symbol
       while (symbol.firstChild) symbol.removeChild(symbol.firstChild);
       symbol.appendChild(imageContainer);
@@ -402,7 +438,7 @@ console.log('[FIXED-LOADER] Script loaded and running - Initial check');
 // Function to check if card symbols exist and count them
 function checkCardSymbols() {
   const cardSymbols = document.querySelectorAll('.card-symbol');
-  
+
   // Log details about each symbol
   if (cardSymbols.length > 0) {
     cardSymbols.forEach((symbol, index) => {
@@ -414,19 +450,19 @@ function checkCardSymbols() {
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('[FIXED-LOADER] DOM content loaded, setting up event listeners');
-  
+
   // Check if card symbols exist initially
   const initialSymbolsCount = checkCardSymbols();
-  
+
   // Clear any persistent data
   processedElements.clear();
   console.log('[FIXED-LOADER] Cleared processed elements cache');
-  
+
   // Try once immediately in case elements are already available
-  updateRuleCardsWithImages().catch(err => {
+  updateRuleCardsWithImages().catch((err) => {
     console.error('[FIXED-LOADER] Initial card update failed:', err);
   });
-  
+
   // Process cards with a delay as backup
   setTimeout(() => {
     try {
@@ -437,19 +473,21 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('[FIXED-LOADER] Delayed card update failed:', err);
     }
   }, 1000);
-  
+
   // Listen for card update events
   document.addEventListener('update-rule-cards', () => {
     console.log('[FIXED-LOADER] Received update-rule-cards event');
     updateRuleCardsWithImages();
   });
-  
+
   // Update cards when rules modal is opened
   const rulesBtn = document.getElementById('setup-rules-button');
   if (rulesBtn) {
     console.log('[FIXED-LOADER] Found rules button, adding click listener');
     rulesBtn.addEventListener('click', () => {
-      console.log('[FIXED-LOADER] Rules button clicked, scheduling card update');
+      console.log(
+        '[FIXED-LOADER] Rules button clicked, scheduling card update'
+      );
       setTimeout(() => {
         checkCardSymbols();
         updateRuleCardsWithImages();
@@ -458,12 +496,14 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     console.warn('[FIXED-LOADER] Rules button not found');
   }
-  
+
   // Update cards when rule sections are expanded
   const ruleSections = document.querySelectorAll('.rules-summary');
-  console.log(`[FIXED-LOADER] Found ${ruleSections.length} rule sections, adding listeners`);
-  
-  ruleSections.forEach(section => {
+  console.log(
+    `[FIXED-LOADER] Found ${ruleSections.length} rule sections, adding listeners`
+  );
+
+  ruleSections.forEach((section) => {
     section.addEventListener('click', () => {
       console.log('[FIXED-LOADER] Rules section clicked, updating cards');
       setTimeout(() => {
@@ -472,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 100);
     });
   });
-  
+
   // Update cards when "Expand All" button is clicked
   const expandBtn = document.getElementById('expand-collapse-all-btn');
   if (expandBtn) {
@@ -487,22 +527,33 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     console.warn('[FIXED-LOADER] Expand button not found');
   }
-  
+
   // Add mutation observer to detect when rules modal becomes visible
   const modalObserver = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+      if (
+        mutation.type === 'attributes' &&
+        mutation.attributeName === 'class'
+      ) {
         const modal = mutation.target;
-        if (modal instanceof HTMLElement && !modal.classList.contains('modal--hidden')) {
-          console.log('[FIXED-LOADER] Rules modal became visible, updating cards');
+        if (
+          modal instanceof HTMLElement &&
+          !modal.classList.contains('modal--hidden')
+        ) {
+          console.log(
+            '[FIXED-LOADER] Rules modal became visible, updating cards'
+          );
           setTimeout(() => {
             // Check if any symbols are empty
-            const emptySymbols = document.querySelectorAll('.card-symbol:empty');
+            const emptySymbols =
+              document.querySelectorAll('.card-symbol:empty');
             if (emptySymbols.length > 0) {
-              console.log(`[FIXED-LOADER] Found ${emptySymbols.length} empty card symbols, doing full reset`);
+              console.log(
+                `[FIXED-LOADER] Found ${emptySymbols.length} empty card symbols, doing full reset`
+              );
               processedElements.clear(); // Force reprocessing everything
             }
-            
+
             checkCardSymbols();
             updateRuleCardsWithImages();
           }, 300);
@@ -510,12 +561,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-  
+
   const rulesModal = document.getElementById('rules-modal');
   if (rulesModal) {
     console.log('[FIXED-LOADER] Found rules modal, adding observer');
     modalObserver.observe(rulesModal, { attributes: true });
-    
+
     // Also listen for clicks on "Got it!" button which will close the modal
     const gotItBtn = document.getElementById('rules-gotit-btn');
     if (gotItBtn) {
@@ -537,15 +588,19 @@ window.fixedCardLoaderDiagnostics = {
   version: '1.2.0',
   checkCardSymbols: () => {
     const cardSymbols = document.querySelectorAll('.card-symbol');
-    console.table(Array.from(cardSymbols).map((symbol, i) => ({
-      index: i,
-      text: symbol.textContent.trim().substring(0, 30) + '...',
-      dataCardValue: symbol.getAttribute('data-card-value') || 'none',
-      visible: symbol.offsetParent !== null,
-      hasImages: symbol.querySelector('.rule-card-img') !== null,
-      parent: symbol.parentElement?.tagName || 'none',
-      processed: processedElements.has(symbol.id || symbol.getAttribute('data-id') || '')
-    })));
+    console.table(
+      Array.from(cardSymbols).map((symbol, i) => ({
+        index: i,
+        text: symbol.textContent.trim().substring(0, 30) + '...',
+        dataCardValue: symbol.getAttribute('data-card-value') || 'none',
+        visible: symbol.offsetParent !== null,
+        hasImages: symbol.querySelector('.rule-card-img') !== null,
+        parent: symbol.parentElement?.tagName || 'none',
+        processed: processedElements.has(
+          symbol.id || symbol.getAttribute('data-id') || ''
+        ),
+      }))
+    );
     return cardSymbols.length;
   },
   forceUpdate: () => {
@@ -563,19 +618,21 @@ window.fixedCardLoaderDiagnostics = {
     `);
   },
   clearCache: () => {
-    Object.keys(cardImageCache).forEach(key => delete cardImageCache[key]);
+    Object.keys(cardImageCache).forEach((key) => delete cardImageCache[key]);
     processedElements.clear();
     console.log('[FIXED-LOADER] All caches cleared');
   },
   resetCards: () => {
     // Remove all card images first
-    const existingCards = document.querySelectorAll('.rule-card-img[data-fixed-loader="true"]');
-    existingCards.forEach(card => card.remove());
-    
+    const existingCards = document.querySelectorAll(
+      '.rule-card-img[data-fixed-loader="true"]'
+    );
+    existingCards.forEach((card) => card.remove());
+
     // Reset the data structures
     processedElements.clear();
-    Object.keys(cardImageCache).forEach(key => delete cardImageCache[key]);
-    
+    Object.keys(cardImageCache).forEach((key) => delete cardImageCache[key]);
+
     // Force the rules to be visible
     const rulesModal = document.getElementById('rules-modal');
     if (rulesModal && rulesModal.classList.contains('modal--hidden')) {
@@ -584,17 +641,17 @@ window.fixedCardLoaderDiagnostics = {
       const modalOverlay = document.getElementById('modal-overlay');
       if (modalOverlay) modalOverlay.classList.remove('modal__overlay--hidden');
     }
-    
+
     console.log('[FIXED-LOADER] Reset complete, forcing card update');
     setTimeout(() => updateRuleCardsWithImages(), 300);
     return true;
   },
-  
+
   // Clean up all card styles
   cleanupStyles: () => {
     cleanupCardStyles();
-    return "Card styles cleaned up successfully";
-  }
+    return 'Card styles cleaned up successfully';
+  },
 };
 
 // Run diagnostics after a delay to help with debugging
@@ -610,32 +667,44 @@ const cardProtectionObserver = new MutationObserver((mutations) => {
   for (const mutation of mutations) {
     if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
       let needsUpdate = false;
-      
+
       // Check if any of our card images were removed
       for (const node of mutation.removedNodes) {
         if (node instanceof HTMLElement) {
-          if (node.classList?.contains('rule-card-img') && node.dataset?.fixedLoader === 'true') {
+          if (
+            node.classList?.contains('rule-card-img') &&
+            node.dataset?.fixedLoader === 'true'
+          ) {
             needsUpdate = true;
             break;
           }
-          
-          if (node.classList?.contains('card-image-container') && node.dataset?.fixedLoaderContainer === 'true') {
+
+          if (
+            node.classList?.contains('card-image-container') &&
+            node.dataset?.fixedLoaderContainer === 'true'
+          ) {
             needsUpdate = true;
             break;
           }
-          
+
           // Also check if the removed node contains any of our elements
-          if (node.querySelector?.('.rule-card-img[data-fixed-loader="true"], .card-image-container[data-fixed-loader-container="true"]')) {
+          if (
+            node.querySelector?.(
+              '.rule-card-img[data-fixed-loader="true"], .card-image-container[data-fixed-loader-container="true"]'
+            )
+          ) {
             needsUpdate = true;
             break;
           }
         }
       }
-      
+
       if (needsUpdate) {
         // Give a short delay to let any competing scripts finish
         setTimeout(() => {
-          console.log('[FIXED-LOADER] Restoring cards after detected removal...');
+          console.log(
+            '[FIXED-LOADER] Restoring cards after detected removal...'
+          );
           processedElements.clear();
           updateRuleCardsWithImages();
         }, 50);
@@ -648,7 +717,7 @@ const cardProtectionObserver = new MutationObserver((mutations) => {
 setTimeout(() => {
   cardProtectionObserver.observe(document.body, {
     childList: true,
-    subtree: true
+    subtree: true,
   });
   console.log('[FIXED-LOADER] Card protection observer started');
 }, 1000);
@@ -660,26 +729,34 @@ setInterval(() => {
   if (!rulesModal || rulesModal.classList.contains('modal--hidden')) {
     return;
   }
-  
+
   // Check for card symbols that should have images
   const symbols = document.querySelectorAll('.card-symbol');
-  const symbolsWithoutImages = Array.from(symbols).filter(symbol => 
-    !symbol.querySelector('.rule-card-img[data-fixed-loader="true"]') &&
-    symbol.getAttribute('data-card-value')
+  const symbolsWithoutImages = Array.from(symbols).filter(
+    (symbol) =>
+      !symbol.querySelector('.rule-card-img[data-fixed-loader="true"]') &&
+      symbol.getAttribute('data-card-value')
   );
-  
+
   if (symbolsWithoutImages.length > 0) {
     processedElements.clear();
     updateRuleCardsWithImages();
   } else {
     // Check for invisible cards that need to be made visible
-    const allCards = document.querySelectorAll('.rule-card-img[data-fixed-loader="true"]');
-    Array.from(allCards).forEach(card => {
+    const allCards = document.querySelectorAll(
+      '.rule-card-img[data-fixed-loader="true"]'
+    );
+    Array.from(allCards).forEach((card) => {
       if (card instanceof HTMLElement) {
         // Get computed style to check if card is hidden
         const style = window.getComputedStyle(card);
-        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
-          card.style.cssText += 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+        if (
+          style.display === 'none' ||
+          style.visibility === 'hidden' ||
+          style.opacity === '0'
+        ) {
+          card.style.cssText +=
+            'display: block !important; visibility: visible !important; opacity: 1 !important;';
         }
       }
     });
@@ -691,28 +768,32 @@ setInterval(() => {
  */
 function cleanupCardStyles() {
   console.log('[FIXED-LOADER] 🧹 Cleaning up card styles');
-  
+
   // Clean all card images
-  document.querySelectorAll('.rule-card-img').forEach(img => {
+  document.querySelectorAll('.rule-card-img').forEach((img) => {
     if (img.style) {
       img.style.transform = 'none !important';
       img.style.transition = 'none !important';
       img.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2) !important';
       img.style.border = '1px solid #eee !important';
-      
+
       // Remove hover listener and add our own
       img.onmouseenter = null;
       img.onmouseover = null;
-      img.addEventListener('mouseenter', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        img.style.transform = 'none !important';
-      }, true);
+      img.addEventListener(
+        'mouseenter',
+        (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          img.style.transform = 'none !important';
+        },
+        true
+      );
     }
   });
-  
+
   // Clean all card symbols
-  document.querySelectorAll('.card-symbol').forEach(symbol => {
+  document.querySelectorAll('.card-symbol').forEach((symbol) => {
     if (symbol.style) {
       symbol.style.border = 'none !important';
       symbol.style.boxShadow = 'none !important';
@@ -720,9 +801,9 @@ function cleanupCardStyles() {
       symbol.style.padding = '5px 0 !important';
     }
   });
-  
+
   // Clean all card containers
-  document.querySelectorAll('.card-image-container').forEach(container => {
+  document.querySelectorAll('.card-image-container').forEach((container) => {
     if (container.style) {
       container.style.border = 'none !important';
       container.style.boxShadow = 'none !important';
@@ -730,9 +811,9 @@ function cleanupCardStyles() {
       container.style.padding = '0 !important';
     }
   });
-  
+
   // Clean list items
-  document.querySelectorAll('.card-list-item').forEach(item => {
+  document.querySelectorAll('.card-list-item').forEach((item) => {
     if (item.style) {
       item.style.transform = 'none !important';
       item.style.boxShadow = 'none !important';
@@ -753,7 +834,7 @@ if (document.readyState === 'loading') {
 }
 
 // Re-run cleanup when rules modal opens
-document.addEventListener('click', event => {
+document.addEventListener('click', (event) => {
   if (event.target && event.target.id === 'setup-rules-button') {
     // Give the modal time to open
     setTimeout(cleanupCardStyles, 500);

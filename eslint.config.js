@@ -73,11 +73,9 @@ export default [
 
   // 2. Main TypeScript Configuration (Server, Scripts, Root TS files, Non-client Tests)
   {
-    files: [
-      '**/*.ts',
-      '**/*.tsx',
-    ],
-    ignores: [ // Exclude files handled by more specific configurations
+    files: ['**/*.ts', '**/*.tsx'],
+    ignores: [
+      // Exclude files handled by more specific configurations
       'public/scripts/**/*.ts',
       'public/scripts/**/*.tsx',
       'scripts/test.ts', // Exclude the file we're handling specially
@@ -105,7 +103,10 @@ export default [
     rules: {
       'prettier/prettier': 'error',
       'no-unused-vars': 'off', // Use @typescript-eslint/no-unused-vars for TS
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // Updated
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
+      ], // Updated
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-var-requires': 'warn', // Added
@@ -114,13 +115,22 @@ export default [
       'import/order': [
         'warn',
         {
-          groups: ['builtin', 'external', 'internal', ['parent', 'sibling', 'index']],
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            ['parent', 'sibling', 'index'],
+          ],
           pathGroups: [
             { pattern: 'react', group: 'external', position: 'before' },
             { pattern: '@/', group: 'internal', position: 'before' },
             { pattern: '@shared/', group: 'internal', position: 'before' },
             { pattern: '@models/', group: 'internal', position: 'before' },
-            { pattern: '@publicScripts/', group: 'internal', position: 'before' },
+            {
+              pattern: '@publicScripts/',
+              group: 'internal',
+              position: 'before',
+            },
             { pattern: '@srcTypes/', group: 'internal', position: 'before' },
           ],
           pathGroupsExcludedImportTypes: ['react'],
@@ -176,7 +186,10 @@ export default [
     rules: {
       'prettier/prettier': 'error',
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // Updated
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
+      ], // Updated
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-var-requires': 'warn', // Added
@@ -184,13 +197,22 @@ export default [
       'import/order': [
         'warn',
         {
-          groups: ['builtin', 'external', 'internal', ['parent', 'sibling', 'index']],
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            ['parent', 'sibling', 'index'],
+          ],
           pathGroups: [
             { pattern: 'react', group: 'external', position: 'before' },
             { pattern: '@/', group: 'internal', position: 'before' },
             { pattern: '@shared/', group: 'internal', position: 'before' },
             { pattern: '@models/', group: 'internal', position: 'before' },
-            { pattern: '@publicScripts/', group: 'internal', position: 'before' },
+            {
+              pattern: '@publicScripts/',
+              group: 'internal',
+              position: 'before',
+            },
             { pattern: '@srcTypes/', group: 'internal', position: 'before' },
           ],
           pathGroupsExcludedImportTypes: ['react'],
@@ -310,7 +332,7 @@ export default [
     rules: {
       'prettier/prettier': 'error',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'no-undef': 'error', 
+      'no-undef': 'error',
     },
   },
 
@@ -338,7 +360,10 @@ export default [
     rules: {
       // Specific Jest rules can go here
       'no-undef': 'off', // Updated: TypeScript handles this for TS test files; Jest globals are defined
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
+      ],
     },
   },
 

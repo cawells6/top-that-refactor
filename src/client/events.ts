@@ -15,21 +15,31 @@ socket.on('error', (err) => {
 });
 
 // In the handleDealClick function, after emitting JOIN_GAME
-console.log("[CLIENT] JOIN_GAME event emitted, waiting for server response...");
+console.log('[CLIENT] JOIN_GAME event emitted, waiting for server response...');
 
 // Add callback logging if there's a callback function
 socket.emit('JOIN_GAME', gameData, (response) => {
-  console.log("[CLIENT] Received JOIN_GAME response from server:", response);
+  console.log('[CLIENT] Received JOIN_GAME response from server:', response);
   // ...existing code...
 });
 
+// Example client-side event handling patterns
+
 // If using promises instead of callbacks
-// ...existing code...
-.then(response => {
-  console.log("[CLIENT] JOIN_GAME promise resolved with response:", response);
-  // ...existing code...
-})
-.catch(error => {
-  console.error("[CLIENT] JOIN_GAME error:", error);
-  // ...existing code...
-});
+function handleJoinGameResponse() {
+  // Example promise-based approach
+  return new Promise((resolve, reject) => {
+    // ... socket logic here ...
+  })
+    .then((response) => {
+      console.log(
+        '[CLIENT] JOIN_GAME promise resolved with response:',
+        response
+      );
+      // ...existing code...
+    })
+    .catch((error) => {
+      console.error('[CLIENT] JOIN_GAME error:', error);
+      // ...existing code...
+    });
+}

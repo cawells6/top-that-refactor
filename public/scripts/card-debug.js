@@ -10,10 +10,15 @@ export function patchCardImageLoading() {
       // Import the modules we need to patch
       import('./rules-cards.js')
         .then((rulesCardsModule) => {
-          const originalCreateRuleCardImage = rulesCardsModule.createRuleCardImage;
+          const originalCreateRuleCardImage =
+            rulesCardsModule.createRuleCardImage;
 
           // Override createRuleCardImage with our instrumented version
-          rulesCardsModule.createRuleCardImage = function (value, suit, options = {}) {
+          rulesCardsModule.createRuleCardImage = function (
+            value,
+            suit,
+            options = {}
+          ) {
             console.log(`🃏 Creating rule card image: ${value} of ${suit}`);
 
             // Call the original function to create the image element
@@ -21,7 +26,9 @@ export function patchCardImageLoading() {
 
             // Add error handling and direct URL fallback
             img.onerror = function () {
-              console.error(`❌ Failed to load card image via proxy: ${img.src}`);
+              console.error(
+                `❌ Failed to load card image via proxy: ${img.src}`
+              );
 
               // Try with direct URL as fallback
               const cardCode =
@@ -77,7 +84,9 @@ export function patchCardImageLoading() {
               // Add a fallback for direct URL
               const origOnError = img.onerror;
               img.onerror = function () {
-                console.error(`❌ Failed to load card image via proxy: ${img.src}`);
+                console.error(
+                  `❌ Failed to load card image via proxy: ${img.src}`
+                );
 
                 // Try with direct URL as fallback
                 let cardCode = 'back';

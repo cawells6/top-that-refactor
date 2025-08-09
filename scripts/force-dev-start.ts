@@ -9,14 +9,18 @@ function killProcessByPort(port: number, callback: () => void): void {
   const platform: NodeJS.Platform = os.platform(); // Keep NodeJS.Platform
   let findPidsCommand = '';
 
-  console.log(`[force-dev-start] Attempting to free port ${port} on platform ${platform}...`);
+  console.log(
+    `[force-dev-start] Attempting to free port ${port} on platform ${platform}...`
+  );
 
   if (platform === 'win32') {
     findPidsCommand = `netstat -aon | findstr ":${port}"`;
   } else if (platform === 'darwin' || platform === 'linux') {
     findPidsCommand = `lsof -ti tcp:${port} -sTCP:LISTEN`;
   } else {
-    console.error(`[force-dev-start] Unsupported platform: ${platform}. Skipping port kill.`);
+    console.error(
+      `[force-dev-start] Unsupported platform: ${platform}. Skipping port kill.`
+    );
     if (typeof callback === 'function') callback();
     return;
   }
@@ -30,7 +34,9 @@ function killProcessByPort(port: number, callback: () => void): void {
       return;
     }
     if (stderr && platform !== 'win32' && !stdout.trim()) {
-      console.log(`[force-dev-start] 'lsof' stderr (port likely free): ${stderr.trim()}`);
+      console.log(
+        `[force-dev-start] 'lsof' stderr (port likely free): ${stderr.trim()}`
+      );
     }
 
     const pidsToKill: string[] = []; // This is already correctly typed in your uploaded file
@@ -40,7 +46,9 @@ function killProcessByPort(port: number, callback: () => void): void {
       .filter((line) => line.trim() !== '');
 
     if (lines.length === 0) {
-      console.log(`[force-dev-start] No active processes found on port ${port}.`);
+      console.log(
+        `[force-dev-start] No active processes found on port ${port}.`
+      );
       if (typeof callback === 'function') callback();
       return;
     }
@@ -91,7 +99,8 @@ function killProcessByPort(port: number, callback: () => void): void {
     let allKilledSuccessfully = true;
 
     uniquePids.forEach((pid) => {
-      const killCmd = platform === 'win32' ? `taskkill /PID ${pid} /F` : `kill -9 ${pid}`;
+      const killCmd =
+        platform === 'win32' ? `taskkill /PID ${pid} /F` : `kill -9 ${pid}`;
       exec(killCmd, (killErr, killStdout, killStderr) => {
         processedCount++;
         if (killErr) {
@@ -100,11 +109,17 @@ function killProcessByPort(port: number, callback: () => void): void {
             `[force-dev-start] Failed to kill process ${pid}: ${killErr.message.trim()}`
           );
           if (killStderr)
-            console.error(`[force-dev-start] Stderr from kill ${pid}: ${killStderr.trim()}`);
+            console.error(
+              `[force-dev-start] Stderr from kill ${pid}: ${killStderr.trim()}`
+            );
         } else {
-          console.log(`[force-dev-start] Successfully sent kill signal to process ${pid}.`);
+          console.log(
+            `[force-dev-start] Successfully sent kill signal to process ${pid}.`
+          );
           if (killStdout)
-            console.log(`[force-dev-start] Stdout from kill ${pid}: ${killStdout.trim()}`);
+            console.log(
+              `[force-dev-start] Stdout from kill ${pid}: ${killStdout.trim()}`
+            );
         }
         if (processedCount === uniquePids.length) {
           if (allKilledSuccessfully)
@@ -166,7 +181,9 @@ killProcessByPort(PORT, () => {
     });
 
     nodemonProcess.on('error', (err: Error) => {
-      console.error(`[force-dev-start] Failed to start nodemon process: ${err.message}`);
+      console.error(
+        `[force-dev-start] Failed to start nodemon process: ${err.message}`
+      );
       console.error(
         '[force-dev-start] Ensure nodemon and ts-node are installed correctly and in PATH or node_modules/.bin.'
       );

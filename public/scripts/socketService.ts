@@ -1,6 +1,11 @@
 import { renderGameState } from './render.js';
 import * as state from './state.js';
-import { showLobbyForm, showWaitingState, showGameTable, showError } from './uiManager.js';
+import {
+  showLobbyForm,
+  showWaitingState,
+  showGameTable,
+  showError,
+} from './uiManager.js';
 import {
   JOINED,
   STATE_UPDATE,
@@ -36,7 +41,12 @@ export async function initializeSocketHandlers(): Promise<void> {
       players: { id: string; name: string; ready: boolean }[];
       hostId: string | null;
     }) => {
-      showWaitingState(data.roomId, data.players.length, data.players.length, data.players);
+      showWaitingState(
+        data.roomId,
+        data.players.length,
+        data.players.length,
+        data.players
+      );
     }
   );
 

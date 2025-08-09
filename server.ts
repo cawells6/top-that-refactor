@@ -1,11 +1,16 @@
-import fs from 'fs';
-import http from 'http';
+import * as fs from 'fs';
+import * as http from 'http';
 
 import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 
-import LobbyManager from './models/LobbyManager.js';
-import { CREATE_LOBBY, LOBBY_CREATED, JOIN_LOBBY, ERROR } from './src/shared/events.js';
+// import LobbyManager from './models/LobbyManager.js'; // TEMPORARILY DISABLED - needs refactoring
+import {
+  CREATE_LOBBY,
+  LOBBY_CREATED,
+  JOIN_LOBBY,
+  ERROR,
+} from './src/shared/events.js';
 import { GameRoomManager } from './controllers/GameController.js';
 
 const app: Express = express();
@@ -30,7 +35,9 @@ function startServer(port: number, retries = 0) {
   // Create a single HTTP server and assign to the outer server variable
   server = http.createServer(app);
   // Attach Socket.IO to the same HTTP server
-  const io: SocketIOServer = new SocketIOServer(server, { cors: { origin: '*' } });
+  const io: SocketIOServer = new SocketIOServer(server, {
+    cors: { origin: '*' },
+  });
 
   // Attach GameRoomManager to handle game events
   new GameRoomManager(io);
@@ -45,8 +52,10 @@ function startServer(port: number, retries = 0) {
       console.log(`[SERVER] Socket ${socket.id} disconnected: ${reason}`);
     });
 
-    const lobbyManager = LobbyManager.getInstance(io);
+    // TEMPORARILY DISABLED - LobbyManager functionality needs refactoring
+    // const lobbyManager = LobbyManager.getInstance(io);
 
+    /* OLD LOBBY MANAGER CODE - NEEDS REFACTORING
     socket.on(CREATE_LOBBY, (playerName: string, ack?: (roomId: string) => void) => {
       const lobby = lobbyManager.createLobby();
       lobby.addPlayer(socket, playerName);
@@ -85,6 +94,7 @@ function startServer(port: number, retries = 0) {
         }
       }
     });
+    END OLD LOBBY MANAGER CODE */
   });
 
   server.on('error', (err: NodeJS.ErrnoException) => {

@@ -18,12 +18,16 @@ export class InSessionLobbyModal {
 
   constructor() {
     this.modalElement = document.getElementById('in-session-lobby-modal')!;
-    if (!this.modalElement) throw new Error('InSessionLobbyModal element not found in the DOM.');
+    if (!this.modalElement)
+      throw new Error('InSessionLobbyModal element not found in the DOM.');
 
-    this.playersContainer = this.modalElement.querySelector('#players-container')!;
+    this.playersContainer =
+      this.modalElement.querySelector('#players-container')!;
     this.copyLinkBtn = this.modalElement.querySelector('#copy-link-button')!;
     this.readyUpButton = this.modalElement.querySelector('#ready-up-button')!;
-    this.guestNameInput = this.modalElement.querySelector('#guest-player-name-input')!;
+    this.guestNameInput = this.modalElement.querySelector(
+      '#guest-player-name-input'
+    )!;
 
     this.initialize();
   }
@@ -37,7 +41,9 @@ export class InSessionLobbyModal {
   private setupSocketListeners(): void {
     if (!state.socket) {
       console.error('[InSessionLobbyModal] Socket not available');
-      uiManager.showError('UNABLE TO CONNECT TO GAME SERVER. PLEASE REFRESH THE PAGE.');
+      uiManager.showError(
+        'Unable to connect to game server. Please refresh the page.'
+      );
       return;
     }
 
@@ -53,7 +59,7 @@ export class InSessionLobbyModal {
 
     state.socket.on('disconnect', () => {
       console.warn('[InSessionLobbyModal] Socket disconnected');
-      uiManager.showError('CONNECTION LOST. PLEASE REFRESH.');
+      uiManager.showError('Connection lost. Please refresh.');
     });
   }
 
@@ -66,8 +72,8 @@ export class InSessionLobbyModal {
     const link = `${window.location.origin}?room=${this.currentRoomId}`;
     navigator.clipboard
       .writeText(link)
-      .then(() => showToast('INVITE LINK COPIED!', 'success'))
-      .catch(() => showToast('FAILED TO COPY LINK.', 'error'));
+      .then(() => showToast('Invite Link Copied!', 'success'))
+      .catch(() => showToast('Failed to copy link.', 'error'));
   }
 
   private readyUp(): void {
@@ -79,7 +85,7 @@ export class InSessionLobbyModal {
       this.readyUpButton.disabled = true;
       this.guestNameInput.disabled = true;
     } else {
-      showToast('PLEASE ENTER YOUR NAME!', 'error');
+      showToast('Please enter your name!', 'error');
     }
   }
 
@@ -100,11 +106,12 @@ export class InSessionLobbyModal {
       const playerEl = document.createElement('div');
       playerEl.className = 'player-item';
       playerEl.setAttribute('role', 'listitem');
-      playerEl.textContent = player.name + (player.id === state.myId ? ' (You)' : '');
+      playerEl.textContent =
+        player.name + (player.id === state.myId ? ' (You)' : '');
 
       if (player.id === lobbyState.hostId) {
         const hostBadge = document.createElement('span');
-        hostBadge.textContent = 'HOST';
+        hostBadge.textContent = 'Host';
         hostBadge.className = 'host-badge';
         hostBadge.setAttribute('aria-label', 'Host player');
         playerEl.appendChild(hostBadge);
@@ -113,7 +120,10 @@ export class InSessionLobbyModal {
     });
 
     const localPlayer = lobbyState.players.find((p) => p.id === state.myId);
-    if (localPlayer && (localPlayer.status === 'host' || localPlayer.status === 'ready')) {
+    if (
+      localPlayer &&
+      (localPlayer.status === 'host' || localPlayer.status === 'ready')
+    ) {
       this.guestNameInput.style.display = 'none';
       this.readyUpButton.style.display = 'none';
     } else {
@@ -123,8 +133,11 @@ export class InSessionLobbyModal {
       this.readyUpButton.disabled = false;
       this.guestNameInput.focus();
       // Ensure the button is always all caps, even if text changes
-      this.readyUpButton.textContent = this.readyUpButton.disabled ? 'STARTING...' : "LET'S PLAY";
-      this.readyUpButton.textContent = this.readyUpButton.textContent.toUpperCase();
+      this.readyUpButton.textContent = this.readyUpButton.disabled
+        ? 'STARTING...'
+        : "LET'S PLAY";
+      this.readyUpButton.textContent =
+        this.readyUpButton.textContent.toUpperCase();
     }
   }
 

@@ -9,20 +9,13 @@ describe('render.ts', () => {
   });
 
   it('returns ERR for missing value or suit', () => {
+    // @ts-expect-error - Testing invalid inputs
     expect(code({ value: null, suit: 'hearts' })).toBe('ERR');
+    // @ts-expect-error - Testing invalid inputs
     expect(code({ value: 5, suit: null })).toBe('ERR');
+    // @ts-expect-error - Testing invalid inputs
     expect(code({ value: undefined, suit: 'spades' })).toBe('ERR');
-    expect(code({ value: 7, suit: undefined })).toBe('ERR');
-  });
-
-  it('returns ERR for missing value or suit (robustness test)', () => {
-    // @ts-expect-error
-    expect(code({ value: null, suit: 'hearts' })).toBe('ERR');
-    // @ts-expect-error
-    expect(code({ value: 5, suit: null })).toBe('ERR');
-    // @ts-expect-error
-    expect(code({ value: undefined, suit: 'spades' })).toBe('ERR');
-    // @ts-expect-error
+    // @ts-expect-error - Testing invalid inputs
     expect(code({ value: 7, suit: undefined })).toBe('ERR');
   });
 

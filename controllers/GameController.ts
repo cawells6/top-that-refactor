@@ -74,9 +74,14 @@ export class GameRoomManager {
         JOIN_GAME,
         (
           playerData: JoinGamePayload,
-          ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+          ack?: (
+            response: { roomId: string; playerId: string } | { error: string }
+          ) => void
         ) => {
-          console.log(`[SERVER] Received JOIN_GAME from ${socket.id}:`, playerData);
+          console.log(
+            `[SERVER] Received JOIN_GAME from ${socket.id}:`,
+            playerData
+          );
           this.handleClientJoinGame(socket, playerData, ack);
         }
       );
@@ -96,7 +101,12 @@ export class GameRoomManager {
           }
           const controller = this.rooms.get(rejoinData.roomId);
           if (controller) {
-            controller.publicHandleRejoin(socket, rejoinData.roomId, rejoinData.playerId, ack);
+            controller.publicHandleRejoin(
+              socket,
+              rejoinData.roomId,
+              rejoinData.playerId,
+              ack
+            );
           } else {
             if (typeof ack === 'function') {
               ack({ success: false, error: 'Room not found' });
@@ -109,9 +119,9 @@ export class GameRoomManager {
 
     setInterval(() => {
       for (const [roomId, controller] of this.rooms.entries()) {
-        const hasActivePlayers = Array.from(controller['players'].values()).some(
-          (p) => !p.disconnected
-        );
+        const hasActivePlayers = Array.from(
+          controller['players'].values()
+        ).some((p) => !p.disconnected);
         if (!hasActivePlayers && !controller['gameState'].started) {
           this.rooms.delete(roomId);
         }
@@ -122,9 +132,14 @@ export class GameRoomManager {
   private handleClientJoinGame(
     socket: Socket,
     playerData: JoinGamePayload,
-    ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+    ack?: (
+      response: { roomId: string; playerId: string } | { error: string }
+    ) => void
   ): void {
-    console.log(`[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`, playerData);
+    console.log(
+      `[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`,
+      playerData
+    );
 
     // Use playerData.roomId instead of playerData.id
     let roomId = playerData.roomId;
@@ -133,9 +148,13 @@ export class GameRoomManager {
     if (roomId) {
       controller = this.rooms.get(roomId);
       if (!controller) {
-        console.log(`[SERVER] Room ${roomId} not found for JOIN_GAME from ${socket.id}`);
+        console.log(
+          `[SERVER] Room ${roomId} not found for JOIN_GAME from ${socket.id}`
+        );
         if (typeof ack === 'function') {
-          console.log(`[SERVER] Sending error response to ${socket.id}: Room not found`);
+          console.log(
+            `[SERVER] Sending error response to ${socket.id}: Room not found`
+          );
           ack({ error: 'Room not found.' });
         }
         socket.emit(ERROR_EVENT, 'Room not found.');
@@ -145,7 +164,9 @@ export class GameRoomManager {
 
     if (!controller) {
       roomId = uuidv4().slice(0, 6);
-      console.log(`[SERVER] Creating new room ${roomId} for JOIN_GAME from ${socket.id}`);
+      console.log(
+        `[SERVER] Creating new room ${roomId} for JOIN_GAME from ${socket.id}`
+      );
       controller = new GameController(this.io, roomId);
       this.rooms.set(roomId, controller);
     }
@@ -153,7 +174,9 @@ export class GameRoomManager {
     // Pass a copy of playerData without the room identifier so the controller
     // assigns the joining player's ID from the socket.
     const joinData = { ...playerData, id: undefined };
-    console.log(`[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`);
+    console.log(
+      `[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`
+    );
     controller.publicHandleJoin(socket, joinData, ack);
   }
 }
@@ -184,8 +207,10 @@ export default class GameController {
     // Remove ALL listeners first to prevent duplicates
     socket.removeAllListeners();
 
-    socket.on(START_GAME, (opts: Pick<StartGameOptions, 'computerCount'> = {}) =>
-      this.handleStartGame({ ...opts, socket })
+    socket.on(
+      START_GAME,
+      (opts: Pick<StartGameOptions, 'computerCount'> = {}) =>
+        this.handleStartGame({ ...opts, socket })
     );
     socket.on(PLAY_CARD, (data: PlayData) => this.handlePlayCard(socket, data));
     socket.on(PICK_UP_PILE, () => this.handlePickUpPile(socket));
@@ -205,7 +230,11 @@ export default class GameController {
     socket.on('disconnect', () => this.handleDisconnect(socket));
   }
 
-  private getLobbyPlayerList(): { id: string; name: string; disconnected: boolean }[] {
+  private getLobbyPlayerList(): {
+    id: string;
+    name: string;
+    disconnected: boolean;
+  }[] {
     return Array.from(this.players.values()).map((p: Player) => ({
       id: p.id,
       name: p.name,
@@ -239,7 +268,9 @@ export default class GameController {
     // console.log('[SERVER] checkIfGameCanStart called');
     const allPlayers = Array.from(this.players.values());
     const humanPlayers = allPlayers.filter((p) => !p.isComputer);
-    const allHumansReady = humanPlayers.every((p) => p.status === 'host' || p.status === 'ready');
+    const allHumansReady = humanPlayers.every(
+      (p) => p.status === 'host' || p.status === 'ready'
+    );
     // console.log(
     //   '[SERVER] Human players:',
     //   humanPlayers.map((p) => ({ id: p.id, status: p.status }))
@@ -257,9 +288,14 @@ export default class GameController {
   public publicHandleJoin(
     socket: Socket,
     playerData: JoinGamePayload,
-    ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+    ack?: (
+      response: { roomId: string; playerId: string } | { error: string }
+    ) => void
   ): void {
-    console.log(`[SERVER] publicHandleJoin for socket ${socket.id}, data:`, playerData);
+    console.log(
+      `[SERVER] publicHandleJoin for socket ${socket.id}, data:`,
+      playerData
+    );
     this.attachSocketEventHandlers(socket);
     this.handleJoin(socket, playerData, ack);
   }
@@ -294,19 +330,28 @@ export default class GameController {
       player.disconnected = false;
       this.socketIdToPlayerId.set(socket.id, playerId);
 
-      socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
+      socket.emit(JOINED, {
+        id: player.id,
+        name: player.name,
+        roomId: this.roomId,
+      });
       this.log(`Emitted JOINED to rejoining player ${player.name}`);
 
       this.pushState();
       this.pushLobbyState();
-      this.log(`Pushed state and lobby info to room ${this.roomId} after rejoin.`);
+      this.log(
+        `Pushed state and lobby info to room ${this.roomId} after rejoin.`
+      );
       if (typeof ack === 'function') {
         ack({ success: true });
       }
     } else {
       this.log(`Rejoin failed: Player ${playerId} not found in this room.`);
       if (typeof ack === 'function') {
-        ack({ success: false, error: `Player ${playerId} not found for rejoin.` });
+        ack({
+          success: false,
+          error: `Player ${playerId} not found for rejoin.`,
+        });
       }
       socket.emit(ERROR_EVENT, `Player ${playerId} not found for rejoin.`);
     }
@@ -315,7 +360,9 @@ export default class GameController {
   private handleJoin(
     socket: Socket,
     playerData: JoinGamePayload,
-    ack?: (response: { roomId: string; playerId: string } | { error: string }) => void
+    ack?: (
+      response: { roomId: string; playerId: string } | { error: string }
+    ) => void
   ): void {
     // --- Payload validation ---
     if (
@@ -351,13 +398,17 @@ export default class GameController {
       }
     };
     if (existingPlayer && !existingPlayer.disconnected) {
-      this.log(`Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`);
+      this.log(
+        `Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`
+      );
       console.log('[DEBUG] Emitting ERROR_EVENT: duplicate join');
       callAck({ error: `Player ID '${id}' is already active in a game.` });
       return;
     }
     if (existingPlayer && existingPlayer.disconnected) {
-      this.log(`Player ID '${id}' (${name}) is disconnected. Attempting rejoin logic.`);
+      this.log(
+        `Player ID '${id}' (${name}) is disconnected. Attempting rejoin logic.`
+      );
       this.handleRejoin(
         socket,
         this.roomId,
@@ -375,7 +426,9 @@ export default class GameController {
       return;
     }
     if (this.gameState.started) {
-      this.log(`Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
+      this.log(
+        `Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`
+      );
       console.log('[DEBUG] Emitting ERROR_EVENT: game already started');
       if (typeof ack === 'function') {
         ack({ error: 'Game has already started. Cannot join.' });
@@ -383,7 +436,9 @@ export default class GameController {
       return;
     }
     if (this.players.size >= this.gameState.maxPlayers) {
-      this.log(`Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`);
+      this.log(
+        `Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`
+      );
       console.log('[DEBUG] Emitting ERROR_EVENT: room full');
       callAck({ error: 'Game room is full.' });
       return;
@@ -436,7 +491,11 @@ export default class GameController {
       name: player.name,
       roomId: this.roomId,
     });
-    socket.emit(JOINED, { id: player.id, name: player.name, roomId: this.roomId });
+    socket.emit(JOINED, {
+      id: player.id,
+      name: player.name,
+      roomId: this.roomId,
+    });
     if (typeof ack === 'function') {
       console.log(`[SERVER] Calling JOIN_GAME ack for socket ${socket.id}`);
       ack({ roomId: this.roomId, playerId: player.id });
@@ -466,7 +525,10 @@ export default class GameController {
       `Handling start game request. Computer count: ${computerCount}. Requested by: ${requestingSocket?.id}`
     );
 
-    if (requestingSocket && this.socketIdToPlayerId.get(requestingSocket.id) !== this.hostId) {
+    if (
+      requestingSocket &&
+      this.socketIdToPlayerId.get(requestingSocket.id) !== this.hostId
+    ) {
       return;
     }
 
@@ -480,7 +542,9 @@ export default class GameController {
     this.players.forEach((player) => {
       if (!this.gameState.players.includes(player.id)) {
         this.gameState.addPlayer(player.id);
-        this.log(`Added player ${player.id} to gameState.players before starting.`);
+        this.log(
+          `Added player ${player.id} to gameState.players before starting.`
+        );
       }
     });
 
@@ -509,13 +573,15 @@ export default class GameController {
     );
 
     if (currentHumanPlayers === 0 && computerCount < 2) {
-      const errorMsg = 'At least two players (humans or CPUs) are required to start.';
+      const errorMsg =
+        'At least two players (humans or CPUs) are required to start.';
       this.log(`Start game failed: ${errorMsg}`);
       if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
       return;
     }
     if (currentHumanPlayers > 0 && currentHumanPlayers + computerCount < 2) {
-      const errorMsg = 'At least two total players (humans + CPUs) are required.';
+      const errorMsg =
+        'At least two total players (humans + CPUs) are required.';
       this.log(`Start game failed: ${errorMsg}`);
       if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
       return;
@@ -541,7 +607,9 @@ export default class GameController {
         if (!this.gameState.players.includes(cpuId)) {
           this.gameState.addPlayer(cpuId);
         }
-        this.log(`Added CPU player ${cpuId}. Total players now: ${this.players.size}`);
+        this.log(
+          `Added CPU player ${cpuId}. Total players now: ${this.players.size}`
+        );
       }
     }
     this.log(
@@ -571,7 +639,9 @@ export default class GameController {
       return;
     }
 
-    this.log(`Dealing cards for ${numPlayers} players: ${this.gameState.players.join(', ')}`);
+    this.log(
+      `Dealing cards for ${numPlayers} players: ${this.gameState.players.join(', ')}`
+    );
     const { hands, upCards, downCards } = this.gameState.dealCards(numPlayers);
 
     this.gameState.players.forEach((id: string, idx: number) => {
@@ -587,7 +657,8 @@ export default class GameController {
     this.gameState.started = true;
     this.gameState.currentPlayerIndex = 0;
 
-    const firstPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
+    const firstPlayerId =
+      this.gameState.players[this.gameState.currentPlayerIndex];
     this.log(
       `Game started successfully. First player: ${firstPlayerId}. Emitting NEXT_TURN and pushing state.`
     );
@@ -608,7 +679,10 @@ export default class GameController {
     return this.handleStartGame({ computerCount, socket });
   }
 
-  private handlePlayCard(socket: Socket, { cardIndices, zone }: PlayData): void {
+  private handlePlayCard(
+    socket: Socket,
+    { cardIndices, zone }: PlayData
+  ): void {
     const playerId = this.socketIdToPlayerId.get(socket.id);
     this.log(
       `Handling play card request from socket ${socket.id} (Player ID: ${playerId}). Zone: ${zone}, Indices: ${cardIndices}`
@@ -624,7 +698,9 @@ export default class GameController {
       return;
     }
 
-    if (this.gameState.players[this.gameState.currentPlayerIndex] !== playerId) {
+    if (
+      this.gameState.players[this.gameState.currentPlayerIndex] !== playerId
+    ) {
       socket.emit(ERROR_EVENT, 'Not your turn.');
       return;
     }
@@ -672,7 +748,9 @@ export default class GameController {
         cardsToPlay
       )}`
     );
-    if (this.gameState.players[this.gameState.currentPlayerIndex] !== player.id) {
+    if (
+      this.gameState.players[this.gameState.currentPlayerIndex] !== player.id
+    ) {
       this.log(
         `Play card rejected: Not player ${player.id}'s turn. Current player: ${this.gameState.players[this.gameState.currentPlayerIndex]}`
       );
@@ -704,16 +782,22 @@ export default class GameController {
           }
         }
       } else {
-        this.log(`Computer player ${player.id} made an invalid play. Forcing pickup.`);
+        this.log(
+          `Computer player ${player.id} made an invalid play. Forcing pickup.`
+        );
         this.handlePickUpPileInternal(player);
       }
       return;
     }
 
     if (zone === 'hand') {
-      player.setHand(player.hand.filter((_: Card, i: number) => !cardIndices.includes(i)));
+      player.setHand(
+        player.hand.filter((_: Card, i: number) => !cardIndices.includes(i))
+      );
     } else if (zone === 'upCards') {
-      player.setUpCards(player.upCards.filter((_: Card, i: number) => !cardIndices.includes(i)));
+      player.setUpCards(
+        player.upCards.filter((_: Card, i: number) => !cardIndices.includes(i))
+      );
     } else if (zone === 'downCards') {
       player.playDownCard();
     }
@@ -723,13 +807,20 @@ export default class GameController {
       const playedCardForPile: Card = { ...card, value: normalizedValue };
       this.gameState.addToPile(playedCardForPile);
 
-      if (!isSpecialCard(normalizedValue) && !this.gameState.isFourOfAKindOnPile()) {
+      if (
+        !isSpecialCard(normalizedValue) &&
+        !this.gameState.isFourOfAKindOnPile()
+      ) {
         this.gameState.lastRealCard = playedCardForPile;
       }
     });
 
-    this.io.to(this.roomId).emit(CARD_PLAYED, { playerId: player.id, cards: cardsToPlay, zone });
-    this.log(`Emitted CARD_PLAYED for player ${player.id}. Cards: ${JSON.stringify(cardsToPlay)}`);
+    this.io
+      .to(this.roomId)
+      .emit(CARD_PLAYED, { playerId: player.id, cards: cardsToPlay, zone });
+    this.log(
+      `Emitted CARD_PLAYED for player ${player.id}. Cards: ${JSON.stringify(cardsToPlay)}`
+    );
 
     const lastPlayedCard = cardsToPlay[0];
     const lastPlayedNormalizedValue = normalizeCardValue(lastPlayedCard.value);
@@ -739,12 +830,20 @@ export default class GameController {
       this.log(`Special card: 2 played by ${player.id}. Resetting pile.`);
       this.io
         .to(this.roomId)
-        .emit(SPECIAL_CARD_EFFECT, { type: 'two', value: lastPlayedNormalizedValue });
+        .emit(SPECIAL_CARD_EFFECT, {
+          type: 'two',
+          value: lastPlayedNormalizedValue,
+        });
       this.gameState.clearPile();
       pileClearedBySpecial = true;
-    } else if (this.gameState.isFourOfAKindOnPile() || isTenCard(lastPlayedNormalizedValue)) {
+    } else if (
+      this.gameState.isFourOfAKindOnPile() ||
+      isTenCard(lastPlayedNormalizedValue)
+    ) {
       const effectType = isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four';
-      this.log(`Special card: ${effectType} played by ${player.id}. Burning pile.`);
+      this.log(
+        `Special card: ${effectType} played by ${player.id}. Burning pile.`
+      );
       this.io.to(this.roomId).emit(SPECIAL_CARD_EFFECT, {
         type: effectType,
         value: lastPlayedNormalizedValue,
@@ -763,18 +862,30 @@ export default class GameController {
         }
       }
     } else if (isFiveCard(lastPlayedNormalizedValue)) {
-      this.log(`Special card: 5 played by ${player.id}. Copying last real card.`);
+      this.log(
+        `Special card: 5 played by ${player.id}. Copying last real card.`
+      );
       this.io
         .to(this.roomId)
-        .emit(SPECIAL_CARD_EFFECT, { type: 'five', value: lastPlayedNormalizedValue });
+        .emit(SPECIAL_CARD_EFFECT, {
+          type: 'five',
+          value: lastPlayedNormalizedValue,
+        });
       if (this.gameState.lastRealCard) {
-        this.gameState.addToPile({ ...this.gameState.lastRealCard, copied: true });
+        this.gameState.addToPile({
+          ...this.gameState.lastRealCard,
+          copied: true,
+        });
       }
     }
 
     if (player.hasEmptyHand() && player.hasEmptyUp() && player.hasEmptyDown()) {
-      this.log(`Player ${player.id} (${player.name}) has played all cards. Game Over!`);
-      this.io.to(this.roomId).emit(GAME_OVER, { winnerId: player.id, winnerName: player.name });
+      this.log(
+        `Player ${player.id} (${player.name}) has played all cards. Game Over!`
+      );
+      this.io
+        .to(this.roomId)
+        .emit(GAME_OVER, { winnerId: player.id, winnerName: player.name });
       this.gameState.endGameInstance();
       this.pushState();
       return;
@@ -789,11 +900,15 @@ export default class GameController {
     }
 
     if (pileClearedBySpecial) {
-      this.log(`Pile cleared by special card. Player ${player.id} plays again.`);
+      this.log(
+        `Pile cleared by special card. Player ${player.id} plays again.`
+      );
       this.pushState();
       this.io.to(this.roomId).emit(NEXT_TURN, player.id);
       if (player.isComputer) {
-        this.log(`Computer player ${player.id} plays again. Scheduling their turn.`);
+        this.log(
+          `Computer player ${player.id} plays again. Scheduling their turn.`
+        );
         setTimeout(() => this.playComputerTurn(player), 1200);
       }
     } else {
@@ -805,9 +920,13 @@ export default class GameController {
 
   private handlePickUpPile(socket: Socket): void {
     const playerId = this.socketIdToPlayerId.get(socket.id);
-    this.log(`Handling pick up pile request from socket ${socket.id} (Player ID: ${playerId})`);
+    this.log(
+      `Handling pick up pile request from socket ${socket.id} (Player ID: ${playerId})`
+    );
     if (!playerId) {
-      this.log(`Pick up pile failed: Player not recognized for socket ${socket.id}`);
+      this.log(
+        `Pick up pile failed: Player not recognized for socket ${socket.id}`
+      );
       socket.emit(ERROR_EVENT, 'Player not recognized.');
       return;
     }
@@ -819,7 +938,9 @@ export default class GameController {
       return;
     }
 
-    if (this.gameState.players[this.gameState.currentPlayerIndex] !== playerId) {
+    if (
+      this.gameState.players[this.gameState.currentPlayerIndex] !== playerId
+    ) {
       this.log(
         `Pick up pile rejected: Not player ${playerId}'s turn. Current player: ${this.gameState.players[this.gameState.currentPlayerIndex]}`
       );
@@ -857,7 +978,8 @@ export default class GameController {
       return;
     }
     this.gameState.advancePlayer();
-    const nextPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
+    const nextPlayerId =
+      this.gameState.players[this.gameState.currentPlayerIndex];
     const nextPlayer = this.players.get(nextPlayerId);
 
     this.log(
@@ -873,13 +995,17 @@ export default class GameController {
     }
 
     if (nextPlayer.disconnected) {
-      this.log(`Next player ${nextPlayerId} (${nextPlayer.name}) is disconnected. Skipping turn.`);
+      this.log(
+        `Next player ${nextPlayerId} (${nextPlayer.name}) is disconnected. Skipping turn.`
+      );
       this.handleNextTurn();
       return;
     }
 
     this.io.to(this.roomId).emit(NEXT_TURN, nextPlayerId);
-    this.log(`Emitted NEXT_TURN for player ${nextPlayerId} (${nextPlayer.name})`);
+    this.log(
+      `Emitted NEXT_TURN for player ${nextPlayerId} (${nextPlayer.name})`
+    );
 
     if (nextPlayer.isComputer) {
       this.log(`Next player ${nextPlayerId} is a CPU. Scheduling their turn.`);
@@ -890,9 +1016,12 @@ export default class GameController {
   private playComputerTurn(computerPlayer: Player): void {
     if (
       !this.gameState.started ||
-      this.gameState.players[this.gameState.currentPlayerIndex] !== computerPlayer.id
+      this.gameState.players[this.gameState.currentPlayerIndex] !==
+        computerPlayer.id
     ) {
-      this.log(`CPU ${computerPlayer.id} turn skipped: not their turn or game not started.`);
+      this.log(
+        `CPU ${computerPlayer.id} turn skipped: not their turn or game not started.`
+      );
       return;
     }
 
@@ -901,10 +1030,17 @@ export default class GameController {
       this.findBestPlayForComputer(computerPlayer, 'upCards');
 
     if (bestPlay) {
-      this.handlePlayCardInternal(computerPlayer, bestPlay.indices, bestPlay.zone, bestPlay.cards);
+      this.handlePlayCardInternal(
+        computerPlayer,
+        bestPlay.indices,
+        bestPlay.zone,
+        bestPlay.cards
+      );
     } else if (computerPlayer.downCards.length > 0) {
       const downCardToPlay = computerPlayer.downCards[0];
-      this.handlePlayCardInternal(computerPlayer, [0], 'downCards', [downCardToPlay]);
+      this.handlePlayCardInternal(computerPlayer, [0], 'downCards', [
+        downCardToPlay,
+      ]);
     } else {
       this.handlePickUpPileInternal(computerPlayer);
     }
@@ -977,23 +1113,28 @@ export default class GameController {
         : undefined;
 
     const stateForEmit: GameStateData = {
-      players: Array.from(this.players.values()).map((player: Player): ClientStatePlayer => {
-        const isSelf =
-          player.socketId && this.io.sockets.sockets.get(player.socketId) !== undefined;
-        return {
-          id: player.id,
-          name: player.name,
-          hand: isSelf || player.isComputer ? player.hand : undefined,
-          handCount: player.hand.length,
-          upCards: player.upCards,
-          upCount: player.upCards.length,
-          downCards: isSelf
-            ? player.downCards
-            : player.downCards.map(() => ({ value: '?', suit: '?', back: true }) as Card),
-          downCount: player.downCards.length,
-          disconnected: player.disconnected,
-        };
-      }),
+      players: Array.from(this.players.values()).map(
+        (player: Player): ClientStatePlayer => {
+          const isSelf =
+            player.socketId &&
+            this.io.sockets.sockets.get(player.socketId) !== undefined;
+          return {
+            id: player.id,
+            name: player.name,
+            hand: isSelf || player.isComputer ? player.hand : undefined,
+            handCount: player.hand.length,
+            upCards: player.upCards,
+            upCount: player.upCards.length,
+            downCards: isSelf
+              ? player.downCards
+              : player.downCards.map(
+                  () => ({ value: '?', suit: '?', back: true }) as Card
+                ),
+            downCount: player.downCards.length,
+            disconnected: player.disconnected,
+          };
+        }
+      ),
       pile: this.gameState.pile,
       discardCount: this.gameState.discard.length,
       deckSize: this.gameState.deck?.length || 0,
@@ -1005,7 +1146,9 @@ export default class GameController {
     // Emit personalized state to each connected player
     this.players.forEach((playerInstance) => {
       if (playerInstance.socketId && !playerInstance.disconnected) {
-        const targetSocket = this.io.sockets.sockets.get(playerInstance.socketId);
+        const targetSocket = this.io.sockets.sockets.get(
+          playerInstance.socketId
+        );
         if (targetSocket) {
           const personalizedState: GameStateData = {
             ...stateForEmit,
@@ -1015,7 +1158,9 @@ export default class GameController {
               downCards:
                 p.id === playerInstance.id
                   ? p.downCards
-                  : p.downCards?.map(() => ({ value: '?', suit: '?', back: true }) as Card),
+                  : p.downCards?.map(
+                      () => ({ value: '?', suit: '?', back: true }) as Card
+                    ),
             })),
           };
           targetSocket.emit(STATE_UPDATE, personalizedState);

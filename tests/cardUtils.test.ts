@@ -65,7 +65,10 @@ describe('rank edge cases', () => {
 });
 
 describe('rank', () => {
-  const createCard = (value: string | number, suit: string = 'hearts'): Card => {
+  const createCard = (
+    value: string | number,
+    suit: string = 'hearts'
+  ): Card => {
     return { value, suit };
   };
 
@@ -180,7 +183,10 @@ describe('isSpecialCard parameterized', () => {
 
 describe('isFourOfAKind edge cases', () => {
   test('returns false if all values are null or undefined', () => {
-    const hand = [null, null, null, null].map((v, i) => ({ value: v as any, suit: 's' + i }));
+    const hand = [null, null, null, null].map((v, i) => ({
+      value: v as any,
+      suit: 's' + i,
+    }));
     expect(isFourOfAKind(hand)).toBe(false);
   });
   test('returns false for mixed types that do not normalize equally', () => {
@@ -397,7 +403,10 @@ describe('normalizeCardValue additional keywords and edge cases', () => {
 });
 
 describe('rank additional edge cases', () => {
-  const createCard = (value: string | number, suit: string = 'hearts') => ({ value, suit });
+  const createCard = (value: string | number, suit: string = 'hearts') => ({
+    value,
+    suit,
+  });
   test('ranks all number keywords', () => {
     expect(rank(createCard('three'))).toBe(3);
     expect(rank(createCard('four'))).toBe(4);
@@ -441,14 +450,26 @@ describe('isSpecialCard and friends edge cases', () => {
 });
 
 describe('isFourOfAKind additional edge cases', () => {
-  const createHand = (values: (string | number | null | undefined)[], suitPrefix = 's') =>
-    values.map((value, index) => ({ value: value as any, suit: `${suitPrefix}${index}` }));
+  const createHand = (
+    values: (string | number | null | undefined)[],
+    suitPrefix = 's'
+  ) =>
+    values.map((value, index) => ({
+      value: value as any,
+      suit: `${suitPrefix}${index}`,
+    }));
   test('works for all number keywords and mixed case', () => {
-    expect(isFourOfAKind(createHand(['three', 3, 'Three', 'THREE']))).toBe(true);
+    expect(isFourOfAKind(createHand(['three', 3, 'Three', 'THREE']))).toBe(
+      true
+    );
     expect(isFourOfAKind(createHand(['four', 4, 'Four', 'FOUR']))).toBe(true);
     expect(isFourOfAKind(createHand(['six', 6, 'Six', 'SIX']))).toBe(true);
-    expect(isFourOfAKind(createHand(['seven', 7, 'Seven', 'SEVEN']))).toBe(true);
-    expect(isFourOfAKind(createHand(['eight', 8, 'Eight', 'EIGHT']))).toBe(true);
+    expect(isFourOfAKind(createHand(['seven', 7, 'Seven', 'SEVEN']))).toBe(
+      true
+    );
+    expect(isFourOfAKind(createHand(['eight', 8, 'Eight', 'EIGHT']))).toBe(
+      true
+    );
     expect(isFourOfAKind(createHand(['nine', 9, 'Nine', 'NINE']))).toBe(true);
   });
   test('returns false if only first 4 match but 5th is different', () => {
