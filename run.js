@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Minimal Top That! Development Launcher
- * No duplicated port cleanup, minimal output
+ * Uses kill-port for reliable cleanup
  */
 
 import { execSync, spawn } from 'child_process';
@@ -10,39 +10,23 @@ import os from 'os';
 // Kill any processes on development ports and start the servers
 function startDev() {
   const isWindows = os.platform() === 'win32';
-  const ports = [3000, 5173];
 
   console.log('🚀 Top That! Development');
 
-  // Single cleanup operation with minimal output
+  // Single cleanup operation using kill-port
   try {
-    if (isWindows) {
-      ports.forEach((port) => {
-        try {
-          execSync(
-            `for /f "tokens=5" %a in ('netstat -ano ^| find ":${port}" ^| find "LISTENING"') do taskkill /F /PID %a 2>nul`,
-            { stdio: 'ignore' }
-          );
-        } catch (e) {}
-      });
-    } else {
-      ports.forEach((port) => {
-        try {
-          execSync(`lsof -ti:${port} | xargs -r kill -9`, { stdio: 'ignore' });
-        } catch (e) {}
-      });
-    }
+    execSync('npx kill-port 3000 5173', { stdio: 'ignore' });
   } catch (e) {
     // Ignore errors - we just want to make sure ports are free
   }
 
   // Wait a moment to ensure ports are released
   setTimeout(() => {
-    // Start dev servers directly without any npm run commands that might introduce more cleanup
+    // Start dev servers directly
     const npm = isWindows ? 'npm.cmd' : 'npm';
 
-    // Use concurrently directly to avoid npm run wrapper
-    const dev = spawn(npm, ['run', 'dev:all:fast'], {
+    // Use the clean variant to avoid duplicate cleanup
+    const dev = spawn(npm, ['run', 'dev:all:clean'], {
       stdio: 'inherit',
       shell: true,
       env: { ...process.env, NODE_NO_WARNINGS: '1' },

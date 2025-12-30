@@ -55,21 +55,7 @@ if (arePotentiallyBlocking()) {
   // Run the full port cleanup
   try {
     console.log('🧹 Running port cleanup...');
-    const cleanupPath = path.join(__dirname, 'port-cleanup.cjs');
-
-    if (fs.existsSync(cleanupPath)) {
-      execSync(`node "${cleanupPath}" cleanup`, { stdio: 'inherit' });
-    } else {
-      console.error(
-        '❌ Port cleanup script not found! Using built-in cleanup logic'
-      );
-      execSync(
-        isWindows
-          ? `for %i in (${TARGET_PORTS.join(' ')}) do @(for /f "tokens=5" %a in ('netstat -ano ^| find ":%i" ^| find "LISTENING"') do @taskkill /F /PID %a)`
-          : `for port in ${TARGET_PORTS.join(' ')}; do lsof -ti:$port | xargs -r kill -9; done`,
-        { stdio: 'inherit' }
-      );
-    }
+    execSync(`npx kill-port ${TARGET_PORTS.join(' ')}`, { stdio: 'inherit' });
   } catch (error) {
     console.error('⚠️ Port cleanup had some issues:', error.message);
   }
@@ -105,7 +91,7 @@ devProcess.on('close', (code) => {
   } else {
     console.error(`\n⚠️ Development environment exited with code: ${code}`);
     console.log(
-      'For more details, check the logs or run `node scripts/port-cleanup.cjs status`'
+      'For more details, check the logs or run `npm run show:ports`'
     );
   }
 });

@@ -16,6 +16,17 @@ const isWindows = os.platform() === 'win32';
  */
 function checkPort(port) {
   try {
+    if (isWindows) {
+      const output = execSync(
+        `netstat -ano | findstr :${port} | findstr LISTENING`,
+        { encoding: 'utf8' }
+      ).trim();
+      if (!output) {
+        return null;
+      }
+      return output.split(/\s+/).pop() || null;
+    }
+
     const pid = execSync(`lsof -i :${port} -sTCP:LISTEN -t`, {
       encoding: 'utf8',
     }).trim();
@@ -45,7 +56,11 @@ function displayPortStatus(ports) {
  */
 function killProcess(pid) {
   try {
-    execSync(`kill -9 ${pid}`);
+    if (isWindows) {
+      execSync(`taskkill /F /PID ${pid}`);
+    } else {
+      execSync(`kill -9 ${pid}`);
+    }
     return true;
   } catch (error) {
     console.error(`Failed to kill process ${pid}: ${error.message}`);

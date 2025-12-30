@@ -65,7 +65,7 @@ devProcess.on('close', (code) => {
     console.log('\n✅ Development environment exited successfully');
   } else {
     console.error(`\n⚠️ Development environment exited with code: ${code}`);
-    console.log('For more details, check the logs or run `node scripts/port-cleanup.cjs status`');
+    console.log('For more details, check the logs or run `npm run show:ports`');
   }
 });
 

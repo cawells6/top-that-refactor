@@ -28,12 +28,17 @@ const DEFAULT_PORT: number = 3000;
 const MAX_RETRIES = 30; // Increased from 10 for more robust port selection
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : DEFAULT_PORT;
+const sockets = new Set<http.Socket>();
 
 let server: http.Server | null = null; // Define server variable here
 
 function startServer(port: number, retries = 0) {
   // Create a single HTTP server and assign to the outer server variable
   server = http.createServer(app);
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.on('close', () => sockets.delete(socket));
+  });
   // Attach Socket.IO to the same HTTP server
   const io: SocketIOServer = new SocketIOServer(server, {
     cors: { origin: '*' },
@@ -122,7 +127,13 @@ function startServer(port: number, retries = 0) {
     console.log(successMsg);
     console.log('==============================\n');
     fs.appendFileSync('server.log', successMsg + '\n', 'utf-8');
-    fs.writeFileSync('current-port.txt', port.toString(), 'utf-8');
+    try {
+      fs.writeFileSync('current-port.txt', port.toString(), 'utf-8');
+    } catch (error) {
+      console.warn(
+        `Failed to write current-port.txt (${(error as Error).message}). Continuing without it.`
+      );
+    }
   });
 }
 
@@ -133,6 +144,10 @@ const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGQUIT', 'SIGUSR2'];
 signals.forEach((signal) => {
   process.on(signal, () => {
     console.log(`\n${signal} signal received: closing HTTP server...`);
+    for (const socket of sockets) {
+      socket.destroy();
+      sockets.delete(socket);
+    }
     if (server) {
       server.close((err) => {
         if (err) {
