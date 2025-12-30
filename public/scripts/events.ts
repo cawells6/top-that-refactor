@@ -671,6 +671,8 @@ function handleRulesClick() {
 
     rulesModal.classList.remove('modal--hidden');
     overlay.classList.remove('modal__overlay--hidden');
+    document.body.classList.add('rules-modal-open');
+    document.documentElement.classList.add('rules-modal-open');
 
     // Trigger card image updates by dispatching a custom event
     setTimeout(() => {
@@ -877,6 +879,8 @@ function hideRulesModalAndOverlay() {
 
   if (rulesModal) rulesModal.classList.add('modal--hidden');
   if (overlay) overlay.classList.add('modal__overlay--hidden');
+  document.body.classList.remove('rules-modal-open');
+  document.documentElement.classList.remove('rules-modal-open');
 
   // Show the lobby container again when hiding the rules modal
   if (lobbyContainer) {

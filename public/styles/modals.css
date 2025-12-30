@@ -52,6 +52,19 @@
   cursor: pointer;
 }
 
+/* Prevent page scroll when the rules modal is open to avoid dual scrollbars */
+body:has(#rules-modal:not(.modal--hidden)),
+html:has(#rules-modal:not(.modal--hidden)) {
+  overflow: hidden !important;
+  overflow-y: hidden !important;
+}
+
+body.rules-modal-open,
+html.rules-modal-open {
+  overflow: hidden !important;
+  overflow-y: hidden !important;
+}
+
 /* --- Make rules modal and content larger and more readable --- */
 
 /* The rules modal will inherit the lobby modal container styles */
@@ -125,13 +138,14 @@
 .rules-modal-content .btn {
   padding: 1rem 2rem;
   border-radius: 8px;
-  font-size: 1.4rem;
-  font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: none;
-  letter-spacing: normal;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
   font-family:
+    'Source Sans 3',
     'Inter',
     'Roboto',
     -apple-system,
@@ -146,12 +160,12 @@
 
 .rules-modal-content .btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
 }
 
 .rules-modal-content .btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
 }
 
 /* "Expand All" Button - styled with gold theme to match branding */
@@ -160,11 +174,10 @@
   color: #1b2e3c;
   margin-top: 1rem; /* Increased from 0.5rem */
   margin-bottom: 2rem; /* Increased from 1.5rem */
-  text-transform: uppercase;
   font-weight: bold;
-  border: 2px solid #e6af00;
-  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.3);
-  transition: all 0.3s ease; /* Smooth transition for hover effects */
+  border: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
   position: relative; /* For z-index control */
   z-index: 1; /* Ensure button is above other elements */
 }
@@ -178,9 +191,9 @@
 }
 
 #expand-collapse-all-btn:hover {
-  background: linear-gradient(135deg, #e6af00 0%, #ffc300 100%);
-  transform: translateY(-2px); /* Increased from -1px */
-  box-shadow: 0 8px 20px rgba(255, 195, 0, 0.5); /* Enhanced shadow */
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
 }
 
 /* "Got It!" Button - styled like Lobby\'s "LET\'S PLAY" button */
@@ -199,21 +212,18 @@
   color: #1b2e3c;
   margin-top: 2.5rem; /* Increased from 2rem */
   margin-bottom: 1rem; /* Increased from 0.5rem */
-  text-transform: uppercase;
   font-weight: bold;
-  border: 2px solid #e6af00;
-  box-shadow: 0 4px 12px rgba(255, 195, 0, 0.3);
-  transition: all 0.3s ease; /* Smooth transition for hover effects */
-  letter-spacing: 0.5px; /* Slightly increased letter spacing */
+  border: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
   cursor: pointer;
   min-width: 200px; /* Slightly wider button */
 }
 
 #rules-gotit-btn:hover {
-  background: linear-gradient(135deg, #e6af00 0%, #ffc300 100%);
-  transform: translateY(-2px); /* Increased from -1px */
-  box-shadow: 0 8px 20px rgba(255, 195, 0, 0.5); /* Enhanced shadow */
-  letter-spacing: 1px; /* Slightly spread out letters on hover */
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
 }
 
 /* Shared style for button size and alignment */
@@ -234,19 +244,15 @@
 /* Refined Rules Section Styling */
 .rules-container {
   font-family:
-    'Inter',
-    'Roboto',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  line-height: 1.7; /* Improved line spacing */
+    'Source Serif 4',
+    'Source Sans 3',
+    'Times New Roman',
+    serif;
+  line-height: 1.65; /* Improved line spacing */
   padding: 0 0 20px 0; /* Reduced top padding since we removed the logo */
-  color: #333; /* Darker text for better contrast */
+  color: #1f2937; /* Darker text for better contrast */
   text-align: left; /* Left-align content for better readability */
   width: 100%; /* Ensure it fills the modal content area */
-  overflow-y: auto; /* Enable scrolling inside the container */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
   box-sizing: border-box;
 }
 
@@ -271,6 +277,7 @@
 .rules-container h2,
 .rules-container h3 {
   font-family:
+    'Source Sans 3',
     'Inter',
     'Roboto',
     -apple-system,
@@ -291,7 +298,7 @@
 .rules-container h3 {
   font-size: 1.2rem;
   margin: 0;
-  display: inline;
+  display: block;
 }
 
 .rules-section {
@@ -321,7 +328,7 @@
   justify-content: space-between;
   align-items: center;
   color: #1a1a1a; /* Darker text for better contrast */
-  font-size: 1.3em; /* Increased for more visual impact */
+  font-size: 1.4em; /* Slightly larger to fill the space */
   font-family:
     'Inter',
     'Roboto',
@@ -362,19 +369,34 @@
 }
 
 .rules-details-content {
-  padding: 2rem; /* Further increased for more breathing room */
+  padding: 1.25rem 1.5rem 1.4rem 1rem;
   border-top: none;
-  font-size: 1.2rem; /* Increased from 1.15rem for better readability */
-  line-height: 1.8; /* Maintained good line height */
+  font-size: 1.1rem;
+  line-height: 1.7;
   color: #212529;
   background-color: #fdfdfd; /* Slightly off-white background for better contrast */
+  font-family:
+    'Source Serif 4',
+    'Source Sans 3',
+    'Times New Roman',
+    serif;
+  text-transform: none;
+  letter-spacing: normal;
+  text-align: left;
 }
 
-/* Styling for key terms */
-.rules-details-content strong {
-  font-weight: 600;
-  color: #000000;
-  border-bottom: 1px solid #ffc300; /* Gold underline for emphasis */
+.rules-details-content * {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.rules-details-content > ul,
+.rules-details-content > ol {
+  max-width: 760px;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  text-align: left;
 }
 
 /* Number with dash styling */
@@ -391,22 +413,59 @@
 /* Improved bullet points with gold styling */
 .rules-details-content ul {
   list-style: none;
-  padding-left: 2.5rem; /* Increased indentation to move text further from bullet */
-  margin-top: 1.2rem; /* More top margin for better section spacing */
+  padding-left: 0;
+  margin-left: 0;
+  margin-top: 0.75rem;
+  text-align: left;
 }
 
 /* Make list items stand out with custom gold bullets */
 .rules-details-content ul li {
   position: relative;
-  margin-bottom: 1.5rem; /* Further increased spacing between list items */
-  line-height: 1.9; /* Increased line height for better readability */
-  padding-bottom: 0.25rem; /* Extra padding at bottom */
+  margin-bottom: 0;
+  line-height: 1.6;
+  padding-bottom: 0;
+  text-align: left;
+}
+
+.rules-details-content li {
+  margin-left: 0;
+  padding-left: 0;
 }
 
 /* Improved styling for list items with card icons */
 .rules-details-content ul li {
   position: relative;
   text-align: left; /* Left-align content for special card list items */
+}
+
+.rules-details-content li > strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-family:
+    'Source Sans 3',
+    'Inter',
+    'Roboto',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.rules-details-content li > em {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.rules-details-content .rules-lead {
+  margin: 0 0 0.75rem 0;
+  font-family:
+    'Source Serif 4',
+    'Source Sans 3',
+    'Times New Roman',
+    serif;
+  font-size: 1.05rem;
+  color: #1f2937;
 }
 
 /* Card description styling */
@@ -452,56 +511,117 @@
    Remove the browser bullet so only the custom gold bullet with
    white center appears, matching other indented items. */
 .rules-details-content ul li ul {
-  list-style: none !important; /* Prevent the default bullet */
-  padding-left: 1.5rem; /* Indentation for sub-lists */
-  margin-top: 1.2rem; /* Spacing after parent bullet */
-  margin-bottom: 1rem; /* Space after nested list */
+  list-style: disc; /* Show bullets for sub-items */
+  padding-left: 1.2rem;
+  margin-left: 0;
+  margin-top: 0.6rem;
+  margin-bottom: 0.75rem;
+  text-align: left;
 }
 
 .rules-details-content ul li ul li {
-  list-style: none; /* Ensure no default bullet on nested items */
+  list-style: disc;
   position: relative;
-  margin-bottom: 1rem; /* Slightly less spacing between sub-items */
-  line-height: 1.8; /* Slightly reduced line height for sub-items */
+  margin-bottom: 0;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.rules-details-content ul li ul li + li {
+  margin-top: 0.6rem;
 }
 
 /* Style for nested list item bullets */
 .rules-details-content ul li ul li::before {
-  content: '○'; /* Gold bullet with white center */
-  font-size: 0.9em;
-  color: #ffc300;
-  text-shadow: 0 0 0 #fff; /* Ensure clean center */
-  left: -1.4rem; /* Increased spacing between bullet and text */
-  top: 0.293em; /* Moved up by ~7% from 0.315em */
+  content: none;
 }
 .rules-details-content ol {
-  padding-left: 1.5rem;
-  margin-top: 1.2rem; /* Increased from 0.8rem */
+  list-style: none;
+  padding-left: 0;
+  margin-top: 1rem;
+  text-align: left;
 }
 
 .rules-details-content ul li::before {
-  content: '●'; /* Solid bullet */
-  color: #ffc300; /* Gold bullet matching the theme */
-  font-weight: bold;
-  font-size: 1.1em;
-  position: absolute;
-  left: -1.65rem; /* Shifted more to the left to create more space between bullet and text */
-  top: 0.215em; /* Standard bullet positioning */
-  line-height: 1.6;
-  text-shadow:
-    -1px -1px 0 #000,
-    1px -1px 0 #000,
-    -1px 1px 0 #000,
-    1px 1px 0 #000;
+  content: none;
+}
+
+.rules-details-content > ul > li,
+.rules-details-content > ol > li {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(27, 46, 60, 0.12);
+}
+
+.rules-details-content > ul > li:last-child,
+.rules-details-content > ol > li:last-child {
+  border-bottom: none;
+}
+
+.rules-details-content ul ul > li,
+.rules-details-content ol ol > li {
+  padding: 0;
+  border-bottom: none;
+  padding-left: 0;
+}
+
+.rules-details-content li > span {
+  display: block;
+  margin-top: 0.35rem;
 }
 
 /* Special card list items styling */
 .card-list-item {
   padding-left: 0;
   list-style: none;
-  margin-bottom: 3rem !important; /* Further increased bottom margin for better spacing between cards */
+  margin-bottom: 1.5rem !important;
   border-bottom: 1px solid rgba(255, 195, 0, 0.2); /* Subtle separator between cards */
-  padding-bottom: 1.5rem; /* Add padding at bottom before separator */
+  padding-bottom: 0.75rem;
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  column-gap: 1rem;
+  row-gap: 0.5rem;
+  align-items: start;
+}
+
+.card-list-item > strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  grid-column: 1 / -1;
+  font-family:
+    'Source Sans 3',
+    'Inter',
+    'Roboto',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.card-list-item .rules-icon-block {
+  width: 92px;
+  height: 92px;
+  margin: 0.15rem 0 0.6rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  grid-column: 1;
+}
+
+.card-list-item .rules-icon {
+  width: 86px !important;
+  height: 86px !important;
+  margin: 0 !important;
+  object-fit: contain;
+}
+
+.card-list-item .rules-icon-block img {
+  display: block;
+}
+
+.card-list-item > ul {
+  grid-column: 2;
+  margin-top: 0;
+  padding-left: 0;
 }
 
 .card-list-item:last-child {
@@ -514,15 +634,29 @@
 }
 
 .rules-details-content ol li {
-  margin-bottom: 0.8rem;
-  line-height: 1.6;
+  margin-bottom: 0;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.rules-details-content ol li + li {
+  margin-top: 1rem;
 }
 
 .rules-details-content strong {
   color: #1b2e3c; /* Dark color for better contrast */
   font-weight: 700; /* Bolder weight for key points */
-  border-bottom: 2px solid rgba(255, 195, 0, 0.6); /* Gold underline for emphasis */
-  padding-bottom: 1px; /* Small padding to separate text from underline */
+}
+
+@media (max-width: 720px) {
+  .card-list-item {
+    grid-template-columns: 1fr;
+  }
+
+  .card-list-item > ul {
+    grid-column: 1;
+    margin-top: 0.35rem;
+  }
 }
 
 .rules-hr {
@@ -644,32 +778,38 @@
 }
 
 .rules-icon {
-  width: 7.5em !important;
-  height: 7.5em !important;
+  width: 86px !important;
+  height: 86px !important;
   min-width: 0 !important;
   min-height: 0 !important;
-  max-width: 7.5em !important;
-  max-height: 7.5em !important;
-  margin: 0 auto 0.5em auto !important;
+  max-width: 86px !important;
+  max-height: 86px !important;
+  margin: 0 !important;
   border: 2px solid #ffc300;
   border-radius: 7px;
   padding: 3px;
   background: #fff;
   box-shadow: 0 0 8px #ffc30055;
   display: block !important;
+  object-fit: contain;
 }
 
 .rules-icon-block {
-  text-align: center;
-  margin: 0.5em 0;
+  text-align: left;
+  margin: 0.35em 0 0.6em;
+  width: 92px;
+  height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 @media (max-width: 600px) {
   .rules-icon {
-    width: 5.5em !important;
-    height: 5.5em !important;
-    max-width: 5.5em !important;
-    max-height: 5.5em !important;
+    width: 72px !important;
+    height: 72px !important;
+    max-width: 72px !important;
+    max-height: 72px !important;
   }
 }
 
