@@ -247,6 +247,7 @@ export default class GameController {
       id: p.id,
       name: p.name,
       status: p.status,
+      isComputer: p.isComputer, // Include bot information
     }));
 
     const lobbyState: InSessionLobbyState = {
@@ -254,6 +255,8 @@ export default class GameController {
       hostId: this.hostId,
       players: lobbyPlayers,
       started: this.gameState.started, // Add started property
+      expectedHumanCount: this.expectedHumanCount,
+      expectedCpuCount: this.expectedCpuCount,
     };
 
     // console.log('[SERVER] Emitting LOBBY_STATE_UPDATE:', lobbyState);
@@ -271,16 +274,12 @@ export default class GameController {
     const allHumansReady = humanPlayers.every(
       (p) => p.status === 'host' || p.status === 'ready'
     );
-    // console.log(
-    //   '[SERVER] Human players:',
-    //   humanPlayers.map((p) => ({ id: p.id, status: p.status }))
-    // );
+    // Check if we have all expected human players and they're ready
     if (
       humanPlayers.length === this.expectedHumanCount &&
       allHumansReady &&
       !this.gameState.started
     ) {
-      // console.log('[SERVER] All humans ready, starting game');
       this.handleStartGame({ computerCount: this.expectedCpuCount });
     }
   }
@@ -514,8 +513,14 @@ export default class GameController {
       maxPlayers: this.gameState.maxPlayers,
     });
 
+    // Keep the in-session lobby modal in sync for all players.
+    this.pushLobbyState();
+
     // Always push state after join, even if not enough players
     this.pushState();
+
+    // Auto-start if the expected human count is already satisfied.
+    this.checkIfGameCanStart();
   }
 
   private async handleStartGame(opts: StartGameOptions): Promise<void> {
@@ -665,6 +670,9 @@ export default class GameController {
 
     this.pushState();
     this.io.to(this.roomId).emit(NEXT_TURN, firstPlayerId);
+
+    // Keep lobby state in sync after start so clients can hide the modal.
+    this.pushLobbyState();
 
     // Only allow a human to start the game. If the first player is a CPU, do not auto-play.
     // If you want to force a human to always be first, ensure player order is set accordingly before this point.

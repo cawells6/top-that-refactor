@@ -17,7 +17,7 @@ import {
   LOBBY_STATE_UPDATE,
   GAME_STARTED,
 } from '../../src/shared/events.js';
-import { GameStateData } from '../../src/shared/types.js';
+import { GameStateData, InSessionLobbyState } from '../../src/shared/types.js';
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
@@ -34,27 +34,28 @@ export async function initializeSocketHandlers(): Promise<void> {
     state.saveSession();
   });
 
+  state.socket.on(LOBBY_STATE_UPDATE, (data: InSessionLobbyState) => {
+    showWaitingState(
+      data.roomId,
+      data.players.length,
+      data.players.length,
+      data.players
+    );
+  });
+
   state.socket.on(
-    LOBBY_STATE_UPDATE,
-    (data: {
-      roomId: string;
-      players: { id: string; name: string; ready: boolean }[];
-      hostId: string | null;
-    }) => {
-      showWaitingState(
-        data.roomId,
-        data.players.length,
-        data.players.length,
-        data.players
-      );
+    JOINED,
+    (data: { playerId?: string; id?: string; roomId: string }) => {
+      const playerId = data.playerId || data.id;
+      if (!playerId) {
+        console.warn('[Client] JOINED payload missing player id:', data);
+        return;
+      }
+      state.setMyId(playerId);
+      state.setCurrentRoom(data.roomId);
+      state.saveSession();
     }
   );
-
-  state.socket.on(JOINED, (data: { playerId: string; roomId: string }) => {
-    state.setMyId(data.playerId);
-    state.setCurrentRoom(data.roomId);
-    state.saveSession();
-  });
 
   state.socket.on(GAME_STARTED, () => {
     showGameTable();

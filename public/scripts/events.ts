@@ -1,4 +1,3 @@
-import { initializeSocketHandlers } from './socketService.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 import { JOIN_GAME } from '../../src/shared/events.js';
@@ -177,6 +176,41 @@ function updatePlayerSilhouettes() {
   updateSilhouettesInContainer(cpuSilhouettesContainer, 'cpu', cpuCount);
 }
 
+function syncCounterUI() {
+  const humansMinusBtn = document.getElementById('humans-minus');
+  const humansPlusBtn = document.getElementById('humans-plus');
+  const cpusMinusBtn = document.getElementById('cpus-minus');
+  const cpusPlusBtn = document.getElementById('cpus-plus');
+  const totalPlayersInput = document.getElementById(
+    'total-players-input'
+  ) as HTMLInputElement | null;
+  const cpuPlayersInput = document.getElementById(
+    'cpu-players-input'
+  ) as HTMLInputElement | null;
+  const totalCountSpan = document.getElementById('total-count');
+
+  if (!totalPlayersInput || !cpuPlayersInput) return;
+
+  const humans = parseInt(totalPlayersInput.value || '1', 10);
+  const cpus = parseInt(cpuPlayersInput.value || '0', 10);
+  const total = humans + cpus;
+
+  if (totalCountSpan) {
+    totalCountSpan.textContent = total.toString();
+  }
+
+  totalPlayersInput.max = (4 - cpus).toString();
+  cpuPlayersInput.max = (4 - humans).toString();
+
+  setButtonDisabled(humansMinusBtn, humans <= 1);
+  setButtonDisabled(humansPlusBtn, total >= 4);
+  setButtonDisabled(cpusMinusBtn, cpus <= 0);
+  setButtonDisabled(cpusPlusBtn, total >= 4);
+
+  updatePlayerSilhouettes();
+  updateStartGameButton();
+}
+
 // Update silhouettes in a specific container
 function updateSilhouettesInContainer(
   container: HTMLElement,
@@ -305,56 +339,10 @@ function initializeCounterButtons() {
   const cpuPlayersInput = document.getElementById(
     'cpu-players-input'
   ) as HTMLInputElement;
-  const totalCountSpan = document.getElementById('total-count');
 
   function updateTotalCount() {
-    const humans = parseInt(totalPlayersInput?.value || '1', 10);
-    const cpus = parseInt(cpuPlayersInput?.value || '0', 10);
-    const total = humans + cpus;
-    if (totalCountSpan) {
-      totalCountSpan.textContent = total.toString();
-    }
-
-    // Update button states
-    updateButtonStates();
-    // Update player silhouettes
-    updatePlayerSilhouettes();
-    // Update player requirement message
+    syncCounterUI();
     updatePlayerRequirementMessage();
-  }
-
-  function updateButtonStates() {
-    const humans = parseInt(totalPlayersInput?.value || '1', 10);
-    const cpus = parseInt(cpuPlayersInput?.value || '0', 10);
-    const total = humans + cpus;
-
-    // Update max attributes for inputs dynamically
-    if (totalPlayersInput) {
-      totalPlayersInput.max = (4 - cpus).toString(); // Max humans = 4 - current CPUs
-    }
-    if (cpuPlayersInput) {
-      cpuPlayersInput.max = (4 - humans).toString(); // Max CPUs = 4 - current humans
-    }
-
-    // Human buttons
-    if (humansMinusBtn) {
-      const shouldDisable = humans <= 1;
-      (humansMinusBtn as HTMLButtonElement).disabled = shouldDisable;
-    }
-    if (humansPlusBtn) {
-      const shouldDisable = total >= 4;
-      (humansPlusBtn as HTMLButtonElement).disabled = shouldDisable;
-    }
-
-    // CPU buttons
-    if (cpusMinusBtn) {
-      const shouldDisable = cpus <= 0;
-      (cpusMinusBtn as HTMLButtonElement).disabled = shouldDisable;
-    }
-    if (cpusPlusBtn) {
-      const shouldDisable = total >= 4;
-      (cpusPlusBtn as HTMLButtonElement).disabled = shouldDisable;
-    }
   }
 
   // Human counter buttons
@@ -405,9 +393,6 @@ function initializeCounterButtons() {
 
   // Initialize states
   updateTotalCount();
-
-  // Initialize player silhouettes on page load
-  updatePlayerSilhouettes();
 }
 
 export async function initializePageEventListeners() {
@@ -432,12 +417,6 @@ export async function initializePageEventListeners() {
     console.error('❌ Error loading state:', stateError);
   }
 
-  try {
-    // Initialize socket handlers
-    initializeSocketHandlers();
-  } catch (socketError) {
-    console.error('❌ Error initializing socket handlers:', socketError);
-  }
 
   // UI hooks
   const joinGameButton = document.getElementById('join-game-button');
@@ -801,7 +780,10 @@ function handleDealClick() {
       const form = document.getElementById(
         'lobby-form'
       ) as HTMLFormElement | null;
-      if (form) form.reset();
+      if (form) {
+        form.reset();
+        syncCounterUI();
+      }
     }
   });
 
@@ -878,7 +860,10 @@ function handleJoinGameClick() {
     const form = document.getElementById(
       'lobby-form'
     ) as HTMLFormElement | null;
-    if (form) form.reset();
+    if (form) {
+      form.reset();
+      syncCounterUI();
+    }
   });
 
   if (joinBtn) joinBtn.disabled = true;

@@ -32,6 +32,16 @@ export class InSessionLobbyModal {
     this.initialize();
   }
 
+  private showModal(): void {
+    this.modalElement.classList.remove('modal--hidden');
+    this.modalElement.classList.remove('hidden');
+  }
+
+  private hideModal(): void {
+    this.modalElement.classList.add('modal--hidden');
+    this.modalElement.classList.add('hidden');
+  }
+
   private async initialize(): Promise<void> {
     await state.socketReady;
     this.setupSocketListeners();
@@ -48,12 +58,24 @@ export class InSessionLobbyModal {
     }
 
     state.socket.on(LOBBY_STATE_UPDATE, (lobbyState: InSessionLobbyState) => {
+      console.log('[InSessionLobbyModal] Received LOBBY_STATE_UPDATE:', lobbyState);
       this.render(lobbyState);
+      const expectedHumans =
+        typeof lobbyState.expectedHumanCount === 'number'
+          ? lobbyState.expectedHumanCount
+          : lobbyState.players.filter((player) => !player.isComputer).length;
+      const shouldShowModal = expectedHumans > 1;
+
       if (lobbyState.started) {
+        console.log('[InSessionLobbyModal] Game started, calling showGameTable()');
         uiManager.showGameTable();
-      } else {
+        this.hideModal();
+      } else if (shouldShowModal) {
+        console.log('[InSessionLobbyModal] Game not started, showing modal');
         uiManager.hideElement(uiManager.getLobbyContainer());
-        uiManager.showElement(this.modalElement);
+        this.showModal();
+      } else {
+        this.hideModal();
       }
     });
 

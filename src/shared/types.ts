@@ -40,6 +40,7 @@ export interface LobbyPlayer {
   id: string;
   name: string;
   status: 'host' | 'invited' | 'joined' | 'ready';
+  isComputer?: boolean; // Whether this player is a bot/CPU
 }
 
 export interface InSessionLobbyState {
@@ -47,6 +48,8 @@ export interface InSessionLobbyState {
   hostId: string | null;
   players: LobbyPlayer[];
   started?: boolean; // Added to communicate game start state
+  expectedHumanCount?: number;
+  expectedCpuCount?: number;
 }
 
 // Payload for joining a game (used by both client and server)

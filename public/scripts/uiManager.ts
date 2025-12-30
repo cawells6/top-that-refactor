@@ -63,7 +63,10 @@ export function showLobbyForm(): void {
   const lobbyContainer = getLobbyContainer();
   const lobbyFormContent = getLobbyFormContent();
   const waitingStateDiv = getWaitingStateDiv();
+  const table = getGameTable();
+  const inSessionModal = document.getElementById('in-session-lobby-modal');
   const mainContent = document.getElementById('main-content');
+  const body = document.body;
 
   if (!lobbyContainer) {
     console.warn(
@@ -72,12 +75,21 @@ export function showLobbyForm(): void {
     return;
   }
 
+  body.classList.add('showing-lobby');
+  body.classList.remove('showing-game');
+
   // Let the layout-stabilizer.js handle the transition
   // We only need to manage content visibility here
 
   // Update internal UI states
+  lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
+  if (table) table.classList.add('hidden');
+  if (inSessionModal) {
+    inSessionModal.classList.add('modal--hidden');
+    inSessionModal.classList.add('hidden');
+  }
 
   // Optional: Update any class on main content if needed
   if (mainContent) {
@@ -100,7 +112,7 @@ export function showWaitingState(
   _roomId: string,
   _currentPlayers: number,
   _maxPlayers: number,
-  _players: { id: string; name: string; ready: boolean }[]
+  _players: { id: string; name: string; ready?: boolean; status?: string }[]
 ): void {
   // This function is now deprecated. All waiting/in-session info is handled by the in-session lobby modal.
   // No-op for now.
@@ -110,14 +122,31 @@ export function showGameTable(): void {
   // Additional UI updates
   const table = getGameTable();
   const mainContent = document.getElementById('main-content');
+  const lobbyContainer = getLobbyContainer();
+  const inSessionModal = document.getElementById('in-session-lobby-modal');
+  const body = document.body;
 
   if (!table) {
     console.warn('[uiManager] showGameTable: #game-table element not found!');
     return;
   }
 
-  // Let the layout-stabilizer.js handle the transition
-  // We only need to update internal UI state
+  body.classList.remove('showing-lobby');
+  body.classList.add('showing-game');
+
+  // Hide the lobby container
+  if (lobbyContainer) {
+    lobbyContainer.classList.add('hidden');
+  }
+
+  // Hide the in-session lobby modal if visible
+  if (inSessionModal) {
+    inSessionModal.classList.add('modal--hidden');
+    inSessionModal.classList.add('hidden');
+  }
+
+  // Show the game table
+  table.classList.remove('hidden');
 
   // Add game-active class to main content if needed
   if (mainContent) {
