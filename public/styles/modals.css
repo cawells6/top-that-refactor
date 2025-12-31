@@ -153,30 +153,33 @@ html.rules-modal-open {
     'Segoe UI',
     sans-serif;
   border: none;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c;
+  box-shadow: 0 2px 5px rgba(255, 195, 0, 0.2);
   display: inline-block;
   width: auto;
 }
 
 .rules-modal-content .btn:hover {
   transform: translateY(-1px);
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
   box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
 }
 
 .rules-modal-content .btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
+  background: linear-gradient(135deg, #e6bb0d 0%, #f4d03f 100%);
+  box-shadow: 0 1px 3px rgba(255, 195, 0, 0.2);
 }
 
 /* "Expand All" Button - styled with gold theme to match branding */
 #expand-collapse-all-btn {
-  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c;
   margin-top: 1rem; /* Increased from 0.5rem */
   margin-bottom: 2rem; /* Increased from 1.5rem */
   font-weight: bold;
   border: none;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 5px rgba(255, 195, 0, 0.2);
   transition: all 0.2s ease;
   position: relative; /* For z-index control */
   z-index: 1; /* Ensure button is above other elements */
@@ -191,7 +194,6 @@ html.rules-modal-open {
 }
 
 #expand-collapse-all-btn:hover {
-  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
 }
@@ -208,20 +210,18 @@ html.rules-modal-open {
 } */
 
 #rules-gotit-btn {
-  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c;
   margin-top: 2.5rem; /* Increased from 2rem */
   margin-bottom: 1rem; /* Increased from 0.5rem */
   font-weight: bold;
   border: none;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 5px rgba(255, 195, 0, 0.2);
   transition: all 0.2s ease;
   cursor: pointer;
   min-width: 200px; /* Slightly wider button */
 }
 
 #rules-gotit-btn:hover {
-  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
 }

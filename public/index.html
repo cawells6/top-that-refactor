@@ -27,6 +27,8 @@
 
     <!-- Google Fonts for logo-style section titles and rules typography -->
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Source+Sans+3:wght@500;600;700&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preload" as="image" href="/assets/Player.svg">
+    <link rel="preload" as="image" href="/assets/robot.svg">
 
     <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />
@@ -50,14 +52,11 @@
     <!-- <script type="module" src="/scripts/debug-card-loader.js"></script> -->
     <!-- <script src="/scripts/trigger-cards-update.js"></script> -->
 
-    <!-- DOM inspector for analyzing card elements -->
-    <script src="/scripts/dom-inspector.js"></script>
     <!-- Icon viewer for fullsize icon display -->
     <script src="/scripts/icon-viewer.js"></script>
 
     <!-- Diagnostic and troubleshooting tools -->
     <script src="/scripts/card-loader-diagnostic.js"></script>
-    <script src="/scripts/force-card-update.js"></script>
 
     <!-- Style and layout enhancer -->
     <script src="/scripts/style-enforcer.js"></script>
@@ -115,45 +114,110 @@
                 />
               </div>
 
-              <div class="player-selection">
-                <!-- Human Players Section -->
-                <div class="player-section">
-                  <h3 class="section-title">USERS</h3>
-                  <div class="player-counter">
-                    <button
-                      type="button"
-                      class="counter-btn"
-                      id="humans-minus"
-                      data-target="total-players-input"
-                    >
-                      −
-                    </button>
-                    <input
-                      type="number"
-                      id="total-players-input"
-                      min="1"
-                      max="4"
-                      value="1"
-                      readonly
-                    />
-                    <button
-                      type="button"
-                      class="counter-btn"
-                      id="humans-plus"
-                      data-target="total-players-input"
-                    >
-                      +
-                    </button>
+              <div class="lobby-tabs" role="tablist" aria-label="Lobby mode">
+                <button
+                  type="button"
+                  class="lobby-tab-button is-active"
+                  data-tab="host"
+                  role="tab"
+                  aria-selected="true"
+                >
+                  <span class="lobby-tab-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M6 3h12v3h3v3a5 5 0 0 1-5 5h-2a4 4 0 0 1-2 1.5V19h4v2H8v-2h4v-2.5A4 4 0 0 1 10 14H8a5 5 0 0 1-5-5V6h3V3zm0 5H5a3 3 0 0 0 3 3h1V8H6zm12 0h-3v3h1a3 3 0 0 0 3-3h-1z" />
+                    </svg>
+                  </span>
+                  HOST GAME
+                </button>
+                <button
+                  type="button"
+                  class="lobby-tab-button"
+                  data-tab="join"
+                  role="tab"
+                  aria-selected="false"
+                >
+                  <span class="lobby-tab-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M12 2a5 5 0 0 1 5 5c0 2.6-2 4.7-4.6 5h-.9C9 12 7 9.6 7 7a5 5 0 0 1 5-5zm0 12c4.4 0 8 2 8 4.5V22H4v-3.5C4 16 7.6 14 12 14z" />
+                    </svg>
+                  </span>
+                  JOIN FRIEND
+                </button>
+              </div>
+
+              <div class="lobby-tab-panel lobby-tab-panel--host is-active" data-tab-panel="host">
+                <div class="player-selection player-selection--host">
+                  <!-- Human Players Section -->
+                  <div class="player-section player-section--users">
+                    <h3 class="section-title">USERS</h3>
+                    <div class="player-counter">
+                      <button
+                        type="button"
+                        class="counter-btn"
+                        id="humans-minus"
+                        data-target="total-players-input"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        id="total-players-input"
+                        min="1"
+                        max="4"
+                        value="1"
+                        readonly
+                      />
+                      <button
+                        type="button"
+                        class="counter-btn"
+                        id="humans-plus"
+                        data-target="total-players-input"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <!-- Dynamic Human Player Silhouettes -->
+                    <div class="player-silhouettes" id="human-silhouettes">
+                      <!-- Silhouettes will be dynamically added/removed here -->
+                    </div>
                   </div>
-                  <!-- Dynamic Human Player Silhouettes -->
-                  <div class="player-silhouettes" id="human-silhouettes">
-                    <!-- Silhouettes will be dynamically added/removed here -->
+
+                  <!-- Bots Players Section -->
+                  <div class="player-section player-section--bots">
+                    <h3 class="section-title">BOTS</h3>
+                    <div class="player-counter">
+                      <button
+                        type="button"
+                        class="counter-btn"
+                        id="cpus-minus"
+                        data-target="cpu-players-input"
+                      >
+                        -
+                      </button>
+                      <input type="number" id="cpu-players-input" min="0" value="0" readonly />
+                      <button
+                        type="button"
+                        class="counter-btn"
+                        id="cpus-plus"
+                        data-target="cpu-players-input"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <!-- Dynamic Bots Player Silhouettes -->
+                    <div class="player-silhouettes" id="cpu-silhouettes">
+                      <!-- Silhouettes will be dynamically added/removed here -->
+                    </div>
                   </div>
                 </div>
+                <div class="lobby-buttons-row">
+                  <button id="setup-rules-button" class="header-btn" type="button">RULES</button>
+                  <button id="setup-deal-button" class="header-btn" type="button">LET'S PLAY</button>
+                </div>
+              </div>
 
-                <!-- Join Game Code Section -->
+              <div class="lobby-tab-panel lobby-tab-panel--join" data-tab-panel="join">
                 <div class="player-section join-code-section">
-                  <h3 class="section-title">JOIN GAME</h3>
                   <div class="join-code-inputs">
                     <input
                       type="text"
@@ -162,37 +226,12 @@
                       maxlength="6"
                       style="text-transform: uppercase"
                     />
+                  </div>
+                  <div class="lobby-buttons-row lobby-buttons-row--join">
+                    <button id="join-rules-button" class="header-btn" type="button">RULES</button>
                     <button id="join-game-button" class="header-btn" type="button">
                       JOIN GAME
                     </button>
-                  </div>
-                </div>
-
-                <!-- Bots Players Section -->
-                <div class="player-section">
-                  <h3 class="section-title">BOTS</h3>
-                  <div class="player-counter">
-                    <button
-                      type="button"
-                      class="counter-btn"
-                      id="cpus-minus"
-                      data-target="cpu-players-input"
-                    >
-                      −
-                    </button>
-                    <input type="number" id="cpu-players-input" min="0" value="0" readonly />
-                    <button
-                      type="button"
-                      class="counter-btn"
-                      id="cpus-plus"
-                      data-target="cpu-players-input"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <!-- Dynamic Bots Player Silhouettes -->
-                  <div class="player-silhouettes" id="cpu-silhouettes">
-                    <!-- Silhouettes will be dynamically added/removed here -->
                   </div>
                 </div>
               </div>
@@ -207,11 +246,7 @@
                 </div>
               </div>
 
-              <!-- Move Rules and Deal buttons to bottom with reduced spacing -->
-              <div class="lobby-buttons-row">
-                <button id="setup-rules-button" class="header-btn" type="button">RULES</button>
-                <button id="setup-deal-button" class="header-btn" type="button">LET'S PLAY</button>
-              </div>
+
             </form>
           </div>
         </div>
@@ -456,3 +491,4 @@
     </script>
   </body>
 </html>
+

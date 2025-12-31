@@ -120,6 +120,10 @@ function createPlayerSilhouette(
   // Intentionally set alt to empty if you only want emoji on error,
   // or set proper alt text for accessibility and ensure it's visually hidden if image loads.
   img.alt = ''; // Prevents alt text from showing if image is slow to load but not erroring
+  img.loading = 'eager';
+  img.decoding = 'async';
+  img.width = 75;
+  img.height = 75;
 
   if (type === 'human') {
     img.src = '/assets/Player.svg';
@@ -401,13 +405,53 @@ export async function initializePageEventListeners() {
   // Only setup modal buttons now (header buttons removed)
   const setupRulesButton = document.getElementById('setup-rules-button');
   const setupDealButton = document.getElementById('setup-deal-button');
+  const joinRulesButton = document.getElementById('join-rules-button');
 
   if (setupRulesButton) {
     setupRulesButton.addEventListener('click', handleRulesClick);
   }
 
+  if (joinRulesButton) {
+    joinRulesButton.addEventListener('click', handleRulesClick);
+  }
+
   if (setupDealButton) {
     setupDealButton.addEventListener('click', handleDealClick);
+  }
+
+  const lobbyForm = document.getElementById('lobby-form');
+  const lobbyTabButtons = document.querySelectorAll(
+    '.lobby-tab-button'
+  ) as NodeListOf<HTMLButtonElement>;
+  const lobbyTabPanels = document.querySelectorAll(
+    '.lobby-tab-panel'
+  ) as NodeListOf<HTMLElement>;
+
+  function setLobbyTab(tab: 'host' | 'join') {
+    if (lobbyForm) {
+      lobbyForm.setAttribute('data-lobby-tab', tab);
+    }
+
+    lobbyTabButtons.forEach((button) => {
+      const isActive = button.dataset.tab === tab;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    lobbyTabPanels.forEach((panel) => {
+      const isActive = panel.dataset.tabPanel === tab;
+      panel.classList.toggle('is-active', isActive);
+    });
+  }
+
+  if (lobbyTabButtons.length > 0) {
+    setLobbyTab('host');
+    lobbyTabButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const tab = button.dataset.tab === 'join' ? 'join' : 'host';
+        setLobbyTab(tab);
+      });
+    });
   }
 
   try {

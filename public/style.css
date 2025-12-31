@@ -40,6 +40,8 @@
   --bg: #137a4b;
   --header-bg: #1b2e3c;
   --accent: #ffc300;
+  --accent-secondary: #1f7a6d;
+  --accent-secondary: #1f7a6d;
   --text: #ffffff;
   --error: #ff4d4d;
   --success: #4caf50;
@@ -187,6 +189,128 @@ body {
   margin-bottom: 1.5rem; /* User's current */
 }
 
+.player-selection--host {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lobby-tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid rgba(31, 122, 109, 0.35);
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.lobby-tab-button {
+  background: rgba(31, 122, 109, 0.12);
+  border: 1px solid rgba(31, 122, 109, 0.45);
+  color: #1b2e3c;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 0.6rem 1.25rem;
+  text-transform: uppercase;
+  border-radius: 999px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+  gap: 0.45rem;
+}
+
+.lobby-tab-button.is-active {
+  position: relative;
+  color: #1b2e3c;
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  box-shadow: 0 4px 10px rgba(255, 195, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+.lobby-tab-button.is-active:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+}
+
+.lobby-tab-button::after {
+  content: none;
+}
+
+.lobby-tab-button.is-active::after {
+  background: none;
+}
+
+.lobby-tab-button:hover {
+  color: #0f1d28;
+  background: rgba(31, 122, 109, 0.22);
+  border-color: rgba(31, 122, 109, 0.65);
+}
+
+.lobby-tab-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+}
+
+.lobby-tab-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.lobby-tab-panel {
+  display: none;
+}
+
+.lobby-tab-panel.is-active {
+  display: block;
+}
+
+.lobby-tab-panel--join.is-active {
+  display: flex;
+  justify-content: center;
+}
+
+.lobby-tab-panel--join .join-code-section {
+  width: 100%;
+  max-width: 480px;
+  padding: 2rem 2.25rem;
+  box-shadow: 0 6px 14px rgba(27, 46, 60, 0.12);
+  position: relative;
+}
+
+.lobby-tab-panel--join .join-code-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(135deg, #1f7a6d 0%, #3aa18d 100%);
+}
+
+#lobby-form[data-lobby-tab="join"] #setup-deal-button {
+  display: none;
+}
+
+#lobby-form[data-lobby-tab="join"] .lobby-buttons-row:not(.lobby-buttons-row--join) {
+  display: none;
+}
+
+.lobby-buttons-row--join {
+  margin-top: 1.25rem;
+}
+
 .player-section {
   background: #f8f9fa; /* User's current */
   border: 2px solid #e9ecef; /* User's current */
@@ -206,6 +330,27 @@ body {
   margin-bottom: 1.5rem;
 }
 
+.player-section--users,
+.player-section--bots {
+  border-color: rgba(31, 122, 109, 0.35);
+  box-shadow: 0 6px 14px rgba(27, 46, 60, 0.08);
+}
+
+.player-section--users::before,
+.player-section--bots::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(135deg, #1f7a6d 0%, #3aa18d 100%);
+}
+
+.player-section--bots::before {
+  background: linear-gradient(135deg, #1b2e3c 0%, #2b4557 100%);
+}
 /* Enhanced styling for the join section - now uses standard .player-section styling */
 /* JOIN GAME section inherits all styling from .player-section base class */
 
@@ -266,7 +411,7 @@ body {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%); /* Match other buttons */
   color: #1b2e3c; /* Dark text for contrast on gold */
   border-radius: 8px;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: 900;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1266,22 +1411,37 @@ body {
 }
 
 .header-btn {
-  border: 2px solid #f5cf17;
-  padding: 1rem 2rem; /* Increased padding for even larger buttons */
-  border-radius: 12px; /* Slightly more rounded */
-  font-size: 1.5rem; /* Larger font size */
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c !important;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.4rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  text-transform: none;
+  letter-spacing: normal;
   font-family: inherit;
   /* Ensure buttons are clickable */
   pointer-events: auto !important;
   z-index: 9999 !important;
   position: relative !important;
-  min-width: 140px; /* Increased minimum width for larger buttons */
+  min-width: 160px;
   text-align: center;
+}
+
+.header-btn:hover,
+.header-btn:focus {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.header-btn:active {
+  background: linear-gradient(135deg, #e6bb0d 0%, #f4d03f 100%);
+  box-shadow: 0 1px 3px rgba(255, 195, 0, 0.2);
+  transform: translateY(0);
 }
 
 /* Default Deal button styling (golden gradient) */
@@ -1289,12 +1449,13 @@ body {
 
 /* Unified button styling - all buttons use gold theme for consistency */
 #setup-rules-button,
-#join-game-button {
+#join-game-button,
+#join-rules-button {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c !important; /* Dark text for gold background */
   border: none;
-  padding: 1rem 2.5rem;
-  font-size: 1.5rem;
+  padding: 1rem 2rem;
+  font-size: 1.4rem;
   min-width: 160px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
@@ -1307,8 +1468,20 @@ body {
     transform 0.1s ease-in-out;
 }
 
+#setup-rules-button,
+#setup-deal-button,
+#join-game-button,
+#join-rules-button {
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none !important;
+}
+
 #setup-rules-button:hover,
-#join-game-button:hover {
+#join-game-button:hover,
+#join-rules-button:hover {
   background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
   color: #1b2e3c !important;
   box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
@@ -1316,10 +1489,39 @@ body {
 }
 
 #setup-rules-button:active,
-#join-game-button:active {
+#join-game-button:active,
+#join-rules-button:active {
   transform: translateY(0);
   background: linear-gradient(135deg, #e6bb0d 0%, #f4d03f 100%);
   box-shadow: 0 1px 3px rgba(255, 195, 0, 0.2);
+}
+
+#setup-rules-button,
+#join-rules-button {
+  background: #c7c7c7;
+  color: #1b2e3c !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#setup-rules-button:hover,
+#join-rules-button:hover {
+  background: #d6d6d6;
+  color: #1b2e3c !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+#setup-rules-button:active,
+#join-rules-button:active {
+  background: #bdbdbd;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+  transform: translateY(0);
+}
+
+#setup-rules-button:focus-visible,
+#join-rules-button:focus-visible {
+  outline: 2px solid rgba(255, 195, 0, 0.6);
+  outline-offset: 2px;
 }
 
 /* Deal button (Let's Play) - goldish color scheme styling */
@@ -1396,38 +1598,6 @@ body {
   box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
 }
 
-/* General button styling for .header-btn class */
-.header-btn {
-  background-color: #007bff; /* Default blue */
-  color: white;
-  border: none;
-  padding: 1rem 2rem; /* Increased padding */
-  font-size: 1.4rem; /* Increased font size */
-  border-radius: 8px;
-  cursor: pointer;
-  transition:
-    background-color 0.2s ease-in-out,
-    box-shadow 0.2s ease-in-out,
-    transform 0.1s ease-in-out;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  text-transform: none; /* Ensure specific styling, not global */
-  letter-spacing: normal; /* Ensure specific styling, not global */
-}
-
-/* Deal button hover state & general .header-btn hover/focus */
-.header-btn:hover,
-.header-btn:focus {
-  background-color: #0056b3; /* Darker blue */
-  outline: none;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.header-btn:active {
-  background-color: #004da0; /* Even darker blue for active */
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-  transform: translateY(1px);
-}
 
 /* Player count help text */
 .player-count-help {
@@ -1448,6 +1618,7 @@ body {
 /* Unified input styling for consistency */
 #player-name-input,
 #join-code-input {
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
   font-size: 1.6rem; /* Unified font size */
   padding: 1rem 1.5rem; /* Unified padding */
   border: 2px solid #888; /* Consistent border */
@@ -1455,6 +1626,7 @@ body {
   text-align: center;
   box-sizing: border-box;
   font-weight: 600; /* Consistent weight */
+  letter-spacing: 0.02em;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -1466,9 +1638,9 @@ body {
 
 /* Join code input specific sizing */
 #join-code-input {
-  width: 240px;
-  min-width: 240px;
-  max-width: 320px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin-bottom: 0.75rem;
 }
 
@@ -1477,6 +1649,8 @@ body {
 #join-code-input::placeholder {
   color: #666;
   font-weight: normal;
+  font-family: inherit;
+  letter-spacing: 0.03em;
 }
 
 /* Focus states for better accessibility */
@@ -1539,9 +1713,15 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   /* Remove justify-content and flex properties that conflict */
   width: 100%;
+  max-width: 360px;
+  padding: 1.25rem 1.5rem;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .join-code-section #join-code-input {
@@ -1549,12 +1729,6 @@ body {
 }
 
 /* Specific styling for Join Game button to improve visual consistency */
-#join-game-button {
-  padding: 1rem 2.5rem; /* Increased horizontal padding for better visual weight */
-  font-size: 1.5rem; /* Slightly larger to match visual prominence */
-  min-width: 160px; /* Consistent minimum width with other main buttons */
-}
-
 /* Better section separation - subtle visual dividers */
 .player-selection {
   position: relative; /* Enable pseudo-element positioning */
@@ -1633,10 +1807,13 @@ body {
   max-height: 85px !important;
   min-width: 320px !important;
   margin-top: 0.5rem !important;
-  padding: 0.25rem 0.5rem !important;
-  background: rgba(19, 122, 75, 0.1) !important;
-  border-radius: 8px !important;
-  border: 2px dashed rgba(19, 122, 75, 0.3) !important;
+  padding: 0.35rem 0.6rem !important;
+  background: linear-gradient(180deg, rgba(19, 122, 75, 0.1), rgba(19, 122, 75, 0.04)) !important;
+  border-radius: 10px !important;
+  border: 2px solid rgba(19, 122, 75, 0.35) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+    0 2px 6px rgba(27, 46, 60, 0.08) !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
 }
