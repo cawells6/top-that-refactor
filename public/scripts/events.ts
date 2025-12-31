@@ -1,6 +1,6 @@
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
-import { JOIN_GAME } from '../../src/shared/events.js';
+import { JOIN_GAME } from '../../src/shared/events.ts';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -427,6 +427,8 @@ export async function initializePageEventListeners() {
     '.lobby-tab-panel'
   ) as NodeListOf<HTMLElement>;
 
+  let hostPanelHeight = 0;
+
   function setLobbyTab(tab: 'host' | 'join') {
     if (lobbyForm) {
       lobbyForm.setAttribute('data-lobby-tab', tab);
@@ -442,6 +444,24 @@ export async function initializePageEventListeners() {
       const isActive = panel.dataset.tabPanel === tab;
       panel.classList.toggle('is-active', isActive);
     });
+
+    const hostPanel = document.querySelector(
+      '.lobby-tab-panel--host'
+    ) as HTMLElement | null;
+    const joinPanel = document.querySelector(
+      '.lobby-tab-panel--join'
+    ) as HTMLElement | null;
+
+    if (tab === 'host' && hostPanel) {
+      hostPanelHeight = hostPanel.offsetHeight;
+      if (joinPanel) {
+        joinPanel.style.minHeight = '';
+      }
+    }
+
+    if (tab === 'join' && joinPanel && hostPanelHeight > 0) {
+      joinPanel.style.minHeight = `${hostPanelHeight}px`;
+    }
   }
 
   if (lobbyTabButtons.length > 0) {
