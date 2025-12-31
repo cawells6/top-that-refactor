@@ -22,6 +22,9 @@ function handleJoinLink({
 }) {
   const urlParams = new URLSearchParams(window.location.search);
   const roomIdFromUrl = urlParams.get('room');
+  const normalizedRoomId = roomIdFromUrl
+    ? roomIdFromUrl.trim().toUpperCase()
+    : null;
   const inSession = document.body.classList.contains('in-session');
   console.log(
     '[handleJoinLink] roomIdFromUrl:',
@@ -31,10 +34,10 @@ function handleJoinLink({
     'window.location.search:',
     window.location.search
   );
-  if (roomIdFromUrl && !inSession) {
-    setCurrentRoom(roomIdFromUrl);
+  if (normalizedRoomId && !inSession) {
+    setCurrentRoom(normalizedRoomId);
     const joinPayload = {
-      roomId: roomIdFromUrl,
+      roomId: normalizedRoomId,
       playerName: 'Guest',
       numHumans: 1,
       numCPUs: 0,
@@ -85,26 +88,6 @@ export async function initMain({
   } catch (error) {
     console.error('Error during initialization:', error);
   }
-  function removePlayerIconInlineStyles() {
-    const icons = document.querySelectorAll(
-      '.player-silhouette img, .player-silhouette .user-icon, .player-silhouette .robot-icon'
-    );
-    icons.forEach((img) => {
-      (img as HTMLElement).removeAttribute('style');
-      (img as HTMLElement).removeAttribute('width');
-      (img as HTMLElement).removeAttribute('height');
-    });
-  }
-  removePlayerIconInlineStyles();
-  const observer = new MutationObserver((_mutations) => {
-    removePlayerIconInlineStyles();
-  });
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['style', 'width', 'height'],
-  });
   document.body.classList.remove('body-loading');
   document.body.classList.add('showing-lobby');
   const lobbyContainer = document.getElementById('lobby-container');

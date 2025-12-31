@@ -95,20 +95,6 @@ html.rules-modal-open {
   align-items: center;
 }
 
-/* Override any specific size settings for rules modal content */
-.rules-modal-content {
-  /* Ensure it inherits styles correctly from game-setup-content */
-  box-sizing: border-box;
-
-  /* Don't explicitly set width/max-width as they should inherit from game-setup-content */
-
-  /* Maintain other styling specific to rules content */
-  font-size: 1.15rem; /* Slightly increased from 1.1rem for better readability */
-  line-height: 1.7; /* Increased from 1.6 for better spacing */
-  max-height: 95vh; /* Increased from 85vh to reduce scrolling */
-  overflow-y: auto;
-}
-
 /* Style for the rules title */
 .rules-title {
   text-align: center;

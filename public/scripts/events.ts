@@ -468,32 +468,6 @@ export async function initializePageEventListeners() {
     joinGameButton.addEventListener('click', handleJoinGameClick);
   }
 
-  const copyLinkBtn = uiManager.getCopyLinkBtn();
-  if (copyLinkBtn) {
-    copyLinkBtn.onclick = () => {
-      const inviteInput = document.getElementById(
-        'invite-link'
-      ) as HTMLInputElement | null;
-      const linkToCopy = inviteInput ? inviteInput.value : window.location.href;
-      navigator.clipboard.writeText(linkToCopy);
-    };
-  }
-
-  const shareLinkBtn = document.getElementById('share-link-button');
-  if (shareLinkBtn && navigator.share) {
-    shareLinkBtn.onclick = () => {
-      const inviteInput = document.getElementById(
-        'invite-link'
-      ) as HTMLInputElement | null;
-      const linkToShare = inviteInput
-        ? inviteInput.value
-        : window.location.href;
-      navigator
-        .share({ url: linkToShare })
-        .catch((err) => console.warn('Share failed', err));
-    };
-  }
-
   const backToLobbyButton = uiManager.getBackToLobbyButton();
   if (backToLobbyButton) {
     backToLobbyButton.onclick = () => {
@@ -900,6 +874,8 @@ function handleJoinGameClick() {
     if (joinBtn) joinBtn.disabled = false; // Re-enable button after server response
     if (response && response.error) {
       queueMessage(response.error);
+      state.setCurrentRoom(null);
+      state.saveSession();
       return;
     }
     // --- BEST PRACTICE: Reset form fields after successful join ---

@@ -13,6 +13,8 @@ export class InSessionLobbyModal {
   private readyUpButton: HTMLButtonElement;
   private guestNameInput: HTMLInputElement;
   private currentRoomId: string = '';
+  private previousPlayers: Map<string, { name: string; isComputer?: boolean }> =
+    new Map();
   private handleCopyLink = this.copyLink.bind(this);
   private handleReadyUp = this.readyUp.bind(this);
 
@@ -91,7 +93,12 @@ export class InSessionLobbyModal {
   }
 
   private copyLink(): void {
-    const link = `${window.location.origin}?room=${this.currentRoomId}`;
+    const roomId = this.currentRoomId || state.currentRoom || '';
+    if (!roomId) {
+      showToast('Room code not available yet.', 'error');
+      return;
+    }
+    const link = `${window.location.origin}?room=${roomId}`;
     navigator.clipboard
       .writeText(link)
       .then(() => showToast('Invite Link Copied!', 'success'))
@@ -120,6 +127,31 @@ export class InSessionLobbyModal {
       title.textContent = 'WAITING FOR PLAYERS...';
     }
 
+    const gameCodeInput = this.modalElement.querySelector(
+      '#game-id-input'
+    ) as HTMLInputElement | null;
+    if (gameCodeInput) {
+      gameCodeInput.value = lobbyState.roomId.toUpperCase();
+    }
+
+    if (this.previousPlayers.size > 0) {
+      this.previousPlayers.forEach((player, playerId) => {
+        if (!lobbyState.players.some((p) => p.id === playerId)) {
+          if (!player.isComputer) {
+            const name = player.name?.trim() || 'A player';
+            showToast(`${name} left the room.`, 'info');
+          }
+        }
+      });
+    }
+
+    this.previousPlayers = new Map(
+      lobbyState.players.map((player) => [
+        player.id,
+        { name: player.name, isComputer: player.isComputer },
+      ])
+    );
+
     this.playersContainer.innerHTML = '';
     this.playersContainer.setAttribute('role', 'list');
     this.playersContainer.setAttribute('aria-label', 'Players in lobby');
@@ -142,6 +174,11 @@ export class InSessionLobbyModal {
     });
 
     const localPlayer = lobbyState.players.find((p) => p.id === state.myId);
+    const hasKnownName =
+      !!localPlayer?.name &&
+      localPlayer.name.trim().length > 0 &&
+      localPlayer.name.trim().toLowerCase() !== 'guest';
+
     if (
       localPlayer &&
       (localPlayer.status === 'host' || localPlayer.status === 'ready')
@@ -149,11 +186,19 @@ export class InSessionLobbyModal {
       this.guestNameInput.style.display = 'none';
       this.readyUpButton.style.display = 'none';
     } else {
-      this.guestNameInput.style.display = '';
       this.readyUpButton.style.display = '';
-      this.guestNameInput.disabled = false;
       this.readyUpButton.disabled = false;
-      this.guestNameInput.focus();
+
+      if (hasKnownName) {
+        this.guestNameInput.value = localPlayer?.name || '';
+        this.guestNameInput.style.display = 'none';
+      } else {
+        this.guestNameInput.style.display = '';
+        this.guestNameInput.disabled = false;
+        this.guestNameInput.value = '';
+        this.guestNameInput.focus();
+      }
+
       // Ensure the button is always all caps, even if text changes
       this.readyUpButton.textContent = this.readyUpButton.disabled
         ? 'STARTING...'

@@ -34,11 +34,7 @@
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/styles/modals.css" />
     <link rel="stylesheet" href="/styles/lobby.css" />
-    <link rel="stylesheet" href="/styles/rules-cards.css" />
-    <link rel="stylesheet" href="/styles/enhanced-rules-cards.css" />
-    <link rel="stylesheet" href="/styles/debug-cards.css" />
-    <link rel="stylesheet" href="/styles/fixed-cards-override.css" />
-    <link rel="stylesheet" href="/styles/rules-modal-cleanup.css" />
+    <!-- Rules card styling overrides disabled until icon layout returns -->
     <!-- Header button styles are now in style.css -->
 
     <!-- Entry‑point for your client modules -->
@@ -56,10 +52,8 @@
     <script src="/scripts/icon-viewer.js"></script>
 
     <!-- Diagnostic and troubleshooting tools -->
-    <script src="/scripts/card-loader-diagnostic.js"></script>
 
     <!-- Style and layout enhancer -->
-    <script src="/scripts/style-enforcer.js"></script>
     
     <!-- Previous layout stabilizers - disabled in favor of initial-layout-stabilizer.js -->
     <!-- <script src="/scripts/simple-layout-stabilizer.js"></script> -->
@@ -278,7 +272,7 @@
         <div class="game-setup-content rules-modal-content">
           <button class="modal__close-button" aria-label="Close">&times;</button>
           <div class="rules-container">
-            <h2 class="rules-title">THE OFFICIAL RULES</h2>
+            <h2 class="rules-title" id="rules-modal-title">THE OFFICIAL RULES</h2>
             <div class="button-container">
               <button id="expand-collapse-all-btn" class="btn expand-btn">Expand All</button>
             </div>
@@ -446,6 +440,16 @@
         <h3 id="in-session-lobby-title" class="section-title">
           WAITING FOR PLAYERS...
         </h3>
+
+        <div class="game-id-section">
+          <input
+            id="game-id-input"
+            class="game-id-input"
+            type="text"
+            readonly
+            aria-label="Game code"
+          />
+        </div>
 
         <div class="name-input-section" id="guest-name-section">
           <input

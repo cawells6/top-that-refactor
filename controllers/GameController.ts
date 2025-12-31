@@ -19,8 +19,6 @@ import {
   PICK_UP_PILE,
   LOBBY_STATE_UPDATE,
   PLAYER_READY,
-  PLAYER_JOINED,
-  LOBBY,
 } from '../src/shared/events.js';
 import {
   Card,
@@ -89,9 +87,27 @@ export class GameRoomManager {
       socket.on(
         REJOIN,
         (
-          rejoinData: RejoinData,
-          ack?: (response: { success: boolean; error?: string }) => void
+          rejoinDataOrPlayerId: RejoinData | string,
+          roomIdOrAck?:
+            | string
+            | ((response: { success: boolean; error?: string }) => void),
+          maybeAck?: (response: { success: boolean; error?: string }) => void
         ) => {
+          const ack =
+            typeof roomIdOrAck === 'function' ? roomIdOrAck : maybeAck;
+          let rejoinData: RejoinData | null = null;
+
+          if (typeof rejoinDataOrPlayerId === 'string') {
+            if (typeof roomIdOrAck === 'string') {
+              rejoinData = {
+                playerId: rejoinDataOrPlayerId,
+                roomId: roomIdOrAck,
+              };
+            }
+          } else if (rejoinDataOrPlayerId && typeof rejoinDataOrPlayerId === 'object') {
+            rejoinData = rejoinDataOrPlayerId;
+          }
+
           if (!rejoinData || !rejoinData.roomId || !rejoinData.playerId) {
             if (typeof ack === 'function') {
               ack({ success: false, error: 'Invalid rejoin data.' });
@@ -99,11 +115,13 @@ export class GameRoomManager {
             socket.emit(ERROR_EVENT, 'Invalid rejoin data.');
             return;
           }
-          const controller = this.rooms.get(rejoinData.roomId);
+
+          const normalizedRoomId = this.normalizeRoomId(rejoinData.roomId);
+          const controller = this.rooms.get(normalizedRoomId);
           if (controller) {
             controller.publicHandleRejoin(
               socket,
-              rejoinData.roomId,
+              normalizedRoomId,
               rejoinData.playerId,
               ack
             );
@@ -142,7 +160,9 @@ export class GameRoomManager {
     );
 
     // Use playerData.roomId instead of playerData.id
-    let roomId = playerData.roomId;
+    let roomId = playerData.roomId
+      ? this.normalizeRoomId(playerData.roomId)
+      : undefined;
     let controller: GameController | undefined;
 
     if (roomId) {
@@ -163,7 +183,7 @@ export class GameRoomManager {
     }
 
     if (!controller) {
-      roomId = uuidv4().slice(0, 6);
+      roomId = this.generateRoomId();
       console.log(
         `[SERVER] Creating new room ${roomId} for JOIN_GAME from ${socket.id}`
       );
@@ -178,6 +198,18 @@ export class GameRoomManager {
       `[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`
     );
     controller.publicHandleJoin(socket, joinData, ack);
+  }
+
+  private normalizeRoomId(roomId: string): string {
+    return roomId.trim().toUpperCase();
+  }
+
+  private generateRoomId(): string {
+    let roomId = '';
+    do {
+      roomId = uuidv4().replace(/-/g, '').slice(0, 6).toUpperCase();
+    } while (this.rooms.has(roomId));
+    return roomId;
   }
 }
 
@@ -363,21 +395,34 @@ export default class GameController {
       response: { roomId: string; playerId: string } | { error: string }
     ) => void
   ): void {
-    // --- Payload validation ---
+    const isHostJoining = this.players.size === 0;
+
+    // --- Payload validation (always require a name) ---
     if (
       typeof playerData.playerName !== 'string' ||
-      !playerData.playerName.trim() ||
-      typeof playerData.numHumans !== 'number' ||
-      typeof playerData.numCPUs !== 'number' ||
-      playerData.numHumans < 1 ||
-      playerData.numCPUs < 0 ||
-      playerData.numHumans + playerData.numCPUs < 2 ||
-      playerData.numHumans + playerData.numCPUs > this.gameState.maxPlayers
+      !playerData.playerName.trim()
     ) {
       if (typeof ack === 'function') {
-        ack({ error: 'Invalid join payload: check name and player counts.' });
+        ack({ error: 'Invalid join payload: please provide a name.' });
       }
       return;
+    }
+
+    // --- Only validate player counts for the host creating a room ---
+    if (isHostJoining) {
+      if (
+        typeof playerData.numHumans !== 'number' ||
+        typeof playerData.numCPUs !== 'number' ||
+        playerData.numHumans < 1 ||
+        playerData.numCPUs < 0 ||
+        playerData.numHumans + playerData.numCPUs < 2 ||
+        playerData.numHumans + playerData.numCPUs > this.gameState.maxPlayers
+      ) {
+        if (typeof ack === 'function') {
+          ack({ error: 'Invalid join payload: check name and player counts.' });
+        }
+        return;
+      }
     }
 
     // console.log('[SERVER] handleJoin: playerData', playerData);
@@ -434,6 +479,21 @@ export default class GameController {
       }
       return;
     }
+
+    if (!isHostJoining) {
+      const currentHumanCount = Array.from(this.players.values()).filter(
+        (p: Player) => !p.isComputer
+      ).length;
+      if (currentHumanCount >= this.expectedHumanCount) {
+        this.log(
+          `Room '${this.roomId}' already has ${currentHumanCount} human players (expected ${this.expectedHumanCount}). Rejecting join for ${name}.`
+        );
+        if (typeof ack === 'function') {
+          ack({ error: 'Room is full.' });
+        }
+        return;
+      }
+    }
     if (this.players.size >= this.gameState.maxPlayers) {
       this.log(
         `Game room is full. Player '${name}' cannot join. Emitting ERROR_EVENT.`
@@ -470,17 +530,6 @@ export default class GameController {
     this.players.set(id, player);
     this.socketIdToPlayerId.set(socket.id, id);
 
-    // Update expected player counts for the host only
-    if (this.players.size === 1) {
-      // If host specifies numHumans, use that value
-      this.expectedHumanCount = playerData.numHumans ?? 1;
-      this.expectedCpuCount = playerData.numCPUs ?? 0;
-
-      this.log(
-        `Host set expected players: ${this.expectedHumanCount} humans, ${this.expectedCpuCount} CPUs`
-      );
-    }
-
     socket.join(this.roomId);
     this.log(
       `Player '${name}' (Socket ID: ${socket.id}) joined room '${this.roomId}'. Emitting JOINED.`
@@ -499,19 +548,6 @@ export default class GameController {
       console.log(`[SERVER] Calling JOIN_GAME ack for socket ${socket.id}`);
       ack({ roomId: this.roomId, playerId: player.id });
     }
-
-    // --- After adding the player, update lobby ---
-    const currentLobbyPlayers = this.getLobbyPlayerList();
-    this.log(
-      `Emitting PLAYER_JOINED and LOBBY to room '${this.roomId}'. Players:`,
-      currentLobbyPlayers
-    );
-    this.io.to(this.roomId).emit(PLAYER_JOINED, currentLobbyPlayers);
-    this.io.to(this.roomId).emit(LOBBY, {
-      roomId: this.roomId,
-      players: currentLobbyPlayers,
-      maxPlayers: this.gameState.maxPlayers,
-    });
 
     // Keep the in-session lobby modal in sync for all players.
     this.pushLobbyState();
@@ -1090,6 +1126,33 @@ export default class GameController {
     if (playerId) {
       const player = this.players.get(playerId);
       if (player) {
+        if (!this.gameState.started) {
+          this.socketIdToPlayerId.delete(socket.id);
+          this.players.delete(playerId);
+          this.gameState.removePlayer(playerId);
+
+          if (this.hostId === playerId) {
+            this.hostId = null;
+            const nextHost = Array.from(this.players.values()).find(
+              (p: Player) => !p.disconnected
+            );
+            if (nextHost) {
+              this.hostId = nextHost.id;
+              nextHost.status = 'host';
+            }
+          }
+
+          this.players.forEach((p) => {
+            if (p.id !== this.hostId && p.status === 'host') {
+              p.status = 'joined';
+            }
+          });
+
+          this.pushState();
+          this.pushLobbyState();
+          return;
+        }
+
         player.disconnected = true;
         this.socketIdToPlayerId.delete(socket.id);
 

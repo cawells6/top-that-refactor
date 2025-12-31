@@ -30,9 +30,16 @@ export function validateName(): string | null {
 
 export function showToast(
   message: string,
-  type: 'success' | 'error' = 'success'
+  type: 'success' | 'error' | 'info' = 'success'
 ) {
   // Simple toast implementation
+  const backgroundByType = {
+    success: '#28a745',
+    error: '#dc3545',
+    info: '#1f7a6d',
+  } as const;
+  const background = backgroundByType[type] || backgroundByType.success;
+
   const toast = document.createElement('div');
   toast.className = `toast toast--${type}`;
   toast.textContent = message;
@@ -41,7 +48,7 @@ export function showToast(
     bottom: '32px',
     left: '50%',
     transform: 'translateX(-50%)',
-    background: type === 'success' ? '#28a745' : '#dc3545',
+    background,
     color: '#fff',
     padding: '12px 24px',
     borderRadius: '8px',
