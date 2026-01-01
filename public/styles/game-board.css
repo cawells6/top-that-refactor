@@ -19,8 +19,8 @@
         ". top ."
         "left center right"
         "bottom bottom bottom";
-    grid-template-columns: minmax(230px, 0.75fr) minmax(150px, 0.3fr) minmax(230px, 0.75fr);
-    grid-template-rows: minmax(180px, 0.9fr) minmax(150px, auto) minmax(220px, 1fr);
+    grid-template-columns: minmax(230px, 1fr) minmax(150px, 0.2fr) minmax(230px, 1fr);
+    grid-template-rows: minmax(180px, 0.5fr) minmax(150px, 1fr) minmax(220px, 0.5fr);
     gap: clamp(0.3rem, 0.6vw, 0.7rem);
     width: calc(100vw - 32px);
     height: calc(100vh - 32px);
