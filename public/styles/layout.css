@@ -274,8 +274,8 @@ body.showing-game #game-rules-button {
   gap: 0.75rem;
   width: 100%;
   padding: 0.5rem 1rem;
-  background: #103a2a; /* Strong dark green */
-  border-bottom: 2px solid rgba(0,0,0,0.3);
+  background: #192c3a;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.25);
   box-sizing: border-box;
 }
 

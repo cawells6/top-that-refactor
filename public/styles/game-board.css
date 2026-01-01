@@ -19,12 +19,15 @@
         ". top ."
         "left center right"
         "bottom bottom bottom";
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-rows: 1fr auto 1.2fr;
-    gap: 1.5rem;
-    width: 100vw;
-    height: 100vh;
-    padding: 2rem;
+    grid-template-columns: minmax(220px, 0.9fr) minmax(160px, 0.6fr) minmax(220px, 0.9fr);
+    grid-template-rows: minmax(200px, 0.9fr) minmax(160px, auto) minmax(240px, 1.2fr);
+    gap: clamp(0.75rem, 1.2vw, 1.2rem);
+    width: calc(100vw - 32px);
+    height: calc(100vh - 32px);
+    max-width: 100%;
+    max-height: 100%;
+    padding: clamp(0.5rem, 1vw, 1rem);
+    margin: 0 auto;
     box-sizing: border-box;
     position: relative;
 }
@@ -41,11 +44,43 @@
     pointer-events: none;
 }
 
-#opponent-area-top { grid-area: top; display: flex; justify-content: center; }
-#opponent-area-left { grid-area: left; display: flex; align-items: center; }
+#opponent-area-top {
+    grid-area: top;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    justify-self: center;
+    align-self: end;
+    padding: 0;
+}
+#opponent-area-left {
+    grid-area: left;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    justify-self: end;
+    align-self: center;
+    padding: 0;
+}
 #center-area { grid-area: center; display: flex; justify-content: center; align-items: center;}
-#opponent-area-right { grid-area: right; display: flex; align-items: center; }
-#player-area-bottom { grid-area: bottom; }
+#opponent-area-right {
+    grid-area: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    justify-self: start;
+    align-self: center;
+    padding: 0;
+}
+#player-area-bottom {
+    grid-area: bottom;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    justify-self: center;
+    align-self: start;
+    padding: 0;
+}
 
 
 /* Mobile (Portrait) */
@@ -121,7 +156,7 @@ body.showing-game {
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 1px solid rgba(0,0,0,0.2);
+    border: 2px solid rgba(255, 255, 255, 0.75);
     overflow: hidden; /* To contain the full-width header */
 }
 
