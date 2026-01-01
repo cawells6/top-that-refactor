@@ -198,9 +198,90 @@ body.showing-game {
     min-height: calc(var(--card-h, 126px) * 2 + 75px);
 }
 
-.player-header {
+#game-table .player-header {
+    background: rgba(15, 23, 30, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    padding: 6px 16px 6px 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 260px;
+    margin: 0 auto 8px;
+    position: relative;
+    z-index: 10;
+}
+
+#game-table .player-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid #5d6d7e;
+    background: #0f172a;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+}
+
+#game-table .player-avatar img {
     width: 100%;
-    border-radius: 12px 12px 0 0;
+    height: 100%;
+    object-fit: cover;
+}
+
+#game-table .player-meta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+
+#game-table .player-name {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #e2e8f0;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+#game-table .player-tags {
+    display: flex;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+#game-table .tag {
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+#game-table .tag--offline {
+    background: #64748b;
+    color: #ffffff;
+}
+
+#game-table .tag--host {
+    background: #f59e0b;
+    color: #000000;
 }
 
 .player-area > .player-zone,
@@ -214,27 +295,113 @@ body.showing-game {
     padding-bottom: 0.8rem;
 }
 
+#game-table .player-area.active {
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    transform: none;
+}
 
-.player-area.active {
-    box-shadow: 0 0 20px gold, 0 0 10px white;
-    border: 1px solid gold;
-    transform: scale(1.03);
+#game-table .player-area.active .player-header {
+    background: rgba(30, 40, 50, 0.95);
+    transform: scale(1.08);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.7);
+    z-index: 20;
+}
+
+#game-table .player-area.active .player-avatar {
+    border-color: #ffd700;
+    box-shadow:
+        0 0 0 2px rgba(0, 0, 0, 0.5),
+        0 0 15px #ffd700;
+    animation: avatarPulse 2s infinite;
+}
+
+#game-table .player-area.active .player-name {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+#game-table .tag--turn {
+    background: #ffd700;
+    color: #000000;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+@keyframes avatarPulse {
+    0% {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5), 0 0 0 rgba(255, 215, 0, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5), 0 0 0 rgba(255, 215, 0, 0);
+    }
+}
+
+#my-area .player-header {
+    border-bottom: 3px solid #4f46e5;
+}
+
+#game-table .player-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+#game-table .action-button {
+    background: linear-gradient(145deg, #ffd700, #b8860b);
+    border: none;
+    border-radius: 25px;
+    color: #2c1c12;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    padding: 8px 24px;
+    cursor: pointer;
+    box-shadow:
+        0 4px 0 #8b6508,
+        0 8px 10px rgba(0, 0, 0, 0.4);
+    transition: all 0.1s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#game-table .action-button:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #8b6508, inset 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+#game-table .action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+#game-table .action-button--take {
+    background: linear-gradient(145deg, #ff6b6b, #c0392b);
+    color: #ffffff;
+    box-shadow: 0 4px 0 #8e2315, 0 8px 10px rgba(0, 0, 0, 0.4);
+}
+
+#game-table .action-button--take:active {
+    box-shadow: 0 0 0 #8e2315, inset 0 2px 5px rgba(0, 0, 0, 0.4);
 }
 
 /* Center pile */
 /* --- 2. THE CENTER TRAY (Wooden Inlay) --- */
 .center-piles {
     grid-area: center;
-    background: linear-gradient(180deg, #3a2616 0%, #26170e 100%);
+    background: linear-gradient(180deg, #5d4037 0%, #3e2723 100%);
     border-radius: 20px;
     padding: 1.5rem 3rem;
     gap: 4rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow:
-        0 15px 30px rgba(0, 0, 0, 0.5),
+        0 15px 30px rgba(0, 0, 0, 0.6),
         inset 0 2px 5px rgba(0, 0, 0, 0.5);
     position: relative;
     z-index: 5;
