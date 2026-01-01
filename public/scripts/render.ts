@@ -535,6 +535,10 @@ export function renderGameState(
 
     const tableZone = document.createElement('div');
     tableZone.className = 'player-zone player-zone--table';
+
+    const tabledWrapper = document.createElement('div');
+    tabledWrapper.className = 'card-zone--tabled';
+
     const tableLabel = document.createElement('div');
     tableLabel.className = 'zone-label';
     tableLabel.textContent = 'Up / Down';
@@ -599,7 +603,8 @@ export function renderGameState(
       }
     }
 
-    tableZone.append(tableLabel, stackRow);
+    tabledWrapper.append(tableLabel, stackRow);
+    tableZone.appendChild(tabledWrapper);
     panel.appendChild(tableZone);
 
     let slotTarget: HTMLElement | null = null;

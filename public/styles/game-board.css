@@ -352,6 +352,7 @@ body.showing-game {
     flex-direction: column;
     gap: 0.5rem;
     min-height: 150px; /* To give it some dimension */
+    padding-bottom: 2rem; /* Add space inside the element */
 }
 
 .card-zone--face-down, .card-zone--face-up {
