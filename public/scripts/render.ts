@@ -633,6 +633,9 @@ export function renderGameState(
     const deckSize = gameState.deckSize ?? 0;
     const deckStack = document.createElement('div');
     deckStack.className = 'pile-cards deck-stack';
+    if (deckSize > 40) deckStack.classList.add('deck-full');
+    else if (deckSize > 20) deckStack.classList.add('deck-half');
+    else if (deckSize > 0) deckStack.classList.add('deck-low');
     if (deckSize > 0) {
       const deckBack: CardType = { back: true, value: 'A', suit: 'spades' };
       const deckCard = cardImg(deckBack, false);
@@ -661,6 +664,9 @@ export function renderGameState(
     const pile = gameState.pile ?? [];
     const playStack = document.createElement('div');
     playStack.className = 'pile-cards play-stack';
+    if (pile.length > 1) {
+      playStack.classList.add('pile-multiple');
+    }
     if (pile.length > 0) {
       const playCard = cardImg(pile[pile.length - 1], false);
       playCard.id = 'pile-top-card';
