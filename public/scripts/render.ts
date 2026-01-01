@@ -643,14 +643,16 @@ export function renderGameState(
       placeholder.className = 'pile-placeholder';
       deckStack.appendChild(placeholder);
     }
-    const deckLabel = document.createElement('div');
-    deckLabel.className = 'pile-card-label';
-    deckLabel.textContent = 'Deck';
-    const deckBadge = document.createElement('div');
-    deckBadge.className = 'pile-count-badge';
-    deckBadge.textContent = String(deckSize);
-    deckStack.append(deckLabel, deckBadge);
-    deckContainer.appendChild(deckStack);
+    const deckNameplate = document.createElement('div');
+    deckNameplate.className = 'pile-nameplate';
+    const deckName = document.createElement('span');
+    deckName.className = 'pile-name';
+    deckName.textContent = 'Deck';
+    const deckCount = document.createElement('span');
+    deckCount.className = 'pile-count';
+    deckCount.textContent = String(deckSize);
+    deckNameplate.append(deckName, deckCount);
+    deckContainer.append(deckNameplate, deckStack);
 
     const playContainer = document.createElement('div');
     playContainer.className = 'pile-group pile-group--discard';
@@ -668,14 +670,16 @@ export function renderGameState(
       placeholder.className = 'pile-placeholder';
       playStack.appendChild(placeholder);
     }
-    const playLabel = document.createElement('div');
-    playLabel.className = 'pile-card-label';
-    playLabel.textContent = 'Discard';
-    const playBadge = document.createElement('div');
-    playBadge.className = 'pile-count-badge';
-    playBadge.textContent = String(pile.length);
-    playStack.append(playLabel, playBadge);
-    playContainer.appendChild(playStack);
+    const playNameplate = document.createElement('div');
+    playNameplate.className = 'pile-nameplate';
+    const playName = document.createElement('span');
+    playName.className = 'pile-name';
+    playName.textContent = 'Discard';
+    const playCount = document.createElement('span');
+    playCount.className = 'pile-count';
+    playCount.textContent = String(pile.length);
+    playNameplate.append(playName, playCount);
+    playContainer.append(playNameplate, playStack);
 
     if (gameState.discardCount > 0) {
       const burned = document.createElement('div');
