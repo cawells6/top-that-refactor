@@ -34,6 +34,8 @@
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/styles/modals.css" />
     <link rel="stylesheet" href="/styles/lobby.css" />
+    <link rel="stylesheet" href="/styles/game-board.css" />
+    <link rel="stylesheet" href="/styles/common.css" />
     <!-- Rules card styling overrides disabled until icon layout returns -->
     <!-- Header button styles are now in style.css -->
 
@@ -41,7 +43,7 @@
     <script type="module" src="/scripts/main.ts"></script>
 
     <!-- Fixed card loader for improved card rendering -->
-    <script type="module" src="/scripts/fixed-card-loader.js"></script>
+    <!-- <script type="module" src="/scripts/fixed-card-loader.js"></script> -->
 
     <!-- DISABLED SCRIPTS -->
     <!-- <script type="module" src="/scripts/rules-cards.ts"></script> -->
@@ -49,7 +51,7 @@
     <!-- <script src="/scripts/trigger-cards-update.js"></script> -->
 
     <!-- Icon viewer for fullsize icon display -->
-    <script src="/scripts/icon-viewer.js"></script>
+    <!-- <script src="/scripts/icon-viewer.js"></script> -->
 
     <!-- Diagnostic and troubleshooting tools -->
 
@@ -263,8 +265,16 @@
       </div>
       </main>
     </div>
-    
-    <section class="game-log game-log--hidden" id="game-log"></section>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <div id="game-over-modal" class="modal modal--hidden">
+        <div class="modal-content">
+            <h2 id="game-over-title"></h2>
+            <p id="game-over-message"></p>
+            <button id="play-again-button">Play Again</button>
+        </div>
+    </div>
 
     <div
       class="modal modal--hidden"

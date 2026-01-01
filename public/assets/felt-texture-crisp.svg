@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <defs>
+    <filter id="crisp-noise" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence baseFrequency="0.6" numOctaves="3" stitchTiles="stitch" type="fractalNoise" result="turbulence"/>
+      <feColorMatrix type="saturate" values="0" in="turbulence" result="grayscale"/>
+      <feComponentTransfer in="grayscale" result="noise">
+        <feFuncA type="table" tableValues="0 0.15 0"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="noise" mode="multiply" />
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="#1A523A"/>
+  <rect width="100%" height="100%" filter="url(#crisp-noise)"/>
+</svg>

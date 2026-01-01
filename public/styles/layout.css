@@ -76,18 +76,23 @@
   --panel-border: rgba(27, 46, 60, 0.3);
 }
 
-body.showing-game {
-  background: var(--bg);
+body:not(.showing-game) #game-table,
+body.showing-game #lobby-container {
+  display: none;
+}
+
+body.showing-game #game-table,
+body:not(.showing-game) #lobby-container {
+  display: flex;
 }
 
 #game-table {
   text-transform: none;
   font-family: var(--game-font, 'Space Grotesk', sans-serif);
-  background: var(--bg);
   position: relative;
   width: 100%;
   height: 100%;
-  display: flex;
+  /* display is now handled by body classes */
   align-items: center;
   justify-content: center;
 }
@@ -101,23 +106,21 @@ body.showing-game {
 
 #game-rules-button {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  display: none;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.9rem;
-  border-radius: 999px;
+  top: 20px;
+  left: 20px;
+  background: #c7c7c7;
+  color: #1b2e3c !important;
   border: none;
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
-  z-index: 6;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  z-index: 10;
 }
 
 body.showing-game #game-rules-button {
@@ -125,7 +128,9 @@ body.showing-game #game-rules-button {
 }
 
 #game-rules-button:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: #d6d6d6;
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
 }
 
 .table {
@@ -134,19 +139,18 @@ body.showing-game #game-rules-button {
     "left center right"
     "bottom bottom bottom";
   grid-template-columns:
-    minmax(200px, 1fr)
-    minmax(140px, 0.55fr)
-    minmax(200px, 1fr);
+    minmax(250px, 1fr)
+    minmax(200px, auto)
+    minmax(250px, 1fr);
   grid-template-rows:
-    minmax(180px, 1fr)
-    minmax(200px, 1.2fr)
-    auto;
-  gap: clamp(2px, 0.7vw, 6px);
-  width: min(90vw, 1180px);
-  height: min(90vh, 800px);
-  padding: clamp(4px, 0.8vw, 8px);
+    minmax(220px, 1fr)
+    minmax(220px, auto)
+    minmax(280px, 1.2fr);
+  gap: clamp(4px, 0.5vw, 8px);
+  width: min(98vw, 1600px);
+  height: 98vh;
+  padding: clamp(8px, 1vw, 12px);
   border-radius: 24px;
-  background: var(--bg);
   border: 2px solid rgba(0, 0, 0, 0.35);
   box-shadow:
     0 16px 32px rgba(0, 0, 0, 0.25),
@@ -266,25 +270,26 @@ body.showing-game #game-rules-button {
 .player-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.35rem 0.6rem;
-  border-radius: 14px;
-  background: rgba(27, 46, 60, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.5rem 1rem;
+  background: #103a2a; /* Strong dark green */
+  border-bottom: 2px solid rgba(0,0,0,0.3);
+  box-sizing: border-box;
 }
 
 .player-ident {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  flex-grow: 1; /* Allow ident to take up space */
 }
 
 .player-avatar {
   width: 44px;
   height: 44px;
-  border-radius: 14px;
+  border-radius: 50%; /* Circular avatar */
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
@@ -393,13 +398,7 @@ body.showing-game #game-rules-button {
 }
 
 .zone-label {
-  font-family: 'Luckiest Guy', system-ui, sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--logo-yellow, #ffc300);
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
-  pointer-events: none;
+  display: none;
 }
 
 .player-zone--hand .zone-label {
@@ -624,15 +623,19 @@ body.showing-game #game-rules-button {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 0.2rem 0.6rem;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .pile-title {
-  font-family: 'Luckiest Guy', system-ui, sans-serif;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
+  font-family: var(--game-font, 'Space Grotesk', sans-serif);
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--logo-yellow, #ffc300);
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+  color: #fff;
+  text-shadow: none;
 }
 
 .pile-badge {

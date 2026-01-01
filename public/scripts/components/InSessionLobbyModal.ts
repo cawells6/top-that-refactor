@@ -2,6 +2,7 @@
 import { LOBBY_STATE_UPDATE, PLAYER_READY } from '@shared/events.ts';
 import { InSessionLobbyState } from '@shared/types.ts';
 
+import { renderGameState } from '../render.js';
 import * as state from '../state.js';
 import { showToast } from '../uiHelpers.js';
 import * as uiManager from '../uiManager.js';
@@ -74,6 +75,7 @@ export class InSessionLobbyModal {
         console.log('[InSessionLobbyModal] Game started, calling showGameTable()');
         uiManager.showGameTable();
         this.hideModal();
+        // Rendering is now handled by the STATE_UPDATE event
       } else if (shouldShowModal) {
         console.log('[InSessionLobbyModal] Game not started, showing modal');
         uiManager.hideElement(uiManager.getLobbyContainer());

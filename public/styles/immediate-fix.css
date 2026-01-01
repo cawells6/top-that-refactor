@@ -12,23 +12,7 @@
  * It will be loaded very early to prevent any positioning shifts.
  */
 
-/* Fix the lobby modal positioning to ensure it's centered from the beginning */
-#lobby-container {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  z-index: 1000 !important;
-}
+/* This rule has been removed as it was preventing the lobby from being hidden */
 
 /* Ensure the lobby modal container is centered from the first render */
 .lobby-modal-container {

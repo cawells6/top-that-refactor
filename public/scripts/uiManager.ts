@@ -10,7 +10,7 @@ export const getWaitingStateDiv = (): HTMLElement | null =>
   document.getElementById('waiting-state');
 
 export const getGameTable = (): HTMLElement | null =>
-  document.getElementById('game-table'); // Corrected getter
+  document.getElementById('game-table');
 
 export const getPlayerAreaBottom = (): HTMLElement | null =>
   document.getElementById('player-area-bottom');
@@ -51,7 +51,6 @@ export function showLobbyForm(): void {
   const waitingStateDiv = getWaitingStateDiv();
   const table = getGameTable();
   const inSessionModal = document.getElementById('in-session-lobby-modal');
-  const mainContent = document.getElementById('main-content');
   const body = document.body;
 
   if (!lobbyContainer) {
@@ -64,10 +63,6 @@ export function showLobbyForm(): void {
   body.classList.add('showing-lobby');
   body.classList.remove('showing-game');
 
-  // Let the layout-stabilizer.js handle the transition
-  // We only need to manage content visibility here
-
-  // Update internal UI states
   lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
   if (waitingStateDiv) waitingStateDiv.classList.add('hidden');
@@ -76,22 +71,13 @@ export function showLobbyForm(): void {
     inSessionModal.classList.add('modal--hidden');
     inSessionModal.classList.add('hidden');
   }
-
-  // Optional: Update any class on main content if needed
-  if (mainContent) {
-    mainContent.classList.remove('game-active');
-  }
 }
 
 export function hideLobbyForm(): void {
   const lobbyContainer = getLobbyContainer();
-  const lobbyFormContent = getLobbyFormContent();
-
   if (lobbyContainer) {
-    lobbyContainer.classList.add('hidden');
-    lobbyContainer.classList.remove('lobby-fixed');
+    lobbyContainer.classList.add('hidden'); // Legacy support, might not be needed
   }
-  if (lobbyFormContent) lobbyFormContent.classList.add('hidden');
 }
 
 export function showWaitingState(
@@ -100,14 +86,11 @@ export function showWaitingState(
   _maxPlayers: number,
   _players: { id: string; name: string; ready?: boolean; status?: string }[]
 ): void {
-  // This function is now deprecated. All waiting/in-session info is handled by the in-session lobby modal.
-  // No-op for now.
+  // This function is now deprecated.
 }
 
 export function showGameTable(): void {
-  // Additional UI updates
   const table = getGameTable();
-  const mainContent = document.getElementById('main-content');
   const lobbyContainer = getLobbyContainer();
   const inSessionModal = document.getElementById('in-session-lobby-modal');
   const rulesModal = getRulesModal();
@@ -122,33 +105,19 @@ export function showGameTable(): void {
   body.classList.remove('showing-lobby');
   body.classList.add('showing-game');
 
-  // Hide the lobby container
   if (lobbyContainer) {
     lobbyContainer.classList.add('hidden');
   }
-
-  // Hide the in-session lobby modal if visible
   if (inSessionModal) {
     inSessionModal.classList.add('modal--hidden');
     inSessionModal.classList.add('hidden');
   }
-
-  if (rulesModal) {
-    rulesModal.classList.add('modal--hidden');
-  }
-  if (overlay) {
-    overlay.classList.add('modal__overlay--hidden');
-  }
+  if (rulesModal) rulesModal.classList.add('modal--hidden');
+  if (overlay) overlay.classList.add('modal__overlay--hidden');
   body.classList.remove('rules-modal-open');
   document.documentElement.classList.remove('rules-modal-open');
 
-  // Show the game table
   table.classList.remove('hidden');
-
-  // Add game-active class to main content if needed
-  if (mainContent) {
-    mainContent.classList.add('game-active');
-  }
 }
 
 export function showError(msg: string): void {
@@ -160,11 +129,7 @@ export function showError(msg: string): void {
  */
 export function hideElement(el: HTMLElement | null): void {
   if (!el) return;
-  if ('classList' in el) {
-    el.classList.add('hidden');
-  } else {
-    (el as any).style.display = 'none';
-  }
+  el.classList.add('hidden');
 }
 
 /**
@@ -172,9 +137,5 @@ export function hideElement(el: HTMLElement | null): void {
  */
 export function showElement(el: HTMLElement | null): void {
   if (!el) return;
-  if ('classList' in el) {
-    el.classList.remove('hidden');
-  } else {
-    (el as any).style.display = '';
-  }
+  el.classList.remove('hidden');
 }
