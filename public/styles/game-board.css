@@ -20,7 +20,7 @@
         "left center right"
         "bottom bottom bottom";
     grid-template-columns: minmax(230px, 1fr) minmax(150px, 0.2fr) minmax(230px, 1fr);
-    grid-template-rows: minmax(180px, 0.5fr) minmax(150px, 1fr) minmax(220px, 0.5fr);
+    grid-template-rows: minmax(90px, 0.2fr) minmax(150px, 1fr) minmax(90px, 0.2fr);
     gap: clamp(0.3rem, 0.6vw, 0.7rem);
     width: calc(100vw - 32px);
     height: calc(100vh - 32px);
@@ -151,7 +151,7 @@ body.showing-game {
     background-color: transparent;
     border-radius: 15px;
     padding: 0;
-    min-height: calc(var(--card-h, 126px) * 2 + 120px);
+    min-height: calc(var(--card-h, 126px) * 2 + 60px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     transition: all 0.3s ease;
     display: flex;
@@ -162,7 +162,7 @@ body.showing-game {
 }
 
 #player-area-bottom .player-area {
-    min-height: calc(var(--card-h, 126px) * 2 + 150px);
+    min-height: calc(var(--card-h, 126px) * 2 + 75px);
 }
 
 .player-header {
