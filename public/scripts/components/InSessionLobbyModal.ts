@@ -65,7 +65,9 @@ export class InSessionLobbyModal {
       const expectedHumans =
         typeof lobbyState.expectedHumanCount === 'number'
           ? lobbyState.expectedHumanCount
-          : lobbyState.players.filter((player) => !player.isComputer).length;
+          : lobbyState.players.filter(
+              (player) => !player.isComputer && !player.isSpectator
+            ).length;
       const shouldShowModal = expectedHumans > 1;
 
       if (lobbyState.started) {
@@ -84,6 +86,8 @@ export class InSessionLobbyModal {
     state.socket.on('disconnect', () => {
       console.warn('[InSessionLobbyModal] Socket disconnected');
       uiManager.showError('Connection lost. Please refresh.');
+      this.readyUpButton.disabled = true;
+      this.guestNameInput.disabled = true;
     });
   }
 
@@ -108,6 +112,10 @@ export class InSessionLobbyModal {
   private readyUp(): void {
     const playerName = this.guestNameInput.value.trim();
     if (playerName) {
+      if (state.socket?.connected === false) {
+        showToast('Not connected to server. Please try again.', 'error');
+        return;
+      }
       if (this.readyUpButton.disabled) return; // Prevent double emit
       console.log('[CLIENT] Emitting PLAYER_READY with', playerName);
       state.socket?.emit(PLAYER_READY, playerName);
@@ -160,8 +168,17 @@ export class InSessionLobbyModal {
       const playerEl = document.createElement('div');
       playerEl.className = 'player-item';
       playerEl.setAttribute('role', 'listitem');
-      playerEl.textContent =
-        player.name + (player.id === state.myId ? ' (You)' : '');
+      const label = player.name + (player.id === state.myId ? ' (You)' : '');
+      playerEl.textContent = label;
+
+      if (player.isSpectator) {
+        playerEl.classList.add('spectator');
+        const spectatorBadge = document.createElement('span');
+        spectatorBadge.textContent = 'Spectator';
+        spectatorBadge.className = 'spectator-badge';
+        spectatorBadge.setAttribute('aria-label', 'Spectator');
+        playerEl.appendChild(spectatorBadge);
+      }
 
       if (player.id === lobbyState.hostId) {
         const hostBadge = document.createElement('span');
@@ -181,7 +198,9 @@ export class InSessionLobbyModal {
 
     if (
       localPlayer &&
-      (localPlayer.status === 'host' || localPlayer.status === 'ready')
+      (localPlayer.status === 'host' ||
+        localPlayer.status === 'ready' ||
+        localPlayer.isSpectator)
     ) {
       this.guestNameInput.style.display = 'none';
       this.readyUpButton.style.display = 'none';

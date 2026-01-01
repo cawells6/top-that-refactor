@@ -5,7 +5,19 @@
 // Minimal smoke test: connects to the server, joins a game, and starts a game.
 import fs from 'fs';
 import process from 'process';
+import { createRequire } from 'module';
 import { io } from 'socket.io-client';
+
+const require = createRequire(import.meta.url);
+require('ts-node/register/transpile-only');
+const {
+  JOIN_GAME,
+  JOINED,
+  START_GAME,
+  LOBBY_STATE_UPDATE,
+  STATE_UPDATE,
+  ERROR,
+} = require('../src/shared/events.ts');
 
 let port = '3000';
 try {
@@ -19,20 +31,20 @@ const socket = io(SERVER_URL, { transports: ['websocket'] });
 socket.on('connect', () => {
   console.log('[SMOKE] Connected to server as', socket.id);
   // Attempt to join a game
-  socket.emit('join-game', { name: 'SmokeTest', numHumans: 1, numCPUs: 1 });
+  socket.emit(JOIN_GAME, { name: 'SmokeTest', numHumans: 1, numCPUs: 1 });
 });
 
-socket.on('joined', (data) => {
+socket.on(JOINED, (data) => {
   console.log('[SMOKE] Joined game:', data);
   // Start the game after joining
-  socket.emit('start-game', { computerCount: 1 });
+  socket.emit(START_GAME, { computerCount: 1 });
 });
 
-socket.on('lobby', (data) => {
+socket.on(LOBBY_STATE_UPDATE, (data) => {
   console.log('[SMOKE] Lobby state:', data);
 });
 
-socket.on('state-update', (data) => {
+socket.on(STATE_UPDATE, (data) => {
   console.log('[SMOKE] State update:', data);
   // Optionally disconnect after receiving first state update
   socket.disconnect();
@@ -45,7 +57,7 @@ socket.on('disconnect', () => {
   }
 });
 
-socket.on('err', (msg) => {
+socket.on(ERROR, (msg) => {
   console.error('[SMOKE] Server error:', msg);
   process.exit(1);
 });

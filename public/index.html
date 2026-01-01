@@ -26,7 +26,7 @@
     <!-- <script src="/scripts/initial-layout-stabilizer.js"></script> -->
 
     <!-- Google Fonts for logo-style section titles and rules typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Source+Sans+3:wght@500;600;700&family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Luckiest+Guy&family=Source+Sans+3:wght@500;600;700&family=Source+Serif+4:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" as="image" href="/assets/Player.svg">
     <link rel="preload" as="image" href="/assets/robot.svg">
 
@@ -77,6 +77,7 @@
     <!-- <div class="notice notice--hidden" id="notice-banner"></div> -->
     <!-- <div class="notice notice--hidden" id="error-banner"></div> -->
     <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
+    <div class="spectator-banner">Spectator Mode</div>
     
     <div class="game-viewport">
       <main class="main-content" id="main-content">
@@ -99,10 +100,13 @@
             <form id="lobby-form" autocomplete="off">
               <!-- Player Name Input -->
               <div class="name-input-section">
+                <label class="section-title section-title--input" for="player-name-input">
+                  WHO'S PLAYING TODAY?
+                </label>
                 <input
                   type="text"
                   id="player-name-input"
-                  placeholder="WHO'S PLAYING TODAY?"
+                  placeholder=""
                   maxlength="20"
                   required
                 />
@@ -247,8 +251,9 @@
       </div>
 
       <!-- Game Table -->
-      <div id="game-table" class="hidden table--hidden" style="width: 100%; height: 100%">
-        <div class="table" style="width: 100%; height: 100%">
+      <div id="game-table" class="hidden table--hidden">
+        <button id="game-rules-button" type="button">Rules</button>
+        <div class="table">
           <div class="table-slot-top" id="opponent-area-top"></div>
           <div class="table-slot-left" id="opponent-area-left"></div>
           <div class="table-center" id="center-area"></div>
@@ -277,136 +282,117 @@
               <button id="expand-collapse-all-btn" class="btn expand-btn">Expand All</button>
             </div>
             <details class="rules-section">
-              <summary class="rules-summary"><h3>Getting Started</h3></summary>
+              <summary class="rules-summary"><h3>The Goal</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>The first player to play all of their cards wins the game!</li>
+                </ul>
+              </div>
+            </details>
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>Setup</h3></summary>
               <div class="rules-details-content">
                 <ul>
                   <li>
-                    <strong>Setup:</strong>
-                    <span>Deal 9 cards per player:</span>
+                    <strong>Deal 9 cards to each player:</strong>
                     <ul>
-                      <li>3 Face-Down: Place in a row. (Do not look at these).</li>
-                      <li>3 Face-Up: Place on top of the face-down cards.</li>
-                      <li>3 Hand Cards: Deal to your hand.</li>
+                      <li>3 Face-Down Cards: Place in a row. (No looking!)</li>
+                      <li>3 Face-Up Cards: Place on top of the Face-Down Cards.</li>
+                      <li>3 Hand Cards: Deal into the player's hand.</li>
                     </ul>
                   </li>
                   <li>
-                    <strong>Start the game:</strong>
+                    <strong>Start the Game:</strong>
                     <ul>
-                      <li>Place the remaining deck in the center (draw pile).</li>
-                      <li>Flip the top card to start the play pile.</li>
+                      <li>Place the remaining deck in the center to create the Draw Pile.</li>
+                      <li>Flip the top card to start the Play Pile.</li>
                     </ul>
                   </li>
                 </ul>
               </div>
             </details>
             <details class="rules-section">
-              <summary class="rules-summary"><h3>Playing Your Turn</h3></summary>
+              <summary class="rules-summary"><h3>How to Play Your Turn</h3></summary>
               <div class="rules-details-content">
                 <ul>
                   <li>
-                    <strong>Basic Actions:</strong>
+                    <strong>Step A: Try to Play a Card</strong>
                     <ul>
-                      <li>Play a card from your hand that is higher than the current top card on the pile.</li>
-                      <li>Multiples: You may play multiple copies of the same rank (e.g., three Jacks).</li>
-                      <li>Refill Hand: If the draw pile has cards, you must have 3 cards in your hand. If you have fewer than 3, draw until you are back to 3.</li>
+                      <li>You must play a card from your hand that is strictly higher in value than the top card on the Play Pile.</li>
+                      <li>No Ties: You cannot play a card of equal value (e.g., a 6 cannot go on a 6).</li>
+                      <li>Multiples: You may play multiple copies of the same rank (e.g., three Jacks), as long as they beat the top card.</li>
+                      <li>Refill: If the Draw Pile has cards, you must keep 3 cards in your hand. Draw immediately if you drop below 3.</li>
                     </ul>
                   </li>
                   <li>
-                    <strong>Card Progression:</strong>
-                    <span>You must clear your cards in this specific order:</span>
+                    <strong>Step B: Can't Play? (The "Stuck" Rule)</strong>
                     <ul>
-                      <li>Hand Cards: Play these until the draw pile is gone and your hand is empty.</li>
-                      <li>Face-Up Cards: Unlocked only when your hand is empty.</li>
-                      <li>Face-Down Cards: Unlocked only when all your face-up cards are gone.</li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>Stuck?:</strong>
-                    <ul>
-                      <li>If you cannot play a card (or beat the top card), you must pick up the play pile.</li>
-                      <li>If you pick up the pile while playing Face-Up or Face-Down cards, you must clear your hand again before you can go back to the table cards.</li>
+                      <li>Pick Up: You must pick up the entire Play Pile and add it to your hand.</li>
+                      <li>End Turn: Your turn is over. The next player goes.</li>
+                      <li>Backtracking: If you pick up while playing Face-Up or Face-Down Cards, you must clear your hand again before returning to the table cards.</li>
                     </ul>
                   </li>
                 </ul>
               </div>
             </details>
             <details class="rules-section">
-              <summary class="rules-summary"><h3>Special Cards</h3></summary>
+              <summary class="rules-summary"><h3>Special Cards (Power Plays)</h3></summary>
               <div class="rules-details-content">
-                <p class="rules-lead">These cards break the standard rules.</p>
+                <p class="rules-lead">These cards break the standard rules and can be played on any card.</p>
                 <ul>
                   <li>
                     <strong>2 (Reset):</strong>
                     <ul>
-                      <li>Play on anything. It resets the pile's value to 2.</li>
+                      <li>Resets the Play Pile value to 2. It is the lowest card, making it easy for the next player to beat.</li>
                     </ul>
                   </li>
                   <li>
                     <strong>5 (Copycat):</strong>
                     <ul>
-                      <li>Becomes the value of the card below it.</li>
+                      <li>Copies the last real card under it. If it copies a 2 or 10, it triggers that effect.</li>
+                      <li>If a 5 is the starter card (no card beneath), it plays as a normal 5.</li>
                     </ul>
                   </li>
                   <li>
                     <strong>10 (Burn):</strong>
                     <ul>
-                      <li>Explodes the pile. Remove the pile from the game. The next player can play any card.</li>
+                      <li>Explodes the Play Pile! The pile is removed from the game and does not go to discard.</li>
+                      <li>The next player takes their turn (no extra turn).</li>
                     </ul>
                   </li>
                   <li>
-                    <strong>4-of-a-Kind:</strong>
+                    <strong>4-of-a-Kind (Combo Burn):</strong>
                     <ul>
-                      <li>If four of the same rank are played at a time (e.g., four 6s), the pile explodes just like a 10. The next player can play any card.</li>
+                      <li>If you play 4 of the same rank at once (e.g., four 6s), it explodes the Play Pile just like a 10.</li>
+                      <li>Only counts when played in the same turn.</li>
+                      <li>The next player takes their turn (no extra turn).</li>
                     </ul>
                   </li>
                 </ul>
               </div>
             </details>
             <details class="rules-section">
-              <summary class="rules-summary"><h3>How to Win</h3></summary>
+              <summary class="rules-summary"><h3>Card Progression</h3></summary>
               <div class="rules-details-content">
+                <p class="rules-lead">You must clear your cards in this specific order. You cannot skip ahead!</p>
                 <ul>
                   <li>
-                    <strong>Winning:</strong>
+                    <strong>Hand Cards:</strong>
                     <ul>
-                      <li>The first player to play all of their cards wins the game!</li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-            </details>
-            <details class="rules-section" id="quick-tips-section">
-              <summary class="rules-summary"><h3>Quick Tips & Strategy</h3></summary>
-              <div class="rules-details-content">
-                <ul>
-                  <li>
-                    <strong>Save Special Cards:</strong>
-                    <ul>
-                      <li>Hold onto 2s and 10s for when you're stuck with low cards.</li>
+                      <li>Play these until the Draw Pile is gone and your hand is empty.</li>
                     </ul>
                   </li>
                   <li>
-                    <strong>Multiple Plays:</strong>
+                    <strong>Face-Up Cards:</strong>
                     <ul>
-                      <li>When possible, play multiple cards of the same value to reduce your hand size.</li>
+                      <li>Unlocked only when your hand is empty. Play one face-up card at a time.</li>
                     </ul>
                   </li>
                   <li>
-                    <strong>Watch Opponents:</strong>
+                    <strong>Face-Down Cards:</strong>
                     <ul>
-                      <li>Pay attention to which Face-Up cards others struggle to play.</li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>Face-Down Risk:</strong>
-                    <ul>
-                      <li>Face-Down cards are pure luck - get to them as quickly as possible.</li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>Forced Pickup:</strong>
-                    <ul>
-                      <li>Sometimes forcing an opponent to pick up a large pile is the best strategy.</li>
+                      <li>Unlocked only when your Face-Up Cards are gone. You play these blind good luck!</li>
+                      <li>Play one face-down card at a time.</li>
                     </ul>
                   </li>
                 </ul>
@@ -495,4 +481,5 @@
     </script>
   </body>
 </html>
+
 

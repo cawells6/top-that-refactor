@@ -49,6 +49,8 @@
   --card-text: #222;
   --input-border: #bbb;
   --mute: #888;
+  --game-font: 'Space Grotesk', 'Source Sans 3', sans-serif;
+  --game-display-font: 'Bebas Neue', 'Luckiest Guy', sans-serif;
 
   /* Logo style colors for section titles */
   --logo-yellow: #ffc300;     /* match the site's main accent color */
@@ -73,7 +75,7 @@ html, body {
 body {
   background: var(--bg, #137a4b); /* Ensuring green background for the whole page */
   min-height: 100vh;
-  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  font-family: var(--game-font);
   margin: 0; /* Remove default margin */
   padding: 0; /* Remove default padding */
 }
@@ -889,315 +891,6 @@ body {
   background: #e0ebe8;
 }
 
-/* --- Card Layout for Game Table --- */
-.player-area .hand,
-.player-area .opp-hand,
-.player-area .stack-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: 0.5rem;
-  gap: 5px;
-}
-
-/* Shingling for hand cards */
-.player-area .hand .card-container {
-  display: inline-block;
-  position: relative;
-  margin-right: -25px;
-}
-.player-area .hand .card-container:last-child {
-  margin-right: 0;
-}
-.card-container.selected-container {
-  z-index: 50;
-  margin-right: 5px;
-}
-
-/* Opponent hand shingling (if needed) */
-.player-area .opp-hand .card-container {
-  display: inline-block;
-  position: relative;
-  margin-right: -25px;
-}
-.player-area .opp-hand .card-container:last-child {
-  margin-right: 0;
-}
-
-/* Stacks: up/down pairs are vertical, stacks are horizontal in .stack-row */
-.player-area .stack-row .stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-}
-
-.stack .card-img.down-card {
-  position: absolute !important;
-  top: -20px !important;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-}
-.stack .card-img.up-card {
-  position: absolute !important;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-}
-
-/* --- Restore quadrant layout for player areas --- */
-.table {
-  display: grid;
-  grid-template-areas:
-    'top top top'
-    'left center right'
-    'bottom bottom bottom';
-  grid-template-rows: 1fr 2fr 1fr;
-  grid-template-columns: 1fr 2fr 1fr;
-  gap: 10px;
-  width: 100vw;
-  height: calc(100vh - 80px);
-  background: #137a4b;
-  justify-content: flex-start;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-}
-
-.table-slot {
-  border: 2px solid #fff;
-  border-radius: 12px;
-  min-height: 180px;
-  min-width: 220px;
-  background: rgba(0, 0, 0, 0.08);
-  margin: 10px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
-.table-slot-top {
-  grid-area: top;
-  justify-content: flex-start;
-}
-.table-slot-left {
-  grid-area: left;
-}
-.table-slot-right {
-  grid-area: right;
-}
-.table-slot-bottom {
-  grid-area: bottom;
-}
-.table-center {
-  grid-area: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 120px;
-  min-height: 120px;
-}
-
-/* Game table styles */
-#game-table {
-  width: 100%;
-  height: 100%;
-  position: absolute; /* Keep positioned absolutely */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 1;
-  transition: opacity 0.4s ease; /* Match lobby transition timing */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  will-change: opacity; /* Optimize for animations */
-  transform: translateZ(0); /* Force GPU acceleration */
-}
-
-#game-table.hidden {
-  opacity: 0;
-  pointer-events: none; /* Disable interaction when hidden */
-  visibility: hidden; /* Use visibility for better transitions */
-  transition: opacity 0.4s ease, visibility 0s 0.4s; /* Delay visibility change until after fade */
-}
-
-/* Removed .table--hidden and .lobby--hidden classes */
-/* Transitions now handled directly in the element styles */
-
-.player-area {
-  background: rgba(20, 30, 40, 0.12);
-  border: 2px solid #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  padding: 1.2rem 0.5rem 1.2rem 0.5rem;
-  margin: 0 auto;
-  min-width: 220px;
-  min-height: 180px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-/* --- Hand and Card Layout Fixes --- */
-
-/* CPU hand container styling */
-.cpu-hand-container {
-  display: flex;
-  flex-direction: row;
-  position: relative;
-}
-
-.cpu-hand-container .card-container {
-  margin-left: -20px; /* Use negative margin for overlap */
-}
-
-.cpu-hand-container .card-container:first-child {
-  margin-left: 0; /* No margin on first card */
-}
-
-/* Hand count badge styling */
-.hand-count-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: #ffc300;
-  color: #222;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  border: 2px solid #fff;
-  z-index: 10;
-}
-
-/* Player hand - always show face up */
-.hand {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
-  margin: 8px 0;
-}
-
-/* Opponent hand styling */
-.opp-hand {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  margin: 8px 0;
-  position: relative;
-}
-
-.opp-hand .card-container {
-  margin-left: -20px; /* Use negative margin for overlap */
-}
-
-.opp-hand .card-container:first-child {
-  margin-left: 0; /* No margin on first card */
-}
-
-/* Stack row for up/down cards */
-.stack-row {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  justify-content: center;
-  align-items: flex-start;
-  margin: 8px 0;
-}
-
-.stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  width: var(--card-w, 60px);
-  height: var(--card-h, 84px);
-}
-
-.stack .card-img.down-card {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-}
-
-.stack .card-img.up-card {
-  position: absolute;
-  top: 10px;
-  left: 0;
-  z-index: 2;
-}
-
-/* --- Center Area Styling --- */
-.center-piles-wrapper {
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-  align-items: center;
-  justify-content: center;
-}
-
-.center-pile-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.deck-placeholder-outline,
-.discard-placeholder-outline {
-  width: var(--card-w, 60px);
-  height: var(--card-h, 84px);
-  border: 3px dashed #fff;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.pile-label {
-  color: #fff;
-  font-weight: bold;
-  font-size: 12px;
-  text-align: center;
-  transform: rotate(-45deg);
-}
-
-/* Player area adjustments for better card spacing */
-.player-area {
-  min-width: 220px !important;
-  min-height: 180px !important;
-  padding: 12px !important;
-  gap: 12px !important;
-}
-
-/* Player name header adjustments */
-.player-name-header {
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
-  right: auto !important;
-  width: auto !important;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  padding: 8px 16px;
-}
-
 /* Header styling for new layout */
 .header-logo {
   display: flex;
@@ -1457,7 +1150,9 @@ body {
 .name-input-section {
   margin-bottom: 2.5rem; /* Increased from 1.5rem to add 10px more spacing */
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 /* Unified input styling for consistency */
@@ -1477,8 +1172,15 @@ body {
 
 /* Player name input specific sizing */
 #player-name-input {
-  width: 80%;
-  max-width: 400px;
+  width: min(520px, 90%);
+  max-width: 520px;
+  border: 4px solid #1b2e3c;
+  border-radius: 16px;
+  box-shadow: 6px 6px 0 #1b2e3c;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 /* Join code input specific sizing */
@@ -1496,6 +1198,11 @@ body {
   font-weight: normal;
   font-family: inherit;
   letter-spacing: 0.03em;
+}
+
+.section-title.section-title--input {
+  font-size: 2rem;
+  margin-bottom: 0;
 }
 
 /* Focus states for better accessibility */
@@ -1738,6 +1445,23 @@ body {
   font-weight: 600;
 }
 
+.in-session-lobby-modal .player-item.spectator {
+  border-color: rgba(90, 214, 166, 0.6);
+  background: rgba(90, 214, 166, 0.15);
+}
+
+.spectator-badge {
+  margin-left: 0.5rem;
+  background: rgba(90, 214, 166, 0.3);
+  color: #0f3025;
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .in-session-lobby-modal .player-item.host::after {
   content: 'HOST';
   margin-left: 0.5rem;
@@ -1826,3 +1550,28 @@ body.showing-game #lobby-container {
 }
 
 /* Cache busting comment - Updated modal widths to use CSS variables 2025-08-09 */
+
+/* Spectator mode banner (dev only) */
+.spectator-banner {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(255, 195, 0, 0.92);
+  color: #1b2e3c;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  z-index: 9999;
+}
+
+body.spectator-mode .spectator-banner {
+  display: inline-flex;
+}

@@ -481,17 +481,25 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Update cards when rules modal is opened
-  const rulesBtn = document.getElementById('setup-rules-button');
-  if (rulesBtn) {
-    console.log('[FIXED-LOADER] Found rules button, adding click listener');
-    rulesBtn.addEventListener('click', () => {
-      console.log(
-        '[FIXED-LOADER] Rules button clicked, scheduling card update'
-      );
-      setTimeout(() => {
-        checkCardSymbols();
-        updateRuleCardsWithImages();
-      }, 300);
+  const rulesButtons = [
+    'setup-rules-button',
+    'join-rules-button',
+    'game-rules-button',
+  ]
+    .map((id) => document.getElementById(id))
+    .filter((button) => button);
+  if (rulesButtons.length > 0) {
+    console.log('[FIXED-LOADER] Found rules button(s), adding click listeners');
+    rulesButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        console.log(
+          '[FIXED-LOADER] Rules button clicked, scheduling card update'
+        );
+        setTimeout(() => {
+          checkCardSymbols();
+          updateRuleCardsWithImages();
+        }, 300);
+      });
     });
   } else {
     console.warn('[FIXED-LOADER] Rules button not found');
@@ -835,7 +843,12 @@ if (document.readyState === 'loading') {
 
 // Re-run cleanup when rules modal opens
 document.addEventListener('click', (event) => {
-  if (event.target && event.target.id === 'setup-rules-button') {
+  if (
+    event.target &&
+    ['setup-rules-button', 'join-rules-button', 'game-rules-button'].includes(
+      event.target.id
+    )
+  ) {
     // Give the modal time to open
     setTimeout(cleanupCardStyles, 500);
     // Run again to catch any late elements

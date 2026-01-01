@@ -3,8 +3,14 @@ import { JOIN_GAME } from '@shared/events.ts';
 
 import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializePageEventListeners } from './events.js';
+import { initializeGameControls } from './gameControls.js';
 import { initializeSocketHandlers } from './socketService.js';
-import { socket, socketReady, setCurrentRoom } from './state.js';
+import {
+  socket,
+  socketReady,
+  setCurrentRoom,
+  setIsSpectator,
+} from './state.js';
 
 console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 
@@ -43,7 +49,13 @@ function handleJoinLink({
       numCPUs: 0,
     };
     socket.emit(JOIN_GAME, joinPayload);
-    window.history.replaceState({}, document.title, window.location.pathname);
+    const params = new URLSearchParams(window.location.search);
+    params.delete('room');
+    const nextQuery = params.toString();
+    const nextUrl = nextQuery
+      ? `${window.location.pathname}?${nextQuery}`
+      : window.location.pathname;
+    window.history.replaceState({}, document.title, nextUrl);
   }
 }
 // --- END: New logic for handling join links ---
@@ -63,6 +75,13 @@ export async function initMain({
   injectedDocument?: Document;
 } = {}) {
   document.getElementById('main-content')?.classList.remove('preload-hidden');
+  const params = new URLSearchParams(
+    (injectedWindow || window).location.search
+  );
+  if (params.get('spectator') === '1' || params.get('spectator') === 'true') {
+    setIsSpectator(true);
+    document.body.classList.add('spectator-mode');
+  }
   try {
     new InSessionLobbyModal();
     await socketReady;
@@ -85,6 +104,7 @@ export async function initMain({
 
     await initializePageEventListeners();
     initializeSocketHandlers();
+    initializeGameControls();
   } catch (error) {
     console.error('Error during initialization:', error);
   }

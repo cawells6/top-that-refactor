@@ -1,8 +1,28 @@
 import {
   Card as CardType,
   GameStateData,
-  ClientStatePlayer,
 } from '../../src/shared/types.js';
+import {
+  normalizeCardValue,
+  rank,
+  isSpecialCard,
+} from '../../utils/cardUtils.js';
+
+const seatOrder = ['bottom', 'right', 'top', 'left'] as const;
+const seatAccents: Record<string, string> = {
+  bottom: '#f6c556',
+  right: '#60d6a6',
+  top: '#ff8b5f',
+  left: '#6fb4ff',
+};
+
+function createTag(text: string, variant: string): HTMLSpanElement {
+  const tag = document.createElement('span');
+  tag.className = `tag tag--${variant}`;
+  tag.textContent = text;
+  return tag;
+}
+
 
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 export function code(card: CardType): string {
@@ -83,7 +103,7 @@ export function cardImg(
         img.style.visibility = 'visible';
         container.style.border = '1px solid #ccc';
         container.style.borderRadius = '8px';
-        container.style.backgroundColor = 'white';
+        container.style.backgroundColor = card.back ? '#0f1f19' : 'white';
         container.style.display = 'flex';
         container.style.justifyContent = 'center';
         container.style.alignItems = 'center';
@@ -120,9 +140,10 @@ export function cardImg(
           container.appendChild(suitDisplay);
         } else {
           // For card backs
-          container.textContent = '🂠';
-          container.style.fontSize = '32px';
-          container.style.color = '#444';
+          container.textContent = 'BACK';
+          container.style.fontSize = '18px';
+          container.style.fontWeight = 'bold';
+          container.style.color = '#fef7e0';
         }
 
         if (onLoad) onLoad(img);
@@ -133,6 +154,7 @@ export function cardImg(
   if (selectable) {
     img.classList.add('selectable');
     img.style.touchAction = 'manipulation';
+    container.classList.add('selectable-container');
     container.addEventListener('click', () => {
       img.classList.toggle('selected');
       container.classList.toggle(
@@ -146,6 +168,132 @@ export function cardImg(
   return container;
 }
 
+function isValidPlay(cards: CardType[], pile: CardType[]): boolean {
+  if (!cards || cards.length === 0) {
+    return false;
+  }
+
+  const firstValue = normalizeCardValue(cards[0].value);
+  if (cards.some((card) => normalizeCardValue(card.value) !== firstValue)) {
+    return false;
+  }
+
+  if (cards.length >= 4) {
+    return true;
+  }
+
+  if (!pile || pile.length === 0) {
+    return true;
+  }
+
+  if (isSpecialCard(firstValue)) {
+    return true;
+  }
+
+  const playedRank = rank(cards[0]);
+  const topPileCard = pile[pile.length - 1];
+  const topPileRank = rank(topPileCard);
+
+  return playedRank > topPileRank;
+}
+
+function hasValidHandPlay(hand: CardType[], pile: CardType[]): boolean {
+  if (!hand || hand.length === 0) {
+    return false;
+  }
+
+  const groups = new Map<string, CardType[]>();
+  for (const card of hand) {
+    const key = String(normalizeCardValue(card.value) ?? card.value);
+    const existing = groups.get(key);
+    if (existing) {
+      existing.push(card);
+    } else {
+      groups.set(key, [card]);
+    }
+  }
+
+  for (const group of groups.values()) {
+    if (isValidPlay(group, pile)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function hasValidUpPlay(
+  upCards: Array<CardType | null>,
+  pile: CardType[]
+): boolean {
+  if (!upCards || upCards.length === 0) {
+    return false;
+  }
+
+  return upCards
+    .filter((card) => Boolean(card))
+    .some((card) => isValidPlay([card], pile));
+}
+
+function applyHandCompression(
+  panel: HTMLDivElement,
+  handRow: HTMLDivElement,
+  cardCount: number
+): void {
+  handRow.classList.remove('hand-row--compressed');
+  handRow.style.removeProperty('--hand-overlap');
+
+  if (cardCount <= 1) {
+    return;
+  }
+
+  const firstCard = handRow.querySelector(
+    '.card-container'
+  ) as HTMLDivElement | null;
+  if (!firstCard) {
+    return;
+  }
+
+  const panelStyles = window.getComputedStyle(panel);
+  const paddingLeft = parseFloat(panelStyles.paddingLeft) || 0;
+  const paddingRight = parseFloat(panelStyles.paddingRight) || 0;
+  const availableWidth = panel.clientWidth - paddingLeft - paddingRight;
+  if (availableWidth <= 0) {
+    return;
+  }
+
+  const cardWidth = firstCard.getBoundingClientRect().width;
+  if (cardWidth <= 0) {
+    return;
+  }
+  const cardStyles = window.getComputedStyle(firstCard);
+  const marginLeft = parseFloat(cardStyles.marginLeft) || 0;
+  const marginRight = parseFloat(cardStyles.marginRight) || 0;
+  const cardTotalWidth = cardWidth + marginLeft + marginRight;
+
+  const rowStyles = window.getComputedStyle(handRow);
+  const gapValue = rowStyles.gap || rowStyles.columnGap || '0';
+  const gap = parseFloat(gapValue) || 0;
+  const totalWidth = cardTotalWidth * cardCount + gap * (cardCount - 1);
+
+  if (totalWidth <= availableWidth) {
+    return;
+  }
+
+  let overlap =
+    (availableWidth - cardTotalWidth * cardCount) / (cardCount - 1) - gap;
+  if (overlap > 0) {
+    overlap = 0;
+  }
+  const minOverlap = -cardTotalWidth * 0.9;
+  if (overlap < minOverlap) {
+    overlap = minOverlap;
+  }
+
+  handRow.classList.add('hand-row--compressed');
+  handRow.style.setProperty('--hand-overlap', `${overlap}px`);
+}
+
 /**
  * Main render function to update the entire game view
  * @param {GameStateData} gameState - Full game state from server
@@ -154,7 +302,6 @@ export function renderGameState(
   gameState: GameStateData,
   localPlayerId: string | null
 ): void {
-  // Corrected selectors to use IDs from index.html
   const slotTop = document.getElementById(
     'opponent-area-top'
   ) as HTMLElement | null;
@@ -167,372 +314,421 @@ export function renderGameState(
   const slotRight = document.getElementById(
     'opponent-area-right'
   ) as HTMLElement | null;
+  const centerArea = document.getElementById('center-area') as HTMLElement | null;
 
   if (!gameState || !gameState.players) {
-    console.warn('Render: No game state or players to render.');
-    // Potentially hide or clear game board elements if state is invalid
     if (slotTop) slotTop.innerHTML = '';
     if (slotBottom) slotBottom.innerHTML = '';
     if (slotLeft) slotLeft.innerHTML = '';
     if (slotRight) slotRight.innerHTML = '';
+    if (centerArea) centerArea.innerHTML = '';
     return;
   }
 
-  // Clear player areas and set light green background
-  const lightGreen = '#137a4b'; // Lighter shade of lobby green (updated)
-  if (slotTop) {
-    slotTop.innerHTML = '';
-    slotTop.style.backgroundColor = lightGreen;
-  }
-  if (slotBottom) {
-    slotBottom.innerHTML = '';
-    slotBottom.style.backgroundColor = lightGreen;
-  }
-  if (slotLeft) {
-    slotLeft.innerHTML = '';
-    slotLeft.style.backgroundColor = lightGreen;
-  }
-  if (slotRight) {
-    slotRight.innerHTML = '';
-    slotRight.style.backgroundColor = lightGreen;
-  }
-  document
-    .querySelectorAll('.player-area.active')
-    .forEach((el) => el.classList.remove('active'));
+  if (slotTop) slotTop.innerHTML = '';
+  if (slotBottom) slotBottom.innerHTML = '';
+  if (slotLeft) slotLeft.innerHTML = '';
+  if (slotRight) slotRight.innerHTML = '';
+  if (centerArea) centerArea.innerHTML = '';
 
   const players = gameState.players;
+  const cpuIds = players
+    .filter((p) => p.isComputer)
+    .map((p) => p.id);
+  const cpuIndexById = new Map(
+    cpuIds.map((id, index) => [id, index + 1])
+  );
   const meIdx = localPlayerId
     ? players.findIndex((p) => p.id === localPlayerId)
     : -1;
 
-  // --- NEW: Rotate players array so local player is always index 0 ---
-  let rotatedPlayers: ClientStatePlayer[] = [];
-  if (meIdx >= 0) {
-    rotatedPlayers = players.slice(meIdx).concat(players.slice(0, meIdx));
-  } else {
-    rotatedPlayers = players.slice();
-  }
-
-  // --- NEW: Only show player boards for actual players ---
-  const seatOrder = ['bottom', 'right', 'top', 'left']; // 6, 3, 12, 9 o'clock positions
+  const rotatedPlayers =
+    meIdx >= 0
+      ? players.slice(meIdx).concat(players.slice(0, meIdx))
+      : players.slice();
 
   seatOrder.forEach((seat, idx) => {
     const player = rotatedPlayers[idx];
-    if (!player) return; // Don't show empty slots
+    if (!player) return;
 
-    let panel = document.createElement('div');
-    panel.className = 'player-area';
-    panel.style.backgroundColor = 'transparent';
-    panel.style.margin = '10px';
-    panel.style.padding = '5px';
+    const isLocalPlayer = player.id === localPlayerId;
+    const isMyTurn = isLocalPlayer && player.id === gameState.currentPlayerId;
+    const handCount = player.handCount ?? player.hand?.length ?? 0;
+    const upCount =
+      player.upCount ??
+      (player.upCards
+        ? player.upCards.filter((card) => Boolean(card)).length
+        : 0);
+    const downCount = player.downCount ?? player.downCards?.length ?? 0;
+    const isForcedDown =
+      isLocalPlayer &&
+      isMyTurn &&
+      handCount === 0 &&
+      upCount === 0 &&
+      downCount > 0;
+
+    const panel = document.createElement('div');
+    panel.className = 'player-area seat';
+    panel.dataset.playerId = player.id;
+    panel.dataset.seat = seat;
+    panel.style.setProperty(
+      '--seat-accent',
+      seatAccents[seat] ?? '#f6c556'
+    );
 
     if (player.isComputer) panel.classList.add('computer-player');
-    panel.dataset.playerId = player.id;
-    if (seat === 'bottom' && player.id === localPlayerId) panel.id = 'my-area';
     if (player.disconnected) panel.classList.add('disconnected');
+    if (isLocalPlayer) panel.classList.add('is-local');
     if (player.id === gameState.currentPlayerId) {
       panel.classList.add('active');
     }
-    panel.style.display = 'flex';
-    panel.style.flexDirection = 'column';
-    panel.style.alignItems = 'center';
-    if (seat === 'left') panel.classList.add('rotate-right');
-    if (seat === 'right') panel.classList.add('rotate-left');
+    if (seat === 'bottom' && isLocalPlayer) {
+      panel.id = 'my-area';
+    }
 
-    // Name header - blue banner with gold letters, full width of player board
-    const nameHeader = document.createElement('div');
-    nameHeader.className =
-      'player-name-header ' +
-      (player.isComputer ? 'player-cpu' : 'player-human');
-    nameHeader.style.width = '100%';
-    nameHeader.style.textAlign = 'center';
-    nameHeader.style.marginBottom = '5px';
-    nameHeader.style.backgroundColor = '#1e3a8a'; // Blue background
-    nameHeader.style.color = '#fbbf24'; // Gold text
-    nameHeader.style.padding = '8px 12px';
-    nameHeader.style.borderRadius = '6px';
-    nameHeader.style.fontWeight = 'bold';
-    nameHeader.style.border = '2px solid #1e40af';
-    nameHeader.innerHTML = `<span class="player-name-text">${player.name || player.id}${player.disconnected ? " <span class='player-role'>(Disconnected)</span>" : ''}</span>`;
-    panel.appendChild(nameHeader);
+    const header = document.createElement('div');
+    header.className = 'player-header';
 
-    // Hand row (for all players) - TOP ROW, FACE UP
+    const ident = document.createElement('div');
+    ident.className = 'player-ident';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'player-avatar';
+    const avatarImg = document.createElement('img');
+    avatarImg.src = player.isComputer ? '/assets/robot.svg' : '/assets/Player.svg';
+    avatarImg.alt = player.isComputer ? 'CPU avatar' : 'Player avatar';
+    avatar.appendChild(avatarImg);
+
+    const meta = document.createElement('div');
+    meta.className = 'player-meta';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'player-name';
+    const cpuIndex = cpuIndexById.get(player.id);
+    nameEl.textContent = player.isComputer
+      ? `CPU ${cpuIndex ?? ''}`.trim()
+      : player.name || player.id;
+
+    const tagRow = document.createElement('div');
+    tagRow.className = 'player-tags';
+    if (player.disconnected) tagRow.appendChild(createTag('Offline', 'offline'));
+    if (player.id === gameState.currentPlayerId) {
+      tagRow.appendChild(createTag('Turn', 'turn'));
+    }
+
+    meta.appendChild(nameEl);
+    if (tagRow.childElementCount > 0) {
+      meta.appendChild(tagRow);
+    }
+    ident.append(avatar, meta);
+
+    header.append(ident);
+    panel.appendChild(header);
+
+    const handZone = document.createElement('div');
+    handZone.className = 'player-zone player-zone--hand';
+    if (isLocalPlayer) {
+      handZone.classList.add('player-zone--hand-local');
+    }
+    const handLabel = document.createElement('div');
+    handLabel.className = 'zone-label';
+    handLabel.textContent = 'Hand';
     const handRow = document.createElement('div');
-    if (player.id === localPlayerId) handRow.id = 'my-hand';
-    handRow.className = player.id === localPlayerId ? 'hand' : 'opp-hand';
-    handRow.style.display = 'flex';
-    handRow.style.gap = '5px';
-    handRow.style.marginBottom = '5px';
+    handRow.className = isLocalPlayer
+      ? 'hand-row hand-row--local'
+      : 'hand-row hand-row--opponent';
 
-    if (player.id === localPlayerId) {
-      // Local player: show hand cards face up, always 3 slots
-      for (let i = 0; i < 3; i++) {
-        const hasCard = player.hand && player.hand.length > i && player.hand[i];
-        if (hasCard) {
-          const card = player.hand![i];
-          const canInteract = gameState.currentPlayerId === localPlayerId;
-          const cardElement = cardImg(card, canInteract);
+    if (isLocalPlayer) {
+      const handCards = player.hand ?? [];
+      if (handCards.length === 0) {
+        const emptySlot = document.createElement('div');
+        emptySlot.className = 'card-container card-slot card-slot--empty';
+        emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
+        handRow.appendChild(emptySlot);
+      } else {
+        handCards.forEach((card, index) => {
+          const cardElement = cardImg(card, isMyTurn);
           const imgEl = cardElement.querySelector('.card-img');
-          if (imgEl && imgEl instanceof HTMLImageElement)
-            imgEl.dataset.idx = String(i);
+          if (imgEl && imgEl instanceof HTMLImageElement) {
+            imgEl.dataset.idx = String(index);
+            imgEl.dataset.zone = 'hand';
+            imgEl.dataset.value = String(card.value);
+          }
           handRow.appendChild(cardElement);
-        } else {
-          // Empty slot - show placeholder
-          const emptySlot = document.createElement('div');
-          emptySlot.className = 'card-container empty-card-slot';
-          emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
-          handRow.appendChild(emptySlot);
-        }
+        });
       }
     } else {
-      // Opponents: show card backs (hidden cards)
-      const handContainer = document.createElement('div');
-      handContainer.className = 'cpu-hand-container';
-      handContainer.style.display = 'flex';
-      handContainer.style.gap = '5px';
+      const handStack = document.createElement('div');
+      handStack.className = 'hand-stack';
 
-      for (let i = 0; i < 3; i++) {
-        if ((player.handCount || 0) > 0 && i < (player.handCount || 0)) {
-          // Show card back if they have cards
+      const visibleCount = Math.min(3, handCount);
+      if (visibleCount === 0) {
+        const emptySlot = document.createElement('div');
+        emptySlot.className = 'card-container card-slot card-slot--empty';
+        emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
+        handStack.appendChild(emptySlot);
+      } else {
+        for (let i = 0; i < visibleCount; i++) {
           const backCard: CardType = { back: true, value: 'A', suit: 'hearts' };
           const cardEl = cardImg(backCard, false);
-          handContainer.appendChild(cardEl);
-        } else {
-          // Empty slot
-          const emptySlot = document.createElement('div');
-          emptySlot.className = 'card-container empty-card-slot';
-          emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
-          handContainer.appendChild(emptySlot);
+          cardEl.classList.add('stacked-card');
+          handStack.appendChild(cardEl);
         }
       }
 
-      // Add hand count badge on the last card if handCount > 0
-      if ((player.handCount || 0) > 0) {
-        const lastCard = handContainer.children[
-          Math.min(2, (player.handCount || 1) - 1)
-        ] as HTMLElement;
-        if (lastCard) {
-          const badge = document.createElement('div');
-          badge.className = 'hand-count-badge';
-          badge.textContent = String(player.handCount);
-          badge.style.position = 'absolute';
-          badge.style.top = '5px';
-          badge.style.right = '5px';
-          badge.style.background = '#fff';
-          badge.style.borderRadius = '50%';
-          badge.style.width = '20px';
-          badge.style.height = '20px';
-          badge.style.display = 'flex';
-          badge.style.alignItems = 'center';
-          badge.style.justifyContent = 'center';
-          badge.style.fontSize = '12px';
-          badge.style.fontWeight = 'bold';
-          lastCard.style.position = 'relative';
-          lastCard.appendChild(badge);
-        }
+      if (handCount > 0) {
+        const badge = document.createElement('div');
+        badge.className = 'hand-count-badge';
+        badge.textContent = String(handCount);
+        handStack.appendChild(badge);
       }
-      handRow.appendChild(handContainer);
+
+      handRow.appendChild(handStack);
     }
-    panel.appendChild(handRow);
 
-    // Up/Down stacks (always show, always second row)
+    const handTray = document.createElement('div');
+    handTray.className = 'hand-tray';
+    if (isLocalPlayer) {
+      handTray.classList.add('hand-tray--local');
+    }
+    handTray.appendChild(handRow);
+    handZone.append(handLabel, handTray);
+    panel.appendChild(handZone);
+
+    if (seat === 'bottom' && isLocalPlayer) {
+      const actionRow = document.createElement('div');
+      actionRow.className = 'player-actions';
+
+      const playButton = document.createElement('button');
+      playButton.id = 'play-button';
+      playButton.className = 'action-button action-button--play';
+      playButton.textContent = 'Play';
+      playButton.disabled = !isMyTurn;
+
+      const takeButton = document.createElement('button');
+      takeButton.id = 'take-button';
+      takeButton.className = 'action-button action-button--take';
+      takeButton.textContent = 'Take';
+      const requiredZone =
+        handCount > 0
+          ? 'hand'
+          : upCount > 0
+            ? 'upCards'
+            : downCount > 0
+              ? 'downCards'
+              : null;
+      const hasPlayableCard =
+        requiredZone === 'hand'
+          ? hasValidHandPlay(player.hand ?? [], gameState.pile ?? [])
+          : requiredZone === 'upCards'
+            ? hasValidUpPlay(player.upCards ?? [], gameState.pile ?? [])
+            : false;
+      takeButton.disabled =
+        !isMyTurn ||
+        requiredZone === null ||
+        requiredZone === 'downCards' ||
+        hasPlayableCard;
+
+      actionRow.append(playButton, takeButton);
+      panel.appendChild(actionRow);
+    }
+
+    const tableZone = document.createElement('div');
+    tableZone.className = 'player-zone player-zone--table';
+    const tableLabel = document.createElement('div');
+    tableLabel.className = 'zone-label';
+    tableLabel.textContent = 'Up / Down';
+
     const stackRow = document.createElement('div');
     stackRow.className = 'stack-row';
-    stackRow.style.display = 'flex';
-    stackRow.style.gap = '5px';
+    if (isForcedDown) {
+      stackRow.classList.add('forced-down');
+    }
 
-    if (player.upCards && player.upCards.length > 0) {
-      player.upCards.forEach((c: CardType, i: number) => {
+    const upCards = player.upCards ?? [];
+    const maxStackCount = Math.max(upCards.length, downCount);
+    if (maxStackCount > 0) {
+      for (let i = 0; i < maxStackCount; i++) {
         const col = document.createElement('div');
         col.className = 'stack';
-        col.style.position = 'relative';
 
-        if ((player.downCount ?? 0) > i) {
+        const hasDownCard = downCount > i;
+        const canPlayDown =
+          hasDownCard && isMyTurn && handCount === 0 && upCount === 0;
+        if (hasDownCard) {
           const downCard = cardImg(
             { value: '', suit: '', back: true } as CardType,
-            false
+            canPlayDown
           );
           const downImg = downCard.querySelector(
             '.card-img'
           ) as HTMLImageElement | null;
-          if (downImg) downImg.classList.add('down-card');
+          if (downImg) {
+            downImg.classList.add('down-card');
+            if (isForcedDown) {
+              downImg.classList.add('forced-down-card');
+            }
+            if (isLocalPlayer) {
+              downImg.dataset.idx = String(i);
+              downImg.dataset.zone = 'downCards';
+            }
+          }
           col.appendChild(downCard);
         }
-        const canPlayUp =
-          player.id === localPlayerId &&
-          gameState.currentPlayerId === localPlayerId &&
-          player.handCount === 0;
-        const upCard = cardImg(c, canPlayUp);
-        const upImg = upCard.querySelector(
-          '.card-img'
-        ) as HTMLImageElement | null;
-        if (upImg) {
-          upImg.classList.add('up-card');
-          if (player.id === localPlayerId) upImg.dataset.idx = String(i + 1000);
-        }
-        col.appendChild(upCard);
-        if (canPlayUp) col.classList.add('playable-stack');
-        stackRow.appendChild(col);
-      });
-    } else if ((player?.downCount ?? 0) > 0) {
-      for (let i = 0; i < (player.downCount ?? 0); i++) {
-        const col = document.createElement('div');
-        col.className = 'stack';
-        col.style.position = 'relative';
 
-        const canPlayDown =
-          player.id === localPlayerId &&
-          gameState.currentPlayerId === localPlayerId &&
-          player.handCount === 0 &&
-          player.upCount === 0;
-        const downCard = cardImg(
-          { value: '', suit: '', back: true } as CardType,
-          canPlayDown && i === 0
-        );
-        const downImg = downCard.querySelector(
-          '.card-img'
-        ) as HTMLImageElement | null;
-        if (downImg) {
-          downImg.classList.add('down-card');
-          if (player.id === localPlayerId)
-            downImg.dataset.idx = String(i + 2000);
+        const upCard = upCards[i];
+        const canPlayUp = Boolean(upCard) && isMyTurn && handCount === 0;
+        if (upCard) {
+          const upCardEl = cardImg(upCard, canPlayUp);
+          const upImg = upCardEl.querySelector(
+            '.card-img'
+          ) as HTMLImageElement | null;
+          if (upImg) {
+            upImg.classList.add('up-card');
+            if (isLocalPlayer) {
+              upImg.dataset.idx = String(i);
+              upImg.dataset.zone = 'upCards';
+              upImg.dataset.value = String(upCard.value);
+            }
+          }
+          col.appendChild(upCardEl);
         }
-        col.appendChild(downCard);
-        if (canPlayDown && i === 0) col.classList.add('playable-stack');
+
+        if (canPlayUp || canPlayDown) col.classList.add('playable-stack');
         stackRow.appendChild(col);
       }
     }
-    panel.appendChild(stackRow);
 
-    // Place panel in correct slot
-    if (seat === 'bottom' && slotBottom) slotBottom.appendChild(panel);
-    else if (seat === 'top' && slotTop) slotTop.appendChild(panel);
-    else if (seat === 'left' && slotLeft) slotLeft.appendChild(panel);
-    else if (seat === 'right' && slotRight) slotRight.appendChild(panel);
+    tableZone.append(tableLabel, stackRow);
+    panel.appendChild(tableZone);
+
+    let slotTarget: HTMLElement | null = null;
+    if (seat === 'bottom') slotTarget = slotBottom;
+    else if (seat === 'top') slotTarget = slotTop;
+    else if (seat === 'left') slotTarget = slotLeft;
+    else if (seat === 'right') slotTarget = slotRight;
+
+    if (slotTarget) {
+      slotTarget.appendChild(panel);
+      if (isLocalPlayer) {
+        requestAnimationFrame(() => {
+          applyHandCompression(panel, handRow, handCount);
+        });
+      }
+    }
   });
 
-  // --- Center area: Deck and Discard piles ---
-  const centerArea = document.getElementById('center-area');
   if (centerArea) {
-    centerArea.innerHTML = '';
-    centerArea.style.backgroundColor = lightGreen; // Light green background
+    const centerWrap = document.createElement('div');
+    centerWrap.className = 'center-piles';
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'center-piles-wrapper';
-    wrapper.style.display = 'flex';
-    wrapper.style.gap = '20px';
-    wrapper.style.justifyContent = 'center';
-    wrapper.style.alignItems = 'center';
-
-    // Deck container - transparent with white dotted outline
     const deckContainer = document.createElement('div');
-    deckContainer.className = 'center-pile-container card-container';
-    deckContainer.style.width = '125px';
-    deckContainer.style.height = '175px';
-    deckContainer.style.border = '3px dotted #ffffff';
-    deckContainer.style.borderRadius = '12px';
-    deckContainer.style.display = 'flex';
-    deckContainer.style.alignItems = 'center';
-    deckContainer.style.justifyContent = 'center';
-    deckContainer.style.backgroundColor = 'transparent';
-    deckContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+    deckContainer.className = 'pile-group pile-group--deck';
 
-    const deckLabel = document.createElement('span');
-    deckLabel.className = 'pile-label';
-    deckLabel.textContent = 'DECK';
-    deckLabel.style.color = '#ffffff';
-    deckLabel.style.fontWeight = 'bold';
-    deckLabel.style.fontSize = '14px';
-    deckLabel.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
-    deckContainer.appendChild(deckLabel);
-
-    // Discard container - transparent with white dotted outline
-    const discardContainer = document.createElement('div');
-    discardContainer.className = 'center-pile-container card-container';
-    discardContainer.style.width = '125px';
-    discardContainer.style.height = '175px';
-    discardContainer.style.border = '3px dotted #ffffff';
-    discardContainer.style.borderRadius = '12px';
-    discardContainer.style.display = 'flex';
-    discardContainer.style.alignItems = 'center';
-    discardContainer.style.justifyContent = 'center';
-    discardContainer.style.backgroundColor = 'transparent';
-    discardContainer.style.position = 'relative';
-    discardContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-
-    // Show actual discard card if available, otherwise show placeholder
-    const pile =
-      gameState.pile && gameState.pile.length > 0 ? gameState.pile : null;
-    if (pile) {
-      const discardCard = cardImg(pile[pile.length - 1], false);
-      discardCard.style.position = 'absolute';
-      discardCard.style.top = '0';
-      discardCard.style.left = '0';
-      discardCard.id = 'pile-top-card';
-      discardContainer.appendChild(discardCard);
+    const deckSize = gameState.deckSize ?? 0;
+    const deckStack = document.createElement('div');
+    deckStack.className = 'pile-cards deck-stack';
+    if (deckSize > 0) {
+      const deckBack: CardType = { back: true, value: 'A', suit: 'spades' };
+      const deckCard = cardImg(deckBack, false);
+      deckCard.classList.add('deck-card');
+      deckStack.appendChild(deckCard);
     } else {
-      const discardLabel = document.createElement('span');
-      discardLabel.className = 'pile-label';
-      discardLabel.textContent = 'DISCARD';
-      discardLabel.style.color = '#ffffff';
-      discardLabel.style.fontWeight = 'bold';
-      discardLabel.style.fontSize = '14px';
-      discardLabel.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
-      discardContainer.appendChild(discardLabel);
+      const placeholder = document.createElement('div');
+      placeholder.className = 'pile-placeholder';
+      deckStack.appendChild(placeholder);
+    }
+    const deckLabel = document.createElement('div');
+    deckLabel.className = 'pile-card-label';
+    deckLabel.textContent = 'Deck';
+    const deckBadge = document.createElement('div');
+    deckBadge.className = 'pile-count-badge';
+    deckBadge.textContent = String(deckSize);
+    deckStack.append(deckLabel, deckBadge);
+    deckContainer.appendChild(deckStack);
+
+    const playContainer = document.createElement('div');
+    playContainer.className = 'pile-group pile-group--discard';
+    playContainer.id = 'discard-pile';
+
+    const pile = gameState.pile ?? [];
+    const playStack = document.createElement('div');
+    playStack.className = 'pile-cards play-stack';
+    if (pile.length > 0) {
+      const playCard = cardImg(pile[pile.length - 1], false);
+      playCard.id = 'pile-top-card';
+      playStack.appendChild(playCard);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'pile-placeholder';
+      playStack.appendChild(placeholder);
+    }
+    const playLabel = document.createElement('div');
+    playLabel.className = 'pile-card-label';
+    playLabel.textContent = 'Discard';
+    const playBadge = document.createElement('div');
+    playBadge.className = 'pile-count-badge';
+    playBadge.textContent = String(pile.length);
+    playStack.append(playLabel, playBadge);
+    playContainer.appendChild(playStack);
+
+    if (gameState.discardCount > 0) {
+      const burned = document.createElement('div');
+      burned.className = 'pile-burned';
+      burned.textContent = `Burned ${gameState.discardCount}`;
+      playContainer.appendChild(burned);
     }
 
-    wrapper.append(deckContainer, discardContainer);
-    centerArea.appendChild(wrapper);
+    centerWrap.append(deckContainer, playContainer);
+    centerArea.appendChild(centerWrap);
   }
 }
 
 /**
- * Overlay special card symbol on top of discard pile card
+ * Overlay special card symbol on top of discard pile card or container
  */
 export function showCardEvent(
   cardValue: number | string | null,
   type: string
 ): void {
-  // Query for the pile top card image directly, as it's now consistently used.
-  let discardImg = document.getElementById(
-    'pile-top-card'
-  ) as HTMLImageElement | null;
-
-  // If pile-top-card is not visible (e.g. pile is empty), try to find a card in a .discard container if that structure still exists from old code.
-  // This is a fallback, ideally the pile-top-card is the single source of truth for the top discard image.
-  if (!discardImg || discardImg.style.display === 'none') {
-    discardImg = document.querySelector(
-      '.discard .card-img'
-    ) as HTMLImageElement | null;
-  }
-
   let retries = 0;
   function tryRunEffect() {
+    // Query for the pile top card image directly, as it's now consistently used.
+    let discardImg = document.getElementById(
+      'pile-top-card'
+    ) as HTMLImageElement | null;
+    const discardContainer = document.getElementById('discard-pile');
+
+    // If pile-top-card is not visible (e.g. pile is empty), try to find a card in a .discard container if that structure still exists from old code.
+    // This is a fallback, ideally the pile-top-card is the single source of truth for the top discard image.
     if (!discardImg || discardImg.style.display === 'none') {
-      if (retries < 1) {
-        discardImg = document.querySelector(
-          '.discard .card-img'
-        ) as HTMLImageElement | null;
-      }
-      console.warn(
-        'showCardEvent: Could not find discard image to overlay effect.'
-      );
+      discardImg = document.querySelector(
+        '.discard .card-img'
+      ) as HTMLImageElement | null;
     }
 
-    if (!discardImg && retries < 5) {
+    const target =
+      discardImg && discardImg.style.display !== 'none'
+        ? discardImg
+        : discardContainer;
+
+    if (!target && retries < 5) {
       retries++;
       setTimeout(tryRunEffect, 100);
       return;
     }
-    if (!discardImg) {
+    if (!target) {
       console.warn(
         'showCardEvent: Could not find discard image to overlay effect.'
       );
       return;
     }
 
-    function runEffect() {
-      const parentElement = discardImg!.parentElement; // pile-placeholder or .card-container
+    function runEffect(effectTarget: HTMLElement) {
+      const parentElement =
+        effectTarget instanceof HTMLImageElement
+          ? effectTarget.parentElement
+          : effectTarget;
       if (!parentElement) return;
 
       const prev = parentElement.querySelector('.special-icon');
@@ -551,7 +747,7 @@ export function showCardEvent(
       else if (type === 'regular') return;
       icon.src = src;
       icon.onerror = () => {
-        icon.style.background = 'rgba(255,255,255,0.7)';
+        icon.style.background = 'rgba(255, 195, 0, 0.7)';
         icon.style.borderRadius = '50%';
         icon.style.display = 'flex';
         icon.style.justifyContent = 'center';
@@ -577,13 +773,14 @@ export function showCardEvent(
       icon.style.top = '50%';
       icon.style.left = '50%';
       icon.style.transform = 'translate(-50%, -50%)';
-      icon.style.width = '90px';
-      icon.style.height = '90px';
+      icon.style.width = '70px';
+      icon.style.height = '70px';
       icon.style.zIndex = '100';
       icon.style.background = 'none';
       icon.style.backgroundColor = 'transparent';
       icon.style.pointerEvents = 'none';
-      icon.style.filter = 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.9))';
+      icon.style.opacity = '0.85';
+      icon.style.filter = 'drop-shadow(0 0 4px rgba(0, 0, 0, 0.35))';
       icon.style.animation = 'iconPulse 1.5s ease-in-out';
       // Ensure parent has relative positioning if it doesn't already.
       if (getComputedStyle(parentElement).position === 'static') {
@@ -597,10 +794,10 @@ export function showCardEvent(
         setTimeout(() => icon.remove(), 500);
       }, 1800);
     }
-    if (discardImg instanceof HTMLImageElement && !discardImg.complete) {
-      discardImg.addEventListener('load', runEffect, { once: true });
+    if (target instanceof HTMLImageElement && !target.complete) {
+      target.addEventListener('load', () => runEffect(target), { once: true });
     } else {
-      runEffect();
+      runEffect(target);
     }
   }
   tryRunEffect();

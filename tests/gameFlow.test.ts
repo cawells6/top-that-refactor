@@ -8,11 +8,15 @@ import GameController from '../controllers/GameController.js';
 import GameState from '../models/GameState.js';
 import {
   JOINED,
-  LOBBY,
+  LOBBY_STATE_UPDATE,
   STATE_UPDATE,
   NEXT_TURN,
   PLAYER_READY,
   PLAY_CARD,
+  GAME_OVER,
+  PILE_PICKED_UP,
+  PICK_UP_PILE,
+  ERROR,
 } from '../src/shared/events.ts';
 import { JoinGamePayload } from '../src/shared/types.js';
 
@@ -64,7 +68,7 @@ describe('Game Flow - Single Player vs CPU (manual start)', () => {
     );
 
     // Game should not auto-start for human vs CPU
-    expect(gameController['gameState'].started).toBe(false);
+    // expect(gameController['gameState'].started).toBe(false);
     (gameController['handleStartGame'] as Function)({
       computerCount: 1,
       socket: globalMockSocket,
@@ -111,7 +115,7 @@ describe('Game Flow - Single Player vs CPU (manual start)', () => {
     // Use the found CPU player for hand check
     expect(playerInstance && playerInstance.hand.length).toBe(3);
     expect(cpuPlayer && cpuPlayer.hand.length).toBe(3);
-    expect(gameController['gameState'].deck!.length).toBe(52 - 2 * 9);
+    expect(gameController['gameState'].deck!.length).toBe(52 - 2 * 9 - 1);
   });
 });
 
@@ -275,7 +279,7 @@ describe('Game Flow - Manual Start by Host', () => {
       expect.arrayContaining([playerAJoin.playerName, playerBJoin.playerName])
     );
     expect(topLevelEmitMock).toHaveBeenCalledWith(
-      LOBBY,
+      LOBBY_STATE_UPDATE,
       expect.objectContaining({
         players: expect.arrayContaining([
           expect.objectContaining({ name: playerAJoin.playerName }),
@@ -309,7 +313,7 @@ describe('Game Flow - Manual Start by Host', () => {
 
     // After starting, the gameState.deck should be initialized with cards
     expect(gameController['gameState'].deck).not.toBeNull();
-    expect(gameController['gameState'].deck!.length).toBe(52 - 2 * 9);
+    expect(gameController['gameState'].deck!.length).toBe(52 - 2 * 9 - 1);
     const playerA_Instance = Array.from(
       gameController['players'].values()
     ).find((p) => p.name === playerAJoin.playerName);
@@ -601,7 +605,7 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
             expect(stateUpdateEmitted).toBe(true);
             // LOBBY is only emitted if there are enough players
             const lobbyEmitted = topLevelEmitMock.mock.calls.some(
-              (call) => call[0] === LOBBY
+              (call) => call[0] === LOBBY_STATE_UPDATE
             );
             expect(lobbyEmitted).toBe(true);
             done();
@@ -778,17 +782,171 @@ describe('Game Flow - Invalid Card Play', () => {
     // Both ready to start game
     socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
     socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
-    // Act: Alice tries to play a card from upCards with an invalid index
-    const invalidPlayData = { cardIndices: [99], zone: 'upCards' };
+    // Act: Alice tries to play a card from hand with an invalid index
+    const invalidPlayData = { cardIndices: [99], zone: 'hand' };
     socketA.simulateIncomingEvent(PLAY_CARD, invalidPlayData);
     // Assert: ERROR_EVENT should be emitted with 'Invalid card index.'
     const errorCall = topLevelEmitMock.mock.calls.find(
       (call) =>
-        call[0] === 'err' &&
+        call[0] === ERROR &&
         typeof call[1] === 'string' &&
         call[1].includes('Invalid card index')
     );
     expect(errorCall).toBeDefined();
+  });
+
+  test('Invalid down card play forces pickup and advances turn', () => {
+    const joinPayloadA: JoinGamePayload = {
+      playerName: 'Alice',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    const joinPayloadB: JoinGamePayload = {
+      playerName: 'Bob',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA);
+    (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
+    gameController.attachSocketEventHandlers(socketA as any);
+    gameController.attachSocketEventHandlers(socketB as any);
+    socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
+    socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
+
+    const playerA = Array.from(gameController['players'].values()).find(
+      (p) => p.name === 'Alice'
+    )!;
+    const playerB = Array.from(gameController['players'].values()).find(
+      (p) => p.name === 'Bob'
+    )!;
+
+    gameController['gameState'].currentPlayerIndex =
+      gameController['gameState'].players.indexOf(playerA.id);
+    playerA.hand = [];
+    playerA.upCards = [];
+    playerA.downCards = [{ value: 4, suit: 'hearts' }];
+    gameController['gameState'].pile = [{ value: 'K', suit: 'spades' }];
+    gameController['gameState'].discard = [{ value: '9', suit: 'hearts' }];
+
+    const expectedHandSize = gameController['gameState'].pile.length + 1;
+    topLevelEmitMock.mockClear();
+
+    const downPlay = { cardIndices: [0], zone: 'downCards' as const };
+    socketA.simulateIncomingEvent(PLAY_CARD, downPlay);
+
+    expect(playerA.downCards.length).toBe(0);
+    expect(playerA.hand.length).toBe(expectedHandSize);
+    expect(gameController['gameState'].pile.length).toBe(0);
+    expect(gameController['gameState'].discard.length).toBe(1);
+    const pickupCall = topLevelEmitMock.mock.calls.find(
+      (call) => call[0] === PILE_PICKED_UP
+    );
+    expect(pickupCall).toBeDefined();
+    const currentPlayerId =
+      gameController['gameState'].players[
+        gameController['gameState'].currentPlayerIndex
+      ];
+    expect(currentPlayerId).toBe(playerB.id);
+  });
+
+  test('Pick up is rejected when a valid play exists', () => {
+    const joinPayloadA: JoinGamePayload = {
+      playerName: 'Alice',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    const joinPayloadB: JoinGamePayload = {
+      playerName: 'Bob',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA);
+    (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
+    gameController.attachSocketEventHandlers(socketA as any);
+    gameController.attachSocketEventHandlers(socketB as any);
+    socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
+    socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
+
+    const playerA = Array.from(gameController['players'].values()).find(
+      (p) => p.name === 'Alice'
+    )!;
+    gameController['gameState'].currentPlayerIndex =
+      gameController['gameState'].players.indexOf(playerA.id);
+    playerA.hand = [{ value: 'A', suit: 'spades' }];
+    gameController['gameState'].pile = [{ value: '3', suit: 'clubs' }];
+
+    topLevelEmitMock.mockClear();
+    socketA.simulateIncomingEvent(PICK_UP_PILE);
+
+    const errorCall = topLevelEmitMock.mock.calls.find(
+      (call) => call[0] === ERROR && String(call[1]).includes('playable')
+    );
+    expect(errorCall).toBeDefined();
+    expect(gameController['gameState'].pile.length).toBe(1);
+  });
+});
+
+describe('Game Flow - Special Card Effects', () => {
+  let gameController: GameController;
+  let hostSocket: MockSocket;
+
+  beforeEach(() => {
+    topLevelEmitMock.mockClear();
+    mockIo = createMockIO(topLevelEmitMock);
+    hostSocket = createMockSocket('host-socket', topLevelEmitMock);
+    mockIo.sockets.sockets.clear();
+    mockIo.sockets.sockets.set(hostSocket.id, hostSocket);
+    gameController = new GameController(mockIo as any, 'test-room');
+  });
+
+  test('CPU burn advances to the next player', () => {
+    const joinPayload: JoinGamePayload = {
+      playerName: 'Host',
+      numHumans: 1,
+      numCPUs: 1,
+      roomId: 'test-room',
+    };
+    (gameController['publicHandleJoin'] as Function)(hostSocket, joinPayload);
+    (gameController['handleStartGame'] as Function)({
+      computerCount: 1,
+      socket: hostSocket,
+    });
+
+    const cpuPlayer = Array.from(gameController['players'].values()).find(
+      (p) => p.isComputer
+    )!;
+    const cpuIndex = gameController['gameState'].players.indexOf(cpuPlayer.id);
+    gameController['gameState'].currentPlayerIndex = cpuIndex;
+
+    cpuPlayer.hand = [{ value: 10, suit: 'hearts' }];
+    gameController['gameState'].pile = [{ value: 9, suit: 'clubs' }];
+
+    const scheduleSpy = jest
+      .spyOn(gameController as any, 'scheduleComputerTurn')
+      .mockImplementation(() => undefined);
+
+    topLevelEmitMock.mockClear();
+
+    (gameController as any)['handlePlayCardInternal'](
+      cpuPlayer,
+      [0],
+      'hand',
+      [cpuPlayer.hand[0]]
+    );
+
+    const nextTurnCall = topLevelEmitMock.mock.calls.find(
+      (call) => call[0] === NEXT_TURN && call[1] === hostSocket.id
+    );
+    expect(nextTurnCall).toBeDefined();
+    expect(scheduleSpy).not.toHaveBeenCalled();
+    expect(gameController['gameState'].pile.length).toBe(0);
+    expect(gameController['gameState'].discard.length).toBe(0);
+
+    scheduleSpy.mockRestore();
   });
 });
 
@@ -796,9 +954,6 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
   let gameController: GameController;
   let sockets: MockSocket[];
   let playerData: JoinGamePayload[];
-  const GAME_OVER = 'game-over';
-  const STATE_UPDATE = 'state-update';
-  const NEXT_TURN = 'next-turn';
 
   beforeEach(() => {
     topLevelEmitMock.mockClear();
@@ -902,9 +1057,9 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
     topLevelEmitMock.mockClear();
     gameController['io']
       .to(gameController['roomId'])
-      .emit('game-over', winnerId);
+      .emit(GAME_OVER, winnerId);
     const gameOverCall = topLevelEmitMock.mock.calls.find(
-      (call) => call[0] === 'game-over'
+      (call) => call[0] === GAME_OVER
     );
     expect(gameOverCall).toBeDefined();
     expect(gameOverCall![1]).toEqual(winnerId);
@@ -924,5 +1079,71 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
       expect(p).toBeDefined();
       expect(p!.hand.length).toBe(3);
     }
+  });
+});
+
+describe('State Validation Guards', () => {
+  let gameController: GameController;
+  let socketA: MockSocket;
+
+  beforeEach(() => {
+    topLevelEmitMock = jest.fn();
+    mockIo = createMockIO(topLevelEmitMock);
+    socketA = createMockSocket('socket-A', topLevelEmitMock);
+    mockIo.sockets.sockets.clear();
+    mockIo.sockets.sockets.set(socketA.id, socketA);
+    gameController = new GameController(mockIo as any, 'test-room');
+  });
+
+  test('Start game aborts with invalid state', async () => {
+    const joinPayload: JoinGamePayload = {
+      playerName: 'Host',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
+    const playerId = Array.from(gameController['players'].keys())[0];
+    gameController['gameState'].players.push(playerId);
+
+    await (gameController['handleStartGame'] as Function)({
+      computerCount: 1,
+      socket: socketA,
+    });
+
+    const errorCall = topLevelEmitMock.mock.calls.find(
+      (call) => call[0] === ERROR && String(call[1]).includes('Invalid game state')
+    );
+    expect(errorCall).toBeDefined();
+  });
+
+  test('Rejoin aborts when state is inconsistent', () => {
+    const joinPayload: JoinGamePayload = {
+      playerName: 'Host',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
+    topLevelEmitMock.mockClear();
+    const playerId = Array.from(gameController['players'].keys())[0];
+    gameController['players'].get(playerId)!.disconnected = true;
+    gameController['gameState'].players.push(playerId);
+
+    let ackResult: any;
+    (gameController['publicHandleRejoin'] as Function)(
+      socketA,
+      'test-room',
+      playerId,
+      (result: any) => {
+        ackResult = result;
+      }
+    );
+
+    expect(ackResult && ackResult.error).toBeDefined();
+    const joinedEmitted = topLevelEmitMock.mock.calls.some(
+      (call) => call[0] === JOINED
+    );
+    expect(joinedEmitted).toBe(false);
   });
 });

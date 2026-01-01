@@ -44,6 +44,8 @@ jest.mock(
     getBackToLobbyButton: jest.fn(() =>
       global.document ? global.document.createElement('button') : null
     ),
+    getIsSpectator: jest.fn(() => false),
+    setIsSpectator: jest.fn(),
   }),
   { virtual: true }
 );
@@ -56,7 +58,7 @@ jest.mock(
   }
 );
 
-import { handleRulesClick, hideRulesModalAndOverlay } from './events.js';
+import { handleRulesClick, hideRulesModalAndOverlay } from './events.ts';
 
 describe('Rules modal interactions', () => {
   beforeEach(async () => {

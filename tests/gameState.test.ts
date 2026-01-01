@@ -245,12 +245,26 @@ describe('GameState', () => {
     test.each([
       [[], false],
       [null, false],
-      [[make('2')], true], // Placeholder logic always returns true for non-empty
+      [[make('2')], true],
       [[make('2'), make('2')], true],
-      [[make('2'), make('3')], true], // Placeholder logic
+      [[make('2'), make('3')], false], // invalid - multiple different cards
     ])('returns %s for %j', (cards, expected) => {
       expect(gs.isValidPlay(cards as any)).toBe(expected);
     });
+  });
+
+  test('isValidPlay allows four of a kind to burn any pile', () => {
+    const make = (v: any) => ({ value: v, suit: 'h' });
+    gs.pile = [make('K')];
+    expect(
+      gs.isValidPlay([make('3'), make('3'), make('3'), make('3')])
+    ).toBe(true);
+  });
+
+  test('isValidPlay rejects lower pairs against higher pile', () => {
+    const make = (v: any) => ({ value: v, suit: 'h' });
+    gs.pile = [make('K')];
+    expect(gs.isValidPlay([make('3'), make('3')])).toBe(false);
   });
 
   test('lastRealCard updates after addToPile and resets after clearPile', () => {

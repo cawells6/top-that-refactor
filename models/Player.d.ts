@@ -3,14 +3,14 @@ export default class Player {
   id: string;
   socketId?: string;
   hand: Card[];
-  upCards: Card[];
+  upCards: Array<Card | null>;
   downCards: Card[];
   name: string;
   isComputer: boolean;
   disconnected: boolean;
   constructor(id: string);
   setHand(cards: Card[]): void;
-  setUpCards(cards: Card[]): void;
+  setUpCards(cards: Array<Card | null>): void;
   setDownCards(cards: Card[]): void;
   playFromHand(index: number): Card | undefined;
   playUpCard(index: number): Card | undefined;
@@ -20,5 +20,6 @@ export default class Player {
   hasEmptyHand(): boolean;
   hasEmptyUp(): boolean;
   hasEmptyDown(): boolean;
+  getUpCardCount(): number;
 }
 //# sourceMappingURL=Player.d.ts.map

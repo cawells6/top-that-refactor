@@ -10,7 +10,7 @@ import {
 import GameController, {
   GameRoomManager,
 } from '../controllers/GameController.js';
-import { JOINED, LOBBY } from '../src/shared/events.js';
+import { JOINED, LOBBY_STATE_UPDATE } from '../src/shared/events.ts';
 import type { JoinGamePayload } from '../src/shared/types.js';
 
 // Helper to create a valid JoinGamePayload
@@ -49,7 +49,7 @@ describe('Lobby joining', () => {
       name: 'Host',
       roomId: 'test-room',
     });
-    const lobbyCall = topLevelEmitMock.mock.calls.find((c) => c[0] === LOBBY);
+    const lobbyCall = topLevelEmitMock.mock.calls.find((c) => c[0] === LOBBY_STATE_UPDATE);
     expect(lobbyCall).toBeDefined();
     if (lobbyCall) {
       expect(lobbyCall[1]).toEqual(
@@ -76,7 +76,7 @@ describe('Lobby joining', () => {
       secondPayload
     );
     const lobbyCalls = topLevelEmitMock.mock.calls.filter(
-      (c) => c[0] === LOBBY
+      (c) => c[0] === LOBBY_STATE_UPDATE
     );
     expect(lobbyCalls.length).toBeGreaterThanOrEqual(2);
     const lastLobby = lobbyCalls[lobbyCalls.length - 1] as any;

@@ -14,14 +14,17 @@ jest.mock('./state.js', () => ({
   },
   myId: null, // Set to null initially so showLobbyForm gets called
   currentRoom: null, // Set to null initially
+  lastGameState: null,
   setMyId: jest.fn(),
   setCurrentRoom: jest.fn(),
   saveSession: jest.fn(),
+  setLastGameState: jest.fn(),
   socketReady: Promise.resolve(),
 }));
 
 jest.mock('./render.js', () => ({
   renderGameState: jest.fn(),
+  showCardEvent: jest.fn(),
 }));
 
 jest.mock('./uiManager.js', () => ({
@@ -38,10 +41,12 @@ import * as uiManager from './uiManager.js';
 // Import events from the shared file
 import {
   JOINED,
-  LOBBY_CREATED,
-  LOBBY_STATE_UPDATE,
   GAME_STARTED,
   STATE_UPDATE,
+  SPECIAL_CARD_EFFECT,
+  PILE_PICKED_UP,
+  ERROR,
+  SESSION_ERROR,
   // REJOIN
 } from '@shared/events.ts';
 
@@ -63,14 +68,6 @@ describe('socketService', () => {
       expect.any(Function)
     );
     expect(state.socket.on).toHaveBeenCalledWith(
-      LOBBY_CREATED,
-      expect.any(Function)
-    );
-    expect(state.socket.on).toHaveBeenCalledWith(
-      LOBBY_STATE_UPDATE,
-      expect.any(Function)
-    );
-    expect(state.socket.on).toHaveBeenCalledWith(
       GAME_STARTED,
       expect.any(Function)
     );
@@ -79,8 +76,22 @@ describe('socketService', () => {
       STATE_UPDATE,
       expect.any(Function)
     );
-    expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
-    expect(state.socket.on).toHaveBeenCalledWith('err', expect.any(Function));
+    expect(state.socket.on).toHaveBeenCalledWith(
+      SPECIAL_CARD_EFFECT,
+      expect.any(Function)
+    );
+    expect(state.socket.on).toHaveBeenCalledWith(
+      PILE_PICKED_UP,
+      expect.any(Function)
+    );
+    expect(state.socket.on).toHaveBeenCalledWith(
+      SESSION_ERROR,
+      expect.any(Function)
+    );
+    expect(state.socket.on).toHaveBeenCalledWith(
+      ERROR,
+      expect.any(Function)
+    );
   });
 
   it('calls showLobbyForm if not rejoining on connect', async () => {
@@ -102,24 +113,6 @@ describe('socketService', () => {
     expect(uiManager.showLobbyForm).toHaveBeenCalled();
   });
 
-  it('calls showWaitingState on lobby state updates', async () => {
-    await initializeSocketHandlers();
-    const lobbyHandler = (state.socket.on as jest.Mock).mock.calls.find(
-      ([event]) => event === LOBBY_STATE_UPDATE
-    )[1];
-    const data = {
-      roomId: 'R',
-      players: [{ id: '1', name: 'A', ready: false }],
-      maxPlayers: 4,
-    };
-    lobbyHandler(data);
-    expect(uiManager.showWaitingState).toHaveBeenCalledWith(
-      'R',
-      1,
-      1,
-      data.players
-    );
-  });
   it('calls renderGameState and showGameTable on STATE_UPDATE', async () => {
     await initializeSocketHandlers();
     const stateUpdateHandler = (state.socket.on as jest.Mock).mock.calls.find(
@@ -127,6 +120,7 @@ describe('socketService', () => {
     )[1];
     const s = { started: true };
     stateUpdateHandler(s);
+    expect(state.setLastGameState).toHaveBeenCalledWith(s);
     expect(render.renderGameState).toHaveBeenCalledWith(s, null);
     expect(uiManager.showGameTable).toHaveBeenCalled();
   });
@@ -142,10 +136,25 @@ describe('socketService', () => {
 
   it('calls showError on err event', async () => {
     await initializeSocketHandlers();
+    document.body.classList.add('showing-game');
     const errHandler = (state.socket.on as jest.Mock).mock.calls.find(
-      ([event]) => event === 'err'
+      ([event]) => event === ERROR
     )[1];
     errHandler('fail!');
     expect(uiManager.showError).toHaveBeenCalledWith('fail!');
+    expect(render.showCardEvent).toHaveBeenCalledWith(null, 'invalid');
+  });
+
+  it('resets session on session-error event', async () => {
+    await initializeSocketHandlers();
+    const sessionErrHandler = (state.socket.on as jest.Mock).mock.calls.find(
+      ([event]) => event === SESSION_ERROR
+    )[1];
+    sessionErrHandler('bad session');
+    expect(uiManager.showLobbyForm).toHaveBeenCalled();
+    expect(uiManager.showError).toHaveBeenCalledWith('bad session');
+    expect(state.setCurrentRoom).toHaveBeenCalledWith(null);
+    expect(state.setMyId).toHaveBeenCalledWith(null);
+    expect(state.saveSession).toHaveBeenCalled();
   });
 });

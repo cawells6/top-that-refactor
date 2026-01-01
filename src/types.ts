@@ -1,10 +1,5 @@
 // src/types.ts
-export interface Card {
-  value: string | number;
-  suit: string;
-  back?: boolean;
-  copied?: boolean;
-}
+
 
 export interface DealtCards {
   // <<< ADD THIS INTERFACE AND EXPORT IT

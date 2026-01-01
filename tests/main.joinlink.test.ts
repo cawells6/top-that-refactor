@@ -53,6 +53,7 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
       setCurrentRoom: jest.fn(),
       saveSession: jest.fn(),
       loadSession: jest.fn(),
+      setIsSpectator: jest.fn(),
       socketReady: Promise.resolve(),
       ...overrides,
     };
@@ -162,12 +163,12 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
       injectedDocument: document,
     });
     expect(
-      setCurrentRoom.mock.calls.some((call) => call[0] === ' ROOM @#$')
+      setCurrentRoom.mock.calls.some((call) => call[0] === 'ROOM @#$')
     ).toBe(true);
     expect(
       emit.mock.calls.some(
         (call) =>
-          call[1]?.roomId === ' ROOM @#$' && call[1]?.playerName === 'Guest'
+          call[1]?.roomId === 'ROOM @#$' && call[1]?.playerName === 'Guest'
       )
     ).toBe(true);
   });

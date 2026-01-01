@@ -1,16 +1,8 @@
 // models/GameState.ts
 
-export type CardValue = string | number;
+import { Card, CardValue } from '../src/shared/types.js';
 
-export interface Card {
-  value: CardValue;
-  suit: string;
-  copied?: boolean;
-}
-
-interface AddToPileOptions {
-  isCopy?: boolean;
-}
+import { rank, normalizeCardValue, isSpecialCard } from '../utils/cardUtils.js';
 
 export default class GameState {
   public players: string[];
@@ -120,8 +112,11 @@ export default class GameState {
     }
   }
 
-  public clearPile(): void {
-    this.discard.push(...this.pile);
+  public clearPile(options: { toDiscard?: boolean } = {}): void {
+    const shouldDiscard = options.toDiscard !== false;
+    if (shouldDiscard) {
+      this.discard.push(...this.pile);
+    }
     this.pile = [];
     this.lastRealCard = null;
   }
@@ -209,14 +204,31 @@ export default class GameState {
   }
 
   public isValidPlay(cards: Card[]): boolean {
-    // Implementation for isValidPlay
-    // This is a placeholder, you'll need to define the actual logic
     if (!cards || cards.length === 0) {
       return false;
     }
-    // Example: Check if all cards have the same value
-    // const firstValue = cards[0].value;
-    // return cards.every(card => card.value === firstValue);
-    return true; // Placeholder
+
+    const firstValue = normalizeCardValue(cards[0].value);
+    if (cards.some(card => normalizeCardValue(card.value) !== firstValue)) {
+      return false; // All cards must have the same value
+    }
+
+    if (cards.length >= 4) {
+      return true; // 4+ of a kind is always a valid burn
+    }
+
+    if (this.pile.length === 0) {
+      return true; // Any card can be played on an empty pile
+    }
+
+    if (isSpecialCard(firstValue)) {
+      return true; // Special cards can be played on any card
+    }
+
+    const playedRank = rank(cards[0]);
+    const topPileCard = this.pile[this.pile.length - 1];
+    const topPileRank = rank(topPileCard);
+
+    return playedRank > topPileRank;
   }
 }

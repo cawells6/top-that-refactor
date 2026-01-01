@@ -97,7 +97,7 @@ describe('Player model', () => {
     test('playUpCard removes and returns card from upCards', () => {
       const played = p.playUpCard(0);
       expect(played).toEqual(upCard);
-      expect(p.upCards).toEqual([]);
+      expect(p.upCards).toEqual([null]);
     });
 
     test('playDownCard removes and returns a random card from downCards', () => {

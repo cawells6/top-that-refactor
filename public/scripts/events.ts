@@ -1,6 +1,11 @@
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
-import { JOIN_GAME } from '../../src/shared/events.ts';
+import {
+  JOIN_GAME,
+  JOINED,
+  LOBBY_STATE_UPDATE,
+  START_GAME,
+} from '../../src/shared/events.ts';
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -198,15 +203,17 @@ function syncCounterUI() {
   const humans = parseInt(totalPlayersInput.value || '1', 10);
   const cpus = parseInt(cpuPlayersInput.value || '0', 10);
   const total = humans + cpus;
+  const minHumans = state.getIsSpectator() ? 0 : 1;
 
   if (totalCountSpan) {
     totalCountSpan.textContent = total.toString();
   }
 
+  totalPlayersInput.min = minHumans.toString();
   totalPlayersInput.max = (4 - cpus).toString();
   cpuPlayersInput.max = (4 - humans).toString();
 
-  setButtonDisabled(humansMinusBtn, humans <= 1);
+  setButtonDisabled(humansMinusBtn, humans <= minHumans);
   setButtonDisabled(humansPlusBtn, total >= 4);
   setButtonDisabled(cpusMinusBtn, cpus <= 0);
   setButtonDisabled(cpusPlusBtn, total >= 4);
@@ -260,11 +267,18 @@ function validatePlayerCounts(): { isValid: boolean; message: string } {
   const numHumans = parseInt(totalPlayersInput.value || '1', 10);
   const numCPUs = parseInt(cpuPlayersInput.value || '0', 10);
   const totalPlayers = numHumans + numCPUs;
+  const minHumans = state.getIsSpectator() ? 0 : 1;
 
   if (totalPlayers < 2) {
     return {
       isValid: false,
       message: 'Minimum of 2 participants are required.',
+    };
+  }
+  if (numHumans < minHumans) {
+    return {
+      isValid: false,
+      message: 'At least 1 human is required.',
     };
   }
   if (totalPlayers > 4) {
@@ -284,6 +298,9 @@ function validateNameInput(): {
   }
   const name = nameInput.value.trim();
   if (!name) {
+    if (state.getIsSpectator()) {
+      return { isValid: true, message: '', name: 'Spectator' };
+    }
     return { isValid: false, message: 'Please enter a valid name.', name };
   }
   if (name.length < 2) {
@@ -353,7 +370,8 @@ function initializeCounterButtons() {
   if (humansMinusBtn) {
     humansMinusBtn.onclick = () => {
       const current = parseInt(totalPlayersInput?.value || '1', 10);
-      if (current > 1) {
+      const minHumans = state.getIsSpectator() ? 0 : 1;
+      if (current > minHumans) {
         totalPlayersInput.value = (current - 1).toString();
         updateTotalCount();
       }
@@ -399,6 +417,33 @@ function initializeCounterButtons() {
   updateTotalCount();
 }
 
+function applySpectatorMode(): void {
+  if (!state.getIsSpectator()) {
+    return;
+  }
+  document.body.classList.add('spectator-mode');
+  const nameInput = document.getElementById(
+    'player-name-input'
+  ) as HTMLInputElement | null;
+  if (nameInput) {
+    nameInput.value = 'Spectator';
+    nameInput.disabled = true;
+  }
+  const totalPlayersInput = document.getElementById(
+    'total-players-input'
+  ) as HTMLInputElement | null;
+  if (totalPlayersInput) {
+    totalPlayersInput.value = '0';
+  }
+  const startBtn = document.getElementById(
+    'setup-deal-button'
+  ) as HTMLButtonElement | null;
+  if (startBtn) {
+    startBtn.textContent = 'START CPU MATCH';
+  }
+  syncCounterUI();
+}
+
 export async function initializePageEventListeners() {
   console.log('🚀 [events.ts] initializePageEventListeners called!');
 
@@ -406,6 +451,7 @@ export async function initializePageEventListeners() {
   const setupRulesButton = document.getElementById('setup-rules-button');
   const setupDealButton = document.getElementById('setup-deal-button');
   const joinRulesButton = document.getElementById('join-rules-button');
+  const gameRulesButton = document.getElementById('game-rules-button');
 
   if (setupRulesButton) {
     setupRulesButton.addEventListener('click', handleRulesClick);
@@ -413,6 +459,10 @@ export async function initializePageEventListeners() {
 
   if (joinRulesButton) {
     joinRulesButton.addEventListener('click', handleRulesClick);
+  }
+
+  if (gameRulesButton) {
+    gameRulesButton.addEventListener('click', handleGameRulesClick);
   }
 
   if (setupDealButton) {
@@ -477,6 +527,7 @@ export async function initializePageEventListeners() {
   try {
     // Load state after handlers are attached
     state.loadSession();
+    applySpectatorMode();
   } catch (stateError) {
     console.error('❌ Error loading state:', stateError);
   }
@@ -687,16 +738,17 @@ function updateStartGameButton() {
     ) as HTMLInputElement;
     const humanCount = parseInt(totalPlayersInput?.value || '1', 10);
     const computerCount = parseInt(cpuPlayersInput?.value || '1', 10);
+    const minHumans = state.getIsSpectator() ? 0 : 1;
     setButtonDisabled(
       startGameBtn,
-      !(humanCount > 0 && humanCount + computerCount >= 2)
+      !(humanCount >= minHumans && humanCount + computerCount >= 2)
     );
   }
 }
 
 // Separate handler functions to prevent duplicate listeners
-function handleRulesClick() {
-  console.log('🎯 Rules button clicked!');
+function openRulesModal() {
+  console.log('dYZ_ Rules button clicked!');
   const rulesModal = document.getElementById('rules-modal');
   const overlay = document.getElementById('modal-overlay');
   const lobbyContainer = document.getElementById('lobby-container');
@@ -723,13 +775,24 @@ function handleRulesClick() {
       }
     }, 100);
 
-    console.log('✅ Rules modal opened, lobby hidden');
+    console.log('Rules modal opened, lobby hidden');
   } else {
-    console.error('❌ Rules modal or overlay not found');
+    console.error('Rules modal or overlay not found');
   }
 }
 
-function handleDealClick() {
+function handleRulesClick() {
+  if (document.body.classList.contains('showing-game')) {
+    return;
+  }
+  openRulesModal();
+}
+
+function handleGameRulesClick() {
+  openRulesModal();
+}
+
+async function handleDealClick() {
   console.log('🎯 Deal button clicked!');
   clearMessageQueueAndHide(); // Clear any old messages first
 
@@ -763,16 +826,27 @@ function handleDealClick() {
   const cpuPlayersInput = document.getElementById(
     'cpu-players-input'
   ) as HTMLInputElement;
-  const numHumans = parseInt(totalPlayersInput.value, 10) || 1;
+  const isSpectator = state.getIsSpectator();
+  const numHumans = isSpectator
+    ? 0
+    : parseInt(totalPlayersInput.value, 10) || 1;
   const numCPUs = parseInt(cpuPlayersInput.value, 10) || 0;
 
   state.setDesiredCpuCount(numCPUs);
 
-  const playerDataForEmit = {
+  const playerDataForEmit: {
+    playerName: string;
+    numHumans: number;
+    numCPUs: number;
+    spectator?: boolean;
+  } = {
     playerName: name, // changed from 'name' to 'playerName' for JoinGamePayload
     numHumans: numHumans,
     numCPUs: numCPUs,
   };
+  if (isSpectator) {
+    playerDataForEmit.spectator = true;
+  }
 
   console.log(
     '🎯 Deal button: Validations passed. Joining game with data:',
@@ -789,25 +863,32 @@ function handleDealClick() {
     connected: state.socket?.connected,
     id: state.socket?.id,
     hasJoinedListeners: state.socket
-      ? state.socket.listeners('joined').length
+      ? state.socket.listeners(JOINED).length
       : 0,
     hasLobbyStateListeners: state.socket
-      ? state.socket.listeners('lobby-state-update').length
+      ? state.socket.listeners(LOBBY_STATE_UPDATE).length
       : 0,
   });
 
   // Add a callback to log the server's response
+  await state.socketReady;
+  if (!state.socket || state.socket.connected === false) {
+    queueMessage('Unable to connect to server. Please try again.');
+    return;
+  }
+
   state.socket.emit(JOIN_GAME, playerDataForEmit, (response: any) => {
     console.log('[CLIENT] Received JOIN_GAME response from server:', response);
     const dealButton = document.getElementById(
       'setup-deal-button'
     ) as HTMLButtonElement;
+    const idleLabel = isSpectator ? 'START CPU MATCH' : "LET'S PLAY";
     if (response.error) {
       console.error('[CLIENT] JOIN_GAME error:', response.error);
       queueMessage(response.error);
       if (dealButton) {
         dealButton.disabled = false;
-        dealButton.textContent = "LET'S PLAY";
+        dealButton.textContent = idleLabel;
       }
     } else {
       console.log(
@@ -824,6 +905,13 @@ function handleDealClick() {
         form.reset();
         syncCounterUI();
       }
+      if (dealButton) {
+        dealButton.disabled = false;
+        dealButton.textContent = idleLabel;
+      }
+      if (isSpectator) {
+        state.socket.emit(START_GAME, { computerCount: numCPUs });
+      }
     }
   });
 
@@ -833,16 +921,10 @@ function handleDealClick() {
   if (dealButton) {
     dealButton.disabled = true;
     dealButton.textContent = 'STARTING...';
-    setTimeout(() => {
-      if (dealButton) {
-        dealButton.disabled = false;
-        dealButton.textContent = "LET'S PLAY";
-      }
-    }, 3000);
   }
 }
 
-function handleJoinGameClick() {
+async function handleJoinGameClick() {
   console.log('🎯 Join game button clicked!');
   clearMessageQueueAndHide();
 
@@ -890,6 +972,13 @@ function handleJoinGameClick() {
     '[CLIENT] handleJoinGameClick: Emitting JOIN_GAME with',
     joinPayload
   );
+  await state.socketReady;
+  if (!state.socket || state.socket.connected === false) {
+    queueMessage('Unable to connect to server. Please try again.');
+    if (joinBtn) joinBtn.disabled = false;
+    return;
+  }
+
   state.socket.emit(JOIN_GAME, joinPayload, (response: any) => {
     if (joinBtn) joinBtn.disabled = false; // Re-enable button after server response
     if (response && response.error) {
@@ -931,3 +1020,4 @@ function hideRulesModalAndOverlay() {
 }
 
 export { handleRulesClick, hideRulesModalAndOverlay };
+

@@ -61,6 +61,7 @@ let pileTransition: boolean = false;
 let specialEffectsQueue: any[] = [];
 let processingEffects: boolean = false;
 let desiredCpuCount = 0;
+let isSpectator = false;
 const stateHistory: any[] = [];
 let stateIndex: number = -1;
 let lastGameState: GameStateData | null = null;
@@ -70,12 +71,18 @@ function loadSession(): void {
   setCurrentRoom(sessionStorage.getItem('currentRoom'));
   const cpuStr = sessionStorage.getItem('desiredCpuCount');
   if (cpuStr) desiredCpuCount = parseInt(cpuStr, 10) || 0;
+  isSpectator = sessionStorage.getItem('spectator') === '1';
 }
 
 function saveSession(): void {
   if (myId) sessionStorage.setItem('myId', myId);
   if (currentRoom) sessionStorage.setItem('currentRoom', currentRoom);
   sessionStorage.setItem('desiredCpuCount', desiredCpuCount.toString());
+  if (isSpectator) {
+    sessionStorage.setItem('spectator', '1');
+  } else {
+    sessionStorage.removeItem('spectator');
+  }
 }
 
 function setMyId(id: string | null): void {
@@ -92,6 +99,17 @@ function setDesiredCpuCount(count: number): void {
 
 function getDesiredCpuCount(): number {
   return desiredCpuCount;
+}
+function setIsSpectator(value: boolean): void {
+  isSpectator = value;
+  if (isSpectator) {
+    sessionStorage.setItem('spectator', '1');
+  } else {
+    sessionStorage.removeItem('spectator');
+  }
+}
+function getIsSpectator(): boolean {
+  return isSpectator;
 }
 function setPileTransition(value: boolean): void {
   pileTransition = value;
@@ -121,6 +139,7 @@ export {
   specialEffectsQueue,
   processingEffects,
   desiredCpuCount,
+  isSpectator,
   stateHistory,
   stateIndex,
   lastGameState,
@@ -130,6 +149,8 @@ export {
   setCurrentRoom,
   setDesiredCpuCount,
   getDesiredCpuCount,
+  setIsSpectator,
+  getIsSpectator,
   setPileTransition,
   setProcessingEffects,
   addSpecialEffect,

@@ -1,15 +1,16 @@
 // models/Player.ts
-import { Card } from '../src/types.js';
+import { Card } from '../src/shared/types.js';
 import { rank } from '../utils/cardUtils.js';
 
 export default class Player {
   public id: string;
   public socketId?: string;
   public hand: Card[];
-  public upCards: Card[];
+  public upCards: Array<Card | null>;
   public downCards: Card[];
   public name: string;
   public isComputer: boolean;
+  public isSpectator: boolean;
   public disconnected: boolean;
 
   // Track the player's status in the lobby. A player can be:
@@ -26,6 +27,7 @@ export default class Player {
     this.downCards = [];
     this.name = '';
     this.isComputer = false;
+    this.isSpectator = false;
     this.disconnected = false;
     this.status = 'invited'; // Default status
     this.ready = false; // Default ready state
@@ -36,7 +38,7 @@ export default class Player {
     this.sortHand();
   }
 
-  setUpCards(cards: Card[]): void {
+  setUpCards(cards: Array<Card | null>): void {
     this.upCards = [...cards];
   }
 
@@ -51,12 +53,15 @@ export default class Player {
 
   playUpCard(index: number): Card | undefined {
     if (index < 0 || index >= this.upCards.length) return undefined;
-    return this.upCards.splice(index, 1)[0];
+    const card = this.upCards[index];
+    if (!card) return undefined;
+    this.upCards[index] = null;
+    return card;
   }
 
-  playDownCard(): Card | undefined {
-    if (this.downCards.length === 0) return undefined;
-    return this.downCards.shift();
+  playDownCard(index: number): Card | undefined {
+    if (index < 0 || index >= this.downCards.length) return undefined;
+    return this.downCards.splice(index, 1)[0];
   }
 
   pickUpPile(pile: Card[]): void {
@@ -73,10 +78,20 @@ export default class Player {
   }
 
   hasEmptyUp(): boolean {
-    return this.upCards.length === 0;
+    return this.getUpCardCount() === 0;
   }
 
   hasEmptyDown(): boolean {
     return this.downCards.length === 0;
+  }
+
+  getUpCardCount(): number {
+    let count = 0;
+    for (const card of this.upCards) {
+      if (card) {
+        count++;
+      }
+    }
+    return count;
   }
 }

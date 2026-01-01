@@ -11,6 +11,7 @@ export interface MockSocket {
   eventHandlers: Record<string, (data?: any, ack?: Function) => void>;
   simulateIncomingEvent: (event: string, data?: any, ack?: Function) => void;
   disconnect: any;
+  off: any;
 }
 
 export interface MockIO {
@@ -42,6 +43,7 @@ export function createMockSocket(
       if (handlers[event]) handlers[event](data, ack);
     },
     disconnect: jest.fn(),
+    off: jest.fn(),
   };
 }
 

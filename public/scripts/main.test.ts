@@ -10,6 +10,7 @@ jest.mock(
     setMyId: jest.fn(),
     setCurrentRoom: jest.fn(),
     saveSession: jest.fn(),
+    setIsSpectator: jest.fn(),
     socketReady: Promise.resolve(),
   }),
   { virtual: true }
@@ -45,6 +46,14 @@ jest.mock(
   './socketService.js',
   () => ({
     initializeSocketHandlers: jest.fn(),
+  }),
+  { virtual: true }
+);
+
+jest.mock(
+  './gameControls.js',
+  () => ({
+    initializeGameControls: jest.fn(),
   }),
   { virtual: true }
 );

@@ -16,7 +16,7 @@ export interface ClientStatePlayer {
   upCount?: number;
   downCount?: number;
   hand?: Card[];
-  upCards?: Card[];
+  upCards?: Array<Card | null>;
   downCards?: Card[]; // Added for server compatibility
   downCardsHidden?: number; // Number of down cards (hidden)
   disconnected?: boolean;
@@ -41,6 +41,7 @@ export interface LobbyPlayer {
   name: string;
   status: 'host' | 'invited' | 'joined' | 'ready';
   isComputer?: boolean; // Whether this player is a bot/CPU
+  isSpectator?: boolean;
 }
 
 export interface InSessionLobbyState {
@@ -59,4 +60,5 @@ export interface JoinGamePayload {
   numHumans: number;
   numCPUs: number;
   roomId?: string;
+  spectator?: boolean;
 }

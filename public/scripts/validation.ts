@@ -13,6 +13,7 @@ export function validateJoinGamePayload(
   payload: Partial<JoinGamePayload>
 ): ValidationResult {
   const errors: string[] = [];
+  const maxPlayers = 4;
 
   // Validate player name
   if (!payload.playerName || typeof payload.playerName !== 'string') {
@@ -28,14 +29,15 @@ export function validateJoinGamePayload(
   }
 
   // Validate numHumans
+  const minHumans = payload.spectator ? 0 : 1;
   if (typeof payload.numHumans !== 'number') {
     errors.push('Number of human players must be specified');
   } else if (!Number.isInteger(payload.numHumans)) {
     errors.push('Number of human players must be a whole number');
-  } else if (payload.numHumans < 1) {
+  } else if (payload.numHumans < minHumans) {
     errors.push('At least 1 human player is required');
-  } else if (payload.numHumans > 6) {
-    errors.push('Maximum 6 human players allowed');
+  } else if (payload.numHumans > maxPlayers) {
+    errors.push('Maximum 4 human players allowed');
   }
 
   // Validate numCPUs
@@ -45,8 +47,8 @@ export function validateJoinGamePayload(
     errors.push('Number of CPU players must be a whole number');
   } else if (payload.numCPUs < 0) {
     errors.push('Number of CPU players cannot be negative');
-  } else if (payload.numCPUs > 5) {
-    errors.push('Maximum 5 CPU players allowed');
+  } else if (payload.numCPUs > maxPlayers) {
+    errors.push('Maximum 4 CPU players allowed');
   }
 
   // Validate total players (only for new game creation, not for joining existing games)
@@ -58,8 +60,8 @@ export function validateJoinGamePayload(
     const totalPlayers = payload.numHumans + payload.numCPUs;
     if (totalPlayers < 2) {
       errors.push('At least 2 total players (humans + CPUs) are required');
-    } else if (totalPlayers > 6) {
-      errors.push('Maximum 6 total players allowed');
+    } else if (totalPlayers > maxPlayers) {
+      errors.push('Maximum 4 total players allowed');
     }
   }
 

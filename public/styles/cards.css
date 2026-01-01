@@ -1,25 +1,44 @@
 /* cards.css - Card-specific styles */
 .card-container {
-  display: inline-block;
-  margin: 5px;
+  display: inline-flex;
+  margin: 4px;
   position: relative;
 }
 
 .card-img {
-  width: 100px;
-  height: 140px;
-  border-radius: 5px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease-in-out;
+  width: var(--card-w, 90px);
+  height: var(--card-h, 126px);
+  border-radius: 10px;
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, outline 0.18s ease;
+  background: #0f1f19;
 }
 
 .card-img.selectable:hover {
-  transform: scale(1.1);
+  transform: translateY(-6px) scale(1.03);
+  cursor: pointer;
+  box-shadow: 0 12px 18px rgba(0, 0, 0, 0.35);
+}
+
+.selectable-container {
   cursor: pointer;
 }
 
+.selectable-container:hover .card-img.selectable {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 12px 18px rgba(0, 0, 0, 0.35);
+}
+
 .card-img.selected {
-  border: 2px solid var(--accent);
+  outline: 3px solid var(--accent);
+  transform: translateY(-8px) scale(1.04);
+  box-shadow:
+    0 10px 18px rgba(0, 0, 0, 0.35),
+    0 0 0 4px rgba(255, 195, 0, 0.35);
+}
+
+.card-container.selected-container {
+  z-index: 5;
 }
 
 .rules-icon {

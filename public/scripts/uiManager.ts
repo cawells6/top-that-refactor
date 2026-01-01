@@ -1,12 +1,4 @@
-import { renderGameState } from './render.js';
 import * as state from './state.js';
-import {
-  JOINED,
-  LOBBY_STATE_UPDATE,
-  STATE_UPDATE,
-  REJOIN,
-} from '../../src/shared/events.js';
-import { GameStateData } from '../../src/shared/types.js';
 
 export const getLobbyContainer = (): HTMLElement | null =>
   document.getElementById('lobby-container');
@@ -118,6 +110,8 @@ export function showGameTable(): void {
   const mainContent = document.getElementById('main-content');
   const lobbyContainer = getLobbyContainer();
   const inSessionModal = document.getElementById('in-session-lobby-modal');
+  const rulesModal = getRulesModal();
+  const overlay = getModalOverlay();
   const body = document.body;
 
   if (!table) {
@@ -139,6 +133,15 @@ export function showGameTable(): void {
     inSessionModal.classList.add('hidden');
   }
 
+  if (rulesModal) {
+    rulesModal.classList.add('modal--hidden');
+  }
+  if (overlay) {
+    overlay.classList.add('modal__overlay--hidden');
+  }
+  body.classList.remove('rules-modal-open');
+  document.documentElement.classList.remove('rules-modal-open');
+
   // Show the game table
   table.classList.remove('hidden');
 
@@ -150,63 +153,6 @@ export function showGameTable(): void {
 
 export function showError(msg: string): void {
   alert(msg);
-}
-
-/**
- * Initializes socket event handlers.
- * NOTE: This function appears to be unused as `main.ts` imports `initializeSocketHandlers` from `socketService.ts`.
- */
-export function initializeSocketHandlers(): void {
-  if (!state.socket) {
-    console.error('Socket not available for handlers');
-    return;
-  }
-
-  // Remove existing listeners to prevent duplicates
-  state.socket.removeAllListeners('connect');
-  state.socket.removeAllListeners(JOINED);
-  // Legacy events removed: PLAYER_JOINED, LOBBY
-  state.socket.removeAllListeners(STATE_UPDATE);
-  state.socket.removeAllListeners('err');
-
-  state.socket.on('connect', () => {
-    if (state.myId && state.currentRoom) {
-      state.socket.emit(REJOIN, state.myId, state.currentRoom);
-    } else {
-      showLobbyForm();
-    }
-  });
-
-  state.socket.on(JOINED, ({ id, roomId }: { id: string; roomId: string }) => {
-    state.setMyId(id);
-    state.setCurrentRoom(roomId);
-    state.saveSession();
-  });
-
-  state.socket.on(
-    LOBBY_STATE_UPDATE,
-    (data: {
-      roomId: string;
-      players: { id: string; name: string; ready: boolean }[];
-    }) => {
-      showWaitingState(
-        data.roomId,
-        data.players.length,
-        data.players.length,
-        data.players
-      );
-    }
-  );
-
-  state.socket.on(STATE_UPDATE, (s: GameStateData) => {
-    console.log('Received STATE_UPDATE:', s);
-    renderGameState(s, state.myId);
-    if (s.started) showGameTable();
-  });
-
-  state.socket.on('err', (msg: string) => {
-    showError(msg);
-  });
 }
 
 /**

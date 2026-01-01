@@ -22,6 +22,12 @@ interface JoinGameContract {
     payload: { playerName: string; numHumans: number; numCPUs: number }
     response: { roomId: string; playerId: string } | { error: string }
   }
+
+  // Error semantics
+  errors: {
+    fatalSession: 'session-error' // Clears client session + returns to lobby
+    nonFatal: 'err' // Shows message without resetting session
+  }
 }
 ```
 

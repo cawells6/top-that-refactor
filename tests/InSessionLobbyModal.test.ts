@@ -9,9 +9,9 @@
 import '@testing-library/jest-dom';
 import { fireEvent, screen } from '@testing-library/dom';
 
-import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobbyModal.js';
+import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobbyModal.ts';
 import * as state from '../public/scripts/state.js';
-import { PLAYER_READY } from '../src/shared/events.js';
+import { PLAYER_READY } from '../src/shared/events.ts';
 import { InSessionLobbyState } from '../src/shared/types.js';
 import { setupModalDOM, mockInSessionLobbyModal } from './utils/domSetup.js';
 
@@ -43,7 +43,7 @@ function makeLobbyState(
     hostId: 'host-id',
     players: [
       { id: 'host-id', name: 'Host Player', status: 'host' },
-      { id: 'my-socket-id', name: 'Me', status: 'joined' },
+      { id: 'my-socket-id', name: 'Guest', status: 'joined' },
     ],
     ...overrides,
   };
