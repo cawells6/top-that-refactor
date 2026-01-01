@@ -19,14 +19,14 @@
         ". top ."
         "left center right"
         "bottom bottom bottom";
-    grid-template-columns: minmax(220px, 0.9fr) minmax(160px, 0.6fr) minmax(220px, 0.9fr);
-    grid-template-rows: minmax(200px, 0.9fr) minmax(160px, auto) minmax(240px, 1.2fr);
-    gap: clamp(0.75rem, 1.2vw, 1.2rem);
+    grid-template-columns: minmax(230px, 0.75fr) minmax(150px, 0.3fr) minmax(230px, 0.75fr);
+    grid-template-rows: minmax(180px, 0.9fr) minmax(150px, auto) minmax(220px, 1fr);
+    gap: clamp(0.3rem, 0.6vw, 0.7rem);
     width: calc(100vw - 32px);
     height: calc(100vh - 32px);
     max-width: 100%;
     max-height: 100%;
-    padding: clamp(0.5rem, 1vw, 1rem);
+    padding: clamp(0.75rem, 1.5vw, 1.35rem) clamp(0.5rem, 1vw, 0.9rem);
     margin: 0 auto;
     box-sizing: border-box;
     position: relative;
@@ -150,7 +150,8 @@ body.showing-game {
 .player-area {
     background-color: transparent;
     border-radius: 15px;
-    padding: 0; /* Remove padding to allow header to be full-width */
+    padding: 0;
+    min-height: calc(var(--card-h, 126px) * 2 + 120px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     transition: all 0.3s ease;
     display: flex;
@@ -159,6 +160,27 @@ body.showing-game {
     border: 2px solid rgba(255, 255, 255, 0.75);
     overflow: hidden; /* To contain the full-width header */
 }
+
+#player-area-bottom .player-area {
+    min-height: calc(var(--card-h, 126px) * 2 + 150px);
+}
+
+.player-header {
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+}
+
+.player-area > .player-zone,
+.player-area > .player-actions {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.4rem 0.6rem;
+}
+
+.player-zone--table {
+    padding-bottom: 0.8rem;
+}
+
 
 .player-area.active {
     box-shadow: 0 0 20px gold, 0 0 10px white;
