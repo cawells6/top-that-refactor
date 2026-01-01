@@ -20,7 +20,7 @@
         "left center right"
         "bottom bottom bottom";
     grid-template-columns: minmax(230px, 1fr) minmax(150px, 0.2fr) minmax(230px, 1fr);
-    grid-template-rows: minmax(90px, 1fr) minmax(150px, 0.3fr) minmax(90px, 1fr);
+    grid-template-rows: minmax(90px, 1fr) minmax(150px, 0.4fr) minmax(90px, 1fr);
     gap: clamp(0.3rem, 0.6vw, 0.7rem);
     width: calc(100vw - 32px);
     height: calc(100vh - 32px);
