@@ -51,7 +51,8 @@
     row-gap: clamp(var(--table-row-gap-min), var(--table-row-gap-preferred), var(--table-row-gap-max));
     width: auto;
     max-width: min(98vw, 2400px);
-    height: auto;
+    height: 92vh;
+    overflow: auto;
     margin: 0 auto;
     padding: clamp(var(--table-padding-vertical-min), var(--table-padding-vertical-preferred), var(--table-padding-vertical-max)) clamp(var(--table-padding-horizontal-min), var(--table-padding-horizontal-preferred), var(--table-padding-horizontal-max));
     border: 16px solid var(--wood-color);
@@ -63,7 +64,8 @@
     box-shadow:
         inset 0 0 40px rgba(0, 0, 0, 0.9),
         0 20px 50px rgba(0, 0, 0, 0.6);
-    box-sizing: content-box;
+    box-sizing: border-box;
+    scrollbar-gutter: stable both-edges;
     position: relative;
 }
 
@@ -237,13 +239,13 @@ body.showing-game {
     border-radius: 15px;
     padding: 0;
     min-height: calc(var(--card-h, 126px) * 2 + 60px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    box-shadow: none;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 2px solid rgba(255, 255, 255, 0.75);
-    overflow: hidden; /* To contain the full-width header */
+    border: none;
+    overflow: visible; /* To contain the full-width header */
 }
 
 #player-area-bottom .player-area {
@@ -396,6 +398,10 @@ body.showing-game {
 #player-area-bottom .player-area.is-local {
     --card-w: calc(var(--card-w-base) * 0.85);
     --card-h: calc(var(--card-h-base) * 0.85);
+    width: min(100%, clamp(320px, 36vw, 480px));
+    min-width: 0;
+    max-width: 100%;
+    flex: 0 0 auto;
 }
 
 /* Mirror reduced card size for deck and discard piles */

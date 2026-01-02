@@ -172,8 +172,8 @@ body.showing-game #game-rules-button {
 }
 
 .player-area {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
+  background: transparent;
+  border: none;
   border-radius: 18px;
   padding: 0.6rem;
   width: 100%;
@@ -182,24 +182,15 @@ body.showing-game #game-rules-button {
   max-width: clamp(320px, 36vw, 480px);
   min-height: calc(var(--card-h, 126px) + 140px);
   color: #1b2e3c;
-  box-shadow:
-    0 12px 24px rgba(0, 0, 0, 0.3),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 
-.player-area::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), transparent 55%);
-  pointer-events: none;
-}
 
 .player-area > * {
   position: relative;
@@ -376,19 +367,24 @@ body.showing-game #game-rules-button {
 .hand-tray--local {
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
   position: relative;
   z-index: 2;
 }
 
 .hand-row--local {
   flex-wrap: nowrap;
-  width: max-content;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   position: relative;
   z-index: 2;
 }
 
 .hand-row--compressed {
   width: 100%;
+  min-width: 0;
   justify-content: center;
   gap: 0;
 }
