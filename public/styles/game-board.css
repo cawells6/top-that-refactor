@@ -8,6 +8,30 @@
     --card-height-mobile: calc(var(--card-width-mobile) * var(--card-aspect-ratio));
     --wood-color: #2c1e12;
     --felt-color: #35654d;
+
+    /* Table positioning */
+    --table-margin-top: 2vh;
+    --main-content-padding-top: 2vh;
+    
+    /* Table spacing - vertical (between player areas) */
+    --table-row-gap-min: 90px;
+    --table-row-gap-preferred: 9vw;
+    --table-row-gap-max: 130px;
+    
+    /* Table spacing - horizontal (between left/center/right columns) */
+    --table-column-gap-min: 100px;
+    --table-column-gap-preferred: 10vw;
+    --table-column-gap-max: 150px;
+    
+    /* Table padding - vertical (top/bottom space inside border) */
+    --table-padding-vertical-min: 5.5rem;
+    --table-padding-vertical-preferred: 6.5vw;
+    --table-padding-vertical-max: 6.5rem;
+    
+    /* Table padding - horizontal (left/right space inside border) */
+    --table-padding-horizontal-min: 7rem;
+    --table-padding-horizontal-preferred: 9vw;
+    --table-padding-horizontal-max: 9rem;
 }
 
 /* 1. Responsive & Adaptive Layout */
@@ -23,13 +47,13 @@
     grid-template-rows: auto auto auto;
     justify-content: center;
     align-content: center;
-    column-gap: clamp(100px, 10vw, 150px);
-    row-gap: clamp(90px, 9vw, 130px);
+    column-gap: clamp(var(--table-column-gap-min), var(--table-column-gap-preferred), var(--table-column-gap-max));
+    row-gap: clamp(var(--table-row-gap-min), var(--table-row-gap-preferred), var(--table-row-gap-max));
     width: auto;
     max-width: min(98vw, 2400px);
     height: auto;
     margin: 0 auto;
-    padding: clamp(5.5rem, 6.5vw, 6.5rem) clamp(7rem, 9vw, 9rem);
+    padding: clamp(var(--table-padding-vertical-min), var(--table-padding-vertical-preferred), var(--table-padding-vertical-max)) clamp(var(--table-padding-horizontal-min), var(--table-padding-horizontal-preferred), var(--table-padding-horizontal-max));
     border: 16px solid var(--wood-color);
     border-radius: 150px;
     background-color: var(--felt-color);
