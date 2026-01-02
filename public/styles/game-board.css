@@ -412,7 +412,7 @@ body.showing-game {
 
 #game-table .player-area.active {
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-    border: 2px solid rgba(255, 255, 255, 0.9);
+    border: none;
     transform: none;
 }
 

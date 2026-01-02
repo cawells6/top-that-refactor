@@ -198,10 +198,6 @@ body.showing-game #game-rules-button {
 }
 
 .player-area.active {
-  border-color: var(--seat-accent, #f6c556);
-  box-shadow:
-    0 0 0 2px rgba(0, 0, 0, 0.25),
-    0 0 18px rgba(246, 197, 86, 0.45);
   animation: playerGlow 2.2s ease-in-out infinite;
 }
 
@@ -368,7 +364,6 @@ body.showing-game #game-rules-button {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  overflow: hidden;
   position: relative;
   z-index: 2;
 }

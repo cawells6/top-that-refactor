@@ -412,9 +412,6 @@ export function renderGameState(
     const tagRow = document.createElement('div');
     tagRow.className = 'player-tags';
     if (player.disconnected) tagRow.appendChild(createTag('Offline', 'offline'));
-    if (player.id === gameState.currentPlayerId) {
-      tagRow.appendChild(createTag('Turn', 'turn'));
-    }
 
     meta.appendChild(nameEl);
     if (tagRow.childElementCount > 0) {
