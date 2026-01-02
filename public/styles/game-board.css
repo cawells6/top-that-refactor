@@ -6,7 +6,7 @@
     --card-height-desktop: calc(var(--card-width-desktop) * var(--card-aspect-ratio));
     --card-width-mobile: 60px;
     --card-height-mobile: calc(var(--card-width-mobile) * var(--card-aspect-ratio));
-    --wood-color: #2c1e12;
+    --wood-color: #4a2511;
     --felt-color: #35654d;
 
     /* Table positioning */
@@ -501,7 +501,7 @@ body.showing-game {
 /* --- 2. THE CENTER TRAY (Wooden Inlay) --- */
 .center-piles {
     grid-area: center;
-    background: linear-gradient(180deg, #5d4037 0%, #3e2723 100%);
+    background: linear-gradient(180deg, #8C2C2C 0%, #591D1D 100%);
     border-radius: 20px;
     padding: 1.5rem 3rem;
     gap: 4rem;

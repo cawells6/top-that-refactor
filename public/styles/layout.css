@@ -575,7 +575,7 @@ body.showing-game #game-rules-button {
   min-width: calc(var(--card-w, 90px) + 0.4rem);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(6, 20, 15, 0.3);
+  background: rgba(40, 9, 9, 0.3);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
@@ -583,10 +583,10 @@ body.showing-game #game-rules-button {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: transparent;
   padding: 0.2rem 0.6rem;
   border-radius: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: none;
 }
 
 .pile-title {
@@ -594,13 +594,13 @@ body.showing-game #game-rules-button {
   font-size: 0.9rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #fff;
-  text-shadow: none;
+  color: #FFDDC7;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .pile-badge {
-  background: #ffc300;
-  color: #1b2e3c;
+  background: #4a2511;
+  color: #FFDDC7;
   border-radius: 999px;
   padding: 0.1rem 0.5rem;
   font-size: 0.7rem;
