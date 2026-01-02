@@ -19,17 +19,17 @@
         ". top ."
         "left center right"
         "bottom bottom bottom";
-    /* UPDATED: Use 1fr auto 1fr to stabilize sides while hugging center content */
-    grid-template-columns: 1fr auto 1fr;
-    /* UPDATED: Keep auto to minimize vertical gap drift */
+    grid-template-columns: 260px auto 260px;
     grid-template-rows: auto auto auto;
     justify-content: center;
     align-content: center;
-    /* UPDATED: Reduced from 3rem to 1.5rem to bring areas closer without overtaking */
-    gap: 1.5rem;
-    width: 98vw;
-    height: 95vh;
+    column-gap: clamp(100px, 10vw, 150px);
+    row-gap: clamp(90px, 9vw, 130px);
+    width: auto;
+    max-width: min(98vw, 2400px);
+    height: auto;
     margin: 0 auto;
+    padding: clamp(5.5rem, 6.5vw, 6.5rem) clamp(7rem, 9vw, 9rem);
     border: 16px solid var(--wood-color);
     border-radius: 150px;
     background-color: var(--felt-color);
@@ -39,7 +39,7 @@
     box-shadow:
         inset 0 0 40px rgba(0, 0, 0, 0.9),
         0 20px 50px rgba(0, 0, 0, 0.6);
-    box-sizing: border-box;
+    box-sizing: content-box;
     position: relative;
 }
 
@@ -81,7 +81,7 @@
     justify-self: center;
     align-self: end;
     padding: 0;
-    margin-bottom: 10px;
+    margin-bottom: 2px;
 }
 #opponent-area-left {
     grid-area: left;
@@ -110,7 +110,7 @@
     justify-self: center;
     align-self: start;
     padding: 0;
-    margin-top: 20px;
+    margin-top: 2px;
 }
 
 
@@ -135,10 +135,35 @@
     #opponent-area-top {
         /* This will contain all opponents in a scrollable view */
         display: flex;
-        overflow-x: auto;
-        justify-content: flex-start;
-        gap: 0.5rem;
-        padding: 0.5rem;
+        gap: 2px; /* Minimal gap between players */
+        align-items: flex-start;
+        padding-top: 10px;
+        overflow-x: auto; /* Allow scrolling if really crowded */
+        justify-content: center; /* Center them if few, scroll if many */
+    }
+
+    #opponent-area-top .player-area {
+        width: 100px; /* Force narrow width */
+        margin: 0 2px;
+    }
+
+    /* Hide opponent tags (HOST, etc) on mobile to save space */
+    #opponent-area-top .player-tags {
+        display: none;
+    }
+
+    /* Make the header tiny */
+    #opponent-area-top .player-header {
+        padding: 2px 6px;
+        flex-direction: column; /* Stack Avatar on Name */
+        gap: 2px;
+        background: transparent; /* Remove background entirely */
+        border: none;
+    }
+
+    #opponent-area-top .player-name {
+        font-size: 0.75rem;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     }
 }
 
@@ -296,6 +321,63 @@ body.showing-game {
 
 .player-zone--table {
     padding-bottom: 0.8rem;
+}
+
+/* --- STREAMLINED LAYOUT OVERRIDES --- */
+
+/* 1. Make Opponents "Float" (Transparent Backgrounds) */
+/* Applies to Top, Left, and Right areas, but NOT your area (Bottom) */
+.table > :not(#player-area-bottom) .player-area {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    min-height: 0; /* Remove rigid height constraints */
+    min-width: 0;  /* Allow shrinking below default width */
+    padding: 0;    /* Reclaim padding space */
+    overflow: visible; /* Let elements pop out if needed */
+}
+
+/* Remove the "glass" line from opponent headers to clean up noise */
+.table > :not(#player-area-bottom) .player-header {
+    background: rgba(15, 23, 30, 0.6); /* Semi-transparent pill */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    width: auto;           /* Shrink to fit content */
+    display: inline-flex;  /* Center the header */
+    padding: 4px 12px;
+    margin-bottom: 4px;
+    border-radius: 20px;
+}
+
+/* 2. Scale Down Opponent Elements (Visual Hierarchy) */
+.table > :not(#player-area-bottom) .player-avatar {
+    width: 38px;  /* Smaller than your 48px */
+    height: 38px;
+}
+
+.table > :not(#player-area-bottom) .player-name {
+    font-size: 0.9rem; /* Smaller text */
+    max-width: 100px;  /* Truncate long names sooner */
+}
+
+/* Scale the entire card zone for opponents to 85% */
+.table > :not(#player-area-bottom) .player-zone {
+    transform: scale(0.85);
+    transform-origin: center top; /* Scale up from the top */
+    margin-bottom: -15px; /* Pull the layout up since it's smaller */
+    width: 100%;
+}
+
+/* Match local player card sizes to opponent scale without other styling changes */
+#player-area-bottom .player-area.is-local {
+    --card-w: calc(var(--card-w-base) * 0.85);
+    --card-h: calc(var(--card-h-base) * 0.85);
+}
+
+/* Mirror reduced card size for deck and discard piles */
+#center-area .center-piles {
+    --card-w: calc(var(--card-w-base) * 0.85);
+    --card-h: calc(var(--card-h-base) * 0.85);
 }
 
 #game-table .player-area.active {
@@ -532,7 +614,7 @@ body.showing-game {
 }
 
 .hand-row--opponent .card-container {
-    margin-left: -70px;
+    margin-left: -50px;
     transition: transform 0.3s ease, margin 0.3s ease;
     filter: drop-shadow(-2px 0 3px rgba(0, 0, 0, 0.5));
     pointer-events: none;
