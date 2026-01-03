@@ -430,10 +430,7 @@ export function renderGameState(
 
     const nameEl = document.createElement('div');
     nameEl.className = 'player-name';
-    const cpuIndex = cpuIndexById.get(player.id);
-    nameEl.textContent = player.isComputer
-      ? `CPU ${cpuIndex ?? ''}`.trim()
-      : player.name || player.id;
+    nameEl.textContent = player.name || player.id;
 
     const tagRow = document.createElement('div');
     tagRow.className = 'player-tags';
