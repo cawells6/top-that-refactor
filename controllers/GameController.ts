@@ -1123,7 +1123,7 @@ export default class GameController {
       this.pushState();
       
       // Delay to let clients render the card with icon before showing result
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 600));
     }
 
     handleSpecialCard(
@@ -1161,6 +1161,9 @@ export default class GameController {
     if (specialEffectTriggered) {
       this.log(`Special card effect complete - emitting STATE_UPDATE with result`);
       this.pushState();
+      
+      // Second delay: let result "sink in" before next turn
+      await new Promise(resolve => setTimeout(resolve, 600));
     }
 
     this.log('Proceeding to next turn.');
@@ -1358,20 +1361,21 @@ export default class GameController {
   }
 
   private async playComputerTurn(computerPlayer: Player): Promise<void> {
-    try {
-      if (
-        !this.gameState.started ||
-        this.gameState.players[this.gameState.currentPlayerIndex] !==
-          computerPlayer.id ||
-        this.isProcessingTurn
-      ) {
-        this.log(
-          `CPU ${computerPlayer.id} turn skipped: not their turn, game not started, or turn already in progress.`
-        );
-        return;
-      }
+    if (
+      !this.gameState.started ||
+      this.gameState.players[this.gameState.currentPlayerIndex] !==
+        computerPlayer.id ||
+      this.isProcessingTurn
+    ) {
+      this.log(
+        `CPU ${computerPlayer.id} turn skipped: not their turn, game not started, or turn already in progress.`
+      );
+      return;
+    }
 
-      this.isProcessingTurn = true;
+    this.isProcessingTurn = true;
+    
+    try {
 
     const requiredZone =
       computerPlayer.hand.length > 0
@@ -1426,13 +1430,12 @@ export default class GameController {
     }
     } catch (error) {
       console.error(`[GameController] Error in playComputerTurn for ${computerPlayer.id}:`, error);
-      this.isProcessingTurn = false;
-      // Continue game flow on error
+      // Ensure game continues even on error
       this.handleNextTurn({ cpuDelayMs: this.cpuDelayMs });
-      return;
+    } finally {
+      // ALWAYS clear flag, even on error or early return
+      this.isProcessingTurn = false;
     }
-
-    this.isProcessingTurn = false;
   }
 
   private scheduleComputerTurn(player: Player, delay: number): void {
