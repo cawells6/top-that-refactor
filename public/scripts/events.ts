@@ -781,6 +781,8 @@ function openRulesModal() {
   }
 }
 
+document.addEventListener('open-rules-modal', openRulesModal);
+
 function handleRulesClick() {
   if (document.body.classList.contains('showing-game')) {
     return;

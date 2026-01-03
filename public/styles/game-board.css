@@ -70,7 +70,6 @@
         0 2px 2px rgba(255, 255, 255, 0.1);
     box-sizing: border-box;
     position: relative;
-    overflow: hidden;
 }
 
 @media (min-width: 1025px) {
@@ -353,6 +352,7 @@ body.showing-game {
         inset 0 1px 2px rgba(0, 0, 0, 0.3),
         0 1px 1px rgba(255, 255, 255, 0.05);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: auto;
     max-width: 260px;
     margin: 0 auto 8px;
     position: relative;
@@ -583,7 +583,7 @@ body.showing-game {
 }
 
 #my-area .player-header {
-    border-bottom: 3px solid #4f46e5;
+    border-bottom: none;
 }
 
 #my-area .player-zone--hand-local {
@@ -637,10 +637,22 @@ body.showing-game {
 }
 
 #table-rules-button {
-  position: absolute;
-  bottom: 25px;
-  right: 35px;
-  z-index: 20;
+    position: absolute;
+    bottom: 32px;
+    right: 60px;
+    padding: 0.6rem 1.8rem;
+    border-radius: 30px;
+    border: 2px solid rgba(0, 0, 0, 0.4);
+    background: linear-gradient(145deg, #f6c242, #d37b1f);
+    color: #1f1f1f;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow:
+        inset 0 -3px 6px rgba(0, 0, 0, 0.35),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        0 10px 20px rgba(0, 0, 0, 0.45);
+    z-index: 20;
 }
 
 /* Center pile */
@@ -826,20 +838,34 @@ body.showing-game {
     transition: box-shadow 0.2s ease-out;
 }
 
-/* On hover, show a more prominent soft highlight */
+/* 1. Base State: Continuous Shingling */
+.hand-row--local .card-container {
+    margin-left: -40px;
+    transition: transform 0.2s ease, margin 0.2s ease, z-index 0s;
+    position: relative;
+}
+
+.hand-row--local .card-container:first-child {
+    margin-left: 0;
+}
+
+/* 2. Hybrid Elevation: Lift everything to a uniform height */
+.hand-row--local .card-container.selected-container,
 .hand-row--local .card-container.selectable-container:hover {
-  box-shadow: 0 0 20px 5px rgba(255, 255, 255, 0.6);
-  cursor: pointer;
+    transform: translateY(-12px);
+    z-index: 50;
 }
 
-/* On select, show a "fuller" highlight using a rounded gold outline created with box-shadow */
-.hand-row--local .card-container.selected-container {
-  box-shadow: 0 0 0 4px #ffd700;
+/* 3. Hover Depth: Pop the current card to the absolute front */
+.hand-row--local .card-container.selectable-container:hover {
+    z-index: 100 !important;
 }
 
-/* When hovering over a selected card, show both the gold outline AND the white glow */
-.hand-row--local .card-container.selected-container:hover {
-  box-shadow: 0 0 0 4px #ffd700, 0 0 20px 5px rgba(255, 255, 255, 0.6);
+/* 4. Selection: Internal Gold Border */
+.hand-row--local .card-container.selected-container .card-img {
+    outline: 4px solid #ffd700;
+    outline-offset: -4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .player-header .turn-indicator {

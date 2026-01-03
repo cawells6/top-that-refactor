@@ -454,13 +454,16 @@ export function renderGameState(
         emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
         handRow.appendChild(emptySlot);
       } else {
+        handRow.innerHTML = '';
         handCards.forEach((card, index) => {
           const cardElement = cardImg(card, isMyTurn);
           const imgEl = cardElement.querySelector('.card-img');
           if (imgEl && imgEl instanceof HTMLImageElement) {
             imgEl.dataset.idx = String(index);
             imgEl.dataset.zone = 'hand';
-            imgEl.dataset.value = String(card.value);
+            imgEl.dataset.value = String(
+              normalizeCardValue(card.value) ?? card.value
+            );
           }
           handRow.appendChild(cardElement);
         });
@@ -641,9 +644,7 @@ export function renderGameState(
     rulesButton.className = 'action-button action-button--rules';
     rulesButton.textContent = 'Rules';
     rulesButton.onclick = () => {
-      alert(
-        'Rules:\n1. Play a card >= discard pile.\n2. Special cards: 2 (Reset), 5 (Copy), 10 (Burn), 4-of-a-kind (Burn).\n3. First to empty hand wins!'
-      );
+      document.dispatchEvent(new CustomEvent('open-rules-modal'));
     };
     table.appendChild(rulesButton);
   }
@@ -776,38 +777,26 @@ export function showCardEvent(
       const icon = document.createElement('img');
       icon.className = 'special-icon';
       let src = '';
-      if (type === 'two' || cardValue === 2) src = '/assets/effects/reset.png';
-      else if (type === 'five' || cardValue === 5)
-        src = '/assets/effects/copy.png';
-      else if (type === 'ten' || cardValue === 10)
-        src = '/assets/effects/burn.png';
-      else if (type === 'four') src = '/assets/effects/4ofakind.png';
-      else if (type === 'invalid') src = '/assets/effects/invalid.png';
-      else if (type === 'take') src = '/assets/effects/take.png';
+      if (type === 'two') src = '/src/shared/Reset-icon.png';
+      else if (type === 'five') src = '/src/shared/Copy-icon.png';
+      else if (type === 'ten') src = '/src/shared/Burn-icon.png';
+      else if (type === 'invalid') src = '/src/shared/invalid play-icon.png';
+      else if (type === 'take') src = '/src/shared/take pile-icon.png';
       else if (type === 'regular') return;
       icon.src = src;
       icon.onerror = () => {
-        icon.style.background = 'rgba(255, 195, 0, 0.7)';
+        icon.style.background = type === 'invalid' ? '#dc2626' : '#ffc300';
         icon.style.borderRadius = '50%';
         icon.style.display = 'flex';
         icon.style.justifyContent = 'center';
         icon.style.alignItems = 'center';
-        const fallbackText = document.createElement('div');
-        fallbackText.textContent =
-          type === 'take'
-            ? 'TAKE'
-            : type === 'two'
-              ? 'RESET'
-              : type === 'five'
-                ? 'COPY'
-                : type === 'ten'
-                  ? 'BURN'
-                  : type === 'four'
-                    ? '4X'
-                    : 'X';
-        fallbackText.style.color = '#000';
-        fallbackText.style.fontWeight = 'bold';
-        icon.appendChild(fallbackText);
+        icon.style.border = '2px solid white';
+        const text = document.createElement('div');
+        text.textContent = type === 'invalid' ? '✕' : '!';
+        text.style.color = 'white';
+        text.style.fontWeight = '900';
+        text.style.fontSize = '40px';
+        icon.appendChild(text);
       };
       icon.style.position = 'absolute';
       icon.style.top = '50%';
