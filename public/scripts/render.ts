@@ -8,6 +8,8 @@ import {
   isSpecialCard,
 } from '../../utils/cardUtils.js';
 
+let lastLocalHandCount = -1;
+
 const seatOrder = ['bottom', 'right', 'top', 'left'] as const;
 const seatAccents: Record<string, string> = {
   bottom: '#f6c556',
@@ -156,11 +158,17 @@ export function cardImg(
     img.style.touchAction = 'manipulation';
     container.classList.add('selectable-container');
     container.addEventListener('click', () => {
-      img.classList.toggle('selected');
-      container.classList.toggle(
-        'selected-container',
-        img.classList.contains('selected')
-      );
+      const isSelected = img.classList.toggle('selected');
+      container.classList.toggle('selected-container', isSelected);
+
+      // When selected, move card up and slightly behind to allow selecting overlapping cards.
+      if (isSelected) {
+        container.style.zIndex = '-1';
+        container.style.transform = 'translateY(-20px)';
+      } else {
+        container.style.zIndex = '';
+        container.style.transform = '';
+      }
     });
   }
 
@@ -302,6 +310,7 @@ export function renderGameState(
   gameState: GameStateData,
   localPlayerId: string | null
 ): void {
+  const table = document.querySelector('#game-table .table') as HTMLElement | null;
   const slotTop = document.getElementById(
     'opponent-area-top'
   ) as HTMLElement | null;
@@ -317,6 +326,9 @@ export function renderGameState(
   const centerArea = document.getElementById('center-area') as HTMLElement | null;
 
   if (!gameState || !gameState.players) {
+    if (table) {
+      table.removeAttribute('data-player-count');
+    }
     if (slotTop) slotTop.innerHTML = '';
     if (slotBottom) slotBottom.innerHTML = '';
     if (slotLeft) slotLeft.innerHTML = '';
@@ -332,6 +344,9 @@ export function renderGameState(
   if (centerArea) centerArea.innerHTML = '';
 
   const players = gameState.players;
+  if (table) {
+    table.dataset.playerCount = String(players.length);
+  }
   const cpuIds = players
     .filter((p) => p.isComputer)
     .map((p) => p.id);
@@ -368,7 +383,7 @@ export function renderGameState(
       downCount > 0;
 
     const panel = document.createElement('div');
-    panel.className = 'player-area seat';
+    panel.className = 'player-area seat classic-theme';
     panel.dataset.playerId = player.id;
     panel.dataset.seat = seat;
     panel.style.setProperty(
@@ -394,6 +409,9 @@ export function renderGameState(
 
     const avatar = document.createElement('div');
     avatar.className = 'player-avatar';
+    if (player.id === gameState.currentPlayerId) {
+      avatar.classList.add('active-turn');
+    }
     const avatarImg = document.createElement('img');
     avatarImg.src = player.isComputer ? '/assets/robot.svg' : '/assets/Player.svg';
     avatarImg.alt = player.isComputer ? 'CPU avatar' : 'Player avatar';
@@ -436,6 +454,11 @@ export function renderGameState(
       : 'hand-row hand-row--opponent';
 
     if (isLocalPlayer) {
+      if (handCount === lastLocalHandCount) {
+        handRow.classList.add('no-animate');
+      }
+      lastLocalHandCount = handCount;
+
       const handCards = player.hand ?? [];
       if (handCards.length === 0) {
         const emptySlot = document.createElement('div');
@@ -476,6 +499,9 @@ export function renderGameState(
       if (handCount > 0) {
         const badge = document.createElement('div');
         badge.className = 'hand-count-badge';
+        if (handCount <= 5) badge.classList.add('badge-safe');
+        else if (handCount <= 10) badge.classList.add('badge-warning');
+        else badge.classList.add('badge-danger');
         badge.textContent = String(handCount);
         handStack.appendChild(badge);
       }
@@ -526,7 +552,16 @@ export function renderGameState(
         requiredZone === 'downCards' ||
         hasPlayableCard;
 
-      actionRow.append(playButton, takeButton);
+      const rulesButton = document.createElement('button');
+      rulesButton.className = 'action-button action-button--rules';
+      rulesButton.textContent = 'Rules';
+      rulesButton.onclick = () => {
+        alert(
+          'Rules:\n1. Play a card >= discard pile.\n2. Special cards: 2 (Reset), 5 (Copy), 10 (Burn), 4-of-a-kind (Burn).\n3. First to empty hand wins!'
+        );
+      };
+
+      actionRow.append(playButton, takeButton, rulesButton);
       panel.appendChild(actionRow);
     }
 

@@ -14,9 +14,9 @@
     --main-content-padding-top: 2vh;
     
     /* Table spacing - vertical (between player areas) */
-    --table-row-gap-min: 90px;
-    --table-row-gap-preferred: 9vw;
-    --table-row-gap-max: 130px;
+    --table-row-gap-min: 18px;
+    --table-row-gap-preferred: 3vh;
+    --table-row-gap-max: 44px;
     
     /* Table spacing - horizontal (between left/center/right columns) */
     --table-column-gap-min: 100px;
@@ -52,7 +52,6 @@
     width: auto;
     max-width: min(98vw, 2400px);
     height: 92vh;
-    overflow: auto;
     margin: 0 auto;
     padding: clamp(var(--table-padding-vertical-min), var(--table-padding-vertical-preferred), var(--table-padding-vertical-max)) clamp(var(--table-padding-horizontal-min), var(--table-padding-horizontal-preferred), var(--table-padding-horizontal-max));
     border: 16px solid var(--wood-color);
@@ -65,8 +64,72 @@
         inset 0 0 40px rgba(0, 0, 0, 0.9),
         0 20px 50px rgba(0, 0, 0, 0.6);
     box-sizing: border-box;
-    scrollbar-gutter: stable both-edges;
     position: relative;
+}
+
+@media (min-width: 1025px) {
+    .table[data-player-count="2"] {
+        grid-template-areas:
+            "left center right"
+            "bottom bottom bottom";
+        grid-template-rows: auto auto;
+        align-content: end;
+    }
+
+    .table[data-player-count="2"] #opponent-area-top {
+        display: none;
+    }
+
+    .table[data-player-count="2"] #opponent-area-right {
+        transform: translateY(clamp(10px, 1.6vh, 22px));
+    }
+
+    .table[data-player-count="3"] {
+        --table-row-gap-min: 12px;
+        --table-row-gap-preferred: 2.2vh;
+        --table-row-gap-max: 34px;
+    }
+
+    .table[data-player-count="4"] {
+        --table-row-gap-min: 6px;
+        --table-row-gap-preferred: 1.2vh;
+        --table-row-gap-max: 18px;
+
+        --table-column-gap-min: 34px;
+        --table-column-gap-preferred: 3vw;
+        --table-column-gap-max: 70px;
+
+        --table-padding-vertical-min: 4.25rem;
+        --table-padding-vertical-preferred: 4.8vw;
+        --table-padding-vertical-max: 5.25rem;
+
+        --seat-pack-y: clamp(14px, 2.6vh, 34px);
+        grid-template-columns: 240px auto 240px;
+    }
+
+    .table[data-player-count="3"] {
+        --seat-pack-y: clamp(8px, 1.6vh, 18px);
+    }
+
+    .table[data-player-count="3"] #opponent-area-top,
+    .table[data-player-count="4"] #opponent-area-top {
+        transform: translateY(var(--seat-pack-y, 0px));
+    }
+
+    .table[data-player-count="3"] #player-area-bottom,
+    .table[data-player-count="4"] #player-area-bottom {
+        transform: translateY(calc(-1 * var(--seat-pack-y, 0px)));
+    }
+
+    .table[data-player-count="3"] #center-area,
+    .table[data-player-count="4"] #center-area {
+        align-self: center;
+    }
+
+    .table[data-player-count="4"] > :not(#player-area-bottom) .player-area {
+        --card-w: calc(var(--card-w-base) * 0.78);
+        --card-h: calc(var(--card-h-base) * 0.78);
+    }
 }
 
 .table::before {
@@ -115,17 +178,23 @@
     align-items: center;
     justify-content: flex-end;
     justify-self: end;
-    align-self: center;
+    align-self: end;
     padding: 0;
 }
-#center-area { grid-area: center; display: flex; justify-content: center; align-items: center;}
+#center-area {
+    grid-area: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-self: end;
+}
 #opponent-area-right {
     grid-area: right;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     justify-self: start;
-    align-self: center;
+    align-self: end;
     padding: 0;
 }
 #player-area-bottom {
@@ -151,6 +220,10 @@
         grid-template-rows: auto 1fr auto;
         padding: 0.5rem;
         gap: 0.5rem;
+    }
+
+    #center-area {
+        align-self: center;
     }
 
     #opponent-area-left,
@@ -361,6 +434,8 @@ body.showing-game {
     min-width: 0;  /* Allow shrinking below default width */
     padding: 0;    /* Reclaim padding space */
     overflow: visible; /* Let elements pop out if needed */
+    --card-w: calc(var(--card-w-base) * 0.85);
+    --card-h: calc(var(--card-h-base) * 0.85);
 }
 
 /* Remove the "glass" line from opponent headers to clean up noise */
@@ -386,12 +461,21 @@ body.showing-game {
     max-width: 100px;  /* Truncate long names sooner */
 }
 
-/* Scale the entire card zone for opponents to 85% */
+/* Keep opponent visuals smaller without layout-unsafe transforms */
 .table > :not(#player-area-bottom) .player-zone {
-    transform: scale(0.85);
-    transform-origin: center top; /* Scale up from the top */
-    margin-bottom: -15px; /* Pull the layout up since it's smaller */
+    transform: none;
+    transform-origin: initial;
+    margin-bottom: 0;
     width: 100%;
+}
+
+.table > :not(#player-area-bottom) .player-area > .player-zone,
+.table > :not(#player-area-bottom) .player-area > .player-actions {
+    padding: 0.25rem 0.45rem;
+}
+
+.table > :not(#player-area-bottom) .player-zone--table {
+    padding-bottom: 0.6rem;
 }
 
 /* Match local player card sizes to opponent scale without other styling changes */
@@ -402,6 +486,12 @@ body.showing-game {
     min-width: 0;
     max-width: 100%;
     flex: 0 0 auto;
+    min-height: calc(var(--card-h, 126px) * 2 + 95px);
+    gap: 0.7rem;
+}
+
+#player-area-bottom .player-area.is-local .player-header {
+    margin-bottom: 30px;
 }
 
 /* Mirror reduced card size for deck and discard piles */
@@ -644,7 +734,7 @@ body.showing-game {
 }
 
 .hand-row--opponent .card-container {
-    margin-left: -50px;
+    margin-left: calc(-1 * var(--card-w, 90px) * 0.56);
     transition: transform 0.3s ease, margin 0.3s ease;
     filter: drop-shadow(-2px 0 3px rgba(0, 0, 0, 0.5));
     pointer-events: none;

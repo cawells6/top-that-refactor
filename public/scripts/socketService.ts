@@ -1,4 +1,4 @@
-import { renderGameState } from './render.js';
+import { renderGameState, showCardEvent } from './render.js';
 import * as state from './state.js';
 import {
   showLobbyForm,
@@ -7,8 +7,13 @@ import {
 } from './uiManager.js';
 import {
   JOINED,
+  GAME_STARTED,
+  SPECIAL_CARD_EFFECT,
+  PILE_PICKED_UP,
   STATE_UPDATE,
   REJOIN,
+  ERROR,
+  SESSION_ERROR,
 } from '../../src/shared/events.js';
 import { GameStateData } from '../../src/shared/types.js';
 
@@ -40,13 +45,45 @@ export async function initializeSocketHandlers(): Promise<void> {
   );
 
   state.socket.on(STATE_UPDATE, (s: GameStateData) => {
+    state.setLastGameState(s);
     if (s.started === true) {
       showGameTable();
     }
     renderGameState(s, state.myId);
   });
-  // Handle error or failed rejoin from server
-  state.socket.on('err', (msg: string) => {
+
+  state.socket.on(GAME_STARTED, (s?: GameStateData) => {
+    showGameTable();
+    if (s) {
+      state.setLastGameState(s);
+      renderGameState(s, state.myId);
+    }
+  });
+
+  state.socket.on(
+    SPECIAL_CARD_EFFECT,
+    (payload: { type?: string; value?: number | string | null }) => {
+      showCardEvent(payload?.value ?? null, payload?.type ?? 'regular');
+    }
+  );
+
+  state.socket.on(PILE_PICKED_UP, () => {
+    showCardEvent(null, 'take');
+  });
+
+  // Recoverable/gameplay errors (e.g. invalid play, not your turn).
+  state.socket.on(ERROR, (msg: string) => {
+    if (!document.body.classList.contains('showing-game')) {
+      showLobbyForm();
+    }
+    showError(msg);
+    if (document.body.classList.contains('showing-game')) {
+      showCardEvent(null, 'invalid');
+    }
+  });
+
+  // Session-fatal errors (e.g. invalid room, failed rejoin).
+  state.socket.on(SESSION_ERROR, (msg: string) => {
     showLobbyForm();
     showError(msg);
     // Clear stored room and player IDs if rejoin fails
