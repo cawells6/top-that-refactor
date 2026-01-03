@@ -10,8 +10,8 @@
     --felt-color: #35654d;
 
     /* Table positioning */
-    --table-margin-top: 2vh;
-    --main-content-padding-top: 2vh;
+    --table-margin-top: 0;
+    --main-content-padding-top: 0;
     
     /* Table spacing - vertical (between player areas) */
     --table-row-gap-min: 12px;
@@ -51,7 +51,8 @@
     row-gap: clamp(var(--table-row-gap-min), var(--table-row-gap-preferred), var(--table-row-gap-max));
     width: auto;
     max-width: min(98vw, 2400px);
-    height: 92vh;
+    height: calc(100vh - var(--main-content-padding-top));
+    max-height: 100vh;
     margin: 0 auto;
     padding: clamp(var(--table-padding-vertical-min), var(--table-padding-vertical-preferred), var(--table-padding-vertical-max)) clamp(var(--table-padding-horizontal-min), var(--table-padding-horizontal-preferred), var(--table-padding-horizontal-max));
     border: 16px solid var(--wood-color);
