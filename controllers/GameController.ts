@@ -31,6 +31,24 @@ import { InSessionLobbyState } from '../src/shared/types.js';
 import { handleSpecialCard } from '../utils/CardLogic.js';
 import { isSpecialCard, normalizeCardValue } from '../utils/cardUtils.js';
 
+// CPU name pool for randomization
+const CPU_NAMES = [
+  'Bolt', 'Chip', 'Circuit', 'Pixel', 'Byte', 'Nano', 'Volt', 'Turbo', 'Spark',
+  'Bleep', 'Beep', 'Buzz', 'Whirr', 'Clank', 'Servo', 'Gizmo',
+  'Nova', 'Nexus', 'Apex', 'Vortex', 'Matrix', 'Prism', 'Echo',
+  'Rusty', 'Zippy'
+];
+
+function getRandomCpuName(usedNames: Set<string>): string {
+  const availableNames = CPU_NAMES.filter(name => !usedNames.has(name));
+  if (availableNames.length === 0) {
+    // Fallback if all names are used
+    return `CPU ${Math.floor(Math.random() * 1000)}`;
+  }
+  const randomIndex = Math.floor(Math.random() * availableNames.length);
+  return availableNames[randomIndex];
+}
+
 // interface PlayerJoinData {
 //   id?: string;
 //   name?: string;
@@ -643,8 +661,14 @@ export default class GameController {
       }
       const cpuId = `COMPUTER_${i + 1}`;
       if (!this.players.has(cpuId)) {
+        // Track existing player names to avoid duplicates
+        const usedNames = new Set<string>();
+        this.players.forEach(p => {
+          if (p.name) usedNames.add(p.name);
+        });
+        
         const cpuPlayer = new Player(cpuId);
-        cpuPlayer.name = `CPU ${i + 1}`;
+        cpuPlayer.name = getRandomCpuName(usedNames);
         cpuPlayer.isComputer = true;
         this.players.set(cpuId, cpuPlayer);
         this.log(

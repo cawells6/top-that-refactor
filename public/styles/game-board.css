@@ -381,16 +381,6 @@ body.showing-game {
     transform: translate(-50%, -50%);
 }
 
-/* Nudge the robot icon slightly left to be visually centered */
-.computer-player .player-avatar img {
-    transform: translate(-52%, -50%);
-}
-
-/* Nudge the robot icon slightly left to be visually centered */
-.computer-player .player-avatar img {
-    transform: translate(-52%, -50%);
-}
-
 #game-table .player-meta {
     display: flex;
     flex-direction: column;
