@@ -1345,59 +1345,65 @@ export default class GameController {
 
     this.isProcessingTurn = true;
 
-    const requiredZone =
-      computerPlayer.hand.length > 0
-        ? 'hand'
-        : computerPlayer.getUpCardCount() > 0
-          ? 'upCards'
-          : computerPlayer.downCards.length > 0
-            ? 'downCards'
-            : null;
+    try {
+      const requiredZone =
+        computerPlayer.hand.length > 0
+          ? 'hand'
+          : computerPlayer.getUpCardCount() > 0
+            ? 'upCards'
+            : computerPlayer.downCards.length > 0
+              ? 'downCards'
+              : null;
 
-    if (!requiredZone) {
+      if (!requiredZone) {
+        return;
+      }
+
+      if (requiredZone === 'hand') {
+        const bestPlay = this.findBestPlayForComputer(computerPlayer, 'hand');
+        if (bestPlay) {
+          this.handlePlayCardInternal(
+            computerPlayer,
+            bestPlay.indices,
+            bestPlay.zone,
+            bestPlay.cards
+          );
+        } else {
+          this.handlePickUpPileInternal(computerPlayer);
+        }
+      } else if (requiredZone === 'upCards') {
+        const bestPlay = this.findBestPlayForComputer(computerPlayer, 'upCards', {
+          singleCardOnly: true,
+        });
+        if (bestPlay) {
+          this.handlePlayCardInternal(
+            computerPlayer,
+            bestPlay.indices,
+            bestPlay.zone,
+            bestPlay.cards
+          );
+        } else {
+          this.handlePickUpPileInternal(computerPlayer);
+        }
+      } else {
+        const downIndex = Math.floor(
+          Math.random() * computerPlayer.downCards.length
+        );
+        const downCardToPlay = computerPlayer.downCards[downIndex];
+        if (downCardToPlay) {
+          this.handlePlayCardInternal(computerPlayer, [downIndex], 'downCards', [
+            downCardToPlay,
+          ]);
+        }
+      }
+    } catch (error) {
+      this.log(`Error in CPU turn for ${computerPlayer.id}: ${error}`);
+      // Try to continue the game
+      this.handleNextTurn();
+    } finally {
+      // Always clear the flag
       this.isProcessingTurn = false;
-      return;
     }
-
-    if (requiredZone === 'hand') {
-      const bestPlay = this.findBestPlayForComputer(computerPlayer, 'hand');
-      if (bestPlay) {
-        this.handlePlayCardInternal(
-          computerPlayer,
-          bestPlay.indices,
-          bestPlay.zone,
-          bestPlay.cards
-        );
-      } else {
-        this.handlePickUpPileInternal(computerPlayer);
-      }
-    } else if (requiredZone === 'upCards') {
-      const bestPlay = this.findBestPlayForComputer(computerPlayer, 'upCards', {
-        singleCardOnly: true,
-      });
-      if (bestPlay) {
-        this.handlePlayCardInternal(
-          computerPlayer,
-          bestPlay.indices,
-          bestPlay.zone,
-          bestPlay.cards
-        );
-      } else {
-        this.handlePickUpPileInternal(computerPlayer);
-      }
-    } else {
-      const downIndex = Math.floor(
-        Math.random() * computerPlayer.downCards.length
-      );
-      const downCardToPlay = computerPlayer.downCards[downIndex];
-      if (downCardToPlay) {
-        this.handlePlayCardInternal(computerPlayer, [downIndex], 'downCards', [
-          downCardToPlay,
-        ]);
-      }
-    }
-
-    this.isProcessingTurn = false;
   }
 
   private scheduleComputerTurn(player: Player, delay: number): void {
