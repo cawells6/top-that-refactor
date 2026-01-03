@@ -107,3 +107,133 @@ function handleJoinGameClick() {
 **Savings**: Hours of debugging, days of refactoring, weeks of onboarding
 
 The debugging session we just completed would have been avoided entirely with this workflow.
+
+---
+
+## UI/CSS Debugging Best Practices
+
+### Critical Rules for Preventing Click Interception Issues
+
+#### 1. Use Data Attributes for Application State
+
+Instead of relying on complex CSS classes that might conflict, use data attributes on `<body>` or main wrapper:
+
+```css
+/* Clear, explicit state management */
+body[data-game-state="lobby"] #game-table {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+body[data-game-state="playing"] #lobby-container {
+    display: none !important;
+    pointer-events: none !important;
+}
+```
+
+**Why this matters:**
+- Single source of truth for UI state
+- Eliminates CSS specificity battles
+- Easy to debug: `console.log(document.body.dataset.gameState)`
+- TypeScript: `document.body.dataset.gameState = 'playing'`
+
+#### 2. Always Use `pointer-events: none` on Hidden Elements
+
+For any element that is hidden, faded, or transitioning out, **always** add `pointer-events: none`:
+
+```css
+.modal.hidden,
+.overlay.fading-out,
+[data-game-state="playing"] #lobby-container {
+    opacity: 0;
+    pointer-events: none !important;  /* ← Critical! */
+}
+```
+
+**Why this matters:**
+- `opacity: 0` makes elements invisible but still clickable
+- `display: none` can be overridden by `!important` elsewhere
+- `pointer-events: none` ensures clicks pass through even if element is visible
+- Prevents "invisible overlay" bugs like we just fixed
+
+#### 3. The Visual Debugger Snippet
+
+When buttons feel "dead" or clicks aren't registering, use this in your browser console:
+
+```javascript
+// Outlines every element on the page with a random color
+$$('*').forEach(el => el.style.outline = "1px solid #" + Math.floor(Math.random()*16777215).toString(16));
+```
+
+**Alternative for detailed analysis:**
+```javascript
+// Click event listener that logs everything
+document.addEventListener('click', (e) => {
+  console.log('Clicked:', e.target);
+  console.log('All buttons:', Array.from(document.querySelectorAll('button')).map(b => ({
+    id: b.id,
+    text: b.textContent?.trim(),
+    visible: window.getComputedStyle(b).display !== 'none'
+  })));
+}, true);
+```
+
+#### 4. Debugging Checklist for "Button Not Working" Issues
+
+Before assuming the button's logic is broken:
+
+1. **Verify the click reaches the element:**
+   ```javascript
+   document.addEventListener('click', (e) => console.log('Clicked:', e.target.id, e.target.className), true);
+   ```
+
+2. **Check computed styles:**
+   ```javascript
+   const btn = document.getElementById('your-button');
+   console.log('Display:', window.getComputedStyle(btn).display);
+   console.log('Pointer-events:', window.getComputedStyle(btn).pointerEvents);
+   console.log('Z-index:', window.getComputedStyle(btn).zIndex);
+   ```
+
+3. **List all elements at click position:**
+   ```javascript
+   document.addEventListener('click', (e) => {
+     const elements = document.elementsFromPoint(e.clientX, e.clientY);
+     console.log('Elements at click point:', elements.map(el => el.id || el.className));
+   }, true);
+   ```
+
+4. **Check for overlays:**
+   - Use the visual debugger snippet above
+   - Look for elements with `opacity: 0` but no `pointer-events: none`
+   - Check `z-index` values and stacking contexts
+
+#### 5. CSS Specificity Rules
+
+When using `!important` (use sparingly):
+- State-based hiding rules should use `!important` if base styles do
+- Always pair with `pointer-events: none !important`
+- Document why `!important` is needed in comments
+
+```css
+/* !important needed because lobby-container has display: flex !important for layout */
+body[data-game-state="playing"] #lobby-container {
+    display: none !important;
+    pointer-events: none !important;
+}
+```
+
+### Lesson from Recent Bug Fix
+
+**Problem**: Take button appeared to work intermittently
+**Root Cause**: Hidden lobby overlay (`opacity: 0`) was still clickable and intercepting events
+**Solution**: Added `pointer-events: none !important` to hidden states
+**Prevention**: Follow rules 1, 2, and 4 above
+
+**Key Insight**: When a button "doesn't work," debug in this order:
+1. Click event reaching correct element? (Event propagation)
+2. Element in correct state? (CSS computed styles)
+3. Handler executing? (JavaScript logic)
+4. Logic correct? (Business rules)
+
+Don't skip to step 4 first!
