@@ -157,10 +157,6 @@ export function cardImg(
     img.classList.add('selectable');
     img.style.touchAction = 'manipulation';
     container.classList.add('selectable-container');
-    container.addEventListener('click', () => {
-      const isSelected = img.classList.toggle('selected');
-      container.classList.toggle('selected-container', isSelected);
-    });
   }
 
   container.appendChild(img);
@@ -168,24 +164,36 @@ export function cardImg(
 }
 
 function isValidPlay(cards: CardType[], pile: CardType[]): boolean {
+  console.log('--- isValidPlay Check ---');
+  console.log(
+    'Cards to play:',
+    cards.map((c) => c.value)
+  );
+  console.log('Top of pile:', pile.length > 0 ? pile[pile.length - 1] : 'empty');
+
   if (!cards || cards.length === 0) {
+    console.log('Result: false (no cards)');
     return false;
   }
 
   const firstValue = normalizeCardValue(cards[0].value);
   if (cards.some((card) => normalizeCardValue(card.value) !== firstValue)) {
+    console.log('Result: false (not same value)');
     return false;
   }
 
   if (cards.length >= 4) {
+    console.log('Result: true (bomb)');
     return true;
   }
 
   if (!pile || pile.length === 0) {
+    console.log('Result: true (empty pile)');
     return true;
   }
 
   if (isSpecialCard(firstValue)) {
+    console.log('Result: true (special card played)');
     return true;
   }
 
@@ -193,7 +201,12 @@ function isValidPlay(cards: CardType[], pile: CardType[]): boolean {
   const topPileCard = pile[pile.length - 1];
   const topPileRank = rank(topPileCard);
 
-  return playedRank > topPileRank;
+  const result = playedRank > topPileRank;
+  console.log(
+    `Played rank: ${playedRank}, Pile rank: ${topPileRank}, Result: ${result}`
+  );
+  console.log('-------------------------');
+  return result;
 }
 
 function hasValidHandPlay(hand: CardType[], pile: CardType[]): boolean {

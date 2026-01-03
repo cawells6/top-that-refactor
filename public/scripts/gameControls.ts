@@ -194,14 +194,22 @@ export function initializeGameControls(): void {
       handlePlayClick();
       return;
     }
-    if (target.closest('#take-button')) {
+    
+    // Check take button with direct ID first to avoid timing issues
+    if (target.id === 'take-button' || target.closest('#take-button')) {
       handleTakeClick();
       return;
     }
 
     const selectableCard = getSelectableCard(target);
     if (selectableCard) {
-      enforceSelectionRules(selectableCard);
+      const wasSelected = selectableCard.classList.contains('selected');
+      if (wasSelected) {
+        deselectCard(selectableCard);
+      } else {
+        forceSelectCard(selectableCard);
+        enforceSelectionRules(selectableCard);
+      }
     }
   });
 

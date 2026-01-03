@@ -80,7 +80,8 @@
 
 body:not(.showing-game) #game-table,
 body.showing-game #lobby-container {
-  display: none;
+  display: none !important;
+  pointer-events: none !important;
 }
 
 body.showing-game #game-table,
