@@ -444,6 +444,10 @@ body.showing-game {
     padding: 0.4rem 0.6rem;
 }
 
+#player-area-bottom .player-area > .player-zone {
+    padding: 0.25rem 0.45rem;
+}
+
 .player-zone--table {
     padding-bottom: 0.8rem;
 }
