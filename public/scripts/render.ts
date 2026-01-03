@@ -160,6 +160,15 @@ export function cardImg(
     container.addEventListener('click', () => {
       const isSelected = img.classList.toggle('selected');
       container.classList.toggle('selected-container', isSelected);
+
+      // When selected, move card up and slightly behind to allow selecting overlapping cards.
+      if (isSelected) {
+        container.style.zIndex = '-1';
+        container.style.transform = 'translateY(-20px)';
+      } else {
+        container.style.zIndex = '';
+        container.style.transform = '';
+      }
     });
   }
 
@@ -385,6 +394,9 @@ export function renderGameState(
     if (player.isComputer) panel.classList.add('computer-player');
     if (player.disconnected) panel.classList.add('disconnected');
     if (isLocalPlayer) panel.classList.add('is-local');
+    if (player.id === gameState.currentPlayerId) {
+      panel.classList.add('active');
+    }
     if (seat === 'bottom' && isLocalPlayer) {
       panel.id = 'my-area';
     }
@@ -540,7 +552,16 @@ export function renderGameState(
         requiredZone === 'downCards' ||
         hasPlayableCard;
 
-      actionRow.append(playButton, takeButton);
+      const rulesButton = document.createElement('button');
+      rulesButton.className = 'action-button action-button--rules';
+      rulesButton.textContent = 'Rules';
+      rulesButton.onclick = () => {
+        alert(
+          'Rules:\n1. Play a card >= discard pile.\n2. Special cards: 2 (Reset), 5 (Copy), 10 (Burn), 4-of-a-kind (Burn).\n3. First to empty hand wins!'
+        );
+      };
+
+      actionRow.append(playButton, takeButton, rulesButton);
       panel.appendChild(actionRow);
     }
 
@@ -633,20 +654,6 @@ export function renderGameState(
       }
     }
   });
-
-  // Create and append the rules button to the table container if it doesn't exist
-  if (table && !table.querySelector('#table-rules-button')) {
-    const rulesButton = document.createElement('button');
-    rulesButton.id = 'table-rules-button';
-    rulesButton.className = 'action-button action-button--rules';
-    rulesButton.textContent = 'Rules';
-    rulesButton.onclick = () => {
-      alert(
-        'Rules:\n1. Play a card >= discard pile.\n2. Special cards: 2 (Reset), 5 (Copy), 10 (Burn), 4-of-a-kind (Burn).\n3. First to empty hand wins!'
-      );
-    };
-    table.appendChild(rulesButton);
-  }
 
   if (centerArea) {
     const centerWrap = document.createElement('div');
