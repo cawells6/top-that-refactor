@@ -34,18 +34,6 @@
   animation: regularCardGlow 1.5s infinite;
 }
 
-@keyframes playerGlow {
-  0% {
-    box-shadow: 0 0 12px rgba(246, 197, 86, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 22px rgba(246, 197, 86, 0.5);
-  }
-  100% {
-    box-shadow: 0 0 12px rgba(246, 197, 86, 0.2);
-  }
-}
-
 @keyframes deckShuffle {
   0% {
     transform: translate(0, 0) rotate(0deg);

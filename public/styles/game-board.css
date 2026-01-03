@@ -351,18 +351,29 @@ body.showing-game {
     border: 2px solid #5d6d7e;
     background: #0f172a;
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     overflow: hidden;
     position: relative;
     flex-shrink: 0;
 }
 
 #game-table .player-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Nudge the robot icon slightly left to be visually centered */
+.computer-player .player-avatar img {
+    transform: translate(-52%, -50%);
+}
+
+/* Nudge the robot icon slightly left to be visually centered */
+.computer-player .player-avatar img {
+    transform: translate(-52%, -50%);
 }
 
 #game-table .player-meta {
@@ -544,6 +555,15 @@ body.showing-game {
     }
 }
 
+/* Restored pulse animation for the active player's avatar */
+#game-table .player-avatar.active-turn {
+    border-color: #ffd700;
+    box-shadow:
+        0 0 0 2px rgba(0, 0, 0, 0.5),
+        0 0 15px #ffd700;
+    animation: avatarPulse 2s infinite;
+}
+
 #my-area .player-header {
     border-bottom: 3px solid #4f46e5;
 }
@@ -560,16 +580,17 @@ body.showing-game {
     border: none;
     border-radius: 25px;
     color: #2c1c12;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.2rem;
-    padding: 8px 24px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 10px 24px;
     cursor: pointer;
     box-shadow:
         0 4px 0 #8b6508,
         0 8px 10px rgba(0, 0, 0, 0.4);
     transition: all 0.1s;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 #game-table .action-button:active {
@@ -591,6 +612,13 @@ body.showing-game {
 
 #game-table .action-button--take:active {
     box-shadow: 0 0 0 #8e2315, inset 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+#table-rules-button {
+  position: absolute;
+  bottom: 25px;
+  right: 35px;
+  z-index: 20;
 }
 
 /* Center pile */
@@ -762,14 +790,26 @@ body.showing-game {
 }
 
 
-/* Card animations */
-.card-container { /* Using container for transform */
-    transition: all 0.3s ease-in-out;
+/* Card animations & selection */
+.card-container {
+    /* Transition the highlight effects for a smooth feel */
+    transition: box-shadow 0.2s ease-out;
 }
 
-.player-area--local .hand .card-container:hover {
-    transform: translateY(-20px) scale(1.08);
-    z-index: 100;
+/* On hover, show a more prominent soft highlight */
+.hand-row--local .card-container.selectable-container:hover {
+  box-shadow: 0 0 20px 5px rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+/* On select, show a "fuller" highlight using a rounded gold outline created with box-shadow */
+.hand-row--local .card-container.selected-container {
+  box-shadow: 0 0 0 4px #ffd700;
+}
+
+/* When hovering over a selected card, show both the gold outline AND the white glow */
+.hand-row--local .card-container.selected-container:hover {
+  box-shadow: 0 0 0 4px #ffd700, 0 0 20px 5px rgba(255, 255, 255, 0.6);
 }
 
 .player-header .turn-indicator {
@@ -876,14 +916,20 @@ body.showing-game {
 }
 
 .card-zone--tabled {
-    background-color: rgba(0,0,0,0.05);
-    border-radius: 10px;
+    background-color: transparent;
+    border-radius: 0; /* Remove radius to prevent clipping card corners */
     padding: 0.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     min-height: 150px; /* To give it some dimension */
     padding-bottom: 2rem; /* Add space inside the element */
+}
+
+/* Ensure containers for up/down cards do not clip their contents */
+.stack-row,
+.stack {
+    overflow: visible;
 }
 
 .card-zone--face-down, .card-zone--face-up {
@@ -924,4 +970,37 @@ body.showing-game {
     justify-content: center;
     align-items: center;
     min-height: var(--card-height-desktop);
+}
+
+/* Hand Count Badge Colors */
+.hand-count-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    border: 2px solid white;
+}
+
+.hand-count-badge.badge-safe {
+    background-color: #28a745; /* Green */
+}
+
+.hand-count-badge.badge-warning {
+    background-color: #ffc107; /* Yellow */
+    color: #212529;
+    text-shadow: none;
+}
+
+.hand-count-badge.badge-danger {
+    background-color: #dc3545; /* Red */
 }
