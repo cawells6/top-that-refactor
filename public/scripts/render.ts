@@ -9,6 +9,7 @@ import {
 } from '../../utils/cardUtils.js';
 
 let lastLocalHandCount = -1;
+let lastLocalHandCards: CardType[] = [];
 
 const seatOrder = ['bottom', 'right', 'top', 'left'] as const;
 const seatAccents: Record<string, string> = {
@@ -314,6 +315,12 @@ export function renderGameState(
   gameState: GameStateData,
   localPlayerId: string | null
 ): void {
+  // Reset hand tracking when game isn't started (new game scenario)
+  if (!gameState?.started) {
+    lastLocalHandCount = -1;
+    lastLocalHandCards = [];
+  }
+  
   const table = document.querySelector('#game-table .table') as HTMLElement | null;
   const slotTop = document.getElementById(
     'opponent-area-top'
@@ -461,12 +468,28 @@ export function renderGameState(
       lastLocalHandCount = handCount;
 
       const handCards = player.hand ?? [];
+      
+      // Check if hand actually changed to avoid unnecessary re-renders during CPU turns
+      // Compare all card properties including copied and back flags
+      const handChanged = handCards.length !== lastLocalHandCards.length ||
+        handCards.some((card, i) => {
+          const lastCard = lastLocalHandCards[i];
+          return !lastCard ||
+            card.value !== lastCard.value || 
+            card.suit !== lastCard.suit ||
+            card.back !== lastCard.back ||
+            card.copied !== lastCard.copied;
+        });
+      
       if (handCards.length === 0) {
+        handRow.innerHTML = '';
         const emptySlot = document.createElement('div');
         emptySlot.className = 'card-container card-slot card-slot--empty';
         emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
         handRow.appendChild(emptySlot);
-      } else {
+        lastLocalHandCards = [];
+      } else if (handChanged || handRow.children.length === 0) {
+        // Re-render if hand changed OR if handRow is empty (first render)
         handRow.innerHTML = '';
         handCards.forEach((card, index) => {
           const cardElement = cardImg(card, isMyTurn);
@@ -479,6 +502,22 @@ export function renderGameState(
             );
           }
           handRow.appendChild(cardElement);
+        });
+        lastLocalHandCards = [...handCards];
+        
+        // Apply compression after rendering new cards
+        requestAnimationFrame(() => {
+          applyHandCompression(panel, handRow, handCount);
+        });
+      } else {
+        // Hand didn't change, just update selectable state if needed
+        const existingCards = handRow.querySelectorAll('.card-img');
+        existingCards.forEach(img => {
+          if (isMyTurn) {
+            img.classList.add('selectable');
+          } else {
+            img.classList.remove('selectable');
+          }
         });
       }
     } else {
@@ -642,11 +681,7 @@ export function renderGameState(
 
     if (slotTarget) {
       slotTarget.appendChild(panel);
-      if (isLocalPlayer) {
-        requestAnimationFrame(() => {
-          applyHandCompression(panel, handRow, handCount);
-        });
-      }
+      // Compression is now handled inline when hand changes
     }
   });
 
@@ -660,6 +695,20 @@ export function renderGameState(
       document.dispatchEvent(new CustomEvent('open-rules-modal'));
     };
     table.appendChild(rulesButton);
+  }
+  
+  // Add reset button for quick testing
+  if (table && !table.querySelector('#table-reset-button')) {
+    const resetButton = document.createElement('button');
+    resetButton.id = 'table-reset-button';
+    resetButton.className = 'action-button action-button--reset';
+    resetButton.textContent = 'New Game';
+    resetButton.onclick = () => {
+      if (confirm('Start a new game?')) {
+        window.location.reload();
+      }
+    };
+    table.appendChild(resetButton);
   }
 
   if (centerArea) {

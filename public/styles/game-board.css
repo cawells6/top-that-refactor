@@ -636,10 +636,10 @@ body.showing-game {
     box-shadow: 0 0 0 #8e2315, inset 0 2px 5px rgba(0, 0, 0, 0.4);
 }
 
-#table-rules-button {
+#table-rules-button,
+#table-reset-button {
     position: absolute;
     bottom: 32px;
-    right: 60px;
     padding: 0.6rem 1.8rem;
     border-radius: 30px;
     border: 2px solid rgba(0, 0, 0, 0.4);
@@ -653,6 +653,34 @@ body.showing-game {
         inset 0 2px 4px rgba(255, 255, 255, 0.3),
         0 10px 20px rgba(0, 0, 0, 0.45);
     z-index: 20;
+}
+
+#table-rules-button {
+    right: 60px;
+}
+
+#table-reset-button {
+    right: 220px;
+    background: linear-gradient(145deg, #4a9eff, #2563eb);
+    color: white;
+}
+
+#table-rules-button:hover,
+#table-reset-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        inset 0 -3px 6px rgba(0, 0, 0, 0.35),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+#table-rules-button:active,
+#table-reset-button:active {
+    transform: translateY(0);
+    box-shadow:
+        inset 0 -1px 3px rgba(0, 0, 0, 0.35),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3),
+        0 5px 10px rgba(0, 0, 0, 0.45);
 }
 
 /* Center pile */
