@@ -1,0 +1,297 @@
+/* public/styles/special-effects.css */
+/* Focused special card effects for discard pile */
+
+/* Pile-specific animations */
+
+/* Card slam effect when special card is played */
+#pile-top-card.special-card-slam,
+.special-card-slam {
+  animation: cardSlam 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+@keyframes cardSlam {
+  0% {
+    transform: scale(0.7) translateY(-30px) rotate(-5deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.15) translateY(0) rotate(2deg);
+  }
+  70% {
+    transform: scale(0.95) rotate(-1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Pile glow effect for special cards - needs higher specificity */
+#game-table .pile-group.special-glow,
+.pile-group.special-glow {
+  position: relative;
+  animation: pileGlow 1s ease-out !important;
+}
+
+@keyframes pileGlow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 0px transparent);
+  }
+  30% {
+    filter: brightness(1.4) drop-shadow(0 0 30px var(--glow-color, #ffc300));
+  }
+  60% {
+    filter: brightness(1.2) drop-shadow(0 0 20px var(--glow-color, #ffc300));
+  }
+}
+
+/* Particle burst container */
+.pile-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.burst-particle {
+  animation: burstOut 0.8s ease-out forwards;
+}
+
+@keyframes burstOut {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Quick screen flash for explosive cards */
+@keyframes quickFlash {
+  0%, 100% { opacity: 0; }
+  40% { opacity: 0.25; }
+}
+
+/* Special icon animation (existing, but enhanced) */
+.special-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  z-index: 100;
+  animation: iconBounce 1.5s ease-out forwards;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6));
+  pointer-events: none;
+}
+
+@keyframes iconBounce {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1.3) rotate(5deg);
+    opacity: 1;
+  }
+  35% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(-3deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.7) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+/* Icon pulse animation for special card icons */
+@keyframes iconPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  80%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Enhanced card hover for selectable cards */
+.card-img.selectable:hover {
+  transform: translateY(-12px) rotate(2deg);
+  filter: brightness(1.15) drop-shadow(0 12px 20px rgba(0,0,0,0.3));
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+.card-img.selectable:active {
+  transform: translateY(-8px) rotate(1deg) scale(0.98);
+  transition: all 0.1s ease-out;
+}
+
+/* Button press feedback */
+.action-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  transition: all 0.2s ease-out;
+}
+
+.action-button:active:not(:disabled) {
+  transform: scale(0.97);
+  box-shadow: inset 0 3px 8px rgba(0,0,0,0.3);
+}
+
+/* Confetti animation for victories */
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-20px) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) translateX(var(--x-movement)) rotate(720deg);
+    opacity: 0.3;
+  }
+}
+
+/* Victory banner animations */
+.victory-banner {
+  font-family: 'Outfit', sans-serif;
+}
+
+.victory-crown {
+  font-size: 5rem;
+  animation: crownBounce 1s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes crownBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(-5deg); }
+}
+
+.victory-title {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 3rem;
+  margin: 1rem 0 0.5rem;
+  text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+  letter-spacing: 0.05em;
+}
+
+.victory-subtitle {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+  opacity: 0.9;
+}
+
+@keyframes victorySlide {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5) rotate(-3deg);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.08) rotate(1deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOutScale {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0;
+  }
+}
+
+/* Current player avatar glow (already exists in game-board.css, but ensure it's visible) */
+.player-avatar.active-turn {
+  box-shadow: 
+    0 0 0 3px #ffd700,
+    0 0 20px rgba(255, 215, 0, 0.6) !important;
+  animation: avatarGlow 2s ease-in-out infinite;
+}
+
+@keyframes avatarGlow {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 3px #ffd700,
+      0 0 20px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 3px #ffed4e,
+      0 0 30px rgba(255, 215, 0, 0.8);
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+  .special-icon {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .victory-crown {
+    font-size: 3.5rem;
+  }
+  
+  .victory-title {
+    font-size: 2.2rem;
+  }
+  
+  .victory-subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+/* Accessibility - reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .card-img.selectable:hover {
+    transform: translateY(-4px);
+  }
+  
+  .special-icon {
+    animation: none;
+    opacity: 1;
+  }
+}

@@ -131,27 +131,20 @@ export default class GameState {
   private buildDeck(): void {
     // Changed to private as it's an internal part of startGameInstance
     const suits: string[] = ['hearts', 'diamonds', 'clubs', 'spades'];
+    
+    // Full deck for testing - will filter during deal
     const values: CardValue[] = [
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      'J',
-      'Q',
-      'K',
-      'A',
+      2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A'
     ];
+    
     this.deck = []; // Initialize deck
     let numDecks = 1;
     if (this.players.length >= 4) {
       // Standard rule: 2 decks for 4+ players
       numDecks = 2;
     }
+    
+    // Create standard deck
     for (let i = 0; i < numDecks; i++) {
       for (const suit of suits) {
         for (const value of values) {
@@ -182,23 +175,55 @@ export default class GameState {
       );
     }
 
+    // Helper to check if card is special (for testing)
+    const isSpecialCard = (card: Card) => {
+      const val = card.value;
+      return val === 2 || val === 5 || val === 10;
+    };
+
     for (let p = 0; p < numPlayers; p++) {
-      // Ensure we don't try to splice more cards than available
-      hands.push(
-        this.deck
-          ? this.deck.splice(0, Math.min(handSize, this.deck.length))
-          : []
-      );
-      upCards.push(
-        this.deck
-          ? this.deck.splice(0, Math.min(handSize, this.deck.length))
-          : []
-      );
-      downCards.push(
-        this.deck
-          ? this.deck.splice(0, Math.min(handSize, this.deck.length))
-          : []
-      );
+      const player = this.players[p];
+      const isCPU = player?.isComputer;
+      
+      // TESTING: 
+      // - Human hand: special cards (2,5,10) for testing icons
+      // - Human up/down: regular cards (save special for hand)
+      // - CPU all zones: regular cards only
+      const dealFromFiltered = (count: number, preferSpecial: boolean = false): Card[] => {
+        if (!this.deck) return [];
+        const cards: Card[] = [];
+        let attempts = 0;
+        const maxAttempts = this.deck.length * 2; // Prevent infinite loop
+        
+        while (cards.length < count && attempts < maxAttempts) {
+          attempts++;
+          if (this.deck.length === 0) break;
+          
+          // Find next appropriate card
+          let idx: number;
+          if (preferSpecial && !isCPU) {
+            // Human hand - get special cards
+            idx = this.deck.findIndex(card => isSpecialCard(card));
+          } else {
+            // Human up/down or CPU anything - get regular cards
+            idx = this.deck.findIndex(card => !isSpecialCard(card));
+          }
+          
+          if (idx >= 0) {
+            cards.push(this.deck.splice(idx, 1)[0]);
+          } else {
+            // If no matching card found, just take next available
+            cards.push(this.deck.splice(0, 1)[0]);
+          }
+        }
+        return cards;
+      };
+      
+      // Hand gets special cards for humans, regular for CPUs
+      hands.push(dealFromFiltered(Math.min(handSize, this.deck?.length || 0), !isCPU));
+      // Up and down get regular cards for everyone
+      upCards.push(dealFromFiltered(Math.min(handSize, this.deck?.length || 0), false));
+      downCards.push(dealFromFiltered(Math.min(handSize, this.deck?.length || 0), false));
     }
     return { hands, upCards, downCards };
   }

@@ -266,7 +266,7 @@ export default class GameController {
       (opts: Pick<StartGameOptions, 'computerCount'> = {}) =>
         this.handleStartGame({ ...opts, socket })
     );
-    socket.on(PLAY_CARD, (data: PlayData) => this.handlePlayCard(socket, data));
+    socket.on(PLAY_CARD, async (data: PlayData) => await this.handlePlayCard(socket, data));
     socket.on(PICK_UP_PILE, () => this.handlePickUpPile(socket));
     socket.on(PLAYER_READY, (playerName: string) => {
       const playerId = this.socketIdToPlayerId.get(socket.id);
@@ -907,10 +907,10 @@ export default class GameController {
     return true;
   }
 
-  private handlePlayCard(
+  private async handlePlayCard(
     socket: Socket,
     { cardIndices, zone }: PlayData
-  ): void {
+  ): Promise<void> {
     const playerId = this.socketIdToPlayerId.get(socket.id);
     this.log(
       `Handling play card request from socket ${socket.id} (Player ID: ${playerId}). Zone: ${zone}, Indices: ${cardIndices}`
@@ -990,22 +990,23 @@ export default class GameController {
       cardsToPlay.push(card);
     }
 
-    this.handlePlayCardInternal(player, cardIndices, zone, cardsToPlay);
+    await this.handlePlayCardInternal(player, cardIndices, zone, cardsToPlay);
   }
 
-  private handlePlayCardInternal(
+  private async handlePlayCardInternal(
     player: Player,
     cardIndices: number[],
     zone: 'hand' | 'upCards' | 'downCards',
     cardsToPlay: Card[]
-  ): void {
-    if (
-      !this.ensureValidState('handlePlayCardInternal', {
-        requiresStarted: true,
-      })
-    ) {
-      return;
-    }
+  ): Promise<void> {
+    try {
+      if (
+        !this.ensureValidState('handlePlayCardInternal', {
+          requiresStarted: true,
+        })
+      ) {
+        return;
+      }
     this.log(
       `Internal play card for player ${player.id} (${player.name}). Zone: ${zone}, Cards: ${JSON.stringify(
         cardsToPlay
@@ -1113,6 +1114,18 @@ export default class GameController {
       `Emitted CARD_PLAYED for player ${player.id}. Cards: ${JSON.stringify(cardsToPlay)}`
     );
 
+    const specialEffectTriggered =
+      fourOfKindPlayed || isSpecialCard(cardsToPlay[0]?.value);
+    
+    // If special card, emit state BEFORE the effect so clients see the card on pile
+    if (specialEffectTriggered) {
+      this.log(`Special card detected - emitting STATE_UPDATE before effect`);
+      this.pushState();
+      
+      // Delay to let clients render the card with icon before showing result
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
     handleSpecialCard(
       this.io,
       this.gameState,
@@ -1121,8 +1134,6 @@ export default class GameController {
       this.roomId,
       { fourOfKindPlayed }
     );
-    const specialEffectTriggered =
-      fourOfKindPlayed || isSpecialCard(cardsToPlay[0]?.value);
 
     if (player.hasEmptyHand() && player.hasEmptyUp() && player.hasEmptyDown()) {
       this.log(
@@ -1144,12 +1155,28 @@ export default class GameController {
       }
       player.sortHand();
     }
+    
+    // If special card, emit state AFTER the effect to show the result
+    // Do this AFTER drawing cards but BEFORE next turn
+    if (specialEffectTriggered) {
+      this.log(`Special card effect complete - emitting STATE_UPDATE with result`);
+      this.pushState();
+    }
 
     this.log('Proceeding to next turn.');
     this.handleNextTurn({
       cpuDelayMs: specialEffectTriggered ? this.cpuSpecialDelayMs : undefined,
     });
-    this.pushState();
+    
+    // Only push state if we didn't already do it for special card
+    if (!specialEffectTriggered) {
+      this.pushState();
+    }
+    } catch (error) {
+      console.error(`[GameController] Error in handlePlayCardInternal for ${player.id}:`, error);
+      // Re-throw to propagate to caller
+      throw error;
+    }
   }
 
   private handlePickUpPile(socket: Socket): void {
@@ -1330,20 +1357,21 @@ export default class GameController {
     this.turnLock = false;
   }
 
-  private playComputerTurn(computerPlayer: Player): void {
-    if (
-      !this.gameState.started ||
-      this.gameState.players[this.gameState.currentPlayerIndex] !==
-        computerPlayer.id ||
-      this.isProcessingTurn
-    ) {
-      this.log(
-        `CPU ${computerPlayer.id} turn skipped: not their turn, game not started, or turn already in progress.`
-      );
-      return;
-    }
+  private async playComputerTurn(computerPlayer: Player): Promise<void> {
+    try {
+      if (
+        !this.gameState.started ||
+        this.gameState.players[this.gameState.currentPlayerIndex] !==
+          computerPlayer.id ||
+        this.isProcessingTurn
+      ) {
+        this.log(
+          `CPU ${computerPlayer.id} turn skipped: not their turn, game not started, or turn already in progress.`
+        );
+        return;
+      }
 
-    this.isProcessingTurn = true;
+      this.isProcessingTurn = true;
 
     const requiredZone =
       computerPlayer.hand.length > 0
@@ -1362,7 +1390,7 @@ export default class GameController {
     if (requiredZone === 'hand') {
       const bestPlay = this.findBestPlayForComputer(computerPlayer, 'hand');
       if (bestPlay) {
-        this.handlePlayCardInternal(
+        await this.handlePlayCardInternal(
           computerPlayer,
           bestPlay.indices,
           bestPlay.zone,
@@ -1376,7 +1404,7 @@ export default class GameController {
         singleCardOnly: true,
       });
       if (bestPlay) {
-        this.handlePlayCardInternal(
+        await this.handlePlayCardInternal(
           computerPlayer,
           bestPlay.indices,
           bestPlay.zone,
@@ -1391,10 +1419,17 @@ export default class GameController {
       );
       const downCardToPlay = computerPlayer.downCards[downIndex];
       if (downCardToPlay) {
-        this.handlePlayCardInternal(computerPlayer, [downIndex], 'downCards', [
+        await this.handlePlayCardInternal(computerPlayer, [downIndex], 'downCards', [
           downCardToPlay,
         ]);
       }
+    }
+    } catch (error) {
+      console.error(`[GameController] Error in playComputerTurn for ${computerPlayer.id}:`, error);
+      this.isProcessingTurn = false;
+      // Continue game flow on error
+      this.handleNextTurn({ cpuDelayMs: this.cpuDelayMs });
+      return;
     }
 
     this.isProcessingTurn = false;
@@ -1405,10 +1440,10 @@ export default class GameController {
       return;
     }
     this.pendingComputerTurns.add(player.id);
-    const timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(async () => {
       this.gameTimeouts.delete(timeoutId);
       this.pendingComputerTurns.delete(player.id);
-      this.playComputerTurn(player);
+      await this.playComputerTurn(player);
     }, delay);
     this.gameTimeouts.add(timeoutId);
   }

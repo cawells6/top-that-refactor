@@ -348,11 +348,18 @@ export function renderGameState(
     return;
   }
 
-  if (slotTop) slotTop.innerHTML = '';
-  if (slotBottom) slotBottom.innerHTML = '';
-  if (slotLeft) slotLeft.innerHTML = '';
-  if (slotRight) slotRight.innerHTML = '';
-  if (centerArea) centerArea.innerHTML = '';
+  // Only clear if player count changed or major restructure needed
+  const currentPlayerCount = table?.dataset.playerCount;
+  const newPlayerCount = String(gameState.players.length);
+  const shouldRebuild = currentPlayerCount !== newPlayerCount;
+
+  if (shouldRebuild) {
+    if (slotTop) slotTop.innerHTML = '';
+    if (slotBottom) slotBottom.innerHTML = '';
+    if (slotLeft) slotLeft.innerHTML = '';
+    if (slotRight) slotRight.innerHTML = '';
+    if (centerArea) centerArea.innerHTML = '';
+  }
 
   const players = gameState.players;
   if (table) {
@@ -393,15 +400,122 @@ export function renderGameState(
       upCount === 0 &&
       downCount > 0;
 
-    const panel = document.createElement('div');
+    // Determine target slot
+    let slotTarget: HTMLElement | null = null;
+    if (seat === 'bottom') slotTarget = slotBottom;
+    else if (seat === 'top') slotTarget = slotTop;
+    else if (seat === 'left') slotTarget = slotLeft;
+    else if (seat === 'right') slotTarget = slotRight;
+    
+    if (!slotTarget) return;
+
+    // Check if panel already exists for this player
+    let panel = slotTarget.querySelector(`[data-player-id="${player.id}"]`) as HTMLElement | null;
+    const panelExists = !!panel;
+    
+    // Check if local player's hand changed (need to rebuild even without shouldRebuild)
+    let localHandChanged = false;
+    if (isLocalPlayer && panelExists) {
+      const handCards = player.hand ?? [];
+      localHandChanged = handCards.length !== lastLocalHandCount ||
+        handCards.some((card, i) => {
+          const lastCard = lastLocalHandCards[i];
+          return !lastCard ||
+            card.value !== lastCard.value || 
+            card.suit !== lastCard.suit ||
+            card.back !== lastCard.back ||
+            card.copied !== lastCard.copied;
+        });
+    }
+    
+    // If panel exists and we're not doing a full rebuild, do targeted updates only
+    // UNLESS local player's hand changed
+    if (panelExists && !shouldRebuild && !localHandChanged) {
+      // Update avatar active state
+      const avatar = panel.querySelector('.player-avatar');
+      if (avatar) {
+        if (player.id === gameState.currentPlayerId) {
+          avatar.classList.add('active-turn');
+        } else {
+          avatar.classList.remove('active-turn');
+        }
+      }
+      
+      // Update card counts if they exist
+      const handRow = panel.querySelector('.hand-row');
+      if (handRow && !isLocalPlayer) {
+        // Update opponent hand count display
+        const countBadge = handRow.querySelector('.card-count-badge');
+        if (countBadge) {
+          countBadge.textContent = String(handCount);
+        }
+      }
+      
+      // Update local player card selectability based on turn
+      if (handRow && isLocalPlayer) {
+        const cardImgs = handRow.querySelectorAll('.card-img');
+        cardImgs.forEach((img) => {
+          if (isMyTurn) {
+            img.classList.add('selectable');
+            (img as HTMLElement).style.touchAction = 'manipulation';
+            (img.parentElement as HTMLElement)?.classList.add('selectable-container');
+          } else {
+            img.classList.remove('selectable');
+            (img as HTMLElement).style.touchAction = '';
+            (img.parentElement as HTMLElement)?.classList.remove('selectable-container');
+          }
+        });
+      }
+      
+      // Update button states for local player
+      if (seat === 'bottom' && isLocalPlayer) {
+        const playButton = panel.querySelector('#play-button') as HTMLButtonElement | null;
+        const takeButton = panel.querySelector('#take-button') as HTMLButtonElement | null;
+        
+        if (playButton) {
+          playButton.disabled = !isMyTurn;
+        }
+        
+        if (takeButton) {
+          const requiredZone =
+            handCount > 0
+              ? 'hand'
+              : upCount > 0
+                ? 'upCards'
+                : downCount > 0
+                  ? 'downCards'
+                  : null;
+          const hasPlayableCard =
+            requiredZone === 'hand'
+              ? hasValidHandPlay(player.hand ?? [], gameState.pile ?? [])
+              : requiredZone === 'upCards'
+                ? hasValidUpPlay(player.upCards ?? [], gameState.pile ?? [])
+                : false;
+          takeButton.disabled =
+            !isMyTurn ||
+            requiredZone === null ||
+            requiredZone === 'downCards' ||
+            hasPlayableCard;
+        }
+      }
+      return; // Skip full rebuild - targeted updates done
+    }
+    
+    // Panel doesn't exist or we need full rebuild - create/recreate it
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.dataset.playerId = player.id;
+      panel.dataset.seat = seat;
+    }
+    
+    // Set/update all panel properties
     panel.className = 'player-area seat classic-theme';
-    panel.dataset.playerId = player.id;
-    panel.dataset.seat = seat;
     panel.style.setProperty(
       '--seat-accent',
       seatAccents[seat] ?? '#f6c556'
     );
-
+    
+    // Always update classes based on current state
     if (player.isComputer) panel.classList.add('computer-player');
     if (player.disconnected) panel.classList.add('disconnected');
     if (isLocalPlayer) panel.classList.add('is-local');
@@ -558,44 +672,6 @@ export function renderGameState(
     handZone.append(handLabel, handTray);
     panel.appendChild(handZone);
 
-    if (seat === 'bottom' && isLocalPlayer) {
-      const actionRow = document.createElement('div');
-      actionRow.className = 'player-actions';
-
-      const playButton = document.createElement('button');
-      playButton.id = 'play-button';
-      playButton.className = 'action-button action-button--play';
-      playButton.textContent = 'Play';
-      playButton.disabled = !isMyTurn;
-
-      const takeButton = document.createElement('button');
-      takeButton.id = 'take-button';
-      takeButton.className = 'action-button action-button--take';
-      takeButton.textContent = 'Take';
-      const requiredZone =
-        handCount > 0
-          ? 'hand'
-          : upCount > 0
-            ? 'upCards'
-            : downCount > 0
-              ? 'downCards'
-              : null;
-      const hasPlayableCard =
-        requiredZone === 'hand'
-          ? hasValidHandPlay(player.hand ?? [], gameState.pile ?? [])
-          : requiredZone === 'upCards'
-            ? hasValidUpPlay(player.upCards ?? [], gameState.pile ?? [])
-            : false;
-      takeButton.disabled =
-        !isMyTurn ||
-        requiredZone === null ||
-        requiredZone === 'downCards' ||
-        hasPlayableCard;
-
-      actionRow.append(playButton, takeButton);
-      panel.appendChild(actionRow);
-    }
-
     const tableZone = document.createElement('div');
     tableZone.className = 'player-zone player-zone--table';
 
@@ -668,17 +744,56 @@ export function renderGameState(
 
     tabledWrapper.append(tableLabel, stackRow);
     tableZone.appendChild(tabledWrapper);
+    
+    // Build panel contents
+    panel.innerHTML = '';
+    panel.appendChild(header);
+    panel.appendChild(handZone);
+    
+    // Add action buttons for local player's bottom area
+    if (seat === 'bottom' && isLocalPlayer) {
+      const actionRow = document.createElement('div');
+      actionRow.className = 'player-actions';
+
+      const playButton = document.createElement('button');
+      playButton.id = 'play-button';
+      playButton.className = 'action-button action-button--play';
+      playButton.textContent = 'Play';
+      playButton.disabled = !isMyTurn;
+
+      const takeButton = document.createElement('button');
+      takeButton.id = 'take-button';
+      takeButton.className = 'action-button action-button--take';
+      takeButton.textContent = 'Take';
+      const requiredZone =
+        handCount > 0
+          ? 'hand'
+          : upCount > 0
+            ? 'upCards'
+            : downCount > 0
+              ? 'downCards'
+              : null;
+      const hasPlayableCard =
+        requiredZone === 'hand'
+          ? hasValidHandPlay(player.hand ?? [], gameState.pile ?? [])
+          : requiredZone === 'upCards'
+            ? hasValidUpPlay(player.upCards ?? [], gameState.pile ?? [])
+            : false;
+      takeButton.disabled =
+        !isMyTurn ||
+        requiredZone === null ||
+        requiredZone === 'downCards' ||
+        hasPlayableCard;
+
+      actionRow.append(playButton, takeButton);
+      panel.appendChild(actionRow);
+    }
+    
     panel.appendChild(tableZone);
 
-    let slotTarget: HTMLElement | null = null;
-    if (seat === 'bottom') slotTarget = slotBottom;
-    else if (seat === 'top') slotTarget = slotTop;
-    else if (seat === 'left') slotTarget = slotLeft;
-    else if (seat === 'right') slotTarget = slotRight;
-
-    if (slotTarget) {
+    // Only append if it's a new panel
+    if (!panelExists) {
       slotTarget.appendChild(panel);
-      // Compression is now handled inline when hand changes
     }
   });
 
@@ -755,78 +870,132 @@ export function renderGameState(
   }
 
   if (centerArea) {
-    const centerWrap = document.createElement('div');
-    centerWrap.className = 'center-piles';
-
-    const deckContainer = document.createElement('div');
-    deckContainer.className = 'pile-group pile-group--deck';
-
-    const deckSize = gameState.deckSize ?? 0;
-    const deckStack = document.createElement('div');
-    deckStack.className = 'pile-cards deck-stack';
-    if (deckSize > 40) deckStack.classList.add('deck-full');
-    else if (deckSize > 20) deckStack.classList.add('deck-half');
-    else if (deckSize > 0) deckStack.classList.add('deck-low');
-    if (deckSize > 0) {
-      const deckBack: CardType = { back: true, value: 'A', suit: 'spades' };
-      const deckCard = cardImg(deckBack, false);
-      deckCard.classList.add('deck-card');
-      deckStack.appendChild(deckCard);
-    } else {
-      const placeholder = document.createElement('div');
-      placeholder.className = 'pile-placeholder';
-      deckStack.appendChild(placeholder);
+    // Always reuse existing pile containers to preserve icons/animations
+    let centerWrap = centerArea.querySelector('.center-piles') as HTMLElement | null;
+    
+    if (!centerWrap) {
+      // First time - create wrapper
+      centerWrap = document.createElement('div');
+      centerWrap.className = 'center-piles';
+      centerArea.appendChild(centerWrap);
     }
-    const deckNameplate = document.createElement('div');
-    deckNameplate.className = 'pile-nameplate';
-    const deckName = document.createElement('span');
-    deckName.className = 'pile-name';
-    deckName.textContent = 'Deck';
-    const deckCount = document.createElement('span');
-    deckCount.className = 'pile-count';
-    deckCount.textContent = String(deckSize);
-    deckNameplate.append(deckName, deckCount);
-    deckContainer.append(deckNameplate, deckStack);
-
-    const playContainer = document.createElement('div');
-    playContainer.className = 'pile-group pile-group--discard';
-    playContainer.id = 'discard-pile';
-
-    const pile = gameState.pile ?? [];
-    const playStack = document.createElement('div');
-    playStack.className = 'pile-cards play-stack';
-    if (pile.length > 1) {
-      playStack.classList.add('pile-multiple');
+    
+    // Get or create deck container
+    let deckContainer = centerWrap.querySelector('#deck-pile') as HTMLElement | null;
+    if (!deckContainer) {
+      deckContainer = document.createElement('div');
+      deckContainer.className = 'pile-group pile-group--deck';
+      deckContainer.id = 'deck-pile';
+      centerWrap.appendChild(deckContainer);
     }
-    if (pile.length > 0) {
-      const playCard = cardImg(pile[pile.length - 1], false);
-      playCard.id = 'pile-top-card';
-      playStack.appendChild(playCard);
-    } else {
-      const placeholder = document.createElement('div');
-      placeholder.className = 'pile-placeholder';
-      playStack.appendChild(placeholder);
-    }
-    const playNameplate = document.createElement('div');
-    playNameplate.className = 'pile-nameplate';
-    const playName = document.createElement('span');
-    playName.className = 'pile-name';
-    playName.textContent = 'Discard';
-    const playCount = document.createElement('span');
-    playCount.className = 'pile-count';
-    playCount.textContent = String(pile.length);
-    playNameplate.append(playName, playCount);
-    playContainer.append(playNameplate, playStack);
-
-    if (gameState.discardCount > 0) {
-      const burned = document.createElement('div');
-      burned.className = 'pile-burned';
-      burned.textContent = `Burned ${gameState.discardCount}`;
-      playContainer.appendChild(burned);
+    
+    // Get or create discard container
+    let playContainer = centerWrap.querySelector('#discard-pile') as HTMLElement | null;
+    if (!playContainer) {
+      playContainer = document.createElement('div');
+      playContainer.className = 'pile-group pile-group--discard';
+      playContainer.id = 'discard-pile';
+      centerWrap.appendChild(playContainer);
     }
 
-    centerWrap.append(deckContainer, playContainer);
-    centerArea.appendChild(centerWrap);
+    // Update deck pile contents
+    if (deckContainer) {
+      deckContainer.innerHTML = '';
+      const deckSize = gameState.deckSize ?? 0;
+      const deckStack = document.createElement('div');
+      deckStack.className = 'pile-cards deck-stack';
+      if (deckSize > 40) deckStack.classList.add('deck-full');
+      else if (deckSize > 20) deckStack.classList.add('deck-half');
+      else if (deckSize > 0) deckStack.classList.add('deck-low');
+      if (deckSize > 0) {
+        const deckBack: CardType = { back: true, value: 'A', suit: 'spades' };
+        const deckCard = cardImg(deckBack, false);
+        deckCard.classList.add('deck-card');
+        deckStack.appendChild(deckCard);
+      } else {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'pile-placeholder';
+        deckStack.appendChild(placeholder);
+      }
+      const deckNameplate = document.createElement('div');
+      deckNameplate.className = 'pile-nameplate';
+      const deckName = document.createElement('span');
+      deckName.className = 'pile-name';
+      deckName.textContent = 'Deck';
+      const deckCount = document.createElement('span');
+      deckCount.className = 'pile-count';
+      deckCount.textContent = String(deckSize);
+      deckNameplate.append(deckName, deckCount);
+      deckContainer.append(deckNameplate, deckStack);
+    }
+
+    // Update discard pile contents
+    if (playContainer) {
+      const pile = gameState.pile ?? [];
+      
+      // PRESERVE any existing special icon before clearing
+      const existingCardContainer = document.getElementById('pile-top-card');
+      const existingIcon = existingCardContainer?.querySelector('.special-icon');
+      
+      if (existingIcon) {
+        console.log(`[RENDER] 🔍 Found existing icon to preserve at ${performance.now().toFixed(2)}ms`);
+      }
+      
+      // Clear content
+      console.log(`[RENDER] Clearing pile container at ${performance.now().toFixed(2)}ms - Pile has ${pile.length} cards`);
+      playContainer.innerHTML = '';
+      
+      // Build nameplate
+      const playNameplate = document.createElement('div');
+      playNameplate.className = 'pile-nameplate';
+      const playName = document.createElement('span');
+      playName.className = 'pile-name';
+      playName.textContent = 'Discard';
+      const playCount = document.createElement('span');
+      playCount.className = 'pile-count';
+      playCount.textContent = String(pile.length);
+      playNameplate.append(playName, playCount);
+      
+      // Build card stack
+      const playStack = document.createElement('div');
+      playStack.className = 'pile-cards play-stack';
+      if (pile.length > 1) {
+        playStack.classList.add('pile-multiple');
+      }
+      if (pile.length > 0) {
+        const playCard = cardImg(pile[pile.length - 1], false);
+        playCard.id = 'pile-top-card';
+        playStack.appendChild(playCard);
+        
+        // RESTORE the icon if it existed
+        if (existingIcon) {
+          playCard.appendChild(existingIcon);
+          console.log(`[RENDER] ✅ Restored icon to CARD at ${performance.now().toFixed(2)}ms`);
+        }
+      } else {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'pile-placeholder';
+        placeholder.id = 'pile-top-card'; // Allow burn icons to attach
+        playStack.appendChild(placeholder);
+        
+        // RESTORE the icon if it existed (for burn effects)
+        if (existingIcon) {
+          placeholder.appendChild(existingIcon);
+          console.log(`[RENDER] ✅ Restored icon to PLACEHOLDER at ${performance.now().toFixed(2)}ms`);
+        } else {
+          console.log(`[RENDER] ⚠️ No icon to restore to empty pile at ${performance.now().toFixed(2)}ms`);
+        }
+      }
+      
+      playContainer.append(playNameplate, playStack);
+
+      if (gameState.discardCount > 0) {
+        const burned = document.createElement('div');
+        burned.className = 'pile-burned';
+        burned.textContent = `Burned ${gameState.discardCount}`;
+        playContainer.appendChild(burned);
+      }
+    }
   }
 }
 
@@ -837,104 +1006,133 @@ export function showCardEvent(
   cardValue: number | string | null,
   type: string
 ): void {
-  let retries = 0;
-  function tryRunEffect() {
-    // Query for the pile top card image directly, as it's now consistently used.
-    let discardImg = document.getElementById(
-      'pile-top-card'
-    ) as HTMLImageElement | null;
-    const discardContainer = document.getElementById('discard-pile');
-
-    // If pile-top-card is not visible (e.g. pile is empty), try to find a card in a .discard container if that structure still exists from old code.
-    // This is a fallback, ideally the pile-top-card is the single source of truth for the top discard image.
-    if (!discardImg || discardImg.style.display === 'none') {
-      discardImg = document.querySelector(
-        '.discard .card-img'
-      ) as HTMLImageElement | null;
-    }
-
-    const target =
-      discardImg && discardImg.style.display !== 'none'
-        ? discardImg
-        : discardContainer;
-
-    if (!target && retries < 5) {
-      retries++;
-      setTimeout(tryRunEffect, 100);
-      return;
-    }
-    if (!target) {
-      console.warn(
-        'showCardEvent: Could not find discard image to overlay effect.'
-      );
-      return;
-    }
-
-    function runEffect(effectTarget: HTMLElement) {
-      const parentElement =
-        effectTarget instanceof HTMLImageElement
-          ? effectTarget.parentElement
-          : effectTarget;
-      if (!parentElement) return;
-
-      const prev = parentElement.querySelector('.special-icon');
-      if (prev) prev.remove();
-      const icon = document.createElement('img');
-      icon.className = 'special-icon';
-      let src = '';
-      if (type === 'two') src = '/src/shared/Reset-icon.png';
-      else if (type === 'five') src = '/src/shared/Copy-icon.png';
-      else if (type === 'ten') src = '/src/shared/Burn-icon.png';
-      else if (type === 'invalid') src = '/src/shared/invalid play-icon.png';
-      else if (type === 'take') src = '/src/shared/take pile-icon.png';
-      else if (type === 'regular') return;
-      icon.src = src;
-      icon.onerror = () => {
-        icon.style.background = type === 'invalid' ? '#dc2626' : '#ffc300';
-        icon.style.borderRadius = '50%';
-        icon.style.display = 'flex';
-        icon.style.justifyContent = 'center';
-        icon.style.alignItems = 'center';
-        icon.style.border = '2px solid white';
-        const text = document.createElement('div');
-        text.textContent = type === 'invalid' ? '✕' : '!';
-        text.style.color = 'white';
-        text.style.fontWeight = '900';
-        text.style.fontSize = '40px';
-        icon.appendChild(text);
-      };
-      icon.style.position = 'absolute';
-      icon.style.top = '50%';
-      icon.style.left = '50%';
-      icon.style.transform = 'translate(-50%, -50%)';
-      icon.style.width = '70px';
-      icon.style.height = '70px';
-      icon.style.zIndex = '100';
-      icon.style.background = 'none';
-      icon.style.backgroundColor = 'transparent';
-      icon.style.pointerEvents = 'none';
-      icon.style.opacity = '0.85';
-      icon.style.filter = 'drop-shadow(0 0 4px rgba(0, 0, 0, 0.35))';
-      icon.style.animation = 'iconPulse 1.5s ease-in-out';
-      // Ensure parent has relative positioning if it doesn't already.
-      if (getComputedStyle(parentElement).position === 'static') {
-        parentElement.style.position = 'relative';
-      }
-      parentElement.appendChild(icon);
-      setTimeout(() => {
-        icon.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-        icon.style.opacity = '0';
-        icon.style.transform = 'translate(-50%, -50%) scale(0.8)';
-        setTimeout(() => icon.remove(), 500);
-      }, 1800);
-    }
-    if (target instanceof HTMLImageElement && !target.complete) {
-      target.addEventListener('load', () => runEffect(target), { once: true });
-    } else {
-      runEffect(target);
-    }
+  // Skip effects for regular plays and pile pickups
+  if (type === 'regular' || type === 'take') {
+    return;
   }
-  tryRunEffect();
+  
+  // Trigger enhanced pile effects
+  import('./specialEffects.js').then(({ playSpecialCardEffect }) => {
+    playSpecialCardEffect({ type: type as any });
+  });
+
+  // Create icon immediately and store it
+  const icon = document.createElement('img');
+  icon.className = 'special-icon';
+  let src = '';
+  
+  // Note: These are in public/src/shared/, accessed as /src/shared/ from browser
+  if (type === 'two') src = '/src/shared/Reset-icon.png';
+  else if (type === 'five') src = '/src/shared/Copy-icon.png';
+  else if (type === 'ten') src = '/src/shared/Burn-icon.png';
+  else if (type === 'four') src = '/src/shared/Burn-icon.png';
+  else if (type === 'invalid') src = '/src/shared/invalid play-icon.png';
+  else if (type === 'take') src = '/src/shared/take pile-icon.png';
+  else if (type === 'regular') return;
+  
+  if (!src) {
+    console.warn('[Icon] No icon path for type:', type);
+    return;
+  }
+  
+  const createTime = performance.now();
+  console.log(`[ICON] 🎨 Creating icon for type: ${type} at ${createTime.toFixed(2)}ms`);
+  
+  icon.src = src;
+  icon.style.cssText = `
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90px;
+    height: 90px;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.8));
+  `;
+  
+  icon.onload = () => {
+    console.log('[Icon] ✓ Successfully loaded icon:', src);
+  };
+  icon.onerror = () => {
+    console.error('[Icon] ✗ Failed to load icon:', src);
+  };
+  
+  // Find container and attach immediately (synchronously)
+  const cardContainer = document.getElementById('pile-top-card');
+  if (cardContainer) {
+    // Remove any existing icon
+    const prev = cardContainer.querySelector('.special-icon');
+    if (prev) prev.remove();
+    
+    // Ensure container has relative positioning
+    const containerPos = getComputedStyle(cardContainer).position;
+    if (containerPos === 'static') {
+      cardContainer.style.position = 'relative';
+    }
+    
+    // Append immediately
+    cardContainer.appendChild(icon);
+    const attachTime = performance.now();
+    console.log(`[ICON] ✅ Attached icon IMMEDIATELY to ${cardContainer.id} at ${attachTime.toFixed(2)}ms (${(attachTime - createTime).toFixed(2)}ms after creation)`);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+      icon.style.animation = 'iconPulse 1s ease-in-out';
+      icon.style.opacity = '1';
+    });
+    
+    // Remove after 2 seconds
+    setTimeout(() => {
+      icon.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      icon.style.opacity = '0';
+      icon.style.transform = 'translate(-50%, -50%) scale(0.7)';
+      setTimeout(() => icon.remove(), 300);
+    }, 1700);
+  } else {
+    // Container doesn't exist yet - retry with requestAnimationFrame
+    console.log(`[ICON] ⏳ Container not found at ${performance.now().toFixed(2)}ms, will retry`);
+    let retries = 0;
+    function tryAttach() {
+      const container = document.getElementById('pile-top-card');
+      if (container) {
+        // Remove any existing icon
+        const prev = container.querySelector('.special-icon');
+        if (prev) prev.remove();
+        
+        // Ensure container has relative positioning
+        const containerPos = getComputedStyle(container).position;
+        if (containerPos === 'static') {
+          container.style.position = 'relative';
+        }
+        
+        container.appendChild(icon);
+        const retryAttachTime = performance.now();
+        console.log(`[ICON] ✅ Attached icon after ${retries} retries to ${container.id} at ${retryAttachTime.toFixed(2)}ms (${(retryAttachTime - createTime).toFixed(2)}ms after creation)`);
+        
+        // Animate in
+        requestAnimationFrame(() => {
+          icon.style.animation = 'iconPulse 1s ease-in-out';
+          icon.style.opacity = '1';
+        });
+        
+        // Remove after 2 seconds
+        setTimeout(() => {
+          icon.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          icon.style.opacity = '0';
+          icon.style.transform = 'translate(-50%, -50%) scale(0.7)';
+          setTimeout(() => icon.remove(), 300);
+        }, 1700);
+      } else if (retries < 10) {
+        retries++;
+        requestAnimationFrame(tryAttach);
+      } else {
+        console.warn('[Icon] Failed to find container after retries');
+      }
+    }
+    requestAnimationFrame(tryAttach);
+  }
 }
 
 export function playArea() {

@@ -75,9 +75,20 @@ function loadSession(): void {
 }
 
 function saveSession(): void {
-  if (myId) sessionStorage.setItem('myId', myId);
-  if (currentRoom) sessionStorage.setItem('currentRoom', currentRoom);
+  if (myId) {
+    sessionStorage.setItem('myId', myId);
+  } else {
+    sessionStorage.removeItem('myId');
+  }
+  
+  if (currentRoom) {
+    sessionStorage.setItem('currentRoom', currentRoom);
+  } else {
+    sessionStorage.removeItem('currentRoom');
+  }
+  
   sessionStorage.setItem('desiredCpuCount', desiredCpuCount.toString());
+  
   if (isSpectator) {
     sessionStorage.setItem('spectator', '1');
   } else {

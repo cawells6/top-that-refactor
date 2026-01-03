@@ -14,6 +14,7 @@ import {
   REJOIN,
   ERROR,
   SESSION_ERROR,
+  GAME_OVER,
 } from '../../src/shared/events.js';
 import { GameStateData } from '../../src/shared/types.js';
 
@@ -45,10 +46,19 @@ export async function initializeSocketHandlers(): Promise<void> {
   );
 
   state.socket.on(STATE_UPDATE, (s: GameStateData) => {
+    const timestamp = performance.now();
+    console.log(`[SOCKET] STATE_UPDATE received at ${timestamp.toFixed(2)}ms - Pile length: ${s.pile?.length || 0}`);
+    if (s.pile && s.pile.length > 0) {
+      console.log(`[SOCKET] Top card:`, s.pile[s.pile.length - 1]);
+    } else {
+      console.log(`[SOCKET] Pile is empty`);
+    }
     state.setLastGameState(s);
     if (s.started === true) {
       showGameTable();
     }
+    
+    // Server now handles timing - just render immediately
     renderGameState(s, state.myId);
   });
 
@@ -63,12 +73,61 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(
     SPECIAL_CARD_EFFECT,
     (payload: { type?: string; value?: number | string | null }) => {
+      const timestamp = performance.now();
+      console.log(`[SOCKET] SPECIAL_CARD_EFFECT received at ${timestamp.toFixed(2)}ms - Type: ${payload?.type}, Value: ${payload?.value}`);
       showCardEvent(payload?.value ?? null, payload?.type ?? 'regular');
     }
   );
 
   state.socket.on(PILE_PICKED_UP, () => {
-    showCardEvent(null, 'take');
+    // Removed effect - too frequent and monotonous
+  });
+
+  // Game over - someone won
+  state.socket.on(GAME_OVER, (data: { winnerId: string; winnerName: string }) => {
+    const didWin = data.winnerId === state.myId;
+    
+    // Show game over modal
+    const over = document.createElement('div');
+    over.id = 'game-over-container';
+    over.innerHTML = `
+      <div class="modal-content">
+        <h1>Game Over!</h1>
+        <p>${didWin ? '🎉 You win!' : `${data.winnerName} wins!`}</p>
+        <div class="game-over-buttons">
+          <button id="new-game-btn" class="btn btn-primary">New Game</button>
+          <button id="back-to-lobby-btn" class="btn btn-secondary">Back to Lobby</button>
+        </div>
+      </div>`;
+    document.body.appendChild(over);
+    
+    // New Game - start fresh game in same room
+    document.getElementById('new-game-btn')?.addEventListener('click', () => {
+      over.remove();
+      // Disconnect socket to force clean reconnect
+      state.socket.disconnect();
+      // Clear ALL session data
+      state.setCurrentRoom(null);
+      state.setMyId(null);
+      state.setLastGameState(null);
+      state.saveSession();
+      // Reload to reconnect fresh
+      window.location.reload();
+    });
+    
+    // Back to Lobby - clear session completely
+    document.getElementById('back-to-lobby-btn')?.addEventListener('click', () => {
+      over.remove();
+      // Disconnect socket to force clean reconnect
+      state.socket.disconnect();
+      // Clear session
+      state.setCurrentRoom(null);
+      state.setMyId(null);
+      state.setLastGameState(null);
+      state.saveSession();
+      // Reload to go back to lobby
+      window.location.reload();
+    });
   });
 
   // Recoverable/gameplay errors (e.g. invalid play, not your turn).

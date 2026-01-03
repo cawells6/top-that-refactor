@@ -447,6 +447,21 @@ function applySpectatorMode(): void {
 export async function initializePageEventListeners() {
   console.log('🚀 [events.ts] initializePageEventListeners called!');
 
+  // Set default values for quick testing
+  const playerNameInput = document.getElementById('player-name-input') as HTMLInputElement | null;
+  const cpuPlayersInput = document.getElementById('cpu-players-input') as HTMLInputElement | null;
+  
+  if (playerNameInput) {
+    playerNameInput.value = 'chris';
+  }
+  
+  if (cpuPlayersInput) {
+    cpuPlayersInput.value = '3';
+    // Trigger the update for silhouettes
+    const changeEvent = new Event('change', { bubbles: true });
+    cpuPlayersInput.dispatchEvent(changeEvent);
+  }
+
   // Only setup modal buttons now (header buttons removed)
   const setupRulesButton = document.getElementById('setup-rules-button');
   const setupDealButton = document.getElementById('setup-deal-button');
@@ -660,9 +675,7 @@ export async function initializePageEventListeners() {
   const totalPlayersInput = document.getElementById(
     'total-players-input'
   ) as HTMLInputElement;
-  const cpuPlayersInput = document.getElementById(
-    'cpu-players-input'
-  ) as HTMLInputElement;
+  // cpuPlayersInput already declared at top of function for default values
 
   // Initialize input event listeners for real-time player count validation
   if (totalPlayersInput) {
