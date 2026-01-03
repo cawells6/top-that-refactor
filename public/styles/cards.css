@@ -14,31 +14,8 @@
   background: #0f1f19;
 }
 
-.card-img.selectable:hover {
-  transform: translateY(-6px) scale(1.03);
-  cursor: pointer;
-  box-shadow: 0 12px 18px rgba(0, 0, 0, 0.35);
-}
-
 .selectable-container {
   cursor: pointer;
-}
-
-.selectable-container:hover .card-img.selectable {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 12px 18px rgba(0, 0, 0, 0.35);
-}
-
-.card-img.selected {
-  outline: 3px solid var(--accent);
-  transform: translateY(-25px) scale(1.1);
-  box-shadow:
-    0 15px 25px rgba(0, 0, 0, 0.4),
-    0 0 0 4px rgba(255, 195, 0, 0.35);
-}
-
-.card-container.selected-container {
-  z-index: 50;
 }
 
 .rules-icon {
