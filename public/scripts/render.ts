@@ -711,6 +711,52 @@ export function renderGameState(
     table.appendChild(resetButton);
   }
 
+  // Add back to lobby button
+  if (table && !table.querySelector('#table-lobby-button')) {
+    const lobbyButton = document.createElement('button');
+    lobbyButton.id = 'table-lobby-button';
+    lobbyButton.className = 'action-button action-button--lobby';
+    lobbyButton.textContent = 'Back to Lobby';
+    lobbyButton.onclick = () => {
+      if (confirm('Return to lobby? (Game will end)')) {
+        window.location.reload();
+      }
+    };
+    table.appendChild(lobbyButton);
+  }
+
+  // Add game branding in top-left corner
+  if (table && !table.querySelector('#table-branding')) {
+    const branding = document.createElement('div');
+    branding.id = 'table-branding';
+    
+    // Create inline SVG crown for better color control
+    const crownSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    crownSvg.setAttribute('class', 'branding-crown');
+    crownSvg.setAttribute('viewBox', '0 0 32 32');
+    crownSvg.innerHTML = `
+      <path d="M4 22L6 12L11 16L16 8L21 16L26 12L28 22H4Z" fill="#ffd700" stroke="#b8860b" stroke-width="1.5" stroke-linejoin="round"/>
+      <circle cx="6" cy="12" r="2" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+      <circle cx="16" cy="8" r="2.5" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+      <circle cx="26" cy="12" r="2" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+      <rect x="4" y="22" width="24" height="4" rx="1" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+      <path d="M10 24H22" stroke="#b8860b" stroke-width="1.5" stroke-linecap="round"/>
+    `;
+    
+    const title = document.createElement('div');
+    title.className = 'branding-title';
+    title.textContent = 'Top That!';
+    
+    const slogan = document.createElement('div');
+    slogan.className = 'branding-slogan';
+    slogan.textContent = 'One Crown. Zero Mercy.';
+    
+    branding.appendChild(crownSvg);
+    branding.appendChild(title);
+    branding.appendChild(slogan);
+    table.appendChild(branding);
+  }
+
   if (centerArea) {
     const centerWrap = document.createElement('div');
     centerWrap.className = 'center-piles';
