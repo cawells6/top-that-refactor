@@ -930,6 +930,7 @@ body.showing-game {
 .card-container {
     /* Transition the highlight effects for a smooth feel */
     transition: box-shadow 0.2s ease-out;
+    overflow: visible; /* Prevent card edges from being clipped */
 }
 
 /* 1. Base State: Continuous Shingling */

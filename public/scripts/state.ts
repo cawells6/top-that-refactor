@@ -65,6 +65,7 @@ let isSpectator = false;
 const stateHistory: any[] = [];
 let stateIndex: number = -1;
 let lastGameState: GameStateData | null = null;
+let lastPlayedCards: any[] = [];
 
 function loadSession(): void {
   setMyId(sessionStorage.getItem('myId'));
@@ -130,6 +131,18 @@ function setLastGameState(gameState: GameStateData | null): void {
   lastGameState = gameState;
 }
 
+function setLastPlayedCards(cards: any[]): void {
+  lastPlayedCards = cards;
+}
+
+function getLastPlayedCards(): any[] {
+  return lastPlayedCards;
+}
+
+function getLastGameState(): GameStateData | null {
+  return lastGameState;
+}
+
 export {
   socket,
   socketReady,
@@ -157,4 +170,7 @@ export {
   clearSpecialEffects,
   setStateIndex,
   setLastGameState,
+  setLastPlayedCards,
+  getLastPlayedCards,
+  getLastGameState,
 };

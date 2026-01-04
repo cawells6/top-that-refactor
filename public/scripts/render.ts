@@ -6,10 +6,40 @@ import {
   normalizeCardValue,
   rank,
   isSpecialCard,
+  isFiveCard,
 } from '../../utils/cardUtils.js';
+
+// --- PRELOAD LOGIC START ---
+const ICON_PATHS = {
+  two: '/src/shared/Reset-icon.png',
+  five: '/src/shared/Copy-icon.png',
+  ten: '/src/shared/Burn-icon.png',
+  invalid: '/src/shared/invalid play-icon.png',
+  take: '/src/shared/take pile-icon.png',
+};
+
+// Preload images immediately when this module loads
+function preloadIcons() {
+  console.log('[Assets] Preloading special card icons...');
+  Object.values(ICON_PATHS).forEach((src) => {
+    const img = new Image();
+    img.src = src;
+    // We don't need to attach them to DOM, just loading them caches them
+  });
+}
+preloadIcons();
+// --- PRELOAD LOGIC END ---
 
 let lastLocalHandCount = -1;
 let lastLocalHandCards: CardType[] = [];
+let suppressNextHandAnimation = false;
+
+/**
+ * Reset hand tracking to prevent animation issues when taking pile
+ */
+export function resetHandTracking(): void {
+  suppressNextHandAnimation = true;
+}
 
 const seatOrder = ['bottom', 'right', 'top', 'left'] as const;
 const seatAccents: Record<string, string> = {
@@ -331,10 +361,13 @@ function applyHandCompression(
 /**
  * Main render function to update the entire game view
  * @param {GameStateData} gameState - Full game state from server
+ * @param {string | null} localPlayerId - The local player ID
+ * @param {CardType | null} visualPileTop - Optional visual override for pile top card
  */
 export function renderGameState(
   gameState: GameStateData,
-  localPlayerId: string | null
+  localPlayerId: string | null,
+  visualPileTop?: CardType | null
 ): void {
   // Reset hand tracking when game isn't started (new game scenario)
   if (!gameState?.started) {
@@ -480,7 +513,15 @@ export function renderGameState(
       : 'hand-row hand-row--opponent';
 
     if (isLocalPlayer) {
-      if (handCount === lastLocalHandCount) {
+      // Check if we should suppress animation (e.g., after taking pile)
+      // Keep suppressing until hand count decreases (player plays cards)
+      if (suppressNextHandAnimation) {
+        handRow.classList.add('no-animate');
+        // Only clear the flag if hand count decreased (player played cards)
+        if (handCount < lastLocalHandCount && lastLocalHandCount !== -1) {
+          suppressNextHandAnimation = false;
+        }
+      } else if (handCount === lastLocalHandCount) {
         handRow.classList.add('no-animate');
       }
       lastLocalHandCount = handCount;
@@ -715,33 +756,7 @@ export function renderGameState(
     table.appendChild(rulesButton);
   }
   
-  // Add reset button for quick testing
-  if (table && !table.querySelector('#table-reset-button')) {
-    const resetButton = document.createElement('button');
-    resetButton.id = 'table-reset-button';
-    resetButton.className = 'action-button action-button--reset';
-    resetButton.textContent = 'New Game';
-    resetButton.onclick = () => {
-      if (confirm('Start a new game?')) {
-        window.location.reload();
-      }
-    };
-    table.appendChild(resetButton);
-  }
 
-  // Add back to lobby button
-  if (table && !table.querySelector('#table-lobby-button')) {
-    const lobbyButton = document.createElement('button');
-    lobbyButton.id = 'table-lobby-button';
-    lobbyButton.className = 'action-button action-button--lobby';
-    lobbyButton.textContent = 'Back to Lobby';
-    lobbyButton.onclick = () => {
-      if (confirm('Return to lobby? (Game will end)')) {
-        window.location.reload();
-      }
-    };
-    table.appendChild(lobbyButton);
-  }
 
   // Add game branding in top-left corner
   if (table && !table.querySelector('#table-branding')) {
@@ -819,15 +834,50 @@ export function renderGameState(
     if (pile.length > 1) {
       playStack.classList.add('pile-multiple');
     }
-    if (pile.length > 0) {
-      const playCard = cardImg(pile[pile.length - 1], false);
+
+    // Determine what card to show
+    const logicalTop = pile.length > 0 ? pile[pile.length - 1] : null;
+    const effectiveTopCard = visualPileTop || logicalTop;
+
+    if (effectiveTopCard) {
+      const playCard = cardImg(effectiveTopCard, false);
       playCard.id = 'pile-top-card';
+
+      // --- BADGE LOGIC START ---
+      // If the card is marked as 'copied' (it's a 7 that used to be a 5), show the badge
+      if (effectiveTopCard.copied) {
+        const badge = document.createElement('div');
+        badge.className = 'copied-badge';
+
+        // Inline styles for the badge
+        badge.textContent = 'COPIED';
+        badge.style.position = 'absolute';
+        badge.style.bottom = '10px';
+        badge.style.left = '50%';
+        badge.style.transform = 'translateX(-50%)';
+        badge.style.backgroundColor = '#FFD700'; // Gold color
+        badge.style.color = '#000';
+        badge.style.padding = '2px 6px';
+        badge.style.borderRadius = '4px';
+        badge.style.fontSize = '10px';
+        badge.style.fontWeight = 'bold';
+        badge.style.boxShadow = '0 2px 4px rgba(0,0,0,0.5)';
+        badge.style.zIndex = '10';
+        badge.style.pointerEvents = 'none';
+        badge.style.whiteSpace = 'nowrap';
+        badge.style.border = '1px solid #b8860b';
+
+        playCard.appendChild(badge);
+      }
+      // --- BADGE LOGIC END ---
+
       playStack.appendChild(playCard);
     } else {
       const placeholder = document.createElement('div');
       placeholder.className = 'pile-placeholder';
       playStack.appendChild(placeholder);
     }
+
     const playNameplate = document.createElement('div');
     playNameplate.className = 'pile-nameplate';
     const playName = document.createElement('span');
@@ -916,16 +966,30 @@ export function showCardEvent(
       }
       const icon = document.createElement('img');
       icon.className = 'special-icon';
+
+      // Use the mapped paths to ensure consistency
       let src = '';
-      if (type === 'two') src = '/src/shared/Reset-icon.png';
-      else if (type === 'five') src = '/src/shared/Copy-icon.png';
-      else if (type === 'ten') src = '/src/shared/Burn-icon.png';
-      else if (type === 'invalid') src = '/src/shared/invalid play-icon.png';
-      else if (type === 'take') src = '/src/shared/take pile-icon.png';
+      if (type === 'two') src = ICON_PATHS.two;
+      else if (type === 'five') src = ICON_PATHS.five;
+      else if (type === 'ten') src = ICON_PATHS.ten;
+      else if (type === 'invalid') src = ICON_PATHS.invalid;
+      else if (type === 'take') src = ICON_PATHS.take;
       else if (type === 'regular') return;
+
       icon.src = src;
       console.log('[showCardEvent] Creating icon with src:', src);
+
+      // --- DEBUG LOGGING ---
+      const startTime = Date.now();
+      icon.onload = () => {
+        console.log(
+          `[showCardEvent] Icon loaded in ${Date.now() - startTime}ms: ${src}`
+        );
+      };
+      // ---------------------
+
       icon.onerror = () => {
+        console.error(`[showCardEvent] Failed to load icon: ${src}`);
         icon.style.background = type === 'invalid' ? '#dc2626' : '#ffc300';
         icon.style.borderRadius = '50%';
         icon.style.display = 'flex';
@@ -951,7 +1015,20 @@ export function showCardEvent(
       icon.style.pointerEvents = 'none';
       icon.style.opacity = '0.85';
       icon.style.filter = 'drop-shadow(0 0 4px rgba(0, 0, 0, 0.35))';
+      
+      // Set color for pulse effect based on card type
+      let iconColor = '#ffffff'; // Default white
+      if (type === 'two') iconColor = '#3b82f6'; // Blue for reset
+      else if (type === 'five') iconColor = '#10b981'; // Green for copy
+      else if (type === 'ten') iconColor = '#ef4444'; // Red for burn
+      else if (type === 'invalid') iconColor = '#dc2626'; // Dark red for invalid
+      
+      icon.style.color = iconColor;
       icon.style.animation = 'iconPulse 1.5s ease-in-out';
+
+      // IMPORTANT: Ensure visibility
+      icon.style.display = 'block';
+
       // Ensure parent has relative positioning if it doesn't already.
       if (getComputedStyle(parentElement).position === 'static') {
         parentElement.style.position = 'relative';

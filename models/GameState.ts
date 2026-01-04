@@ -160,14 +160,6 @@ export default class GameState {
       }
     }
 
-    // Add extra special cards for testing (6 each of 2, 5, 10)
-    for (let i = 0; i < 6; i++) {
-      const suit = suits[i % suits.length]; // Cycle through real suits
-      this.deck.push({ value: 2, suit });
-      this.deck.push({ value: 5, suit });
-      this.deck.push({ value: 10, suit });
-    }
-
     // Fisher–Yates shuffle
     for (let i = this.deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
