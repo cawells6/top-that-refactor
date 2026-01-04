@@ -1,4 +1,4 @@
-import { renderGameState, showCardEvent } from './render.js';
+import { renderGameState, showCardEvent, renderPlayedCards } from './render.js';
 import * as state from './state.js';
 import {
   showLobbyForm,
@@ -14,8 +14,13 @@ import {
   REJOIN,
   ERROR,
   SESSION_ERROR,
+  CARD_PLAYED,
 } from '../../src/shared/events.js';
-import { GameStateData } from '../../src/shared/types.js';
+import { GameStateData, Card } from '../../src/shared/types.js';
+
+let isAnimatingSpecialEffect = false;
+let pendingStateUpdate: GameStateData | null = null;
+const ANIMATION_DELAY_MS = 2000;
 
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
@@ -44,12 +49,25 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
   );
 
+  // 1. Force the card to appear immediately (before the effect logic hides it)
+  state.socket.on(CARD_PLAYED, (data: { cards: Card[] }) => {
+    if (data.cards && data.cards.length > 0) {
+      renderPlayedCards(data.cards);
+    }
+  });
+
   state.socket.on(STATE_UPDATE, (s: GameStateData) => {
     state.setLastGameState(s);
     if (s.started === true) {
       showGameTable();
     }
-    renderGameState(s, state.myId);
+    
+    // 3. Buffer the update if we are busy showing an explosion
+    if (isAnimatingSpecialEffect) {
+      pendingStateUpdate = s;
+    } else {
+      renderGameState(s, state.myId);
+    }
   });
 
   state.socket.on(GAME_STARTED, (s?: GameStateData) => {
@@ -60,15 +78,25 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
   });
 
+  // 2. Trigger animation and block subsequent state updates
   state.socket.on(
     SPECIAL_CARD_EFFECT,
     (payload: { type?: string; value?: number | string | null }) => {
+      isAnimatingSpecialEffect = true;
       showCardEvent(payload?.value ?? null, payload?.type ?? 'regular');
+      
+      setTimeout(() => {
+        isAnimatingSpecialEffect = false;
+        if (pendingStateUpdate) {
+          renderGameState(pendingStateUpdate, state.myId);
+          pendingStateUpdate = null;
+        }
+      }, ANIMATION_DELAY_MS);
     }
   );
 
   state.socket.on(PILE_PICKED_UP, () => {
-    showCardEvent(null, 'take');
+    // Removed icon - just let the state update handle the visual change
   });
 
   // Recoverable/gameplay errors (e.g. invalid play, not your turn).

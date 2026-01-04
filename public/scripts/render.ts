@@ -164,6 +164,30 @@ export function cardImg(
   return container;
 }
 
+/**
+ * Renders played cards immediately to the pile.
+ * Used to show the card before a special effect (burn/copy) might remove/cover it.
+ */
+export function renderPlayedCards(cards: CardType[]): void {
+  const playStack = document.querySelector('.pile-cards.play-stack');
+  if (!playStack) return;
+
+  // Clear the entire pile first
+  playStack.innerHTML = '';
+
+  // Add the new cards
+  cards.forEach((card, index) => {
+    const cardEl = cardImg(card, false);
+    
+    // The last card added is the new top card
+    if (index === cards.length - 1) {
+      cardEl.id = 'pile-top-card';
+    }
+    
+    playStack.appendChild(cardEl);
+  });
+}
+
 function isValidPlay(cards: CardType[], pile: CardType[]): boolean {
   console.log('--- isValidPlay Check ---');
   console.log(
