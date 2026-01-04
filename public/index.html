@@ -36,6 +36,7 @@
     <link rel="stylesheet" href="/styles/lobby.css" />
     <link rel="stylesheet" href="/styles/game-board.css" />
     <link rel="stylesheet" href="/styles/common.css" />
+    <link rel="stylesheet" href="/styles/manual-mode.css" />
     <!-- Rules card styling overrides disabled until icon layout returns -->
     <!-- Header button styles are now in style.css -->
 
@@ -254,6 +255,17 @@
 
       <!-- Game Table -->
       <div id="game-table" class="hidden table--hidden">
+        <button id="test-mode-toggle" class="test-mode-button">Enable Test Mode</button>
+        
+        <div id="test-mode-overlay" class="test-overlay" style="display: none;">
+          <div class="test-overlay-content">
+            <h2>Test Mode - Review Console</h2>
+            <p>Check the console logs for the last special card played</p>
+            <p>Did the special card icon show correctly?</p>
+            <button id="continue-button" class="btn-continue">Continue Game</button>
+          </div>
+        </div>
+        
         <div class="table">
           <div class="table-slot-top" id="opponent-area-top"></div>
           <div class="table-slot-left" id="opponent-area-left"></div>

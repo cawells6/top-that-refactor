@@ -239,8 +239,8 @@ export default class GameController {
   private gameTimeouts: Set<NodeJS.Timeout> = new Set();
   private pendingComputerTurns: Set<string> = new Set();
   private turnLock: boolean = false;
-  private readonly cpuTurnDelayMs = 1200;
-  private readonly cpuSpecialDelayMs = 1800;
+  private readonly cpuTurnDelayMs = 2000;
+  private readonly cpuSpecialDelayMs = 3000;
 
   constructor(io: Server, roomId: string) {
     this.io = io;

@@ -5,6 +5,7 @@ import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializePageEventListeners } from './events.js';
 import { initializeGameControls } from './gameControls.js';
 import { initializeSocketHandlers } from './socketService.js';
+import { initializeManualMode } from './manualMode.js';
 import {
   socket,
   socketReady,
@@ -105,6 +106,7 @@ export async function initMain({
     await initializePageEventListeners();
     initializeSocketHandlers();
     initializeGameControls();
+    initializeManualMode();
   } catch (error) {
     console.error('Error during initialization:', error);
   }

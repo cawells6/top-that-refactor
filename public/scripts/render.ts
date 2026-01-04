@@ -167,25 +167,22 @@ export function cardImg(
 /**
  * Renders played cards immediately to the pile.
  * Used to show the card before a special effect (burn/copy) might remove/cover it.
+ * Matches the normal rendering: only shows the top card of what was played.
  */
 export function renderPlayedCards(cards: CardType[]): void {
   const playStack = document.querySelector('.pile-cards.play-stack');
-  if (!playStack) return;
+  console.log('[renderPlayedCards] playStack exists?', !!playStack, 'cards:', cards);
+  if (!playStack || cards.length === 0) return;
 
-  // Clear the entire pile first
+  // Clear existing pile display
   playStack.innerHTML = '';
 
-  // Add the new cards
-  cards.forEach((card, index) => {
-    const cardEl = cardImg(card, false);
-    
-    // The last card added is the new top card
-    if (index === cards.length - 1) {
-      cardEl.id = 'pile-top-card';
-    }
-    
-    playStack.appendChild(cardEl);
-  });
+  // Show only the top (last) card that was played, just like normal rendering
+  const topCard = cards[cards.length - 1];
+  const cardEl = cardImg(topCard, false);
+  cardEl.id = 'pile-top-card';
+  playStack.appendChild(cardEl);
+  console.log('[renderPlayedCards] Added card with id=pile-top-card', topCard);
 }
 
 function isValidPlay(cards: CardType[], pile: CardType[]): boolean {
@@ -861,6 +858,7 @@ export function showCardEvent(
   cardValue: number | string | null,
   type: string
 ): void {
+  console.log('[showCardEvent] Starting - type:', type, 'value:', cardValue);
   let retries = 0;
   function tryRunEffect() {
     // Query for the pile top card image directly, as it's now consistently used.
@@ -868,6 +866,8 @@ export function showCardEvent(
       'pile-top-card'
     ) as HTMLImageElement | null;
     const discardContainer = document.getElementById('discard-pile');
+    
+    console.log('[showCardEvent] Attempt', retries + 1, '- pile-top-card exists?', !!discardImg, 'discard-pile exists?', !!discardContainer);
 
     // If pile-top-card is not visible (e.g. pile is empty), try to find a card in a .discard container if that structure still exists from old code.
     // This is a fallback, ideally the pile-top-card is the single source of truth for the top discard image.
@@ -875,21 +875,25 @@ export function showCardEvent(
       discardImg = document.querySelector(
         '.discard .card-img'
       ) as HTMLImageElement | null;
+      console.log('[showCardEvent] Fallback to .discard .card-img:', !!discardImg);
     }
 
     const target =
       discardImg && discardImg.style.display !== 'none'
         ? discardImg
         : discardContainer;
+    
+    console.log('[showCardEvent] Target element:', target?.id || target?.className || 'NONE');
 
     if (!target && retries < 5) {
       retries++;
+      console.log('[showCardEvent] Target not found, retrying in 100ms...');
       setTimeout(tryRunEffect, 100);
       return;
     }
     if (!target) {
       console.warn(
-        'showCardEvent: Could not find discard image to overlay effect.'
+        '[showCardEvent] FAILED - Could not find target after 5 retries'
       );
       return;
     }
@@ -899,10 +903,17 @@ export function showCardEvent(
         effectTarget instanceof HTMLImageElement
           ? effectTarget.parentElement
           : effectTarget;
-      if (!parentElement) return;
+      console.log('[showCardEvent] Parent element for icon:', parentElement?.className || 'NONE');
+      if (!parentElement) {
+        console.warn('[showCardEvent] No parent element found!');
+        return;
+      }
 
       const prev = parentElement.querySelector('.special-icon');
-      if (prev) prev.remove();
+      if (prev) {
+        console.log('[showCardEvent] Removing previous icon');
+        prev.remove();
+      }
       const icon = document.createElement('img');
       icon.className = 'special-icon';
       let src = '';
@@ -913,6 +924,7 @@ export function showCardEvent(
       else if (type === 'take') src = '/src/shared/take pile-icon.png';
       else if (type === 'regular') return;
       icon.src = src;
+      console.log('[showCardEvent] Creating icon with src:', src);
       icon.onerror = () => {
         icon.style.background = type === 'invalid' ? '#dc2626' : '#ffc300';
         icon.style.borderRadius = '50%';

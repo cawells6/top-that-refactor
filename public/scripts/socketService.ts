@@ -1,5 +1,6 @@
 import { renderGameState, showCardEvent, renderPlayedCards } from './render.js';
 import * as state from './state.js';
+import { waitForTestContinue } from './manualMode.js';
 import {
   showLobbyForm,
   showGameTable,
@@ -20,6 +21,7 @@ import { GameStateData, Card } from '../../src/shared/types.js';
 
 let isAnimatingSpecialEffect = false;
 let pendingStateUpdate: GameStateData | null = null;
+let cardsBeingAnimated: Card[] | null = null;
 const ANIMATION_DELAY_MS = 2000;
 
 export async function initializeSocketHandlers(): Promise<void> {
@@ -51,8 +53,11 @@ export async function initializeSocketHandlers(): Promise<void> {
 
   // 1. Force the card to appear immediately (before the effect logic hides it)
   state.socket.on(CARD_PLAYED, (data: { cards: Card[] }) => {
+    console.log('[CARD_PLAYED] Received:', data.cards);
     if (data.cards && data.cards.length > 0) {
       renderPlayedCards(data.cards);
+      // Store cards being animated so we can keep them visible
+      cardsBeingAnimated = data.cards;
     }
   });
 
@@ -64,6 +69,7 @@ export async function initializeSocketHandlers(): Promise<void> {
     
     // 3. Buffer the update if we are busy showing an explosion
     if (isAnimatingSpecialEffect) {
+      console.log('[BUFFERED] STATE_UPDATE during animation. Pile:', s.pile);
       pendingStateUpdate = s;
     } else {
       renderGameState(s, state.myId);
@@ -81,15 +87,47 @@ export async function initializeSocketHandlers(): Promise<void> {
   // 2. Trigger animation and block subsequent state updates
   state.socket.on(
     SPECIAL_CARD_EFFECT,
-    (payload: { type?: string; value?: number | string | null }) => {
-      isAnimatingSpecialEffect = true;
-      showCardEvent(payload?.value ?? null, payload?.type ?? 'regular');
+    async (payload: { type?: string; value?: number | string | null }) => {
+      console.log('[SPECIAL_CARD_EFFECT] Type:', payload?.type, 'Value:', payload?.value);
       
+      isAnimatingSpecialEffect = true;
+      
+      // Delay icon display slightly to ensure card element exists
       setTimeout(() => {
-        isAnimatingSpecialEffect = false;
+        showCardEvent(payload?.value ?? null, payload?.type ?? 'regular');
+      }, 100);
+      
+      setTimeout(async () => {
+        console.log('[ANIMATION END] Rendering buffered state:', pendingStateUpdate?.pile);
+        
         if (pendingStateUpdate) {
-          renderGameState(pendingStateUpdate, state.myId);
-          pendingStateUpdate = null;
+          // For burn effects, keep the burned cards visible during icon display
+          if (pendingStateUpdate.pile.length === 0 && cardsBeingAnimated && cardsBeingAnimated.length > 0) {
+            console.log('[ANIMATION] Keeping cards visible during burn animation');
+            // Wait extra time before rendering empty pile
+            setTimeout(async () => {
+              if (pendingStateUpdate) {
+                renderGameState(pendingStateUpdate, state.myId);
+              }
+              pendingStateUpdate = null;
+              cardsBeingAnimated = null;
+              isAnimatingSpecialEffect = false;
+              
+              // BLOCK HERE for test mode
+              await waitForTestContinue();
+            }, 1500);
+          } else {
+            renderGameState(pendingStateUpdate, state.myId);
+            pendingStateUpdate = null;
+            cardsBeingAnimated = null;
+            isAnimatingSpecialEffect = false;
+            
+            // BLOCK HERE for test mode
+            await waitForTestContinue();
+          }
+        } else {
+          cardsBeingAnimated = null;
+          isAnimatingSpecialEffect = false;
         }
       }, ANIMATION_DELAY_MS);
     }
