@@ -388,6 +388,25 @@ export function renderGameState(
     lastLocalHandCards = [];
   }
   
+  // --- HYBRID CAPTURE START ---
+  let cachedOverlap = '';
+  let cachedCompressed = false;
+  
+  // 1. Try DOM first (most accurate for current state)
+  const existingLocalHand = document.querySelector('#my-area .hand-row') as HTMLElement;
+  if (existingLocalHand) {
+    cachedOverlap = existingLocalHand.style.getPropertyValue('--hand-overlap');
+    cachedCompressed = existingLocalHand.classList.contains('hand-row--compressed');
+  }
+
+  // 2. Fallback to Module Memory if DOM failed
+  // (Fixes the "rapid update" race condition)
+  if (!cachedOverlap && lastHandCompressed) {
+     cachedOverlap = `${lastHandOverlap}px`;
+     cachedCompressed = true;
+  }
+  // --- HYBRID CAPTURE END ---
+  
   const table = document.querySelector('#game-table .table') as HTMLElement | null;
   const slotTop = document.getElementById(
     'opponent-area-top'
@@ -525,6 +544,13 @@ export function renderGameState(
       ? 'hand-row hand-row--local'
       : 'hand-row hand-row--opponent';
 
+    // Apply the captured state IMMEDIATELY to the new element
+    // This prevents the "flex" (FOUC - Flash of Uncompressed Content)
+    if (isLocalPlayer && cachedCompressed && cachedOverlap && handCount > 1) {
+      handRow.classList.add('hand-row--compressed');
+      handRow.style.setProperty('--hand-overlap', cachedOverlap);
+    }
+
     if (isLocalPlayer) {
       // Check if we should suppress animation (e.g., after taking pile)
       // Keep suppressing until hand count decreases (player plays cards)
@@ -566,6 +592,7 @@ export function renderGameState(
         lastLocalHandCards = [...handCards];
         
         // Apply cached compression IMMEDIATELY to prevent flex (FOUC)
+        // Apply cached hybrid state immediately (prevents FOUC)
         if (lastHandCompressed && handCount > 1) {
           handRow.classList.add('hand-row--compressed');
           handRow.style.setProperty('--hand-overlap', `${lastHandOverlap}px`);
@@ -903,7 +930,8 @@ export function renderGameState(
  */
 export function showCardEvent(
   cardValue: number | string | null,
-  type: string
+  type: string,
+  targetPlayerId?: string
 ): void {
   console.log('[showCardEvent] Starting - type:', type, 'value:', cardValue);
   let retries = 0;
@@ -1031,6 +1059,12 @@ export function showCardEvent(
         parentElement.style.position = 'relative';
       }
       parentElement.appendChild(icon);
+      
+      // Trigger flight animation if it's a 'take' event and we know who took it
+      if (type === 'take' && targetPlayerId) {
+        animatePileToPlayer(targetPlayerId);
+      }
+      
       setTimeout(() => {
         icon.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
         icon.style.opacity = '0';
@@ -1045,6 +1079,52 @@ export function showCardEvent(
     }
   }
   tryRunEffect();
+}
+
+function animatePileToPlayer(targetPlayerId: string): void {
+  const pileEl = document.getElementById('pile-top-card') || document.getElementById('discard-pile');
+  // Find the specific player's avatar to fly towards
+  const targetEl = document.querySelector(`.player-area[data-player-id="${targetPlayerId}"] .player-avatar`);
+
+  if (!pileEl || !targetEl) return;
+
+  const startRect = pileEl.getBoundingClientRect();
+  const endRect = targetEl.getBoundingClientRect();
+
+  // Create a temporary flying card element
+  const flyer = document.createElement('div');
+  flyer.classList.add('flying-card');
+  
+  // Set initial position exactly over the pile
+  flyer.style.left = `${startRect.left}px`;
+  flyer.style.top = `${startRect.top}px`;
+  
+  document.body.appendChild(flyer);
+
+  // Calculate the distance to travel
+  const deltaX = (endRect.left + endRect.width / 2) - (startRect.left + startRect.width / 2);
+  const deltaY = (endRect.top + endRect.height / 2) - (startRect.top + startRect.height / 2);
+
+  // Run the animation using Web Animations API
+  const animation = flyer.animate([
+    { 
+      transform: 'translate(0, 0) scale(1) rotate(0deg)',
+      opacity: 1 
+    },
+    { 
+      transform: `translate(${deltaX}px, ${deltaY}px) scale(0.4) rotate(360deg)`,
+      opacity: 0.5 
+    }
+  ], {
+    duration: 600,
+    easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+    fill: 'forwards'
+  });
+
+  // Clean up element after animation finishes
+  animation.onfinish = () => {
+    flyer.remove();
+  };
 }
 
 export function playArea() {

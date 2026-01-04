@@ -34,3 +34,24 @@
   /* Remove any default image background or border from PNG transparency */
   image-rendering: auto;
 }
+
+/* Flying card animation style */
+.flying-card {
+  position: fixed;
+  width: 90px;
+  height: 126px;
+  background-color: #0f1f19;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #0f1f19 0,
+    #0f1f19 10px,
+    #1a2e26 10px,
+    #1a2e26 20px
+  );
+  border: 2px solid #fef7e0;
+  border-radius: 5px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+  z-index: 9999;
+  pointer-events: none;
+  transform-origin: center center;
+}

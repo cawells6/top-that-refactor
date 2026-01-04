@@ -218,9 +218,16 @@ export async function initializeSocketHandlers(): Promise<void> {
     if (lastS) renderGameState(lastS, state.myId);
   }
 
-  state.socket.on(PILE_PICKED_UP, () => {
-    // Reset hand tracking to prevent bouncing animations when taking pile
-    resetHandTracking();
+  state.socket.on(PILE_PICKED_UP, (data: { playerId: string; pileSize: number }) => {
+    console.log('Pile picked up by:', data.playerId);
+    
+    if (data.playerId === state.myId) {
+      // Reset hand tracking to prevent bouncing animations when taking pile
+      resetHandTracking();
+    }
+    
+    // Show take animation with player ID so cards fly to the correct player
+    showCardEvent(null, 'take', data.playerId);
   });
 
   state.socket.on(ERROR, (msg: string) => {
