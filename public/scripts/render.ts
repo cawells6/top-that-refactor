@@ -34,6 +34,10 @@ let lastLocalHandCount = -1;
 let lastLocalHandCards: CardType[] = [];
 let suppressNextHandAnimation = false;
 
+// Cache compression values to prevent hand flexing
+let lastHandOverlap = 0;
+let lastHandCompressed = false;
+
 /**
  * Reset hand tracking to prevent animation issues when taking pile
  */
@@ -308,6 +312,7 @@ function applyHandCompression(
   handRow.style.removeProperty('--hand-overlap');
 
   if (cardCount <= 1) {
+    lastHandCompressed = false;
     return;
   }
 
@@ -315,6 +320,7 @@ function applyHandCompression(
     '.card-container'
   ) as HTMLDivElement | null;
   if (!firstCard) {
+    lastHandCompressed = false;
     return;
   }
 
@@ -323,11 +329,13 @@ function applyHandCompression(
   const paddingRight = parseFloat(panelStyles.paddingRight) || 0;
   const availableWidth = panel.clientWidth - paddingLeft - paddingRight;
   if (availableWidth <= 0) {
+    lastHandCompressed = false;
     return;
   }
 
   const cardWidth = firstCard.getBoundingClientRect().width;
   if (cardWidth <= 0) {
+    lastHandCompressed = false;
     return;
   }
   const cardStyles = window.getComputedStyle(firstCard);
@@ -341,6 +349,7 @@ function applyHandCompression(
   const totalWidth = cardTotalWidth * cardCount + gap * (cardCount - 1);
 
   if (totalWidth <= availableWidth) {
+    lastHandCompressed = false;
     return;
   }
 
@@ -353,6 +362,10 @@ function applyHandCompression(
   if (overlap < minOverlap) {
     overlap = minOverlap;
   }
+
+  // Save state for immediate application on next render
+  lastHandOverlap = overlap;
+  lastHandCompressed = true;
 
   handRow.classList.add('hand-row--compressed');
   handRow.style.setProperty('--hand-overlap', `${overlap}px`);
@@ -528,28 +541,16 @@ export function renderGameState(
 
       const handCards = player.hand ?? [];
       
-      // Check if hand actually changed to avoid unnecessary re-renders during CPU turns
-      // Compare all card properties including copied and back flags
-      const handChanged = handCards.length !== lastLocalHandCards.length ||
-        handCards.some((card, i) => {
-          const lastCard = lastLocalHandCards[i];
-          return !lastCard ||
-            card.value !== lastCard.value || 
-            card.suit !== lastCard.suit ||
-            card.back !== lastCard.back ||
-            card.copied !== lastCard.copied;
-        });
+      // Always render cards (handRow is new every time, so we must populate it)
+      handRow.innerHTML = '';
       
       if (handCards.length === 0) {
-        handRow.innerHTML = '';
         const emptySlot = document.createElement('div');
         emptySlot.className = 'card-container card-slot card-slot--empty';
         emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
         handRow.appendChild(emptySlot);
         lastLocalHandCards = [];
-      } else if (handChanged || handRow.children.length === 0) {
-        // Re-render if hand changed OR if handRow is empty (first render)
-        handRow.innerHTML = '';
+      } else {
         handCards.forEach((card, index) => {
           const cardElement = cardImg(card, isMyTurn);
           const imgEl = cardElement.querySelector('.card-img');
@@ -564,19 +565,15 @@ export function renderGameState(
         });
         lastLocalHandCards = [...handCards];
         
-        // Apply compression after rendering new cards
+        // Apply cached compression IMMEDIATELY to prevent flex (FOUC)
+        if (lastHandCompressed && handCount > 1) {
+          handRow.classList.add('hand-row--compressed');
+          handRow.style.setProperty('--hand-overlap', `${lastHandOverlap}px`);
+        }
+        
+        // Still re-calculate compression for accuracy (window resize, etc.)
         requestAnimationFrame(() => {
           applyHandCompression(panel, handRow, handCount);
-        });
-      } else {
-        // Hand didn't change, just update selectable state if needed
-        const existingCards = handRow.querySelectorAll('.card-img');
-        existingCards.forEach(img => {
-          if (isMyTurn) {
-            img.classList.add('selectable');
-          } else {
-            img.classList.remove('selectable');
-          }
         });
       }
     } else {

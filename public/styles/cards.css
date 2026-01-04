@@ -8,10 +8,11 @@
 .card-img {
   width: var(--card-w, 90px);
   height: var(--card-h, 126px);
-  border-radius: 10px;
+  border-radius: 5px;
   box-shadow: 0 8px 14px rgba(0, 0, 0, 0.28);
   transition: transform 0.18s ease, box-shadow 0.18s ease, outline 0.18s ease;
   background: #0f1f19;
+  object-fit: cover;
 }
 
 .selectable-container {
