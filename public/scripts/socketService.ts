@@ -6,6 +6,7 @@ import {
   showGameTable,
   showError,
 } from './uiManager.js';
+import { showToast } from './uiHelpers.js';
 import {
   JOINED,
   GAME_STARTED,
@@ -233,16 +234,16 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(ERROR, (msg: string) => {
     if (!document.body.classList.contains('showing-game')) {
       showLobbyForm();
-    }
-    showError(msg);
-    if (document.body.classList.contains('showing-game')) {
+      showToast(msg, 'error');
+    } else {
+      // In-game: show invalid icon in pile, no toast needed
       showCardEvent(null, 'invalid');
     }
   });
 
   state.socket.on(SESSION_ERROR, (msg: string) => {
     showLobbyForm();
-    showError(msg);
+    showToast(msg, 'error');
     state.setCurrentRoom(null);
     state.setMyId(null);
     state.saveSession();

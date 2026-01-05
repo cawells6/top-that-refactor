@@ -61,6 +61,21 @@ function createTag(text: string, variant: string): HTMLSpanElement {
 }
 
 
+// Helper to map card values to icon types
+function getCardIconType(card: CardType): string | null {
+  if (card.back) return null;
+  
+  // Handle "Copied" cards (7s that act as 5s)
+  if (card.copied) return 'five';
+  
+  const val = String(card.value);
+  if (val === '2') return 'two';
+  if (val === '5') return 'five';
+  if (val === '10') return 'ten';
+  
+  return null;
+}
+
 // Convert {value:'A',suit:'hearts'} → "AH", 10→"0"
 export function code(card: CardType): string {
   if (card.value == null || card.suit == null) {
@@ -86,10 +101,12 @@ export function code(card: CardType): string {
 export function cardImg(
   card: CardType,
   selectable?: boolean,
-  onLoad?: (img: HTMLImageElement) => void
+  onLoad?: (img: HTMLImageElement) => void,
+  showAbilityIcon: boolean = true
 ): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'card-container';
+  container.style.position = 'relative';
 
   const img = new Image();
   img.className = 'card-img';
@@ -195,6 +212,28 @@ export function cardImg(
   }
 
   container.appendChild(img);
+
+  // Add Special Icon Overlay (only if requested, e.g., in hand)
+  const iconType = getCardIconType(card);
+  if (showAbilityIcon && iconType) {
+    const iconOverlay = document.createElement('img');
+    iconOverlay.src = ICON_PATHS[iconType as keyof typeof ICON_PATHS];
+    iconOverlay.className = 'card-ability-icon';
+    
+    Object.assign(iconOverlay.style, {
+      position: 'absolute',
+      bottom: '5%',
+      left: '5%',
+      width: '37.5%',
+      height: 'auto',
+      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))',
+      pointerEvents: 'none',
+      zIndex: '2'
+    });
+    
+    container.appendChild(iconOverlay);
+  }
+
   return container;
 }
 
@@ -213,7 +252,7 @@ export function renderPlayedCards(cards: CardType[]): void {
 
   // Show only the top (last) card that was played, just like normal rendering
   const topCard = cards[cards.length - 1];
-  const cardEl = cardImg(topCard, false);
+  const cardEl = cardImg(topCard, false, undefined, false);
   cardEl.id = 'pile-top-card';
   playStack.appendChild(cardEl);
   console.log('[renderPlayedCards] Added card with id=pile-top-card', topCard);
@@ -732,7 +771,7 @@ export function renderGameState(
         const upCard = upCards[i];
         const canPlayUp = Boolean(upCard) && isMyTurn && handCount === 0;
         if (upCard) {
-          const upCardEl = cardImg(upCard, canPlayUp);
+          const upCardEl = cardImg(upCard, canPlayUp, undefined, true);
           const upImg = upCardEl.querySelector(
             '.card-img'
           ) as HTMLImageElement | null;
@@ -864,7 +903,7 @@ export function renderGameState(
     const effectiveTopCard = visualPileTop || logicalTop;
 
     if (effectiveTopCard) {
-      const playCard = cardImg(effectiveTopCard, false);
+      const playCard = cardImg(effectiveTopCard, false, undefined, false);
       playCard.id = 'pile-top-card';
 
       // --- BADGE LOGIC START ---
