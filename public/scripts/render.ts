@@ -11,14 +11,19 @@ import {
 // Import assets so Vite can resolve hashed filenames
 import playerAvatarUrl from '../assets/Player.svg';
 import robotAvatarUrl from '../assets/robot.svg';
+import resetIconUrl from '../src/shared/Reset-icon.png';
+import copyIconUrl from '../src/shared/Copy-icon.png';
+import burnIconUrl from '../src/shared/Burn-icon.png';
+import invalidIconUrl from '../src/shared/invalid play-icon.png';
+import takeIconUrl from '../src/shared/take pile-icon.png';
 
 // --- PRELOAD LOGIC START ---
 const ICON_PATHS = {
-  two: '/src/shared/Reset-icon.png',
-  five: '/src/shared/Copy-icon.png',
-  ten: '/src/shared/Burn-icon.png',
-  invalid: '/src/shared/invalid play-icon.png',
-  take: '/src/shared/take pile-icon.png',
+  two: resetIconUrl,
+  five: copyIconUrl,
+  ten: burnIconUrl,
+  invalid: invalidIconUrl,
+  take: takeIconUrl,
 };
 
 function preloadIcons() {
