@@ -9,6 +9,9 @@ import { GameRoomManager } from './controllers/GameController.js';
 
 const app: Express = express();
 
+// Configure MIME types for TypeScript files
+express.static.mime.define({ 'application/javascript': ['ts'] });
+
 // Serve your client files from /public
 app.use(express.static('public'));
 // Also serve the src directory for shared modules
