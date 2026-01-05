@@ -8,8 +8,11 @@ import { animatePlayerPlay, isValidPlay } from './render.js';
 let initialized = false;
 
 function isMyTurn(): boolean {
-  if (state.lastGameState && state.myId) {
-    return state.lastGameState.currentPlayerId === state.myId;
+  const lastGameState = state.lastGameState;
+  const myId = state.myId;
+
+  if (lastGameState && myId) {
+    return lastGameState.currentPlayerId === myId;
   }
   const selectableCard = document.querySelector('.card-img.selectable');
   if (selectableCard) {
@@ -153,7 +156,7 @@ function resolveSelectedCards(
     const upCards = player.upCards ?? [];
     return selection.cardIndices
       .map((index) => upCards[index])
-      .filter((card): card is Card => Boolean(card));
+      .filter((card): card is Card => card != null);
   }
 
   // Down cards are blind plays; skip validation

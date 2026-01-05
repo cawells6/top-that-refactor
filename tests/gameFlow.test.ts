@@ -247,6 +247,7 @@ describe('Game Flow - Manual Start by Host', () => {
         }
       },
       disconnect: jest.fn(),
+      off: jest.fn(),
     };
     mockIo.sockets.sockets.set(playerBJoinSocket.id, playerBJoinSocket);
 
@@ -1008,6 +1009,7 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
           }
         },
         disconnect: jest.fn(),
+        off: jest.fn(),
       };
       sockets.push(s);
     }

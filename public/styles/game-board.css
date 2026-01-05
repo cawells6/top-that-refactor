@@ -956,11 +956,14 @@ body.showing-game {
     z-index: 100 !important;
 }
 
-/* 4. Selection: Internal Gold Border */
+/* 4. Selection: Gold Illumination Glow */
 .hand-row--local .card-container.selected-container .card-img {
-    outline: 4px solid #ffd700;
-    outline-offset: -4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 0 40px rgba(255, 215, 0, 0.6),
+        0 0 60px rgba(255, 215, 0, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.5);
+    filter: brightness(1.15) saturate(1.1);
 }
 
 .player-header .turn-indicator {

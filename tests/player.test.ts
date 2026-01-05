@@ -102,7 +102,7 @@ describe('Player model', () => {
 
     test('playDownCard removes and returns a random card from downCards', () => {
       // Since it's random and only one card, it must be that one
-      const played = p.playDownCard();
+      const played = p.playDownCard(0);
       expect(played).toEqual(downCard);
       expect(p.downCards).toEqual([]);
     });
@@ -270,7 +270,7 @@ describe('Player model', () => {
 
     test('playDownCard returns undefined if downCards is empty', () => {
       const player = makePlayer({ downCards: [] });
-      expect(player.playDownCard()).toBeUndefined();
+      expect(player.playDownCard(0)).toBeUndefined();
     });
   });
 });
