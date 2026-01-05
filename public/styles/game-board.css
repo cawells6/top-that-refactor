@@ -903,6 +903,7 @@ body.showing-game {
     transition: transform 0.3s ease, margin 0.3s ease;
     filter: drop-shadow(-2px 0 3px rgba(0, 0, 0, 0.5));
     pointer-events: none;
+    position: relative; /* Anchor for hand count badge */
 }
 
 .hand-row--opponent .card-container:first-child {

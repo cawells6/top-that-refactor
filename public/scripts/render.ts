@@ -141,21 +141,9 @@ export function cardImg(
 // --- DOM RECONCILIATION HELPERS ---
 
 function updateOpponentHandStack(handStack: HTMLElement, handCount: number) {
-  let badge = handStack.querySelector('.hand-count-badge');
-  if (handCount > 0) {
-    if (!badge) {
-      badge = document.createElement('div');
-      badge.className = 'hand-count-badge';
-      handStack.appendChild(badge);
-    }
-    badge.textContent = String(handCount);
-    badge.className = 'hand-count-badge';
-    if (handCount <= 5) badge.classList.add('badge-safe');
-    else if (handCount <= 10) badge.classList.add('badge-warning');
-    else badge.classList.add('badge-danger');
-  } else {
-    if (badge) badge.remove();
-  }
+  // Remove any existing badges from handStack or card containers
+  const oldBadge = handStack.querySelector('.hand-count-badge');
+  if (oldBadge) oldBadge.remove();
 
   const desiredCards = Math.min(3, handCount);
   const currentCards = handStack.querySelectorAll('.card-container:not(.card-slot--empty)');
@@ -179,12 +167,27 @@ function updateOpponentHandStack(handStack: HTMLElement, handCount: number) {
       const backCard: CardType = { back: true, value: 'A', suit: 'hearts' };
       const cardEl = cardImg(backCard, false);
       cardEl.classList.add('stacked-card');
-      if (badge) handStack.insertBefore(cardEl, badge);
-      else handStack.appendChild(cardEl);
+      cardEl.style.position = 'relative'; // Anchor for badge positioning
+      handStack.appendChild(cardEl);
     }
   } else if (currentCards.length > desiredCards) {
     for (let i = 0; i < (currentCards.length - desiredCards); i++) {
       currentCards[i].remove();
+    }
+  }
+
+  // Add badge to the last card container if hand count > 0
+  if (handCount > 0 && desiredCards > 0) {
+    const cards = handStack.querySelectorAll('.card-container:not(.card-slot--empty)');
+    const lastCard = cards[cards.length - 1] as HTMLElement;
+    if (lastCard) {
+      const badge = document.createElement('div');
+      badge.className = 'hand-count-badge';
+      badge.textContent = String(handCount);
+      if (handCount <= 5) badge.classList.add('badge-safe');
+      else if (handCount <= 10) badge.classList.add('badge-warning');
+      else badge.classList.add('badge-danger');
+      lastCard.appendChild(badge);
     }
   }
 }
