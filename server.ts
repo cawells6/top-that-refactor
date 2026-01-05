@@ -9,11 +9,17 @@ import { GameRoomManager } from './controllers/GameController.js';
 
 const app: Express = express();
 
-// Configure MIME types for TypeScript files
-express.static.mime.define({ 'application/javascript': ['ts'] });
+// In production, serve the built client files from dist/client
+// In development, serve from public
+const clientPath = process.env.NODE_ENV === 'production' ? 'dist/client' : 'public';
 
-// Serve your client files from /public
-app.use(express.static('public'));
+// Configure MIME types for TypeScript files (dev only)
+if (process.env.NODE_ENV !== 'production') {
+  express.static.mime.define({ 'application/javascript': ['ts'] });
+}
+
+// Serve your client files
+app.use(express.static(clientPath));
 // Also serve the src directory for shared modules
 app.use('/src', express.static('src'));
 // Health check endpoint
