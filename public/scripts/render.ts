@@ -518,7 +518,7 @@ function hasValidHandPlay(hand: CardType[], pile: CardType[]): boolean {
 
 function hasValidUpPlay(upCards: Array<CardType | null>, pile: CardType[]): boolean {
   if (!upCards || upCards.length === 0) return false;
-  return upCards.filter((card) => Boolean(card)).some((card) => isValidPlay([card], pile));
+  return upCards.filter((card): card is CardType => Boolean(card)).some((card) => isValidPlay([card], pile));
 }
 
 // --- FIXED COMPRESSION LOGIC (Prevents Flexing) ---
