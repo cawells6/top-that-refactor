@@ -62,3 +62,12 @@ export interface JoinGamePayload {
   roomId?: string;
   spectator?: boolean;
 }
+
+export interface RejoinData {
+  roomId: string;
+  playerId: string;
+}
+
+export interface AddToPileOptions {
+  isCopy?: boolean;
+}

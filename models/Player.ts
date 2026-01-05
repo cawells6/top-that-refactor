@@ -1,6 +1,10 @@
-// models/Player.ts
 import { Card } from '../src/shared/types.js';
 import { rank } from '../utils/cardUtils.js';
+import {
+  PlayerSessionMetrics,
+  PlayerConnectionState,
+  PlayerStateSnapshot,
+} from '../src/shared/playerStateTypes.js';
 
 export default class Player {
   public id: string;
@@ -12,13 +16,10 @@ export default class Player {
   public isComputer: boolean;
   public isSpectator: boolean;
   public disconnected: boolean;
-
-  // Track the player's status in the lobby. A player can be:
-  // 'host' (the room creator), 'invited' (before joining), 'joined' (connected but not ready), or 'ready' (clicked the "Let's Play" button).
   public status: 'host' | 'invited' | 'joined' | 'ready';
-
-  // Indicates if the player is ready (for convenience in lobby logic)
   public ready: boolean;
+  public sessionMetrics: PlayerSessionMetrics;
+  public connectionState: PlayerConnectionState;
 
   constructor(id: string) {
     this.id = id;
@@ -29,8 +30,63 @@ export default class Player {
     this.isComputer = false;
     this.isSpectator = false;
     this.disconnected = false;
-    this.status = 'invited'; // Default status
-    this.ready = false; // Default ready state
+    this.status = 'invited';
+    this.ready = false;
+    this.sessionMetrics = {
+      joinedAt: new Date(),
+      lastActionAt: new Date(),
+      actionsPerformed: 0,
+      averageResponseTime: 0,
+      disconnectionCount: 0,
+      totalPlayTime: 0,
+      cardsPlayed: 0,
+      pilesPickedUp: 0,
+      turnsPlayed: 0,
+      gameWins: 0,
+      gameLosses: 0,
+    };
+    this.connectionState = {
+      isConnected: true,
+      connectionQuality: 'good',
+      latency: 0,
+      lastPingAt: new Date(),
+      reconnectionAttempts: 0,
+      connectionStability: 1,
+      bandwidthUsage: 0,
+      packetLoss: 0,
+    };
+  }
+
+  createStateSnapshot(): PlayerStateSnapshot {
+    return {
+      timestamp: new Date(),
+      checksum: '',
+      playerData: {
+        id: this.id,
+        name: this.name,
+        hand: this.hand,
+        upCards: this.upCards,
+        downCards: this.downCards,
+        status: this.status,
+        disconnected: this.disconnected,
+      },
+      metrics: { ...this.sessionMetrics },
+      connection: { ...this.connectionState },
+      behavior: {
+        averageDecisionTime: 0,
+        preferredCardTypes: [],
+        riskTolerance: 'moderate',
+        playStyle: 'balanced',
+        adaptabilityScore: 0,
+        learningRate: 0,
+      },
+    };
+  }
+
+  updateConnectionMetrics(latency: number, packetLoss: number): void {
+    this.connectionState.latency = latency;
+    this.connectionState.packetLoss = packetLoss;
+    this.connectionState.lastPingAt = new Date();
   }
 
   setHand(cards: Card[]): void {

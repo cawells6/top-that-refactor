@@ -1,10 +1,13 @@
 // tests/utils/mockSocket.ts
 
 export class MockSocket {
+  public id = 'mock-socket-id';
   public emit = jest.fn();
   public on = jest.fn();
   public off = jest.fn();
   public once = jest.fn();
+  public removeAllListeners = jest.fn();
+  public join = jest.fn();
   public connected = true;
   public disconnected = false;
   public listeners = new Map<string, Function[]>();

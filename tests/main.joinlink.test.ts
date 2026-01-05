@@ -54,6 +54,7 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
       saveSession: jest.fn(),
       loadSession: jest.fn(),
       setIsSpectator: jest.fn(),
+      getIsSpectator: jest.fn(() => false),
       socketReady: Promise.resolve(),
       ...overrides,
     };

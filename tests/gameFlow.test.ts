@@ -751,18 +751,22 @@ describe('Game Flow - Invalid Card Play', () => {
   let socketB: MockSocket;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     topLevelEmitMock.mockClear();
+    mockIo = createMockIO(topLevelEmitMock);
     socketA = createMockSocket('socket-A', topLevelEmitMock);
     socketB = createMockSocket('socket-B', topLevelEmitMock);
-    mockIo = createMockIO(topLevelEmitMock);
     mockIo.sockets.sockets.clear();
     mockIo.sockets.sockets.set(socketA.id, socketA);
     mockIo.sockets.sockets.set(socketB.id, socketB);
     gameController = new GameController(mockIo as any, 'test-room');
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   test('Player receives error when playing card with invalid index', () => {
-    // Arrange
     const joinPayloadA: JoinGamePayload = {
       playerName: 'Alice',
       numHumans: 2,
@@ -779,13 +783,12 @@ describe('Game Flow - Invalid Card Play', () => {
     (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
     gameController.attachSocketEventHandlers(socketA as any);
     gameController.attachSocketEventHandlers(socketB as any);
-    // Both ready to start game
     socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
     socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
-    // Act: Alice tries to play a card from hand with an invalid index
+
     const invalidPlayData = { cardIndices: [99], zone: 'hand' };
     socketA.simulateIncomingEvent(PLAY_CARD, invalidPlayData);
-    // Assert: ERROR_EVENT should be emitted with 'Invalid card index.'
+
     const errorCall = topLevelEmitMock.mock.calls.find(
       (call) =>
         call[0] === ERROR &&
@@ -795,7 +798,7 @@ describe('Game Flow - Invalid Card Play', () => {
     expect(errorCall).toBeDefined();
   });
 
-  test('Invalid down card play forces pickup and advances turn', () => {
+  test('Invalid down card play forces pickup and advances turn', async () => {
     const joinPayloadA: JoinGamePayload = {
       playerName: 'Alice',
       numHumans: 2,
@@ -835,6 +838,9 @@ describe('Game Flow - Invalid Card Play', () => {
 
     const downPlay = { cardIndices: [0], zone: 'downCards' as const };
     socketA.simulateIncomingEvent(PLAY_CARD, downPlay);
+
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
 
     expect(playerA.downCards.length).toBe(0);
     expect(playerA.hand.length).toBe(expectedHandSize);
@@ -895,6 +901,7 @@ describe('Game Flow - Special Card Effects', () => {
   let hostSocket: MockSocket;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     topLevelEmitMock.mockClear();
     mockIo = createMockIO(topLevelEmitMock);
     hostSocket = createMockSocket('host-socket', topLevelEmitMock);
@@ -903,7 +910,11 @@ describe('Game Flow - Special Card Effects', () => {
     gameController = new GameController(mockIo as any, 'test-room');
   });
 
-  test('CPU burn advances to the next player', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('CPU burn advances to the next player', async () => {
     const joinPayload: JoinGamePayload = {
       playerName: 'Host',
       numHumans: 1,
@@ -938,6 +949,9 @@ describe('Game Flow - Special Card Effects', () => {
       [cpuPlayer.hand[0]]
     );
 
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
     const nextTurnCall = topLevelEmitMock.mock.calls.find(
       (call) => call[0] === NEXT_TURN && call[1] === hostSocket.id
     );
@@ -959,7 +973,6 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
     topLevelEmitMock.mockClear();
     sockets = [];
     playerData = [
-      // Use full JoinGamePayload for robust CPU logic
       {
         playerName: 'Host',
         id: 'HOST_ID',
@@ -975,7 +988,6 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
         roomId: 'test-room',
       },
     ];
-    // Create 2 mock sockets (for humans only)
     for (let i = 0; i < 2; i++) {
       const s: MockSocket = {
         id: `socket-${i}`,
@@ -1009,20 +1021,17 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
   });
 
   test('Full 3-player game flow, win, GAME_OVER, and restart', () => {
-    // 1. All join
     (gameController['publicHandleJoin'] as Function)(sockets[0], playerData[0]);
     (gameController['publicHandleJoin'] as Function)(sockets[1], playerData[1]);
-    // Add CPU by starting game with computerCount: 1
     (gameController['handleStartGame'] as Function)({
       computerCount: 1,
       socket: sockets[0],
     });
-    // Robust check for CPU player
+
     expect(gameController['players'].has('COMPUTER_1')).toBe(true);
     expect(gameController['players'].get('COMPUTER_1')?.isComputer).toBe(true);
     expect(gameController['gameState'].players.length).toBe(3);
 
-    // 2. Start game (already started above)
     expect(gameController['gameState'].started).toBe(true);
     for (const id of gameController['gameState'].players) {
       const p = gameController['players'].get(id);
@@ -1030,7 +1039,6 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
       expect(p!.hand.length).toBe(3);
     }
 
-    // 3. Simulate valid card plays and turn advancement
     for (let turn = 0; turn < 3; turn++) {
       const currentPlayerId =
         gameController['gameState'].players[
@@ -1047,7 +1055,6 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
       );
     }
 
-    // 4. Simulate a player winning (empty hand, up, down)
     const winnerId = gameController['gameState'].players[0];
     const winner = gameController['players'].get(winnerId)!;
     winner.hand = [];
@@ -1064,7 +1071,6 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
     expect(gameOverCall).toBeDefined();
     expect(gameOverCall![1]).toEqual(winnerId);
 
-    // 5. Optionally, simulate restart
     gameController['gameState'].started = false;
     gameController['gameState'].deck = null;
     (gameController['publicHandleJoin'] as Function)(sockets[0], playerData[0]);

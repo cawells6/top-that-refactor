@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as http from 'http';
+import { Socket } from 'net';
 
 import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
@@ -21,14 +22,14 @@ const DEFAULT_PORT: number = 3000;
 const MAX_RETRIES = 30; // Increased from 10 for more robust port selection
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : DEFAULT_PORT;
-const sockets = new Set<http.Socket>();
+const sockets = new Set<Socket>();
 
 let server: http.Server | null = null; // Define server variable here
 
 function startServer(port: number, retries = 0) {
   // Create a single HTTP server and assign to the outer server variable
   server = http.createServer(app);
-  server.on('connection', (socket) => {
+  server.on('connection', (socket: Socket) => {
     sockets.add(socket);
     socket.on('close', () => sockets.delete(socket));
   });

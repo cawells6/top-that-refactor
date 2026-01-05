@@ -1,6 +1,6 @@
 // models/GameState.ts
 
-import { Card, CardValue } from '../src/shared/types.js';
+import { Card, CardValue, AddToPileOptions } from '../src/shared/types.js';
 
 import { rank, normalizeCardValue, isSpecialCard } from '../utils/cardUtils.js';
 

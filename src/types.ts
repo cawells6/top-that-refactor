@@ -1,5 +1,5 @@
 // src/types.ts
-
+import { Card } from './shared/types.js';
 
 export interface DealtCards {
   // <<< ADD THIS INTERFACE AND EXPORT IT

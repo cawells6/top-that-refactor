@@ -7,20 +7,39 @@
 // importing the module under test so that Jest applies them correctly.
 
 // Mocks for state, render, and uiManager modules
-jest.mock('./state.js', () => ({
-  socket: {
-    on: jest.fn(),
-    emit: jest.fn(),
-  },
-  myId: null, // Set to null initially so showLobbyForm gets called
-  currentRoom: null, // Set to null initially
-  lastGameState: null,
-  setMyId: jest.fn(),
-  setCurrentRoom: jest.fn(),
-  saveSession: jest.fn(),
-  setLastGameState: jest.fn(),
-  socketReady: Promise.resolve(),
-}));
+jest.mock('./state.js', () => {
+  const stateMock = {
+    socket: {
+      on: jest.fn(),
+      emit: jest.fn(),
+    },
+    myId: null, // Set to null initially so showLobbyForm gets called
+    currentRoom: null, // Set to null initially
+    lastGameState: null,
+    setMyId: jest.fn(),
+    setCurrentRoom: jest.fn(),
+    saveSession: jest.fn(),
+    setLastGameState: jest.fn(),
+    getLastGameState: jest.fn(),
+    socketReady: Promise.resolve(),
+  } as any;
+
+  stateMock.setLastGameState.mockImplementation((value: unknown) => {
+    stateMock.lastGameState = value;
+  });
+
+  stateMock.setMyId.mockImplementation((value: unknown) => {
+    stateMock.myId = value;
+  });
+
+  stateMock.setCurrentRoom.mockImplementation((value: unknown) => {
+    stateMock.currentRoom = value;
+  });
+
+  stateMock.getLastGameState.mockImplementation(() => stateMock.lastGameState);
+
+  return stateMock;
+});
 
 jest.mock('./render.js', () => ({
   renderGameState: jest.fn(),
@@ -34,9 +53,14 @@ jest.mock('./uiManager.js', () => ({
   showError: jest.fn(),
 }));
 
+jest.mock('./uiHelpers.js', () => ({
+  showToast: jest.fn(),
+}));
+
 import * as render from './render.js';
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
+import { showToast } from './uiHelpers.js';
 
 // Import events from the shared file
 import {
@@ -59,6 +83,22 @@ describe('socketService', () => {
     // Ensure state.myId and state.currentRoom are null before each test
     (state as any).myId = null;
     (state as any).currentRoom = null;
+    (state as any).lastGameState = null;
+    document.body.className = '';
+
+    (state.setMyId as jest.Mock).mockImplementation((value: unknown) => {
+      (state as any).myId = value;
+    });
+
+    (state.setCurrentRoom as jest.Mock).mockImplementation((value: unknown) => {
+      (state as any).currentRoom = value;
+    });
+
+    (state.setLastGameState as jest.Mock).mockImplementation((value: unknown) => {
+      (state as any).lastGameState = value;
+    });
+
+    (state.getLastGameState as jest.Mock).mockImplementation(() => (state as any).lastGameState);
   });
 
   it('registers socket event handlers and calls UI functions', async () => {
@@ -134,15 +174,24 @@ describe('socketService', () => {
     expect(uiManager.showGameTable).toHaveBeenCalled();
   });
 
-  it('calls showError on err event', async () => {
+  it('recovers from ERROR event during gameplay', async () => {
     await initializeSocketHandlers();
     document.body.classList.add('showing-game');
+    state.setMyId('PLAYER_1');
+    expect((state as any).myId).toBe('PLAYER_1');
+    const lastState = { pile: [], currentPlayer: 'PLAYER_1' } as any;
+    (state as any).lastGameState = lastState;
+    (state.getLastGameState as jest.Mock).mockReturnValue(lastState);
     const errHandler = (state.socket.on as jest.Mock).mock.calls.find(
       ([event]) => event === ERROR
     )[1];
     errHandler('fail!');
-    expect(uiManager.showError).toHaveBeenCalledWith('fail!');
     expect(render.showCardEvent).toHaveBeenCalledWith(null, 'invalid');
+    expect(state.getLastGameState).toHaveBeenCalled();
+    const lastCallResult = (state.getLastGameState as jest.Mock).mock.results.at(-1)?.value;
+    expect(lastCallResult).toBe(lastState);
+    expect(showToast).not.toHaveBeenCalled();
+    expect(uiManager.showLobbyForm).not.toHaveBeenCalled();
   });
 
   it('resets session on session-error event', async () => {
@@ -152,7 +201,7 @@ describe('socketService', () => {
     )[1];
     sessionErrHandler('bad session');
     expect(uiManager.showLobbyForm).toHaveBeenCalled();
-    expect(uiManager.showError).toHaveBeenCalledWith('bad session');
+    expect(showToast).toHaveBeenCalledWith('bad session', 'error');
     expect(state.setCurrentRoom).toHaveBeenCalledWith(null);
     expect(state.setMyId).toHaveBeenCalledWith(null);
     expect(state.saveSession).toHaveBeenCalled();

@@ -22,7 +22,6 @@ import {
 } from '../src/shared/events.ts';
 import {
   Card,
-  CardValue,
   ClientStatePlayer,
   GameStateData,
   JoinGamePayload,
@@ -239,9 +238,14 @@ export default class GameController {
   private gameTimeouts: Set<NodeJS.Timeout> = new Set();
   private pendingComputerTurns: Set<string> = new Set();
   private turnLock: boolean = false;
+  
+  // Transition State Management
+  private isTurnTransitioning: boolean = false;
+  private transitionTimeout: NodeJS.Timeout | null = null;
+  private readonly turnTransitionDelayMs = 400; // The requested 400ms delay
+
   private readonly cpuTurnDelayMs = 2000;
   private readonly cpuSpecialDelayMs = 3000;
-
   constructor(io: Server, roomId: string) {
     this.io = io;
     this.roomId = roomId;
@@ -926,6 +930,12 @@ export default class GameController {
       return;
     }
 
+    // --- GUARD: Block input during turn transition ---
+    if (this.isTurnTransitioning) {
+      socket.emit(ERROR_EVENT, 'Turn is changing, please wait.');
+      return;
+    }
+
     if (
       this.gameState.players[this.gameState.currentPlayerIndex] !== playerId
     ) {
@@ -993,6 +1003,29 @@ export default class GameController {
     this.handlePlayCardInternal(player, cardIndices, zone, cardsToPlay);
   }
 
+  /**
+   * Helper to handle the "beat" between turns.
+   * This immediately shows the played card (via pushState), then waits, then advances the turn.
+   */
+  private processTurnTransition(delayMs: number, nextTurnOptions: { cpuDelayMs?: number } = {}): void {
+    this.isTurnTransitioning = true;
+    // 1. Show the card on the pile immediately
+    this.pushState();
+
+    // 2. Wait for the delay
+    if (this.transitionTimeout) clearTimeout(this.transitionTimeout);
+    this.transitionTimeout = setTimeout(() => {
+      this.transitionTimeout = null;
+      this.isTurnTransitioning = false;
+      
+      // 3. Advance the game state to the next player
+      this.handleNextTurn(nextTurnOptions);
+      
+      // 4. Update state again so everyone sees the new current player
+      this.pushState();
+    }, delayMs);
+  }
+
   private handlePlayCardInternal(
     player: Player,
     cardIndices: number[],
@@ -1054,8 +1087,9 @@ export default class GameController {
         this.log(
           `Down card invalid for ${player.id}. Forced pickup of pile + down card.`
         );
-        this.handleNextTurn();
-        this.pushState();
+
+        // Process transition (State push -> Wait -> Next Turn)
+        this.processTurnTransition(this.turnTransitionDelayMs);
         return;
       }
 
@@ -1145,11 +1179,11 @@ export default class GameController {
       player.sortHand();
     }
 
-    this.log('Proceeding to next turn.');
-    this.handleNextTurn({
+    this.log('Proceeding to next turn via transition.');
+    // Trigger the delayed transition
+    this.processTurnTransition(this.turnTransitionDelayMs, {
       cpuDelayMs: specialEffectTriggered ? this.cpuSpecialDelayMs : undefined,
     });
-    this.pushState();
   }
 
   private handlePickUpPile(socket: Socket): void {
@@ -1231,8 +1265,8 @@ export default class GameController {
       this.io.to(this.roomId).emit(PILE_PICKED_UP, { playerId: player.id });
     }
 
-    this.handleNextTurn();
-    this.pushState();
+    // Process transition (State push -> Wait -> Next Turn)
+    this.processTurnTransition(this.turnTransitionDelayMs);
   }
 
   private hasValidPlay(
@@ -1423,6 +1457,13 @@ export default class GameController {
     this.gameTimeouts.forEach((id) => clearTimeout(id));
     this.gameTimeouts.clear();
     this.pendingComputerTurns.clear();
+    
+    // Clear transition timeout if active
+    if (this.transitionTimeout) {
+      clearTimeout(this.transitionTimeout);
+      this.transitionTimeout = null;
+    }
+    this.isTurnTransitioning = false;
   }
 
   private findBestPlayForComputer(

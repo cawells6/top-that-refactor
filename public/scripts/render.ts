@@ -55,7 +55,6 @@ export function resetHandTracking(): void {
   suppressNextHandAnimation = true;
 }
 
-const seatOrder = ['bottom', 'right', 'top', 'left'] as const;
 const seatAccents: Record<string, string> = {
   bottom: '#f6c556',
   right: '#60d6a6',
@@ -679,7 +678,17 @@ export function renderGameState(
       ? players.slice(meIdx).concat(players.slice(0, meIdx))
       : players.slice();
 
-  seatOrder.forEach((seat, idx) => {
+  // Dynamic seat order based on player count
+  let currentSeatOrder: string[] = [];
+  if (players.length === 2) {
+    currentSeatOrder = ['bottom', 'top'];
+  } else if (players.length === 3) {
+    currentSeatOrder = ['bottom', 'left', 'top'];
+  } else {
+    currentSeatOrder = ['bottom', 'left', 'top', 'right'];
+  }
+
+  currentSeatOrder.forEach((seat, idx) => {
     const player = rotatedPlayers[idx];
     if (!player) return;
 
