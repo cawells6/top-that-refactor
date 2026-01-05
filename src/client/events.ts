@@ -1,45 +1,61 @@
-// ...existing code...
+import type { Socket } from 'socket.io-client';
 
-// After initializing your socket, e.g.:
-const socket = io(); // or io('')
+import { JOIN_GAME } from '../shared/events.js';
+import type { GameStateData, JoinGamePayload } from '../shared/types.js';
 
-// Add these listeners for debugging
-socket.on('connect', () => {
-  console.log('[CLIENT] Socket connected:', socket.id);
-});
-socket.on('connect_error', (err) => {
-  console.error('[CLIENT] Socket connection error:', err);
-});
-socket.on('error', (err) => {
-  console.error('[CLIENT] Socket error:', err);
-});
+export interface JoinGameResponse {
+  success: boolean;
+  message?: string;
+  state?: GameStateData;
+  error?: string;
+}
 
-// In the handleDealClick function, after emitting JOIN_GAME
-console.log('[CLIENT] JOIN_GAME event emitted, waiting for server response...');
+export function attachClientDebugLogging(socket: Socket): void {
+  socket.on('connect', () => {
+    console.log('[CLIENT] Socket connected:', socket.id);
+  });
 
-// Add callback logging if there's a callback function
-socket.emit('JOIN_GAME', gameData, (response) => {
-  console.log('[CLIENT] Received JOIN_GAME response from server:', response);
-  // ...existing code...
-});
+  socket.on('connect_error', (err: Error) => {
+    console.error('[CLIENT] Socket connection error:', err.message);
+  });
 
-// Example client-side event handling patterns
+  socket.on('error', (err: unknown) => {
+    console.error('[CLIENT] Socket error:', err);
+  });
+}
 
-// If using promises instead of callbacks
-function handleJoinGameResponse() {
-  // Example promise-based approach
-  return new Promise((resolve, reject) => {
-    // ... socket logic here ...
-  })
-    .then((response) => {
+export function emitJoinGame(
+  socket: Socket,
+  gameData: JoinGamePayload
+): Promise<JoinGameResponse> {
+  console.log(
+    '[CLIENT] JOIN_GAME event emitted, waiting for server response...'
+  );
+
+  return new Promise((resolve) => {
+    socket.emit(JOIN_GAME, gameData, (response: unknown) => {
+      const typedResponse = response as JoinGameResponse;
       console.log(
-        '[CLIENT] JOIN_GAME promise resolved with response:',
-        response
+        '[CLIENT] Received JOIN_GAME response from server:',
+        typedResponse
       );
-      // ...existing code...
-    })
-    .catch((error) => {
-      console.error('[CLIENT] JOIN_GAME error:', error);
-      // ...existing code...
+      resolve(typedResponse);
     });
+  });
+}
+
+export async function handleJoinGame(
+  socket: Socket,
+  payload: JoinGamePayload
+): Promise<JoinGameResponse> {
+  try {
+    const response = await emitJoinGame(socket, payload);
+    if (!response.success) {
+      console.error('[CLIENT] JOIN_GAME failed:', response.error ?? 'Unknown');
+    }
+    return response;
+  } catch (error) {
+    console.error('[CLIENT] JOIN_GAME error:', error);
+    throw error;
+  }
 }

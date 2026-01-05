@@ -114,6 +114,30 @@ async function processPlayQueue() {
   }
 }
 
+function finishAnimationSequence() {
+  pendingStateUpdate = null;
+  cardsBeingAnimated = null;
+  bufferedCardPlay = null;
+  isAnimatingSpecialEffect = false;
+  
+  if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
+  if (burnHoldTimer) {
+      clearTimeout(burnHoldTimer);
+      burnHoldTimer = null;
+  }
+  
+  // Important: Kick the queue again.
+  // If cards arrived while we were watching the explosion, they are waiting in the queue.
+  processPlayQueue(); 
+}
+
+function forceUnlock() {
+  console.warn('[Socket] Force unlocking state.');
+  finishAnimationSequence();
+  const lastS = state.getLastGameState();
+  if (lastS) renderGameState(lastS, state.myId);
+}
+
 export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
 
@@ -243,30 +267,6 @@ export async function initializeSocketHandlers(): Promise<void> {
       }, ANIMATION_DELAY_MS);
     }
   );
-
-  function finishAnimationSequence() {
-    pendingStateUpdate = null;
-    cardsBeingAnimated = null;
-    bufferedCardPlay = null;
-    isAnimatingSpecialEffect = false;
-    
-    if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
-    if (burnHoldTimer) {
-        clearTimeout(burnHoldTimer);
-        burnHoldTimer = null;
-    }
-    
-    // Important: Kick the queue again.
-    // If cards arrived while we were watching the explosion, they are waiting in the queue.
-    processPlayQueue(); 
-  }
-
-  function forceUnlock() {
-    console.warn('[Socket] Force unlocking state.');
-    finishAnimationSequence();
-    const lastS = state.getLastGameState();
-    if (lastS) renderGameState(lastS, state.myId);
-  }
 
   state.socket.on(PILE_PICKED_UP, (data: { playerId: string; pileSize: number }) => {
     console.log('Pile picked up by:', data.playerId);

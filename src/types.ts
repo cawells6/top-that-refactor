@@ -1,8 +1,10 @@
 // src/types.ts
-import { Card } from './shared/types.js';
+// Re-export shared types so imports pointing here work correctly
+export * from './shared/types.js';
+
+import type { Card } from './shared/types.js';
 
 export interface DealtCards {
-  // <<< ADD THIS INTERFACE AND EXPORT IT
   hands: Card[][];
   upCards: Card[][];
   downCards: Card[][];

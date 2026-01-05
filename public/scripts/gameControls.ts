@@ -1,5 +1,6 @@
 import { PLAY_CARD, PICK_UP_PILE } from '@shared/events.ts';
 
+import type { Card, ClientStatePlayer } from '../../src/types.js';
 import * as state from './state.js';
 import { showToast } from './uiHelpers.js';
 import { animatePlayerPlay, isValidPlay } from './render.js';
@@ -87,9 +88,14 @@ function enforceSelectionRules(clickedCard: HTMLImageElement): void {
   });
 }
 
-function collectSelection():
-  | { cardIndices: number[]; zone: 'hand' | 'upCards' | 'downCards' }
-  | null {
+type SelectionZone = 'hand' | 'upCards' | 'downCards';
+
+interface SelectionResult {
+  cardIndices: number[];
+  zone: SelectionZone;
+}
+
+function collectSelection(): SelectionResult | null {
   const selectedCards = Array.from(
     document.querySelectorAll('#my-area .card-img.selected')
   ) as HTMLImageElement[];
@@ -99,11 +105,7 @@ function collectSelection():
     return null;
   }
 
-  const zone = selectedCards[0].dataset.zone as
-    | 'hand'
-    | 'upCards'
-    | 'downCards'
-    | undefined;
+  const zone = selectedCards[0].dataset.zone as SelectionZone | undefined;
   if (!zone) {
     showToast('Selected cards are missing zone data.', 'error');
     return null;
@@ -132,6 +134,32 @@ function collectSelection():
   return { cardIndices: indices, zone };
 }
 
+function resolveSelectedCards(
+  selection: SelectionResult,
+  player: ClientStatePlayer | undefined
+): Card[] | null {
+  if (!player) {
+    return null;
+  }
+
+  if (selection.zone === 'hand') {
+    const hand = player.hand ?? [];
+    return selection.cardIndices
+      .map((index) => hand[index])
+      .filter((card): card is Card => Boolean(card));
+  }
+
+  if (selection.zone === 'upCards') {
+    const upCards = player.upCards ?? [];
+    return selection.cardIndices
+      .map((index) => upCards[index])
+      .filter((card): card is Card => Boolean(card));
+  }
+
+  // Down cards are blind plays; skip validation
+  return null;
+}
+
 function handlePlayClick(): void {
   if (!isMyTurn()) {
     showToast('Not your turn.', 'error');
@@ -152,24 +180,11 @@ function handlePlayClick(): void {
   if (gameState) {
     const myPlayer = gameState.players.find((p) => p.id === state.myId);
     const pile = gameState.pile || [];
-    
-    // Reconstruct actual card objects from the indices
-    // (We need the real values/suits for validation logic)
-    let selectedCards;
-    if (selection.zone === 'hand') {
-       const hand = myPlayer?.hand || [];
-       selectedCards = selection.cardIndices.map((idx) => hand[idx]).filter(Boolean);
-    } else if (selection.zone === 'upCards') {
-       const upCards = myPlayer?.upCards || [];
-       selectedCards = selection.cardIndices.map((idx) => upCards[idx]).filter(Boolean);
-    } else if (selection.zone === 'downCards') {
-       // We can't validate down cards (blind play), so allow them through
-       selectedCards = []; 
-    }
+    const resolvedCards = resolveSelectedCards(selection, myPlayer);
 
     // Only validate if we actually resolved cards (and it's not a blind down-card play)
-    if (selectedCards && selectedCards.length > 0) {
-      if (!isValidPlay(selectedCards, pile)) {
+    if (resolvedCards && resolvedCards.length > 0) {
+      if (!isValidPlay(resolvedCards, pile)) {
         showToast('Invalid Play!', 'error');
         // ABORT: Do not animate, do not hide, do not emit.
         // The cards stay visible in hand.
@@ -181,7 +196,9 @@ function handlePlayClick(): void {
 
   // Animation & Instant Hide (Optimistic UI)
   // 1. Find the selected card DOM elements
-  const selectedElements = document.querySelectorAll('#my-area .card-img.selected');
+  const selectedElements = document.querySelectorAll(
+    '#my-area .card-img.selected'
+  );
   
   selectedElements.forEach((imgEl) => {
     if (imgEl instanceof HTMLElement) {

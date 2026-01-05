@@ -6,7 +6,6 @@ import {
   normalizeCardValue,
   rank,
   isSpecialCard,
-  isFiveCard,
 } from '../../utils/cardUtils.js';
 
 // --- PRELOAD LOGIC START ---
@@ -41,7 +40,6 @@ export function waitForFlyingCard(): Promise<void> {
 }
 
 let lastLocalHandCount = -1;
-let lastLocalHandCards: CardType[] = [];
 let suppressNextHandAnimation = false;
 
 // Cache compression values to prevent hand flexing
@@ -353,10 +351,9 @@ function applyHandCompression(
   handRow: HTMLDivElement,
   cardCount: number
 ): void {
-  handRow.classList.remove('hand-row--compressed');
-  handRow.style.removeProperty('--hand-overlap');
-
   if (cardCount <= 1) {
+    handRow.classList.remove('hand-row--compressed');
+    handRow.style.removeProperty('--hand-overlap');
     lastHandCompressed = false;
     return;
   }
@@ -394,6 +391,8 @@ function applyHandCompression(
   const totalWidth = cardTotalWidth * cardCount + gap * (cardCount - 1);
 
   if (totalWidth <= availableWidth) {
+    handRow.classList.remove('hand-row--compressed');
+    handRow.style.removeProperty('--hand-overlap');
     lastHandCompressed = false;
     return;
   }
@@ -408,7 +407,6 @@ function applyHandCompression(
     overlap = minOverlap;
   }
 
-  // Save state for immediate application on next render
   lastHandOverlap = overlap;
   lastHandCompressed = true;
 
@@ -590,6 +588,262 @@ export function animateCardFromPlayer(
   return animationTask;
 }
 
+function updateHandRow(
+  handRow: HTMLDivElement,
+  cards: CardType[],
+  isMyTurn: boolean
+): void {
+  let currentElements = Array.from(handRow.children) as HTMLDivElement[];
+
+  if (cards.length === 0) {
+    if (
+      currentElements.length !== 1 ||
+      !currentElements[0].classList.contains('card-slot--empty')
+    ) {
+      const emptySlot = document.createElement('div');
+      emptySlot.className = 'card-container card-slot card-slot--empty';
+      emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
+      handRow.innerHTML = '';
+      handRow.appendChild(emptySlot);
+    }
+    return;
+  }
+
+  if (
+    currentElements.length > 0 &&
+    currentElements[0].classList.contains('card-slot--empty')
+  ) {
+    handRow.innerHTML = '';
+    currentElements = [];
+  }
+
+  const maxLength = Math.max(cards.length, currentElements.length);
+  for (let i = 0; i < maxLength; i++) {
+    const card = cards[i];
+    const existing = currentElements[i];
+
+    if (!card) {
+      if (existing) existing.remove();
+      continue;
+    }
+
+    if (!existing) {
+      const newCardEl = cardImg(card, isMyTurn);
+      const imgEl = newCardEl.querySelector('.card-img') as HTMLElement | null;
+      if (imgEl) {
+        imgEl.dataset.idx = String(i);
+        imgEl.dataset.zone = 'hand';
+        imgEl.dataset.value = String(
+          normalizeCardValue(card.value) ?? card.value
+        );
+      }
+      handRow.appendChild(newCardEl);
+      continue;
+    }
+
+    const imgEl = existing.querySelector('.card-img') as HTMLImageElement | null;
+    if (!imgEl) {
+      continue;
+    }
+
+    if (isMyTurn) {
+      imgEl.classList.add('selectable');
+      existing.classList.add('selectable-container');
+    } else {
+      imgEl.classList.remove('selectable');
+      existing.classList.remove('selectable-container');
+    }
+
+    const newValue = String(
+      normalizeCardValue(card.value) ?? card.value
+    );
+    const currentValue = imgEl.dataset.value;
+
+    imgEl.dataset.idx = String(i);
+    imgEl.dataset.zone = 'hand';
+    imgEl.dataset.value = newValue;
+
+    if (!card.back && currentValue !== newValue) {
+      const replacement = cardImg(card, isMyTurn);
+      const replacementImg = replacement.querySelector('.card-img') as HTMLElement | null;
+      if (replacementImg) {
+        replacementImg.dataset.idx = String(i);
+        replacementImg.dataset.zone = 'hand';
+        replacementImg.dataset.value = newValue;
+      }
+      handRow.replaceChild(replacement, existing);
+    }
+  }
+}
+
+function updateTableStacks(
+  stackRow: HTMLDivElement,
+  upCards: Array<CardType | null>,
+  downCount: number,
+  isMyTurn: boolean,
+  handCount: number,
+  upCount: number,
+  isLocal: boolean,
+  isForcedDown: boolean
+): void {
+  stackRow.innerHTML = '';
+
+  if (isForcedDown) {
+    stackRow.classList.add('forced-down');
+  } else {
+    stackRow.classList.remove('forced-down');
+  }
+
+  if (handCount > 0) {
+    stackRow.classList.add('dimmed-stacks');
+  } else {
+    stackRow.classList.remove('dimmed-stacks');
+  }
+
+  const maxStackCount = Math.max(upCards.length, downCount);
+  for (let i = 0; i < maxStackCount; i++) {
+    const col = document.createElement('div');
+    col.className = 'stack';
+
+    const hasDownCard = downCount > i;
+    const canPlayDown =
+      hasDownCard && isMyTurn && handCount === 0 && upCount === 0;
+
+    if (hasDownCard) {
+      const downCard = cardImg(
+        { value: '', suit: '', back: true } as CardType,
+        canPlayDown
+      );
+      const downImg = downCard.querySelector('.card-img') as HTMLElement | null;
+      if (downImg) {
+        downImg.classList.add('down-card');
+        if (isForcedDown) {
+          downImg.classList.add('forced-down-card');
+        }
+        if (isLocal) {
+          downImg.dataset.idx = String(i);
+          downImg.dataset.zone = 'downCards';
+        }
+      }
+      col.appendChild(downCard);
+    }
+
+    const upCard = upCards[i];
+    const canPlayUp = Boolean(upCard) && isMyTurn && handCount === 0;
+    if (upCard) {
+      const upCardEl = cardImg(upCard, canPlayUp, undefined, true);
+      const upImg = upCardEl.querySelector('.card-img') as HTMLElement | null;
+      if (upImg) {
+        upImg.classList.add('up-card');
+        if (isLocal) {
+          upImg.dataset.idx = String(i);
+          upImg.dataset.zone = 'upCards';
+          upImg.dataset.value = String(upCard.value);
+        }
+      }
+      col.appendChild(upCardEl);
+    }
+
+    if (canPlayUp || canPlayDown) {
+      col.classList.add('playable-stack');
+    }
+
+    stackRow.appendChild(col);
+  }
+}
+
+function ensureLocalPanel(slotTarget: HTMLElement, seat: string): HTMLDivElement {
+  let panel = slotTarget.querySelector('.player-area.is-local') as HTMLDivElement | null;
+  if (panel) {
+    return panel;
+  }
+
+  panel = document.createElement('div');
+  panel.className = 'player-area seat classic-theme is-local';
+  panel.id = 'my-area';
+  panel.dataset.seat = seat;
+  panel.style.setProperty('--seat-accent', seatAccents[seat] ?? '#f6c556');
+
+  const header = document.createElement('div');
+  header.className = 'player-header';
+
+  const ident = document.createElement('div');
+  ident.className = 'player-ident';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'player-avatar';
+  avatar.innerHTML = '<img src="/assets/Player.svg" alt="Player avatar">';
+
+  const meta = document.createElement('div');
+  meta.className = 'player-meta';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'player-name';
+
+  const tagRow = document.createElement('div');
+  tagRow.className = 'player-tags';
+
+  meta.append(nameEl, tagRow);
+  ident.append(avatar, meta);
+  header.appendChild(ident);
+  panel.appendChild(header);
+
+  const handZone = document.createElement('div');
+  handZone.className = 'player-zone player-zone--hand player-zone--hand-local';
+
+  const handLabel = document.createElement('div');
+  handLabel.className = 'zone-label';
+  handLabel.textContent = 'Hand';
+
+  const handTray = document.createElement('div');
+  handTray.className = 'hand-tray hand-tray--local';
+
+  const handRow = document.createElement('div');
+  handRow.className = 'hand-row hand-row--local';
+  handTray.appendChild(handRow);
+
+  handZone.append(handLabel, handTray);
+  panel.appendChild(handZone);
+
+  const actionRow = document.createElement('div');
+  actionRow.className = 'player-actions';
+
+  const playButton = document.createElement('button');
+  playButton.id = 'play-button';
+  playButton.className = 'action-button action-button--play';
+  playButton.textContent = 'Play';
+
+  const takeButton = document.createElement('button');
+  takeButton.id = 'take-button';
+  takeButton.className = 'action-button action-button--take';
+  takeButton.textContent = 'Take';
+
+  actionRow.append(playButton, takeButton);
+  panel.appendChild(actionRow);
+
+  const tableZone = document.createElement('div');
+  tableZone.className = 'player-zone player-zone--table';
+
+  const tabledWrapper = document.createElement('div');
+  tabledWrapper.className = 'card-zone--tabled';
+
+  const tableLabel = document.createElement('div');
+  tableLabel.className = 'zone-label';
+  tableLabel.textContent = 'Up / Down';
+
+  const stackRow = document.createElement('div');
+  stackRow.className = 'stack-row';
+
+  tabledWrapper.append(tableLabel, stackRow);
+  tableZone.appendChild(tabledWrapper);
+  panel.appendChild(tableZone);
+
+  slotTarget.innerHTML = '';
+  slotTarget.appendChild(panel);
+
+  return panel;
+}
+
 /**
  * Main render function to update the entire game view
  * @param {GameStateData} gameState - Full game state from server
@@ -601,44 +855,15 @@ export function renderGameState(
   localPlayerId: string | null,
   visualPileTop?: CardType | null
 ): void {
-  // Reset hand tracking when game isn't started (new game scenario)
   if (!gameState?.started) {
     lastLocalHandCount = -1;
-    lastLocalHandCards = [];
-  }
-  
-  // --- HYBRID CAPTURE START ---
-  let cachedOverlap = '';
-  let cachedCompressed = false;
-  
-  // 1. Try DOM first (most accurate for current state)
-  const existingLocalHand = document.querySelector('#my-area .hand-row') as HTMLElement;
-  if (existingLocalHand) {
-    cachedOverlap = existingLocalHand.style.getPropertyValue('--hand-overlap');
-    cachedCompressed = existingLocalHand.classList.contains('hand-row--compressed');
   }
 
-  // 2. Fallback to Module Memory if DOM failed
-  // (Fixes the "rapid update" race condition)
-  if (!cachedOverlap && lastHandCompressed) {
-     cachedOverlap = `${lastHandOverlap}px`;
-     cachedCompressed = true;
-  }
-  // --- HYBRID CAPTURE END ---
-  
   const table = document.querySelector('#game-table .table') as HTMLElement | null;
-  const slotTop = document.getElementById(
-    'opponent-area-top'
-  ) as HTMLElement | null;
-  const slotBottom = document.getElementById(
-    'player-area-bottom'
-  ) as HTMLElement | null;
-  const slotLeft = document.getElementById(
-    'opponent-area-left'
-  ) as HTMLElement | null;
-  const slotRight = document.getElementById(
-    'opponent-area-right'
-  ) as HTMLElement | null;
+  const slotTop = document.getElementById('opponent-area-top') as HTMLElement | null;
+  const slotBottom = document.getElementById('player-area-bottom') as HTMLElement | null;
+  const slotLeft = document.getElementById('opponent-area-left') as HTMLElement | null;
+  const slotRight = document.getElementById('opponent-area-right') as HTMLElement | null;
   const centerArea = document.getElementById('center-area') as HTMLElement | null;
 
   if (!gameState || !gameState.players) {
@@ -654,7 +879,6 @@ export function renderGameState(
   }
 
   if (slotTop) slotTop.innerHTML = '';
-  if (slotBottom) slotBottom.innerHTML = '';
   if (slotLeft) slotLeft.innerHTML = '';
   if (slotRight) slotRight.innerHTML = '';
   if (centerArea) centerArea.innerHTML = '';
@@ -663,23 +887,21 @@ export function renderGameState(
   if (table) {
     table.dataset.playerCount = String(players.length);
   }
-  const cpuIds = players
-    .filter((p) => p.isComputer)
-    .map((p) => p.id);
-  const cpuIndexById = new Map(
-    cpuIds.map((id, index) => [id, index + 1])
-  );
+
   const meIdx = localPlayerId
     ? players.findIndex((p) => p.id === localPlayerId)
     : -1;
+
+  if (slotBottom && meIdx < 0) {
+    slotBottom.innerHTML = '';
+  }
 
   const rotatedPlayers =
     meIdx >= 0
       ? players.slice(meIdx).concat(players.slice(0, meIdx))
       : players.slice();
 
-  // Dynamic seat order based on player count
-  let currentSeatOrder: string[] = [];
+  let currentSeatOrder: string[];
   if (players.length === 2) {
     currentSeatOrder = ['bottom', 'top'];
   } else if (players.length === 3) {
@@ -689,17 +911,35 @@ export function renderGameState(
   }
 
   currentSeatOrder.forEach((seat, idx) => {
-    const player = rotatedPlayers[idx];
-    if (!player) return;
+    const slotTarget =
+      seat === 'bottom'
+        ? slotBottom
+        : seat === 'top'
+          ? slotTop
+          : seat === 'left'
+            ? slotLeft
+            : slotRight;
+    if (!slotTarget) {
+      return;
+    }
 
-    const isLocalPlayer = player.id === localPlayerId;
-    const isMyTurn = isLocalPlayer && player.id === gameState.currentPlayerId;
+    const player = rotatedPlayers[idx];
+    if (!player) {
+      if (seat !== 'bottom') {
+        slotTarget.innerHTML = '';
+      }
+      return;
+    }
+
+    const isLocalPlayer = Boolean(localPlayerId && player.id === localPlayerId);
+    const isCurrentTurn = player.id === gameState.currentPlayerId;
+    const isMyTurn = isLocalPlayer && isCurrentTurn;
+
     const handCount = player.handCount ?? player.hand?.length ?? 0;
+    const upCards = player.upCards ?? [];
     const upCount =
       player.upCount ??
-      (player.upCards
-        ? player.upCards.filter((card) => Boolean(card)).length
-        : 0);
+      upCards.filter((card) => Boolean(card)).length;
     const downCount = player.downCount ?? player.downCards?.length ?? 0;
     const isForcedDown =
       isLocalPlayer &&
@@ -707,138 +947,158 @@ export function renderGameState(
       handCount === 0 &&
       upCount === 0 &&
       downCount > 0;
-    
-    // If any player has cards in hand, dim their table stacks to indicate they can't be played yet
-    const shouldDimTable = handCount > 0;
 
-    const panel = document.createElement('div');
-    panel.className = 'player-area seat classic-theme';
-    panel.dataset.playerId = player.id;
-    panel.dataset.seat = seat;
-    panel.style.setProperty(
-      '--seat-accent',
-      seatAccents[seat] ?? '#f6c556'
-    );
+    if (isLocalPlayer && seat === 'bottom') {
+      const panel = ensureLocalPanel(slotTarget, seat);
+      panel.dataset.playerId = player.id;
+      panel.dataset.seat = seat;
+      panel.style.setProperty('--seat-accent', seatAccents[seat] ?? '#f6c556');
+      panel.classList.toggle('disconnected', Boolean(player.disconnected));
 
-    if (player.isComputer) panel.classList.add('computer-player');
-    if (player.disconnected) panel.classList.add('disconnected');
-    if (isLocalPlayer) panel.classList.add('is-local');
-    if (seat === 'bottom' && isLocalPlayer) {
-      panel.id = 'my-area';
-    }
+      const avatar = panel.querySelector('.player-avatar');
+      if (avatar) {
+        avatar.classList.toggle('active-turn', isCurrentTurn);
+      }
 
-    const header = document.createElement('div');
-    header.className = 'player-header';
+      const nameEl = panel.querySelector('.player-name');
+      if (nameEl) {
+        nameEl.textContent = player.name || player.id;
+      }
 
-    const ident = document.createElement('div');
-    ident.className = 'player-ident';
+      const tagRow = panel.querySelector('.player-tags');
+      if (tagRow) {
+        tagRow.innerHTML = '';
+        if (player.disconnected) {
+          tagRow.appendChild(createTag('Offline', 'offline'));
+        }
+      }
 
-    const avatar = document.createElement('div');
-    avatar.className = 'player-avatar';
-    if (player.id === gameState.currentPlayerId) {
-      avatar.classList.add('active-turn');
-    }
-    const avatarImg = document.createElement('img');
-    avatarImg.src = player.isComputer ? '/assets/robot.svg' : '/assets/Player.svg';
-    avatarImg.alt = player.isComputer ? 'CPU avatar' : 'Player avatar';
-    avatar.appendChild(avatarImg);
+      const handRow = panel.querySelector('.hand-row') as HTMLDivElement | null;
+      if (handRow) {
+        if (suppressNextHandAnimation || handCount === lastLocalHandCount) {
+          handRow.classList.add('no-animate');
+        } else {
+          handRow.classList.remove('no-animate');
+        }
 
-    const meta = document.createElement('div');
-    meta.className = 'player-meta';
-
-    const nameEl = document.createElement('div');
-    nameEl.className = 'player-name';
-    nameEl.textContent = player.name || player.id;
-
-    const tagRow = document.createElement('div');
-    tagRow.className = 'player-tags';
-    if (player.disconnected) tagRow.appendChild(createTag('Offline', 'offline'));
-
-    meta.appendChild(nameEl);
-    if (tagRow.childElementCount > 0) {
-      meta.appendChild(tagRow);
-    }
-    ident.append(avatar, meta);
-
-    header.append(ident);
-    panel.appendChild(header);
-
-    const handZone = document.createElement('div');
-    handZone.className = 'player-zone player-zone--hand';
-    if (isLocalPlayer) {
-      handZone.classList.add('player-zone--hand-local');
-    }
-    const handLabel = document.createElement('div');
-    handLabel.className = 'zone-label';
-    handLabel.textContent = 'Hand';
-    const handRow = document.createElement('div');
-    handRow.className = isLocalPlayer
-      ? 'hand-row hand-row--local'
-      : 'hand-row hand-row--opponent';
-
-    // Apply the captured state IMMEDIATELY to the new element
-    // This prevents the "flex" (FOUC - Flash of Uncompressed Content)
-    if (isLocalPlayer && cachedCompressed && cachedOverlap && handCount > 1) {
-      handRow.classList.add('hand-row--compressed');
-      handRow.style.setProperty('--hand-overlap', cachedOverlap);
-    }
-
-    if (isLocalPlayer) {
-      // Check if we should suppress animation (e.g., after taking pile)
-      // Keep suppressing until hand count decreases (player plays cards)
-      if (suppressNextHandAnimation) {
-        handRow.classList.add('no-animate');
-        // Only clear the flag if hand count decreased (player played cards)
         if (handCount < lastLocalHandCount && lastLocalHandCount !== -1) {
           suppressNextHandAnimation = false;
         }
-      } else if (handCount === lastLocalHandCount) {
-        handRow.classList.add('no-animate');
-      }
-      lastLocalHandCount = handCount;
 
-      const handCards = player.hand ?? [];
-      
-      // Always render cards (handRow is new every time, so we must populate it)
-      handRow.innerHTML = '';
-      
-      if (handCards.length === 0) {
-        const emptySlot = document.createElement('div');
-        emptySlot.className = 'card-container card-slot card-slot--empty';
-        emptySlot.innerHTML = '<div class="empty-card-placeholder"></div>';
-        handRow.appendChild(emptySlot);
-        lastLocalHandCards = [];
-      } else {
-        handCards.forEach((card, index) => {
-          const cardElement = cardImg(card, isMyTurn);
-          const imgEl = cardElement.querySelector('.card-img');
-          if (imgEl && imgEl instanceof HTMLImageElement) {
-            imgEl.dataset.idx = String(index);
-            imgEl.dataset.zone = 'hand';
-            imgEl.dataset.value = String(
-              normalizeCardValue(card.value) ?? card.value
-            );
-          }
-          handRow.appendChild(cardElement);
-        });
-        lastLocalHandCards = [...handCards];
-        
-        // Apply cached compression IMMEDIATELY to prevent flex (FOUC)
-        // Apply cached hybrid state immediately (prevents FOUC)
         if (lastHandCompressed && handCount > 1) {
           handRow.classList.add('hand-row--compressed');
           handRow.style.setProperty('--hand-overlap', `${lastHandOverlap}px`);
+        } else if (handCount <= 1) {
+          handRow.classList.remove('hand-row--compressed');
+          handRow.style.removeProperty('--hand-overlap');
         }
-        
-        // Still re-calculate compression for accuracy (window resize, etc.)
+
+        updateHandRow(handRow, player.hand ?? [], isMyTurn);
         requestAnimationFrame(() => {
           applyHandCompression(panel, handRow, handCount);
         });
       }
+
+      lastLocalHandCount = handCount;
+
+      const playButton = panel.querySelector('#play-button') as HTMLButtonElement | null;
+      if (playButton) {
+        playButton.disabled = !isMyTurn;
+      }
+
+      const takeButton = panel.querySelector('#take-button') as HTMLButtonElement | null;
+      if (takeButton) {
+        const requiredZone =
+          handCount > 0
+            ? 'hand'
+            : upCount > 0
+              ? 'upCards'
+              : downCount > 0
+                ? 'downCards'
+                : null;
+        const hasPlayableCard =
+          requiredZone === 'hand'
+            ? hasValidHandPlay(player.hand ?? [], gameState.pile ?? [])
+            : requiredZone === 'upCards'
+              ? hasValidUpPlay(player.upCards ?? [], gameState.pile ?? [])
+              : false;
+        takeButton.disabled =
+          !isMyTurn ||
+          requiredZone === null ||
+          requiredZone === 'downCards' ||
+          hasPlayableCard;
+      }
+
+      const stackRow = panel.querySelector('.stack-row') as HTMLDivElement | null;
+      if (stackRow) {
+        updateTableStacks(
+          stackRow,
+          upCards,
+          downCount,
+          isMyTurn,
+          handCount,
+          upCount,
+          true,
+          isForcedDown
+        );
+      }
     } else {
+      slotTarget.innerHTML = '';
+
+      const panel = document.createElement('div');
+      panel.className = 'player-area seat classic-theme';
+      panel.dataset.playerId = player.id;
+      panel.dataset.seat = seat;
+      panel.style.setProperty('--seat-accent', seatAccents[seat] ?? '#f6c556');
+      if (player.isComputer) {
+        panel.classList.add('computer-player');
+      }
+      panel.classList.toggle('disconnected', Boolean(player.disconnected));
+
+      const header = document.createElement('div');
+      header.className = 'player-header';
+
+      const ident = document.createElement('div');
+      ident.className = 'player-ident';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'player-avatar';
+      avatar.classList.toggle('active-turn', isCurrentTurn);
+      const avatarImg = document.createElement('img');
+      avatarImg.src = player.isComputer ? '/assets/robot.svg' : '/assets/Player.svg';
+      avatarImg.alt = player.isComputer ? 'CPU avatar' : 'Player avatar';
+      avatar.appendChild(avatarImg);
+
+      const meta = document.createElement('div');
+      meta.className = 'player-meta';
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'player-name';
+      nameEl.textContent = player.name || player.id;
+
+      const tagRow = document.createElement('div');
+      tagRow.className = 'player-tags';
+      if (player.disconnected) {
+        tagRow.appendChild(createTag('Offline', 'offline'));
+      }
+
+      meta.append(nameEl, tagRow);
+      ident.append(avatar, meta);
+      header.appendChild(ident);
+      panel.appendChild(header);
+
+      const handZone = document.createElement('div');
+      handZone.className = 'player-zone player-zone--hand';
+      const handLabel = document.createElement('div');
+      handLabel.className = 'zone-label';
+      handLabel.textContent = 'Hand';
+      const handTray = document.createElement('div');
+      handTray.className = 'hand-tray';
+      const handRow = document.createElement('div');
+      handRow.className = 'hand-row hand-row--opponent';
+
       const handStack = document.createElement('div');
       handStack.className = 'hand-stack';
-
       const visibleCount = Math.min(3, handCount);
       if (visibleCount === 0) {
         const emptySlot = document.createElement('div');
@@ -853,7 +1113,6 @@ export function renderGameState(
           handStack.appendChild(cardEl);
         }
       }
-
       if (handCount > 0) {
         const badge = document.createElement('div');
         badge.className = 'hand-count-badge';
@@ -863,149 +1122,59 @@ export function renderGameState(
         badge.textContent = String(handCount);
         handStack.appendChild(badge);
       }
-
       handRow.appendChild(handStack);
-    }
+      handTray.appendChild(handRow);
+      handZone.append(handLabel, handTray);
+      panel.appendChild(handZone);
 
-    const handTray = document.createElement('div');
-    handTray.className = 'hand-tray';
-    if (isLocalPlayer) {
-      handTray.classList.add('hand-tray--local');
-    }
-    handTray.appendChild(handRow);
-    handZone.append(handLabel, handTray);
-    panel.appendChild(handZone);
+      const tableZone = document.createElement('div');
+      tableZone.className = 'player-zone player-zone--table';
+      const tabledWrapper = document.createElement('div');
+      tabledWrapper.className = 'card-zone--tabled';
+      const tableLabel = document.createElement('div');
+      tableLabel.className = 'zone-label';
+      tableLabel.textContent = 'Up / Down';
+      const stackRow = document.createElement('div');
+      stackRow.className = 'stack-row';
+      if (handCount > 0) {
+        stackRow.classList.add('dimmed-stacks');
+      }
 
-    if (seat === 'bottom' && isLocalPlayer) {
-      const actionRow = document.createElement('div');
-      actionRow.className = 'player-actions';
-
-      const playButton = document.createElement('button');
-      playButton.id = 'play-button';
-      playButton.className = 'action-button action-button--play';
-      playButton.textContent = 'Play';
-      playButton.disabled = !isMyTurn;
-
-      const takeButton = document.createElement('button');
-      takeButton.id = 'take-button';
-      takeButton.className = 'action-button action-button--take';
-      takeButton.textContent = 'Take';
-      const requiredZone =
-        handCount > 0
-          ? 'hand'
-          : upCount > 0
-            ? 'upCards'
-            : downCount > 0
-              ? 'downCards'
-              : null;
-      const hasPlayableCard =
-        requiredZone === 'hand'
-          ? hasValidHandPlay(player.hand ?? [], gameState.pile ?? [])
-          : requiredZone === 'upCards'
-            ? hasValidUpPlay(player.upCards ?? [], gameState.pile ?? [])
-            : false;
-      takeButton.disabled =
-        !isMyTurn ||
-        requiredZone === null ||
-        requiredZone === 'downCards' ||
-        hasPlayableCard;
-
-      actionRow.append(playButton, takeButton);
-      panel.appendChild(actionRow);
-    }
-
-    const tableZone = document.createElement('div');
-    tableZone.className = 'player-zone player-zone--table';
-
-    const tabledWrapper = document.createElement('div');
-    tabledWrapper.className = 'card-zone--tabled';
-
-    const tableLabel = document.createElement('div');
-    tableLabel.className = 'zone-label';
-    tableLabel.textContent = 'Up / Down';
-
-    const stackRow = document.createElement('div');
-    stackRow.className = 'stack-row';
-    
-    if (shouldDimTable) {
-      stackRow.classList.add('dimmed-stacks');
-    }
-    
-    if (isForcedDown) {
-      stackRow.classList.add('forced-down');
-    }
-
-    const upCards = player.upCards ?? [];
-    const maxStackCount = Math.max(upCards.length, downCount);
-    if (maxStackCount > 0) {
+      const maxStackCount = Math.max(upCards.length, downCount);
       for (let i = 0; i < maxStackCount; i++) {
         const col = document.createElement('div');
         col.className = 'stack';
 
-        const hasDownCard = downCount > i;
-        const canPlayDown =
-          hasDownCard && isMyTurn && handCount === 0 && upCount === 0;
-        if (hasDownCard) {
-          const downCard = cardImg(
-            { value: '', suit: '', back: true } as CardType,
-            canPlayDown
-          );
-          const downImg = downCard.querySelector(
-            '.card-img'
-          ) as HTMLImageElement | null;
+        if (downCount > i) {
+          const downCard = cardImg({ value: '', suit: '', back: true } as CardType, false);
+          const downImg = downCard.querySelector('.card-img');
           if (downImg) {
             downImg.classList.add('down-card');
-            if (isForcedDown) {
-              downImg.classList.add('forced-down-card');
-            }
-            if (isLocalPlayer) {
-              downImg.dataset.idx = String(i);
-              downImg.dataset.zone = 'downCards';
-            }
           }
           col.appendChild(downCard);
         }
 
         const upCard = upCards[i];
-        const canPlayUp = Boolean(upCard) && isMyTurn && handCount === 0;
         if (upCard) {
-          const upCardEl = cardImg(upCard, canPlayUp, undefined, true);
-          const upImg = upCardEl.querySelector(
-            '.card-img'
-          ) as HTMLImageElement | null;
+          const upCardEl = cardImg(upCard, false, undefined, true);
+          const upImg = upCardEl.querySelector('.card-img');
           if (upImg) {
             upImg.classList.add('up-card');
-            if (isLocalPlayer) {
-              upImg.dataset.idx = String(i);
-              upImg.dataset.zone = 'upCards';
-              upImg.dataset.value = String(upCard.value);
-            }
           }
           col.appendChild(upCardEl);
         }
 
-        if (canPlayUp || canPlayDown) col.classList.add('playable-stack');
         stackRow.appendChild(col);
       }
-    }
 
-    tabledWrapper.append(tableLabel, stackRow);
-    tableZone.appendChild(tabledWrapper);
-    panel.appendChild(tableZone);
+      tabledWrapper.append(tableLabel, stackRow);
+      tableZone.appendChild(tabledWrapper);
+      panel.appendChild(tableZone);
 
-    let slotTarget: HTMLElement | null = null;
-    if (seat === 'bottom') slotTarget = slotBottom;
-    else if (seat === 'top') slotTarget = slotTop;
-    else if (seat === 'left') slotTarget = slotLeft;
-    else if (seat === 'right') slotTarget = slotRight;
-
-    if (slotTarget) {
       slotTarget.appendChild(panel);
-      // Compression is now handled inline when hand changes
     }
   });
 
-  // Create and append the rules button to the table container if it doesn't exist
   if (table && !table.querySelector('#table-rules-button')) {
     const rulesButton = document.createElement('button');
     rulesButton.id = 'table-rules-button';
@@ -1016,15 +1185,11 @@ export function renderGameState(
     };
     table.appendChild(rulesButton);
   }
-  
 
-
-  // Add game branding in top-left corner
   if (table && !table.querySelector('#table-branding')) {
     const branding = document.createElement('div');
     branding.id = 'table-branding';
-    
-    // Create inline SVG crown for better color control
+
     const crownSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     crownSvg.setAttribute('class', 'branding-crown');
     crownSvg.setAttribute('viewBox', '0 0 32 32');
@@ -1036,15 +1201,15 @@ export function renderGameState(
       <rect x="4" y="22" width="24" height="4" rx="1" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
       <path d="M10 24H22" stroke="#b8860b" stroke-width="1.5" stroke-linecap="round"/>
     `;
-    
+
     const title = document.createElement('div');
     title.className = 'branding-title';
     title.textContent = 'Top That!';
-    
+
     const slogan = document.createElement('div');
     slogan.className = 'branding-slogan';
     slogan.textContent = 'One Crown. Zero Mercy.';
-    
+
     branding.appendChild(crownSvg);
     branding.appendChild(title);
     branding.appendChild(slogan);
@@ -1096,7 +1261,6 @@ export function renderGameState(
       playStack.classList.add('pile-multiple');
     }
 
-    // Determine what card to show
     const logicalTop = pile.length > 0 ? pile[pile.length - 1] : null;
     const effectiveTopCard = visualPileTop || logicalTop;
 
@@ -1104,19 +1268,15 @@ export function renderGameState(
       const playCard = cardImg(effectiveTopCard, false, undefined, false);
       playCard.id = 'pile-top-card';
 
-      // --- BADGE LOGIC START ---
-      // If the card is marked as 'copied' (a 5 copied this card), show the badge
       if (effectiveTopCard.copied) {
         const badge = document.createElement('div');
         badge.className = 'copied-badge';
-
-        // Inline styles for the badge
         badge.textContent = 'COPIED';
         badge.style.position = 'absolute';
         badge.style.bottom = '10px';
         badge.style.left = '50%';
         badge.style.transform = 'translateX(-50%)';
-        badge.style.backgroundColor = '#FFD700'; // Gold color
+        badge.style.backgroundColor = '#FFD700';
         badge.style.color = '#000';
         badge.style.padding = '2px 6px';
         badge.style.borderRadius = '4px';
@@ -1127,10 +1287,8 @@ export function renderGameState(
         badge.style.pointerEvents = 'none';
         badge.style.whiteSpace = 'nowrap';
         badge.style.border = '1px solid #b8860b';
-
         playCard.appendChild(badge);
       }
-      // --- BADGE LOGIC END ---
 
       playStack.appendChild(playCard);
     } else {

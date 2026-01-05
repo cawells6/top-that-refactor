@@ -207,8 +207,20 @@ describe('Player model', () => {
   });
 
   // Helper to create a player with a specific hand, upCards, and downCards
+  function buildTestPlayerId(name: string): string {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      return 'test-id';
+    }
+    const sanitized = trimmed
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return sanitized ? `test-id-${sanitized}` : 'test-id';
+  }
+
   function makePlayer({
-    id = 'test-id',
+    id,
     hand = [],
     upCards = [],
     downCards = [],
@@ -228,7 +240,8 @@ describe('Player model', () => {
     status: 'invited' | 'ready' | 'host' | 'joined';
     ready: boolean;
   }> = {}) {
-    const player = new Player(id);
+    const resolvedId = id ?? buildTestPlayerId(name);
+    const player = new Player(resolvedId);
     player.setHand(hand);
     player.setUpCards(upCards);
     player.setDownCards(downCards);
