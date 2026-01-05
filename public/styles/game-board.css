@@ -892,6 +892,7 @@ body.showing-game {
 
 /* --- 4. OPPONENT HANDS (Neat Stacks) --- */
 .hand-row--opponent {
+    position: relative; /* Anchor for hand count badge */
     display: flex;
     justify-content: center;
     perspective: 600px;
