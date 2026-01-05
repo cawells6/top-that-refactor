@@ -147,16 +147,10 @@ export default class GameState {
       'A',
     ];
     this.deck = []; // Initialize deck
-    let numDecks = 1;
-    if (this.players.length >= 4) {
-      // Standard rule: 2 decks for 4+ players
-      numDecks = 2;
-    }
-    for (let i = 0; i < numDecks; i++) {
-      for (const suit of suits) {
-        for (const value of values) {
-          this.deck.push({ value, suit });
-        }
+    // Always use 1 deck for 1-4 players
+    for (const suit of suits) {
+      for (const value of values) {
+        this.deck.push({ value, suit });
       }
     }
 

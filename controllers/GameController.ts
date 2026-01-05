@@ -315,20 +315,23 @@ export default class GameController {
    * The host is considered ready by default.
    */
   private checkIfGameCanStart(): void {
-    // console.log('[SERVER] checkIfGameCanStart called');
+    this.log('[checkIfGameCanStart] Called');
     if (this.expectedHumanCount <= 0) {
+      this.log('[checkIfGameCanStart] Expected human count is 0 or less, returning');
       return;
     }
     const humanPlayers = this.getHumanPlayers();
     const allHumansReady = humanPlayers.every(
       (p) => p.status === 'host' || p.status === 'ready'
     );
+    this.log(`[checkIfGameCanStart] Human players: ${humanPlayers.length}, Expected: ${this.expectedHumanCount}, All ready: ${allHumansReady}, Started: ${this.gameState.started}`);
     // Check if we have all expected human players and they're ready
     if (
       humanPlayers.length === this.expectedHumanCount &&
       allHumansReady &&
       !this.gameState.started
     ) {
+      this.log(`[checkIfGameCanStart] Starting game with ${this.expectedCpuCount} CPUs`);
       this.handleStartGame({ computerCount: this.expectedCpuCount });
     }
   }
@@ -1147,7 +1150,7 @@ export default class GameController {
       `Emitted CARD_PLAYED for player ${player.id}. Cards: ${JSON.stringify(cardsToPlay)}`
     );
 
-    handleSpecialCard(
+    const { pileClearedBySpecial } = handleSpecialCard(
       this.io,
       this.gameState,
       player,
@@ -1155,6 +1158,22 @@ export default class GameController {
       this.roomId,
       { fourOfKindPlayed }
     );
+    
+    // After pile is burned (10 or 4-of-a-kind), draw new card from draw pile to start play pile
+    if (pileClearedBySpecial && this.gameState.deck && this.gameState.deck.length > 0) {
+      const newStartCard = this.gameState.deck.pop();
+      if (newStartCard) {
+        this.gameState.addToPile(newStartCard);
+        const normalizedValue = normalizeCardValue(newStartCard.value);
+        if (normalizedValue !== 'five') {
+          this.gameState.lastRealCard = newStartCard;
+        }
+        this.log(
+          `Pile burned. Drew new card (${newStartCard.value} of ${newStartCard.suit}) from draw pile to start play pile. Draw pile now has ${this.gameState.deck.length} cards.`
+        );
+      }
+    }
+    
     const specialEffectTriggered =
       fourOfKindPlayed || isSpecialCard(cardsToPlay[0]?.value);
 
@@ -1256,17 +1275,38 @@ export default class GameController {
         `Player ${player.id} tried to pick up an empty pile. This shouldn't typically happen unless it's a forced pickup after an invalid downcard play on an empty pile.`
       );
     } else {
-      const pickupCount = this.gameState.pile.length;
+      // Player picks up the entire discard pile (gameState.pile)
+      const pileCount = this.gameState.pile.length;
       player.pickUpPile([...this.gameState.pile]);
-      this.gameState.clearPile({ toDiscard: false });
-      this.log(
-        `Player ${player.id} picked up ${pickupCount} cards. New hand size: ${player.hand.length}`
-      );
+      this.gameState.pile = [];
+      
+      // Draw one card from draw pile to start the play pile again
+      if (this.gameState.deck && this.gameState.deck.length > 0) {
+        const newStartCard = this.gameState.deck.pop();
+        if (newStartCard) {
+          this.gameState.addToPile(newStartCard);
+          const normalizedValue = normalizeCardValue(newStartCard.value);
+          if (normalizedValue !== 'five') {
+            this.gameState.lastRealCard = newStartCard;
+          }
+          this.log(
+            `Player ${player.id} picked up ${pileCount} cards. Drew new card (${newStartCard.value} of ${newStartCard.suit}) from draw pile to play pile. Draw pile now has ${this.gameState.deck.length} cards.`
+          );
+        }
+      } else {
+        this.log(
+          `Player ${player.id} picked up ${pileCount} cards. No cards left in deck to start discard pile. New hand size: ${player.hand.length}`
+        );
+      }
+      
+      // Push state immediately so clients see the new discard pile card
+      this.pushState();
       this.io.to(this.roomId).emit(PILE_PICKED_UP, { playerId: player.id });
     }
 
-    // Process transition (State push -> Wait -> Next Turn)
-    this.processTurnTransition(this.turnTransitionDelayMs);
+    // Process transition with longer delay after pile pickup so clients can see the new card
+    // Use 1000ms instead of standard 400ms to ensure visibility
+    this.processTurnTransition(1000);
   }
 
   private hasValidPlay(

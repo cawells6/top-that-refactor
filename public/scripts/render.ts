@@ -15,15 +15,15 @@ import resetIconUrl from '../src/shared/Reset-icon.png';
 import copyIconUrl from '../src/shared/Copy-icon.png';
 import burnIconUrl from '../src/shared/Burn-icon.png';
 import invalidIconUrl from '../src/shared/invalid play-icon.png';
-import takeIconUrl from '../src/shared/take pile-icon.png';
+import fourOfAKindIconUrl from '../src/shared/4ofakind-icon.png';
 
 // --- PRELOAD LOGIC START ---
 const ICON_PATHS = {
   two: resetIconUrl,
   five: copyIconUrl,
   ten: burnIconUrl,
+  four: fourOfAKindIconUrl,
   invalid: invalidIconUrl,
-  take: takeIconUrl,
 };
 
 function preloadIcons() {
@@ -208,7 +208,7 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
     deckContainer.className = 'pile-group pile-group--deck';
     const deckNameplate = document.createElement('div');
     deckNameplate.className = 'pile-nameplate';
-    deckNameplate.innerHTML = `<span class="pile-name">Deck</span><span class="pile-count">0</span>`;
+    deckNameplate.innerHTML = `<span class="pile-name">Draw</span><span class="pile-count">0</span>`;
     const deckStack = document.createElement('div');
     deckStack.className = 'pile-cards deck-stack';
     deckContainer.append(deckNameplate, deckStack);
@@ -218,7 +218,7 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
     playContainer.id = 'discard-pile';
     const playNameplate = document.createElement('div');
     playNameplate.className = 'pile-nameplate';
-    playNameplate.innerHTML = `<span class="pile-name">Discard</span><span class="pile-count">0</span>`;
+    playNameplate.innerHTML = `<span class="pile-name">Play</span><span class="pile-count">0</span>`;
     const playStack = document.createElement('div');
     playStack.className = 'pile-cards play-stack';
     playContainer.append(playNameplate, playStack);
@@ -273,18 +273,7 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
 
         const logicalTop = pile.length > 0 ? pile[pile.length - 1] : null;
         const effectiveTopCard = visualPileTop || logicalTop;
-        
-        let burnedEl = playContainer.querySelector('.pile-burned');
-        if (gameState.discardCount > 0) {
-            if (!burnedEl) {
-                burnedEl = document.createElement('div');
-                burnedEl.className = 'pile-burned';
-                playContainer.appendChild(burnedEl);
-            }
-            burnedEl.textContent = `Burned ${gameState.discardCount}`;
-        } else if (burnedEl) {
-            burnedEl.remove();
-        }
+        const cardBelow = pile.length > 1 ? pile[pile.length - 2] : null;
 
         if (!effectiveTopCard) {
             if (!playStack.querySelector('.pile-placeholder')) {
@@ -295,35 +284,49 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
             }
         } else {
             const currentTop = playStack.querySelector('#pile-top-card') as HTMLElement;
+            const currentBelow = playStack.querySelector('#pile-below-card') as HTMLElement;
             let needsUpdate = true;
             
             if (currentTop) {
                 const img = currentTop.querySelector('.card-img') as HTMLElement;
                 if (img && img.getAttribute('alt')?.includes(`${effectiveTopCard.value} of ${effectiveTopCard.suit}`)) {
                      needsUpdate = false;
-                     const hasBadge = currentTop.querySelector('.copied-badge');
-                     if (!!effectiveTopCard.copied !== !!hasBadge) needsUpdate = true;
+                     // Check if shingle state changed
+                     const hasBelow = !!currentBelow;
+                     const shouldHaveBelow = !!(effectiveTopCard.copied && cardBelow);
+                     if (hasBelow !== shouldHaveBelow) needsUpdate = true;
                 }
             }
 
             if (needsUpdate) {
                 playStack.innerHTML = '';
-                const playCard = cardImg(effectiveTopCard, false, undefined, false);
-                playCard.id = 'pile-top-card';
-                if (effectiveTopCard.copied) {
-                    const badge = document.createElement('div');
-                    badge.className = 'copied-badge';
-                    badge.textContent = 'COPIED';
-                    Object.assign(badge.style, {
-                        position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)',
-                        backgroundColor: '#FFD700', color: '#000', padding: '2px 6px',
-                        borderRadius: '4px', fontSize: '10px', fontWeight: 'bold',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: '10', pointerEvents: 'none',
-                        whiteSpace: 'nowrap', border: '1px solid #b8860b'
+                
+                // If card is copied (5), show the card below it shingled
+                if (effectiveTopCard.copied && cardBelow) {
+                    const belowCard = cardImg(cardBelow, false, undefined, false);
+                    belowCard.id = 'pile-below-card';
+                    Object.assign(belowCard.style, {
+                        position: 'absolute',
+                        left: '-15px',
+                        top: '-10px',
+                        zIndex: '1'
                     });
-                    playCard.appendChild(badge);
+                    playStack.appendChild(belowCard);
+                    
+                    const playCard = cardImg(effectiveTopCard, false, undefined, false);
+                    playCard.id = 'pile-top-card';
+                    Object.assign(playCard.style, {
+                        position: 'relative',
+                        left: '0',
+                        top: '0',
+                        zIndex: '2'
+                    });
+                    playStack.appendChild(playCard);
+                } else {
+                    const playCard = cardImg(effectiveTopCard, false, undefined, false);
+                    playCard.id = 'pile-top-card';
+                    playStack.appendChild(playCard);
                 }
-                playStack.appendChild(playCard);
             }
         }
     }
@@ -772,12 +775,20 @@ export function showCardEvent(
       const icon = document.createElement('img');
       icon.className = 'special-icon';
 
+      // For 'take' type, skip the icon and just do the animation
+      if (type === 'take') {
+        if (targetPlayerId) {
+          animatePileToPlayer(targetPlayerId);
+        }
+        return;
+      }
+      
       let src = '';
       if (type === 'two') src = ICON_PATHS.two;
       else if (type === 'five') src = ICON_PATHS.five;
       else if (type === 'ten') src = ICON_PATHS.ten;
+      else if (type === 'four') src = ICON_PATHS.four;
       else if (type === 'invalid') src = ICON_PATHS.invalid;
-      else if (type === 'take') src = ICON_PATHS.take;
       else if (type === 'regular') return;
 
       icon.src = src;
@@ -794,6 +805,7 @@ export function showCardEvent(
       if (type === 'two') iconColor = '#3b82f6';
       else if (type === 'five') iconColor = '#10b981';
       else if (type === 'ten') iconColor = '#ef4444';
+      else if (type === 'four') iconColor = '#fbbf24';
       else if (type === 'invalid') iconColor = '#dc2626';
       icon.style.color = iconColor;
 
@@ -801,10 +813,6 @@ export function showCardEvent(
         parentElement.style.position = 'relative';
       }
       parentElement.appendChild(icon);
-      
-      if (type === 'take' && targetPlayerId) {
-        animatePileToPlayer(targetPlayerId);
-      }
       
       setTimeout(() => {
         icon.style.transition = 'opacity 0.5s ease, transform 0.5s ease';

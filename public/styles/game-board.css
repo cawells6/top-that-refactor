@@ -75,18 +75,19 @@
 @media (min-width: 1025px) {
     .table[data-player-count="2"] {
         grid-template-areas:
+            "top top top"
             "left center right"
             "bottom bottom bottom";
-        grid-template-rows: auto auto;
-        align-content: end;
+        grid-template-rows: auto auto auto;
+        align-content: center;
     }
 
-    .table[data-player-count="2"] #opponent-area-top {
+    .table[data-player-count="2"] #opponent-area-left {
         display: none;
     }
 
     .table[data-player-count="2"] #opponent-area-right {
-        transform: translateY(clamp(10px, 1.6vh, 22px));
+        display: none;
     }
 
     .table[data-player-count="3"] {
@@ -839,6 +840,24 @@ body.showing-game {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
+/* Shingled Cards (for 5/Copycat) */
+#game-table .play-stack {
+    overflow: visible;
+}
+
+#pile-below-card,
+#pile-top-card {
+    transition: all 0.2s ease;
+}
+
+#pile-below-card .card-container {
+    position: relative;
+}
+
+#pile-top-card .card-container {
+    position: relative;
+}
+
 /* --- 3. LABELS (Clear & Readable) --- */
 #game-table .pile-group {
     display: flex;
@@ -946,9 +965,8 @@ body.showing-game {
     margin-left: 0;
 }
 
-/* 2. Hybrid Elevation: Lift everything to a uniform height */
-.hand-row--local .card-container.selected-container,
-.hand-row--local .card-container.selectable-container:hover {
+/* 2. Hybrid Elevation: Lift selected cards */
+.hand-row--local .card-container.selected-container {
     transform: translateY(-12px);
     z-index: 50;
 }
