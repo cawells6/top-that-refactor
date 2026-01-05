@@ -71,10 +71,10 @@ async function processPlayQueue() {
        
        // Fly animation (Wait for completion)
        await animateCardFromPlayer(play.playerId, play.cards);
-    } else {
-       // Local player: minimal tick just to ensure logical ordering
-       await new Promise(resolve => setTimeout(resolve, 50));
-    }
+     } else {
+       // Local player animation is already in flight; wait before rendering
+       await waitForFlyingCard();
+     }
 
     // 2. RENDER STEP (Card hits the pile)
     renderPlayedCards(play.cards);
@@ -194,6 +194,11 @@ export async function initializeSocketHandlers(): Promise<void> {
 
       // Wait for any flying cards (just in case of race condition)
       await waitForFlyingCard();
+
+      // Ensure the queue finishes rendering the special card before showing the icon
+      while (isProcessingQueue) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
 
       let effectType = payload?.type ?? 'regular';
       
