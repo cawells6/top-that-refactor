@@ -12,6 +12,8 @@ const app: Express = express();
 // In production, serve the built client files from dist/client
 // In development, serve from public
 const clientPath = process.env.NODE_ENV === 'production' ? 'dist/client' : 'public';
+console.log(`[SERVER] Serving client files from: ${clientPath}`);
+console.log(`[SERVER] NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
 
 // Configure MIME types for TypeScript files (dev only)
 if (process.env.NODE_ENV !== 'production') {
@@ -22,6 +24,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(express.static(clientPath));
 // Also serve the src directory for shared modules
 app.use('/src', express.static('src'));
+console.log(`[SERVER] Static routes configured`);
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).send('OK');
