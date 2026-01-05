@@ -45,6 +45,7 @@
     "src/**/*.ts",
     "scripts/**/*.ts",
     "public/scripts/**/*.ts",
+    "public/vite-env.d.ts",
     "tests/**/*.ts",
     "jest-globals.d.ts",
     "src",
