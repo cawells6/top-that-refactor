@@ -7,6 +7,10 @@ import {
   START_GAME,
 } from '../../src/shared/events.ts';
 
+// Import assets so Vite can resolve hashed filenames
+import playerAvatarUrl from '../assets/Player.svg';
+import robotAvatarUrl from '../assets/robot.svg';
+
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
 let isDisplayingMessage = false;
@@ -131,11 +135,11 @@ function createPlayerSilhouette(
   img.height = 75;
 
   if (type === 'human') {
-    img.src = '/assets/Player.svg';
+    img.src = playerAvatarUrl;
     img.className = 'user-icon'; // For specific styling if needed
   } else {
     // 'cpu'
-    img.src = '/assets/robot.svg'; // Fixed capitalization to match actual file name
+    img.src = robotAvatarUrl; // Fixed capitalization to match actual file name
     img.className = 'robot-icon'; // For specific styling if needed
   }
 

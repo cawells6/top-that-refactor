@@ -8,6 +8,10 @@ import {
   isSpecialCard,
 } from '../../utils/cardUtils.js';
 
+// Import assets so Vite can resolve hashed filenames
+import playerAvatarUrl from '../assets/Player.svg';
+import robotAvatarUrl from '../assets/robot.svg';
+
 // --- PRELOAD LOGIC START ---
 const ICON_PATHS = {
   two: '/src/shared/Reset-icon.png',
@@ -1010,7 +1014,7 @@ export function renderGameState(
         if (player.id === gameState.currentPlayerId) avatar.classList.add('active-turn');
         else avatar.classList.remove('active-turn');
         const img = avatar.querySelector('img');
-        if (img) img.src = player.isComputer ? '/assets/robot.svg' : '/assets/Player.svg';
+        if (img) img.src = player.isComputer ? robotAvatarUrl : playerAvatarUrl;
     }
 
     // 4. UPDATE HAND
