@@ -1132,7 +1132,7 @@ export default class GameController {
 
     cardsToPlay.forEach((card) => {
       const normalizedValue = normalizeCardValue(card.value);
-      const playedCardForPile: Card = { ...card };
+      const playedCardForPile: Card = { ...card, copied: undefined };
       this.gameState.addToPile(playedCardForPile);
 
       if (normalizedValue !== 'five') {
