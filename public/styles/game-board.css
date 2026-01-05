@@ -1155,3 +1155,14 @@ body.showing-game {
 .hand-count-badge.badge-danger {
     background-color: #dc3545; /* Red */
 }
+
+/* Dimmed state for table stacks when hand is active */
+.stack-row.dimmed-stacks {
+    opacity: 0.4;
+    filter: grayscale(0.6);
+    pointer-events: none; /* Prevents clicking */
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* Ensure the forced down cards still look distinct if needed, 
+   but they will also be dimmed by the parent rule above */

@@ -30,6 +30,16 @@ function preloadIcons() {
 preloadIcons();
 // --- PRELOAD LOGIC END ---
 
+// Track active card flight animations
+let activeFlyPromise: Promise<void> | null = null;
+
+/**
+ * Returns a promise that resolves when the current card flight (if any) is finished.
+ */
+export function waitForFlyingCard(): Promise<void> {
+  return activeFlyPromise || Promise.resolve();
+}
+
 let lastLocalHandCount = -1;
 let lastLocalHandCards: CardType[] = [];
 let suppressNextHandAnimation = false;
@@ -64,9 +74,6 @@ function createTag(text: string, variant: string): HTMLSpanElement {
 // Helper to map card values to icon types
 function getCardIconType(card: CardType): string | null {
   if (card.back) return null;
-  
-  // Handle "Copied" cards (7s that act as 5s)
-  if (card.copied) return 'five';
   
   const val = String(card.value);
   if (val === '2') return 'two';
@@ -258,7 +265,7 @@ export function renderPlayedCards(cards: CardType[]): void {
   console.log('[renderPlayedCards] Added card with id=pile-top-card', topCard);
 }
 
-function isValidPlay(cards: CardType[], pile: CardType[]): boolean {
+export function isValidPlay(cards: CardType[], pile: CardType[]): boolean {
   console.log('--- isValidPlay Check ---');
   console.log(
     'Cards to play:',
@@ -411,6 +418,180 @@ function applyHandCompression(
 }
 
 /**
+ * Animates a card flying from a player's hand to the discard pile.
+ * Creates a visual "ghost" so the original can be hidden immediately.
+ */
+export function animatePlayerPlay(cardElement: HTMLElement): void {
+  const pileEl = document.getElementById('pile-top-card') || document.getElementById('discard-pile');
+  if (!pileEl || !cardElement) return;
+
+  // Wrap animation in a promise for tracking
+  const animationTask = new Promise<void>((resolve) => {
+    const startRect = cardElement.getBoundingClientRect();
+    const endRect = pileEl.getBoundingClientRect();
+
+    // Create flying ghost
+    const flyer = cardElement.cloneNode(true) as HTMLElement;
+    
+    // Clean up classes for the ghost so it doesn't look "selected"
+    flyer.classList.remove('selected', 'selectable', 'selected-container');
+    flyer.classList.add('flying-card-ghost');
+    
+    // Find the image inside and ensure it's visible
+    const img = flyer.querySelector('img');
+    if (img) img.style.visibility = 'visible';
+
+    // Position explicitly fixed to viewport
+    Object.assign(flyer.style, {
+      position: 'fixed',
+      top: `${startRect.top}px`,
+      left: `${startRect.left}px`,
+      width: `${startRect.width}px`,
+      height: `${startRect.height}px`,
+      zIndex: '1000',
+      margin: '0',
+      pointerEvents: 'none',
+      transition: 'none', // Disable CSS transitions so we can control it via API
+      opacity: '1'
+    });
+
+    document.body.appendChild(flyer);
+
+    const deltaX = (endRect.left + endRect.width / 2) - (startRect.left + startRect.width / 2);
+    const deltaY = (endRect.top + endRect.height / 2) - (startRect.top + startRect.height / 2);
+
+    const animation = flyer.animate([
+      { transform: 'translate(0, 0) scale(1) rotate(0deg)' },
+      { transform: `translate(${deltaX}px, ${deltaY}px) scale(0.6) rotate(10deg)` }
+    ], {
+      duration: 450,
+      easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', // Snappy ease-out
+      fill: 'forwards'
+    });
+
+    animation.onfinish = () => {
+      flyer.remove();
+      resolve();
+    };
+  });
+
+  // Track this promise
+  activeFlyPromise = animationTask;
+  animationTask.then(() => {
+    if (activeFlyPromise === animationTask) activeFlyPromise = null;
+  });
+}
+
+/**
+ * ANIMATION: Fly a card from a specific player to the discard pile.
+ * Returns a Promise that resolves when the animation finishes.
+ */
+export function animateCardFromPlayer(
+  playerId: string, 
+  playedCards?: CardType[]
+): Promise<void> {
+  // Create the animation promise
+  const animationTask = new Promise<void>((resolve) => {
+    const pileEl = document.getElementById('pile-top-card') || document.getElementById('discard-pile');
+    const playerArea = document.querySelector(`.player-area[data-player-id="${playerId}"]`);
+
+    if (!pileEl || !playerArea) {
+      resolve();
+      return;
+    }
+
+    // 1. DETERMINE SOURCE ELEMENT
+    let sourceEl: HTMLElement | null = null;
+    
+    // Strategy: Try to find the specific card first (for Up/Table plays)
+    if (playedCards && playedCards.length > 0) {
+      const topVal = playedCards[playedCards.length - 1].value;
+      // Look in Up Cards for a match
+      const upCards = playerArea.querySelectorAll('.up-card');
+      upCards.forEach((img) => {
+        if ((img as HTMLElement).dataset.value == String(topVal)) {
+          sourceEl = img.closest('.card-container');
+        }
+      });
+    }
+
+    // Fallback 1: Hand Stack (Visual representation of opponent hand)
+    if (!sourceEl) {
+      sourceEl = playerArea.querySelector('.hand-stack .card-container');
+    }
+    
+    // Fallback 2: Any card in hand row (for unexpected cases)
+    if (!sourceEl) {
+      sourceEl = playerArea.querySelector('.hand-row .card-container');
+    }
+    
+    // Fallback 3: The Player Avatar (Absolute worst case, "throws" from body)
+    if (!sourceEl) {
+      sourceEl = playerArea.querySelector('.player-avatar');
+    }
+
+    if (!sourceEl) {
+      resolve();
+      return;
+    }
+
+    // 2. PERFORM ANIMATION
+    const startRect = sourceEl.getBoundingClientRect();
+    const endRect = pileEl.getBoundingClientRect();
+
+    // Create ghost
+    const flyer = sourceEl.cloneNode(true) as HTMLElement;
+    flyer.classList.remove('selected', 'selectable', 'selected-container');
+    flyer.classList.add('flying-card-ghost');
+    
+    // Ensure it's visible (in case we cloned a hidden/optimistic element)
+    flyer.style.opacity = '1';
+    const img = flyer.querySelector('img');
+    if (img) img.style.visibility = 'visible';
+
+    Object.assign(flyer.style, {
+      position: 'fixed',
+      top: `${startRect.top}px`,
+      left: `${startRect.left}px`,
+      width: `${startRect.width}px`,
+      height: `${startRect.height}px`,
+      zIndex: '1000',
+      pointerEvents: 'none',
+      transition: 'none',
+      margin: '0'
+    });
+
+    document.body.appendChild(flyer);
+
+    const deltaX = (endRect.left + endRect.width / 2) - (startRect.left + startRect.width / 2);
+    const deltaY = (endRect.top + endRect.height / 2) - (startRect.top + startRect.height / 2);
+
+    const animation = flyer.animate([
+      { transform: 'translate(0, 0) scale(1) rotate(0deg)' },
+      { transform: `translate(${deltaX}px, ${deltaY}px) scale(0.6) rotate(15deg)` }
+    ], {
+      duration: 500,
+      easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      fill: 'forwards'
+    });
+
+    animation.onfinish = () => {
+      flyer.remove();
+      resolve(); // Resolve the promise so socketService can proceed
+    };
+  });
+
+  // Track this promise
+  activeFlyPromise = animationTask;
+  // Clear it when done so we don't block future non-animated events
+  animationTask.then(() => {
+    if (activeFlyPromise === animationTask) activeFlyPromise = null;
+  });
+
+  return animationTask;
+}
+
+/**
  * Main render function to update the entire game view
  * @param {GameStateData} gameState - Full game state from server
  * @param {string | null} localPlayerId - The local player ID
@@ -517,6 +698,9 @@ export function renderGameState(
       handCount === 0 &&
       upCount === 0 &&
       downCount > 0;
+    
+    // If any player has cards in hand, dim their table stacks to indicate they can't be played yet
+    const shouldDimTable = handCount > 0;
 
     const panel = document.createElement('div');
     panel.className = 'player-area seat classic-theme';
@@ -733,6 +917,11 @@ export function renderGameState(
 
     const stackRow = document.createElement('div');
     stackRow.className = 'stack-row';
+    
+    if (shouldDimTable) {
+      stackRow.classList.add('dimmed-stacks');
+    }
+    
     if (isForcedDown) {
       stackRow.classList.add('forced-down');
     }
@@ -907,7 +1096,7 @@ export function renderGameState(
       playCard.id = 'pile-top-card';
 
       // --- BADGE LOGIC START ---
-      // If the card is marked as 'copied' (it's a 7 that used to be a 5), show the badge
+      // If the card is marked as 'copied' (a 5 copied this card), show the badge
       if (effectiveTopCard.copied) {
         const badge = document.createElement('div');
         badge.className = 'copied-badge';

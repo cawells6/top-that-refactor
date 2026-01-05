@@ -2,6 +2,7 @@ import { PLAY_CARD, PICK_UP_PILE } from '@shared/events.ts';
 
 import * as state from './state.js';
 import { showToast } from './uiHelpers.js';
+import { animatePlayerPlay, isValidPlay } from './render.js';
 
 let initialized = false;
 
@@ -144,6 +145,60 @@ function handlePlayClick(): void {
   if (!selection) {
     return;
   }
+
+  // Client-Side Validation
+  // Get current game state to check rules
+  const gameState = state.getLastGameState();
+  if (gameState) {
+    const myPlayer = gameState.players.find((p) => p.id === state.myId);
+    const pile = gameState.pile || [];
+    
+    // Reconstruct actual card objects from the indices
+    // (We need the real values/suits for validation logic)
+    let selectedCards;
+    if (selection.zone === 'hand') {
+       const hand = myPlayer?.hand || [];
+       selectedCards = selection.cardIndices.map((idx) => hand[idx]).filter(Boolean);
+    } else if (selection.zone === 'upCards') {
+       const upCards = myPlayer?.upCards || [];
+       selectedCards = selection.cardIndices.map((idx) => upCards[idx]).filter(Boolean);
+    } else if (selection.zone === 'downCards') {
+       // We can't validate down cards (blind play), so allow them through
+       selectedCards = []; 
+    }
+
+    // Only validate if we actually resolved cards (and it's not a blind down-card play)
+    if (selectedCards && selectedCards.length > 0) {
+      if (!isValidPlay(selectedCards, pile)) {
+        showToast('Invalid Play!', 'error');
+        // ABORT: Do not animate, do not hide, do not emit.
+        // The cards stay visible in hand.
+        clearSelectedCards();
+        return;
+      }
+    }
+  }
+
+  // Animation & Instant Hide (Optimistic UI)
+  // 1. Find the selected card DOM elements
+  const selectedElements = document.querySelectorAll('#my-area .card-img.selected');
+  
+  selectedElements.forEach((imgEl) => {
+    if (imgEl instanceof HTMLElement) {
+       // Get the container (the actual card box)
+       const container = imgEl.closest('.card-container') as HTMLElement;
+       
+       // Trigger the "Ghost" animation from the current position
+       if (container) animatePlayerPlay(container);
+       
+       // 2. Optimistic Update: Hide the original immediately.
+       // It will be removed "for real" when the server sends the new state.
+       if (container) {
+         container.style.opacity = '0';
+         container.style.pointerEvents = 'none';
+       }
+    }
+  });
 
   state.socket.emit(PLAY_CARD, selection);
   clearSelectedCards();

@@ -1,4 +1,4 @@
-import { renderGameState, showCardEvent, renderPlayedCards, resetHandTracking } from './render.js';
+import { renderGameState, showCardEvent, renderPlayedCards, resetHandTracking, animateCardFromPlayer, waitForFlyingCard } from './render.js';
 import * as state from './state.js';
 import { waitForTestContinue } from './manualMode.js';
 import {
@@ -60,8 +60,8 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
   );
 
-  state.socket.on(CARD_PLAYED, (data: { cards: Card[] }) => {
-    console.log('[CARD_PLAYED] Received:', data.cards);
+  state.socket.on(CARD_PLAYED, async (data: { cards: Card[]; playerId?: string }) => {
+    console.log('[CARD_PLAYED] Received:', data.cards, 'from player:', data.playerId);
 
     // If we were holding a "Burn" (Empty Pile) state, but a new card came in,
     // cancel the hold so we don't overwrite this new card with an empty pile later.
@@ -82,11 +82,18 @@ export async function initializeSocketHandlers(): Promise<void> {
         return; // <--- This prevents the new card from appearing/overwriting the explosion
       }
 
-      // 2. Otherwise, show it immediately
+      // 2. ANIMATION STEP
+      // Only animate if we have an ID and it's NOT ME (I already animated on click)
+      if (data.playerId && data.playerId !== state.myId) {
+        // Wait for the ghost to fly before showing it on the pile
+        await animateCardFromPlayer(data.playerId, data.cards);
+      }
+
+      // 3. RENDER (Now safe to show on pile)
       renderPlayedCards(data.cards);
       cardsBeingAnimated = data.cards;
 
-      // 3. If THIS card is special, lock the door for the NEXT card (Pre-emptive Lock)
+      // 4. CHECK SPECIAL EFFECTS
       const topCard = data.cards[data.cards.length - 1];
       if (isSpecialCard(topCard.value)) {
         console.log('[Socket] Special card detected. Locking input.');
@@ -131,6 +138,9 @@ export async function initializeSocketHandlers(): Promise<void> {
       
       if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
 
+      // Wait for any card to land first
+      await waitForFlyingCard();
+
       let effectType = payload?.type ?? 'regular';
       
       // Fix: Don't show "Copy" icon if pile was empty (treat as regular 5)
@@ -145,7 +155,7 @@ export async function initializeSocketHandlers(): Promise<void> {
       
       setTimeout(() => {
         showCardEvent(payload?.value ?? null, effectType);
-      }, 100);
+      }, 50);
       
       // Wait full duration to let the user see the "Blank Pile" or "Effect"
       setTimeout(async () => {
@@ -238,6 +248,15 @@ export async function initializeSocketHandlers(): Promise<void> {
     } else {
       // In-game: show invalid icon in pile, no toast needed
       showCardEvent(null, 'invalid');
+      
+      // Error Recovery: Re-render game state to restore hidden cards
+      // If we optimistically hid cards but the server rejected the play,
+      // we must re-render the state to make them visible again.
+      const lastState = state.getLastGameState();
+      if (lastState && state.myId) {
+        console.log('[Error Recovery] Re-rendering game state to restore hidden cards.');
+        renderGameState(lastState, state.myId);
+      }
     }
   });
 
