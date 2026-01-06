@@ -1016,10 +1016,11 @@ body.showing-game {
     background: rgba(0, 0, 0, 0.25);
 
     border-radius: 30px;
-    /* MODIFIED: Responsive spacing for the tray */
-    padding: clamp(1rem, 2vw, 1.5rem) clamp(2rem, 4vw, 3rem);
+    /* MODIFIED: Wider horizontal padding for larger screens, closer vertical spacing */
+    padding: clamp(1rem, 2vw, 1.5rem) clamp(2.5rem, 5vw, 4.5rem);
     gap: clamp(0.75rem, 4vw, 2.5rem);
-    /* ADDED: Ensure the tray itself doesn't force a blowout */
+    /* ADDED: Ensure minimum width and proper sizing */
+    min-width: min-content;
     width: auto;
     max-width: 100%;
     display: flex;
