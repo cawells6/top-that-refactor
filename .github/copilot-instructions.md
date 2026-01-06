@@ -29,6 +29,56 @@
 - Verify browser/server caches are cleared
 - Think "What else could affect this?" before making changes
 
+## Pre-Implementation Checklist
+
+**MANDATORY:** Before changing/moving/renaming ANY file or reference, complete ALL steps:
+
+### 1. Comprehensive Search (Do This First)
+```bash
+# Search ALL variations of what you're changing
+grep -r "old-name" --include="*.{ts,js,tsx,jsx}" .
+grep -r "old_name" --include="*.{ts,js,tsx,jsx}" .
+grep -r "oldName" --include="*.{ts,js,tsx,jsx}" .
+
+# Check ALL file types where it might appear
+grep -r "target" --include="*.{html,css,scss,json,md}" .
+
+# Check if it exists in build output
+ls -la dist/ public/assets/ public/src/
+```
+
+### 2. Document All Changes Needed
+Write down EVERY file that needs updating before touching code:
+- TypeScript/JavaScript imports
+- HTML src/href attributes  
+- CSS url() references
+- Configuration files
+- Documentation/README
+
+### 3. Make Changes Atomically
+Use `multi_replace_string_in_file` to update ALL occurrences in ONE operation. Never change files one-by-one reactively.
+
+### 4. Verify Build Works
+```bash
+# Clear caches
+rm -rf node_modules/.vite
+
+# Test build
+npm run build
+
+# Verify the file is in dist with correct hash
+ls -la dist/client/assets/*target*
+```
+
+### 5. Commit and Deploy
+```bash
+git add -A
+git commit -m "Descriptive message"
+git push origin main  # Render auto-deploys
+```
+
+**Production Note:** Render automatically rebuilds on push. No special configuration needed if local build succeeds.
+
 ## Architecture Overview
 
 ### Layered Architecture (Never Skip Layers)
