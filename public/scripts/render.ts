@@ -360,7 +360,7 @@ function updateOpponentHandStack(handStack: HTMLElement, handCount: number, skel
   }
 }
 
-function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, visualPileTop?: CardType | null) {
+function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, visualPileTop?: CardType | null, skeletonMode: boolean = false) {
   let centerWrap = centerArea.querySelector('.center-piles');
   if (!centerWrap) {
     centerArea.innerHTML = ''; 
@@ -427,7 +427,7 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
   // --- UPDATE PILE ---
   const pile = gameState.pile ?? [];
   const playContainer = centerWrap.querySelector('.pile-group--discard') as HTMLElement;
-  if (playContainer) {
+  if (playContainer && !skeletonMode) {
     const countEl = playContainer.querySelector('.pile-count');
     if (countEl) countEl.textContent = String(pile.length);
 
@@ -1187,7 +1187,7 @@ export function renderGameState(
 
   // --- CENTER AREA UPDATE (Smart) ---
   if (centerArea) {
-    updateCenterArea(centerArea, gameState, visualPileTop);
+    updateCenterArea(centerArea, gameState, visualPileTop, options.skeletonMode || false);
   }
 
   const players = gameState.players;

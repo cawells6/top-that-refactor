@@ -309,9 +309,13 @@ async function animateDeckToDiscard(gameState: GameStateData): Promise<void> {
     // Wait for the card to land
     await wait(FLIGHT_DURATION_MS);
     
-    // Reveal the discard pile card with a fade-in
+    // Make the discard pile visible and reveal the card with a fade-in
+    if (discardElem) {
+        (discardElem as HTMLElement).style.opacity = '1';
+    }
     const discardCard = discardElem.querySelector('.card-img') as HTMLElement;
     if (discardCard) {
+        discardCard.style.visibility = 'visible';
         discardCard.style.opacity = '1';
     }
 }
@@ -340,9 +344,20 @@ function revealHandCards(players: any[], myPlayerId: string) {
                 });
             }
         } else {
-            // For opponents, just make the hand count badge visible
+            // For opponents, reveal the stacked hand cards
             const playerArea = document.querySelector(`.player-area[data-player-id="${player.id}"]`);
             if (playerArea) {
+                const handCards = playerArea.querySelectorAll('.hand-row .card-img') as NodeListOf<HTMLElement>;
+                handCards.forEach((cardImg) => {
+                    cardImg.style.visibility = 'visible';
+                    cardImg.style.opacity = '0';
+                    requestAnimationFrame(() => {
+                        cardImg.style.transition = 'opacity 0.3s ease';
+                        cardImg.style.opacity = '1';
+                    });
+                });
+                
+                // Also reveal the badge if present
                 const badge = playerArea.querySelector('.hand-count-badge') as HTMLElement;
                 if (badge) {
                     badge.style.visibility = 'visible';

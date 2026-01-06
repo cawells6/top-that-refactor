@@ -245,7 +245,10 @@ export async function initializeSocketHandlers(): Promise<void> {
           
           // Clear play pile
           const playPile = document.getElementById('discard-pile');
-          if (playPile) playPile.innerHTML = '';
+          if (playPile) {
+            playPile.innerHTML = '';
+            playPile.style.opacity = '0';
+          }
         }
         
         // 2. Render skeleton (shows slots/names, hides cards and icons)
