@@ -1016,8 +1016,8 @@ body.showing-game {
 
     border-radius: 30px;
     /* MODIFIED: Responsive spacing for the tray */
-    padding: clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 3vw, 2.5rem);
-    gap: clamp(1rem, 5vw, 3rem);
+    padding: clamp(1rem, 2vw, 1.5rem) clamp(2rem, 4vw, 3rem);
+    gap: clamp(0.75rem, 4vw, 2.5rem);
     /* ADDED: Ensure the tray itself doesn't force a blowout */
     width: auto;
     max-width: 100%;
