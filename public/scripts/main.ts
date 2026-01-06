@@ -79,6 +79,25 @@ export async function initMain({
   const params = new URLSearchParams(
     (injectedWindow || window).location.search
   );
+  
+  // 1. CHECK FOR TUTORIAL FLAG
+  if (params.get('tutorial') === 'true') {
+    console.log('🪖 Loading Tutorial Mode...');
+    
+    // Hide Lobby, Show Game Table
+    document.body.classList.remove('showing-lobby');
+    document.body.classList.add('showing-game');
+    document.getElementById('lobby-container')?.classList.add('hidden');
+    document.getElementById('game-table')?.classList.remove('hidden');
+
+    // Dynamically import and initialize the Tutorial Controller
+    const { TutorialController } = await import('./tutorial/TutorialController.js');
+    new TutorialController();
+
+    return; // STOP HERE. Do not connect to socket.
+  }
+  
+  // 2. NORMAL GAME LOAD (Existing Code)
   if (params.get('spectator') === '1' || params.get('spectator') === 'true') {
     setIsSpectator(true);
     document.body.classList.add('spectator-mode');

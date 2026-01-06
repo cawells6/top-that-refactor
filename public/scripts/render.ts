@@ -12,6 +12,7 @@ import {
 import playerAvatarUrl from '../assets/Player.svg';
 import robotAvatarUrl from '../assets/robot.svg';
 import logoUrl from '../assets/logo and slogan.svg';
+import crownIconUrl from '../assets/crown-icon.svg';
 import resetIconUrl from '../src/shared/Reset-icon.png';
 import copyIconUrl from '../src/shared/Copy-icon.png';
 import burnIconUrl from '../src/shared/Burn-icon.png';
@@ -1454,7 +1455,7 @@ export function animateVictory(winnerId: string): void {
   // 3. Construct HTML
   overlay.innerHTML = `
     <div class="victory-content">
-      <img src="/assets/crown-icon.svg" class="victory-crown" alt="Crown">
+      <img src="${crownIconUrl}" class="victory-crown" alt="Crown">
       <h1 class="victory-title">The Crown is Taken!</h1>
       <div class="victory-winner">${playerName}</div>
       <button id="victory-restart-btn" class="action-button">Play Again</button>

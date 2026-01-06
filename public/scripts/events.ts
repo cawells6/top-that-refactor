@@ -453,12 +453,20 @@ export async function initializePageEventListeners() {
 
   // Only setup modal buttons now (header buttons removed)
   const setupRulesButton = document.getElementById('setup-rules-button');
+  const setupTutorialButton = document.getElementById('setup-tutorial-button');
   const setupDealButton = document.getElementById('setup-deal-button');
   const joinRulesButton = document.getElementById('join-rules-button');
   const gameRulesButton = document.getElementById('game-rules-button');
 
   if (setupRulesButton) {
     setupRulesButton.addEventListener('click', handleRulesClick);
+  }
+
+  if (setupTutorialButton) {
+    setupTutorialButton.addEventListener('click', () => {
+      // Reload page with tutorial flag
+      window.location.href = '/?tutorial=true';
+    });
   }
 
   if (joinRulesButton) {

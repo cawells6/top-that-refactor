@@ -510,11 +510,27 @@ body.showing-game #game-rules-button {
   z-index: 1;
 }
 
+.stack .card-container.down-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  margin: 0;
+}
+
 .stack .card-img.up-card {
   position: absolute;
   top: 12px;
   left: 0;
   z-index: 2;
+}
+
+.stack .card-container.up-card {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  z-index: 2;
+  margin: 0;
 }
 
 .stack-row.forced-down {

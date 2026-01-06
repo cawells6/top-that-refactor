@@ -4,6 +4,7 @@ import { renderGameState } from '../render.js';
 import { Card, GameStateData } from '../../../src/shared/types.js';
 import { showToast } from '../uiHelpers.js';
 import { initializeGameControls } from '../gameControls.js';
+import playerAvatarUrl from '../../assets/Player.svg';
 
 type TutorialStep = 
   | 'WELCOME' 
@@ -233,7 +234,7 @@ export class TutorialController {
     div.id = 'coach-overlay';
     div.innerHTML = `
       <div style="position: absolute; bottom: 180px; right: 20px; width: 280px; z-index: 2000; pointer-events: none;">
-        <img src="/assets/Player.svg" style="width: 100px; float: right; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));">
+        <img src="${playerAvatarUrl}" style="width: 100px; float: right; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));">
         <div id="coach-bubble" style="background: white; padding: 15px; border-radius: 15px; border: 4px solid #333; float: right; margin-right: -20px; margin-top: 20px; font-family: 'Luckiest Guy', cursive; font-size: 1.2rem; box-shadow: 4px 4px 0px rgba(0,0,0,0.2); position: relative;">
           Ready for the tutorial?
         </div>

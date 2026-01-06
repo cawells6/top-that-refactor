@@ -1,5 +1,6 @@
 // card.ts - Handles card rendering logic
 import { Card } from '../../src/types.js';
+import logoUrl from '../assets/logo and slogan.svg';
 
 /**
  * Creates a card element with appropriate styling and behavior
@@ -30,7 +31,7 @@ export function createCardElement(
     inner.className = 'card-back-inner';
     const logo = document.createElement('img');
     logo.className = 'card-back-logo';
-    logo.src = '/assets/logo%20and%20slogan.svg';
+    logo.src = logoUrl;
     logo.alt = 'Top That';
     inner.appendChild(logo);
     cardBack.appendChild(inner);
