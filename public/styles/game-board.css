@@ -19,8 +19,9 @@
     --table-row-gap-max: 36px;
     
     /* Table spacing - horizontal (between left/center/right columns) */
-    --table-column-gap-min: 100px;
-    --table-column-gap-preferred: 10vw;
+    /* REDUCED: Prevents the gap from pushing columns off-screen on tablets */
+    --table-column-gap-min: 20px;
+    --table-column-gap-preferred: 8vw;
     --table-column-gap-max: 150px;
     
     /* Table padding - vertical (top/bottom space inside border) */
@@ -43,7 +44,9 @@
         ". top ."
         "left center right"
         "bottom bottom bottom";
-    grid-template-columns: 260px auto 260px;
+    /* MODIFIED: Allow sides to shrink to 200px if needed, but aim for 260px.
+       Center stays 'auto' to fill remaining space, preserving current logic. */
+    grid-template-columns: minmax(200px, 260px) auto minmax(200px, 260px);
     grid-template-rows: auto auto auto;
     justify-content: center;
     align-content: center;
@@ -1012,8 +1015,12 @@ body.showing-game {
     background: rgba(0, 0, 0, 0.25);
 
     border-radius: 30px;
-    padding: 1.5rem 2.5rem;
-    gap: 3rem;
+    /* MODIFIED: Responsive spacing for the tray */
+    padding: clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 3vw, 2.5rem);
+    gap: clamp(1rem, 5vw, 3rem);
+    /* ADDED: Ensure the tray itself doesn't force a blowout */
+    width: auto;
+    max-width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
