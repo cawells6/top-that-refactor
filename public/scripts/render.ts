@@ -130,16 +130,19 @@ function getPlayerDisplayName(playerId: string, players: any[]): string {
 export function logCardPlayed(playerId: string, cards: CardType[], players: any[]): void {
   const playerName = getPlayerDisplayName(playerId, players);
   const cardStr = formatCards(cards);
-  addLogEntry(`${playerName} played ${cardStr}`, 'play');
+  addLogEntry(`${playerName} played ${cardStr} to the Draw pile`, 'play');
 }
 
 export function logPileTaken(playerId: string, pileSize: number, players: any[]): void {
   const playerName = getPlayerDisplayName(playerId, players);
-  addLogEntry(`${playerName} took the pile (${pileSize} cards)`, 'take');
+  addLogEntry(`${playerName} took the Draw pile (${pileSize} cards)`, 'take');
 }
 
-export function logDeckToPile(): void {
-  addLogEntry('Card drawn from deck to play pile', 'draw');
+/**
+ * RENAMED: logDeckToPile -> logPlayToDraw
+ */
+export function logPlayToDraw(): void {
+  addLogEntry('Card flipped from Play pile to Draw pile', 'draw');
 }
 
 export function logSpecialEffect(effectType: string, value?: any): void {
@@ -431,12 +434,22 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
 
   // --- UPDATE PILE ---
   const pile = gameState.pile ?? [];
-  const playContainer = centerWrap.querySelector('.pile-group--discard') as HTMLElement;
-  if (playContainer && !skeletonMode) {
-    const countEl = playContainer.querySelector('.pile-count');
+  const drawContainer = centerWrap.querySelector('.pile-group--discard') as HTMLElement;
+  if (drawContainer) {
+    const drawStack = drawContainer.querySelector('.play-stack') as HTMLElement;
+    
+    // FIX: During skeleton mode, ensure the pile is blank
+    if (skeletonMode) {
+        if (drawStack) drawStack.innerHTML = '<div class="pile-placeholder"></div>';
+        const countEl = drawContainer.querySelector('.pile-count');
+        if (countEl) countEl.textContent = '0';
+        return;
+    }
+
+    const countEl = drawContainer.querySelector('.pile-count');
     if (countEl) countEl.textContent = String(pile.length);
 
-    const playStack = playContainer.querySelector('.play-stack') as HTMLElement;
+    const playStack = drawStack;
     if (playStack) {
         if (pile.length > 1) playStack.classList.add('pile-multiple');
         else playStack.classList.remove('pile-multiple');

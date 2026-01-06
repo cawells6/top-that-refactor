@@ -1,5 +1,5 @@
 import { GameStateData, Card } from '../../src/shared/types.js';
-import { cardImg } from './render.js';
+import { cardImg, renderGameState } from './render.js';
 import { SoundManager } from './SoundManager.js';
 
 // --- CONFIGURATION ---
@@ -91,6 +91,11 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
     await wait(200);
     // Move first card from "Play" (deck) to "Draw" (discard)
     await animatePlayToDraw(gameState);
+    
+    // --- FINAL COMMIT: MAKE CARDS STICK ---
+    // This turns off skeleton mode and resets standard rendering
+    renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
+    
     await showStartOverlay();
 }
 
@@ -107,14 +112,17 @@ function getTarget(playerId: string, type: 'up'|'down', index: number): HTMLElem
     return el as HTMLElement;
 }
 
-function revealGroup(playerId: string, type: 'up'|'down', count: number, skipSound?: boolean) {
-    if (!skipSound) SoundManager.play('card-land');
+function revealGroup(playerId: string, type: 'up'|'down', count: number, suppressSound = false) {
+    if (!suppressSound) SoundManager.play('card-land');
     for(let i=0; i<count; i++) {
         const target = getTarget(playerId, type, i);
         if (target) {
             // Reveal Card Image
             const img = target.querySelector('.card-img') as HTMLElement;
-            if (img) img.style.visibility = 'visible';
+            if (img) {
+                img.style.visibility = 'visible';
+                img.style.opacity = '1'; // FIX: Reveal cards that were opacity:0
+            }
             
             // Reveal Special Icon (if any)
             const icon = target.querySelector('.card-ability-icon') as HTMLElement;
@@ -128,8 +136,8 @@ function revealGroup(playerId: string, type: 'up'|'down', count: number, skipSou
     }
 }
 
-function revealMyHand(count: number, skipSound?: boolean) {
-    if (!skipSound) SoundManager.play('card-land');
+function revealMyHand(count: number, suppressSound = false) {
+    if (!suppressSound) SoundManager.play('card-land');
     const handRow = document.querySelector('#my-area .hand-row');
     if (!handRow) return;
     
@@ -137,21 +145,27 @@ function revealMyHand(count: number, skipSound?: boolean) {
         const slot = handRow.children[i];
         if (slot) {
             const img = slot.querySelector('.card-img') as HTMLElement;
-            if (img) img.style.visibility = 'visible';
+            if (img) {
+                img.style.visibility = 'visible';
+                img.style.opacity = '1'; // FIX: Reveal opacity
+            }
             const icon = slot.querySelector('.card-ability-icon') as HTMLElement;
             if (icon) icon.style.visibility = 'visible';
         }
     }
 }
 
-function revealOpponentHand(playerId: string, skipSound?: boolean) {
-    if (!skipSound) SoundManager.play('card-land');
+function revealOpponentHand(playerId: string, suppressSound = false) {
+    if (!suppressSound) SoundManager.play('card-land');
     const area = document.querySelector(`.player-area[data-player-id="${playerId}"]`);
     if (!area) return;
     
-    // Reveal all stacked cards
-    const cards = area.querySelectorAll('.hand-stack .card-img');
-    cards.forEach(c => (c as HTMLElement).style.visibility = 'visible');
+    // FIX: Selector changed to .hand-row
+    const cards = area.querySelectorAll('.hand-row .card-img');
+    cards.forEach(c => {
+        (c as HTMLElement).style.visibility = 'visible';
+        (c as HTMLElement).style.opacity = '1'; // FIX: Reveal opacity
+    });
     
     const badge = area.querySelector('.hand-count-badge') as HTMLElement;
     if (badge) badge.style.visibility = 'visible';
@@ -213,12 +227,16 @@ async function animatePlayToDraw(gameState: GameStateData) {
     await wait(FLIGHT_DURATION_MS);
     
     SoundManager.play('card-land');
-    const img = target.querySelector('.card-img') as HTMLElement;
-    if (img) img.style.visibility = 'visible';
     
-    // Ensure "Draw" pile count updates
-    const countEl = target.closest('.pile-group')?.querySelector('.pile-count');
-    if (countEl) countEl.textContent = '1';
+    // Force a local render of just the pile so the card actually exists to be shown
+    const playStack = target.querySelector('.play-stack') as HTMLElement;
+    if (playStack && topCard) {
+        playStack.innerHTML = '';
+        const imgEl = cardImg(topCard, false, undefined, false, false);
+        playStack.appendChild(imgEl);
+        const countEl = target.querySelector('.pile-count');
+        if (countEl) countEl.textContent = '1';
+    }
 }
 
 async function showStartOverlay() {
