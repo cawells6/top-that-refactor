@@ -42,6 +42,8 @@ import { isSpecialCard } from '../../utils/cardUtils.js';
 let isAnimatingSpecialEffect = false;
 let pendingStateUpdate: GameStateData | null = null;
 let cardsBeingAnimated: Card[] | null = null;
+// Track if we've dealt the opening hand to avoid re-triggering animation
+// Reset this when switching games (dev restart)
 let hasDealtOpeningHand = false;
 
 interface QueuedPlay {
@@ -162,6 +164,11 @@ export async function initializeSocketHandlers(): Promise<void> {
     } else {
       showLobbyForm();
     }
+  });
+  
+  // Reset animation flag when disconnecting (for dev restart)
+  state.socket.on('disconnect', () => {
+    hasDealtOpeningHand = false;
   });
 
   state.socket.on(

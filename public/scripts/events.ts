@@ -551,6 +551,12 @@ export async function initializePageEventListeners() {
     joinGameButton.addEventListener('click', handleJoinGameClick);
   }
 
+  // Dev-only restart button (only works if button is visible)
+  const devRestartButton = document.getElementById('dev-restart-button');
+  if (devRestartButton) {
+    devRestartButton.addEventListener('click', handleDevRestart);
+  }
+
   const backToLobbyButton = uiManager.getBackToLobbyButton();
   if (backToLobbyButton) {
     backToLobbyButton.onclick = () => {

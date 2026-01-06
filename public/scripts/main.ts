@@ -129,6 +129,16 @@ export async function initMain({
   } catch (error) {
     console.error('Error during initialization:', error);
   }
+  
+  // Show dev-only restart button in development mode
+  if (import.meta.env.DEV) {
+    const devRestartButton = document.getElementById('dev-restart-button');
+    if (devRestartButton) {
+      devRestartButton.style.display = 'block';
+      console.log('🔧 [DEV] Restart button enabled');
+    }
+  }
+  
   document.body.classList.remove('body-loading');
   document.body.classList.add('showing-lobby');
   const lobbyContainer = document.getElementById('lobby-container');
