@@ -427,7 +427,15 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
   // --- UPDATE PILE ---
   const pile = gameState.pile ?? [];
   const playContainer = centerWrap.querySelector('.pile-group--discard') as HTMLElement;
-  if (playContainer && !skeletonMode) {
+  if (playContainer) {
+    // Hide in skeleton mode but still render
+    if (skeletonMode) {
+      playContainer.style.opacity = '0';
+      playContainer.style.visibility = 'hidden';
+    } else {
+      playContainer.style.opacity = '';
+      playContainer.style.visibility = '';
+    }
     const countEl = playContainer.querySelector('.pile-count');
     if (countEl) countEl.textContent = String(pile.length);
 
@@ -531,15 +539,6 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                     downCard.dataset.zone = 'downCards';
                 }
                 col.insertBefore(downCard, col.firstChild);
-                
-                // Hide in skeleton mode
-                if (skeletonMode) {
-                    const img = downCard.querySelector('.card-img') as HTMLElement;
-                    if (img) {
-                        img.style.visibility = 'hidden';
-                        img.style.opacity = '0';
-                    }
-                }
             } else {
                 // Ensure visibility is restored when not in skeleton mode
                 if (!skeletonMode) {
@@ -585,15 +584,6 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                     upCardEl.dataset.value = newVal;
                 }
                 col.appendChild(upCardEl);
-                
-                // Hide in skeleton mode
-                if (skeletonMode) {
-                    const img = upCardEl.querySelector('.card-img') as HTMLElement;
-                    if (img) {
-                        img.style.visibility = 'hidden';
-                        img.style.opacity = '0';
-                    }
-                }
             } else {
                 // Ensure visibility is restored when not in skeleton mode
                 if (!skeletonMode) {
@@ -653,11 +643,11 @@ function updateHandRow(handRow: HTMLDivElement, cards: CardType[], isMyTurn: boo
         imgEl.dataset.idx = String(i);
         imgEl.dataset.zone = 'hand';
         imgEl.dataset.value = String(normalizeCardValue(card.value) ?? card.value);
-        // Hide in skeleton mode
-        if (skeletonMode) {
-          imgEl.style.visibility = 'hidden';
-          imgEl.style.opacity = '0';
-        }
+      }
+      // Hide special icons in skeleton mode
+      if (skeletonMode) {
+        const icon = newCardEl.querySelector('.card-ability-icon') as HTMLElement;
+        if (icon) icon.style.display = 'none';
       }
       handRow.appendChild(newCardEl);
       continue;
