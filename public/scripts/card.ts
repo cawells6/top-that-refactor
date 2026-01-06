@@ -1,6 +1,6 @@
 // card.ts - Handles card rendering logic
 import { Card } from '../../src/types.js';
-import logoUrl from '../assets/logo and slogan.svg';
+import logoUrl from '../src/shared/noslogan.svg';
 
 /**
  * Creates a card element with appropriate styling and behavior

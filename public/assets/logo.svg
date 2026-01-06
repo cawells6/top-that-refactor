@@ -1,0 +1,36 @@
+<svg width="300" height="120" viewBox="0 0 300 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Crown -->
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFC300;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DAA520;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Crown icon -->
+  <g transform="translate(10, 20)">
+    <path d="M10 50 L13 25 L23 35 L33 10 L43 35 L53 25 L56 50 Z" 
+          fill="url(#goldGrad)" 
+          stroke="#B8860B" 
+          stroke-width="1.5" 
+          stroke-linejoin="round"/>
+    <circle cx="13" cy="25" r="3" fill="#FF6B6B" stroke="#C92A2A" stroke-width="0.8"/>
+    <circle cx="33" cy="10" r="3.5" fill="#4ECDC4" stroke="#0B7285" stroke-width="0.8"/>
+    <circle cx="53" cy="25" r="3" fill="#FF6B6B" stroke="#C92A2A" stroke-width="0.8"/>
+    <rect x="10" y="50" width="46" height="8" rx="1.5" 
+          fill="url(#goldGrad)" 
+          stroke="#B8860B" 
+          stroke-width="1.5"/>
+  </g>
+  
+  <!-- "Top That!" text -->
+  <text x="85" y="50" font-family="'Arial Black', 'Arial Bold', sans-serif" font-size="36" font-weight="900" fill="#2C3E50" letter-spacing="1">
+    Top That!
+  </text>
+  
+  <!-- Text shadow/outline effect -->
+  <text x="85" y="50" font-family="'Arial Black', 'Arial Bold', sans-serif" font-size="36" font-weight="900" fill="none" stroke="#FFD700" stroke-width="2" letter-spacing="1">
+    Top That!
+  </text>
+</svg>
