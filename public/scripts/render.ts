@@ -503,6 +503,27 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
   }
 }
 
+/**
+ * Helper to hide elements in skeleton mode
+ */
+function applySkeleton(element: HTMLElement | null, skeletonMode: boolean) {
+    if (!element) return;
+    
+    // 1. Hide the main image
+    const img = element.querySelector('.card-img') as HTMLElement;
+    if (img) img.style.visibility = skeletonMode ? 'hidden' : 'visible';
+    
+    // 2. Hide the special ability icon
+    const icon = element.querySelector('.card-ability-icon') as HTMLElement;
+    if (icon) icon.style.visibility = skeletonMode ? 'hidden' : 'visible';
+    
+    // 3. For Up Cards, we might want to hide the container border too so it looks empty
+    // (Currently optional - uncomment if you want slots to look 100% empty)
+    // if (skeletonMode && element.classList.contains('up-card')) {
+    //     element.style.visibility = 'hidden';
+    // }
+}
+
 function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCount: number, isLocal: boolean, isMyTurn: boolean, handCount: number, upCount: number, skeletonMode: boolean = false, playerId: string = '') {
     const maxStackCount = Math.max(upCards.length, downCount);
     
@@ -527,6 +548,7 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
         
         if (hasDownCard) {
             if (!existingDownImg) {
+                // New Card
                 const downCard = cardImg({ value: '', suit: '', back: true } as CardType, canPlayDown, undefined, true, skeletonMode);
                 downCard.classList.add('down-card');
                 const downImg = downCard.querySelector('.card-img') as HTMLElement;
@@ -537,26 +559,11 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                 }
                 col.insertBefore(downCard, col.firstChild);
                 
-                // Hide in skeleton mode
-                if (skeletonMode) {
-                    const img = downCard.querySelector('.card-img') as HTMLElement;
-                    if (img) {
-                        img.style.visibility = 'hidden';
-                        img.style.opacity = '0';
-                    }
-                }
-                
-                // Hide in skeleton mode
-                if (skeletonMode) {
-                    const img = downCard.querySelector('.card-img') as HTMLElement;
-                    if (img) {
-                        img.style.visibility = 'hidden';
-                        img.style.opacity = '0';
-                    }
-                }
+                // Apply skeleton mode (will hide if needed)
+                applySkeleton(downCard, skeletonMode);
             } else {
-                // Ensure visibility is restored when not in skeleton mode
-                if (!skeletonMode) {
+                // Existing Card - FORCE SKELETON CHECK
+                applySkeleton(existingDownImg as HTMLElement, skeletonMode);
                     const cardImgEl = existingDownImg.querySelector('.card-img') as HTMLElement;
                     if (cardImgEl) cardImgEl.style.visibility = 'visible';
                 }
@@ -600,20 +607,11 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                 }
                 col.appendChild(upCardEl);
                 
-                // Hide in skeleton mode
-                if (skeletonMode) {
-                    const img = upCardEl.querySelector('.card-img') as HTMLElement;
-                    if (img) {
-                        img.style.visibility = 'hidden';
-                        img.style.opacity = '0';
-                    }
-                }
+                // Apply skeleton mode (will hide if needed)
+                applySkeleton(upCardEl, skeletonMode);
             } else {
-                // Ensure visibility is restored when not in skeleton mode
-                if (!skeletonMode) {
-                    const cardImgEl = existingUpImg.querySelector('.card-img') as HTMLElement;
-                    if (cardImgEl) cardImgEl.style.visibility = 'visible';
-                }
+                // Existing Card - FORCE SKELETON CHECK
+                applySkeleton(existingUpImg.closest('.card-container') as HTMLElement, skeletonMode);
                 const container = existingUpImg.closest('.card-container');
                 if (canPlayUp && !existingUpImg.classList.contains('selectable')) {
                     existingUpImg.classList.add('selectable');
@@ -661,21 +659,23 @@ function updateHandRow(handRow: HTMLDivElement, cards: CardType[], isMyTurn: boo
     }
 
     if (!el) {
+      // New Card
       const newCardEl = cardImg(card, isMyTurn, undefined, true, skeletonMode);
       const imgEl = newCardEl.querySelector('.card-img') as HTMLElement;
       if (imgEl) {
         imgEl.dataset.idx = String(i);
         imgEl.dataset.zone = 'hand';
         imgEl.dataset.value = String(normalizeCardValue(card.value) ?? card.value);
-        // Hide in skeleton mode
-        if (skeletonMode) {
-          imgEl.style.visibility = 'hidden';
-          imgEl.style.opacity = '0';
-        }
       }
       handRow.appendChild(newCardEl);
+      
+      // Apply skeleton mode (will hide if needed)
+      applySkeleton(newCardEl, skeletonMode);
       continue;
     }
+
+    // Existing Card - FORCE SKELETON CHECK
+    applySkeleton(el, skeletonMode);
 
     const imgEl = el.querySelector('.card-img') as HTMLImageElement;
     if (imgEl) {
