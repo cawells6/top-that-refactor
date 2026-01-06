@@ -22,7 +22,6 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
     const myPlayer = gameState.players.find(p => p.id === myPlayerId);
     const opponents = gameState.players.filter(p => p.id !== myPlayerId);
     const dealingOrder = myPlayer ? [myPlayer, ...opponents] : opponents;
-    const dealingOrder = myPlayer ? [myPlayer, ...opponents] : opponents;
 
     // --- PHASE A: DOWN CARDS (Player by Player) ---
     for (const player of dealingOrder) {
@@ -173,7 +172,6 @@ function revealOpponentHand(playerId: string) {
     
     const badge = area.querySelector('.hand-count-badge') as HTMLElement;
     if (badge) badge.style.visibility = 'visible';
-}
 }
 
 function animateFlyer(fromRect: DOMRect, toElem: HTMLElement, cardData: Card | null, isFaceUp: boolean) {

@@ -564,9 +564,6 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
             } else {
                 // Existing Card - FORCE SKELETON CHECK
                 applySkeleton(existingDownImg as HTMLElement, skeletonMode);
-                    const cardImgEl = existingDownImg.querySelector('.card-img') as HTMLElement;
-                    if (cardImgEl) cardImgEl.style.visibility = 'visible';
-                }
                 const container = existingDownImg.closest('.card-container');
                 if (container) {
                     const img = container.querySelector('img');
