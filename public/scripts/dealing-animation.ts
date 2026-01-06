@@ -312,12 +312,6 @@ async function animateDeckToDiscard(gameState: GameStateData): Promise<void> {
     // Make the discard pile visible and reveal the card with a fade-in
     if (discardElem) {
         (discardElem as HTMLElement).style.opacity = '1';
-        (discardElem as HTMLElement).style.visibility = 'visible';
-    }
-    const playStack = document.getElementById('play-pile');
-    if (playStack) {
-        playStack.style.opacity = '1';
-        playStack.style.visibility = 'visible';
     }
     const discardCard = discardElem.querySelector('.card-img') as HTMLElement;
     if (discardCard) {
@@ -347,13 +341,6 @@ function revealHandCards(players: any[], myPlayerId: string) {
                             cardImg.style.opacity = '1';
                         });
                     }, idx * 50); // Stagger slightly
-                });
-                // Reveal ability icons for hand cards
-                const icons = handRow.querySelectorAll('.card-ability-icon') as NodeListOf<HTMLElement>;
-                icons.forEach((icon, idx) => {
-                    setTimeout(() => {
-                        icon.style.display = '';
-                    }, idx * 50);
                 });
             }
         } else {
