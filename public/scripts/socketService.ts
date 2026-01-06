@@ -4,7 +4,8 @@ import {
   renderPlayedCards, 
   resetHandTracking, 
   animateCardFromPlayer, 
-  waitForFlyingCard 
+  waitForFlyingCard,
+  animateVictory
 } from './render.js';
 import * as state from './state.js';
 import { waitForTestContinue } from './manualMode.js';
@@ -16,6 +17,7 @@ import { showToast } from './uiHelpers.js';
 import {
   JOINED,
   GAME_STARTED,
+  GAME_OVER,
   SPECIAL_CARD_EFFECT,
   PILE_PICKED_UP,
   STATE_UPDATE,
@@ -276,6 +278,11 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
     
     showCardEvent(null, 'take', data.playerId);
+  });
+
+  state.socket.on(GAME_OVER, (data: { winnerId: string; winnerName: string }) => {
+    console.log('Game Over! Winner:', data.winnerName, 'ID:', data.winnerId);
+    animateVictory(data.winnerId);
   });
 
   state.socket.on(ERROR, (msg: string) => {
