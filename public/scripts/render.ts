@@ -12,7 +12,7 @@ import {
 import playerAvatarUrl from '../assets/Player.svg';
 import robotAvatarUrl from '../assets/robot.svg';
 import logoUrl from '../src/shared/logov2.svg';
-import crownIconUrl from '../assets/logov2-crown.svg';
+import crownIconUrl from '../src/shared/crownv2.svg';
 import resetIconUrl from '../src/shared/Reset-icon.png';
 import copyIconUrl from '../src/shared/Copy-icon.png';
 import burnIconUrl from '../src/shared/Burn-icon.png';
