@@ -486,7 +486,7 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
   }
 }
 
-function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCount: number, isLocal: boolean, isMyTurn: boolean, handCount: number, upCount: number) {
+function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCount: number, isLocal: boolean, isMyTurn: boolean, handCount: number, upCount: number, skeletonMode: boolean = false, playerId: string = '') {
     const maxStackCount = Math.max(upCards.length, downCount);
     
     while (stackRow.children.length < maxStackCount) {
@@ -500,6 +500,10 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
 
     const children = Array.from(stackRow.children);
     children.forEach((col, i) => {
+        // Add target ID for animation
+        const colEl = col as HTMLElement;
+        colEl.id = `deal-target-${playerId}-down-${i}`;
+        
         const hasDownCard = downCount > i;
         const canPlayDown = isLocal && hasDownCard && isMyTurn && handCount === 0 && upCount === 0;
         let existingDownImg = col.querySelector('.down-card');
@@ -515,6 +519,12 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                     downCard.dataset.zone = 'downCards';
                 }
                 col.insertBefore(downCard, col.firstChild);
+                
+                // Hide in skeleton mode
+                if (skeletonMode) {
+                    const img = downCard.querySelector('.card-img') as HTMLElement;
+                    if (img) img.style.visibility = 'hidden';
+                }
             } else {
                 const container = existingDownImg.closest('.card-container');
                 if (container) {
@@ -537,6 +547,10 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
         let existingUpImg = col.querySelector('.up-card') as HTMLImageElement;
         
         if (upCard) {
+            // Update target ID for up cards
+            const colEl = col as HTMLElement;
+            colEl.id = `deal-target-${playerId}-up-${i}`;
+            
             const newVal = String(upCard.value);
             if (!existingUpImg || existingUpImg.dataset.value !== newVal) {
                 if (existingUpImg) existingUpImg.closest('.card-container')?.remove();
@@ -551,6 +565,12 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                     upCardEl.dataset.value = newVal;
                 }
                 col.appendChild(upCardEl);
+                
+                // Hide in skeleton mode
+                if (skeletonMode) {
+                    const img = upCardEl.querySelector('.card-img') as HTMLElement;
+                    if (img) img.style.visibility = 'hidden';
+                }
             } else {
                 const container = existingUpImg.closest('.card-container');
                 if (canPlayUp && !existingUpImg.classList.contains('selectable')) {
@@ -1072,7 +1092,8 @@ let lastCurrentPlayerId: string | null = null;
 export function renderGameState(
   gameState: GameStateData,
   localPlayerId: string | null,
-  visualPileTop?: CardType | null
+  visualPileTop?: CardType | null,
+  options: { skeletonMode?: boolean } = {}
 ): void {
   if (!gameState?.started) {
     lastLocalHandCount = -1;
@@ -1320,7 +1341,7 @@ export function renderGameState(
         if (isForcedDown) stackRow.classList.add('forced-down');
         else stackRow.classList.remove('forced-down');
 
-        updateStacks(stackRow, player.upCards ?? [], downCount, isLocalPlayer, isMyTurn, handCount, upCount);
+        updateStacks(stackRow, player.upCards ?? [], downCount, isLocalPlayer, isMyTurn, handCount, upCount, options.skeletonMode, player.id);
     }
 
     // 6. UPDATE BUTTONS (Local)

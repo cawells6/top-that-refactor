@@ -15,6 +15,7 @@ import {
   logGameStart,
   logGameOver
 } from './render.js';
+import { performOpeningDeal } from './dealing-animation.js';
 import * as state from './state.js';
 import { waitForTestContinue } from './manualMode.js';
 import {
@@ -41,6 +42,7 @@ import { isSpecialCard } from '../../utils/cardUtils.js';
 let isAnimatingSpecialEffect = false;
 let pendingStateUpdate: GameStateData | null = null;
 let cardsBeingAnimated: Card[] | null = null;
+let hasDealtOpeningHand = false;
 
 interface QueuedPlay {
   cards: Card[];
@@ -201,10 +203,33 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
   });
 
-  state.socket.on(STATE_UPDATE, (s: GameStateData) => {
+  state.socket.on(STATE_UPDATE, async (s: GameStateData) => {
     state.setLastGameState(s);
     if (s.started === true) {
       showGameTable();
+    }
+    
+    // DETECT FRESH GAME START and trigger opening deal animation once
+    // We rely on hasDealtOpeningHand flag to run this only once per session
+    if (s.started && !hasDealtOpeningHand && s.players.length > 0) {
+      // Check if this looks like a fresh deal (all players have cards)
+      const looksLikeFreshDeal = s.players.every(p => 
+        (p.handCount || 0) > 0 && (p.downCount || 0) === 3 && (p.upCards?.length || 0) === 3
+      );
+      
+      if (looksLikeFreshDeal) {
+        hasDealtOpeningHand = true;
+        
+        // 1. Render skeleton (shows slots/names, hides cards)
+        renderGameState(s, state.myId, null, { skeletonMode: true });
+        
+        // 2. Play the dealing animation
+        await performOpeningDeal(s, state.myId || '');
+        
+        // 3. Render normal (shows everything)
+        renderGameState(s, state.myId);
+        return;
+      }
     }
     
     // Buffer the update if we are busy animating (Queue or Special Effect)
