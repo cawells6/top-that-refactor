@@ -11,6 +11,7 @@ import {
 // Import assets so Vite can resolve hashed filenames
 import playerAvatarUrl from '../assets/Player.svg';
 import robotAvatarUrl from '../assets/robot.svg';
+import logoUrl from '../assets/logo and slogan.svg';
 import resetIconUrl from '../src/shared/Reset-icon.png';
 import copyIconUrl from '../src/shared/Copy-icon.png';
 import burnIconUrl from '../src/shared/Burn-icon.png';
@@ -224,15 +225,7 @@ export function cardImg(
   container.className = 'card-container';
   container.style.position = 'relative';
 
-  const img = new Image();
-  img.className = 'card-img';
-  img.style.visibility = 'hidden';
-
   const cardCode = card.back ? 'back' : code(card);
-  const imgSrc = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
-
-  img.src = imgSrc;
-  img.alt = card.back ? 'Card back' : `${card.value} of ${card.suit}`;
   
   if (card.back) {
     // Create custom card back element instead of using img
@@ -244,19 +237,28 @@ export function cardImg(
     inner.className = 'card-back-inner';
     const logo = document.createElement('img');
     logo.className = 'card-back-logo';
-    logo.src = '/assets/logo and slogan.svg';
+    logo.src = logoUrl; // Use imported asset URL for proper Vite hashing
     logo.alt = 'Top That';
     inner.appendChild(logo);
     cardBack.appendChild(inner);
     
     container.appendChild(cardBack);
   } else {
+    const img = new Image();
+    img.className = 'card-img';
+    img.style.visibility = 'hidden';
+    
+    const imgSrc = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
+    img.src = imgSrc;
+    img.alt = `${card.value} of ${card.suit}`;
+
     img.onload = () => {
       img.style.visibility = 'visible';
       if (onLoad) onLoad(img);
     };
 
     img.onerror = () => {
+      console.warn(`Failed to load card from deckofcardsapi: ${cardCode}, trying fallback`);
       setTimeout(() => {
         const fallbacks = [
           `/cards-api/static/img/${cardCode}.png`,
