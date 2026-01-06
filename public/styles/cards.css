@@ -69,7 +69,7 @@
   position: absolute;
   width: 80%;
   height: 80%;
-  background-image: url('/assets/logo%20and%20slogan.svg');
+  background-image: url('/src/shared/noslogan.svg');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;

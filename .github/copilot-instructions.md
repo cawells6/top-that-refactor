@@ -3,6 +3,32 @@
 ## Core Principle
 **Accuracy over speed.** This project prioritizes holistic, well-architected solutions. Take time to understand the full context before implementing changes.
 
+## Troubleshooting Methodology
+
+**CRITICAL:** When a problem is reported, **DO NOT** assume it's caused by the code you just changed. Problems are rarely isolated to the immediate scope.
+
+### Root Cause Investigation Pattern
+1. **Expand Your Search Radius** - Look beyond the file/function you just modified
+2. **Check All Related Systems:**
+   - CSS files (can override JavaScript changes)
+   - Configuration files (Vite, TypeScript, Jest)
+   - Import paths across multiple files
+   - Cached state (browser, dev server, build artifacts)
+3. **Use Grep/Search Tools** - Search the entire codebase for related patterns
+4. **Think in Layers** - A UI issue might originate from CSS, JavaScript, or server-side code
+
+### Real-World Example
+**Problem:** "Card backs still showing old logo after changing imports"
+- ❌ First instinct: Check the TypeScript import we just changed
+- ✅ Actual cause: CSS file had hardcoded path to old asset (`cards.css` line 72)
+- **Lesson:** Visual rendering issues can be caused by CSS, not just JavaScript
+
+**When debugging, always:**
+- Search for all occurrences of the problematic code/asset (grep)
+- Check files you didn't modify (CSS, config, other modules)
+- Verify browser/server caches are cleared
+- Think "What else could affect this?" before making changes
+
 ## Architecture Overview
 
 ### Layered Architecture (Never Skip Layers)
