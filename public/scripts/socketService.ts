@@ -9,7 +9,7 @@ import {
   animateDeckToPlayPile,
   logCardPlayed,
   logPileTaken,
-  logDeckToPile,
+  logPlayToDraw,
   logSpecialEffect,
   logTurnChange,
   logGameStart,
@@ -367,7 +367,7 @@ export async function initializeSocketHandlers(): Promise<void> {
     // Animate card from deck to play pile after a brief delay
     setTimeout(() => {
       animateDeckToPlayPile();
-      logDeckToPile();
+      logPlayToDraw();
     }, 400);
   });
 
