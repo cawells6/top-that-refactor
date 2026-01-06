@@ -545,6 +545,15 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                         img.style.opacity = '0';
                     }
                 }
+                
+                // Hide in skeleton mode
+                if (skeletonMode) {
+                    const img = downCard.querySelector('.card-img') as HTMLElement;
+                    if (img) {
+                        img.style.visibility = 'hidden';
+                        img.style.opacity = '0';
+                    }
+                }
             } else {
                 // Ensure visibility is restored when not in skeleton mode
                 if (!skeletonMode) {
