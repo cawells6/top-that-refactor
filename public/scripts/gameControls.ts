@@ -187,13 +187,18 @@ function handlePlayClick(): void {
 
     // Only validate if we actually resolved cards (and it's not a blind down-card play)
     if (resolvedCards && resolvedCards.length > 0) {
-      if (!isValidPlay(resolvedCards, pile)) {
+      // ONLY block invalid plays if they are from the HAND.
+      // If Up/Down, we let the server decide (because it might be a valid "pickup" move).
+      if (selection.zone === 'hand' && !isValidPlay(resolvedCards, pile)) {
         showToast('Invalid Play!', 'error');
         // ABORT: Do not animate, do not hide, do not emit.
         // The cards stay visible in hand.
         clearSelectedCards();
         return;
       }
+      
+      // For Up/Down cards, we skip the local 'isValidPlay' check here
+      // to allow the "play to pickup" mechanic.
     }
   }
 

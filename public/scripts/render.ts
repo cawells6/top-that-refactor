@@ -1127,5 +1127,40 @@ export function renderGameState(
   }
 }
 
+export function animateVictory(winnerId: string): void {
+  // 1. Create Overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'victory-overlay';
+
+  // 2. Get Winner Info
+  const playerArea = document.querySelector(`.player-area[data-player-id="${winnerId}"]`);
+  const playerName = playerArea?.querySelector('.player-name')?.textContent || 'Winner';
+  
+  // 3. Construct HTML
+  overlay.innerHTML = `
+    <div class="victory-content">
+      <img src="/assets/crown-icon.svg" class="victory-crown" alt="Crown">
+      <h1 class="victory-title">The Crown is Taken!</h1>
+      <div class="victory-winner">${playerName}</div>
+      <button id="victory-restart-btn" class="action-button">Play Again</button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // 4. Attach Event Listener for Restart
+  const btn = overlay.querySelector('#victory-restart-btn');
+  if(btn) {
+    btn.addEventListener('click', () => {
+       window.location.reload(); 
+    });
+  }
+
+  // 5. Trigger Animation Frame
+  requestAnimationFrame(() => {
+    overlay.classList.add('visible');
+  });
+}
+
 export function playArea() {}
 export function lobbyLink() {}

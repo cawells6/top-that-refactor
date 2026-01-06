@@ -1076,26 +1076,57 @@ export default class GameController {
         (card) => normalizeCardValue(card.value) === normalizedFirstValue
       );
     if (!isValid) {
-      if (zone === 'downCards') {
-        const revealedCard =
-          player.playDownCard(cardIndices[0]) ?? cardsToPlay[0];
-        const pickupCards = [...this.gameState.pile, revealedCard].filter(
-          Boolean
-        ) as Card[];
-        if (pickupCards.length > 0) {
-          player.pickUpPile(pickupCards);
-        }
-        this.gameState.clearPile({ toDiscard: false });
-        this.io.to(this.roomId).emit(PILE_PICKED_UP, { playerId: player.id });
-        this.log(
-          `Down card invalid for ${player.id}. Forced pickup of pile + down card.`
-        );
+      // Logic: If playing Up/Down card, and it's invalid:
+      // 1. If they have OTHER valid cards in that zone, force them to play those (Error).
+      // 2. If they have NO valid cards in that zone, allow the 'fail' (Pick up pile + card).
+      
+      const isUpOrDown = zone === 'upCards' || zone === 'downCards';
 
-        // Process transition (State push -> Wait -> Next Turn)
-        this.processTurnTransition(this.turnTransitionDelayMs);
-        return;
+      if (isUpOrDown) {
+         // Check if they *could* have made a valid move
+         // (For downCards, we assume 'false' because you can't know what they are)
+         const hasBetterMove = zone === 'upCards' && this.hasValidPlay(player, 'upCards');
+
+         if (hasBetterMove) {
+             // Reject: You typically can't burn a card if you have a legal move available
+             const playerSocket = player.socketId ? this.io.sockets.sockets.get(player.socketId) : null;
+             if (playerSocket) playerSocket.emit(ERROR_EVENT, 'You have a valid play available!');
+             return;
+         }
+
+         // ALLOW THE FAIL:
+         // 1. Identify the card they tried to play
+         let failedCard: Card | null = null;
+         
+         if (zone === 'upCards') {
+             // Remove from Up Cards
+             const nextUpCards = [...player.upCards];
+             failedCard = nextUpCards[cardIndices[0]];
+             nextUpCards[cardIndices[0]] = null; // Clear slot
+             player.setUpCards(nextUpCards);
+         } else {
+             // Remove from Down Cards (reveal it)
+             failedCard = player.playDownCard(cardIndices[0]) ?? cardsToPlay[0];
+         }
+
+         // 2. Collect Pile + Failed Card
+         const pickupCards = [...this.gameState.pile];
+         if (failedCard) pickupCards.push(failedCard);
+
+         // 3. Give to Player & Clear Board
+         player.pickUpPile(pickupCards);
+         this.gameState.clearPile({ toDiscard: false });
+
+         // 4. Notify & Transition
+         this.io.to(this.roomId).emit(PILE_PICKED_UP, { playerId: player.id });
+         this.log(`Invalid ${zone} play by ${player.id}. Forced pickup.`);
+         
+         // Trigger turn transition
+         this.processTurnTransition(this.turnTransitionDelayMs);
+         return;
       }
 
+      // Existing logic for Hand/other invalid plays (reject them)
       this.log(
         `Play card rejected: Invalid play by ${player.id} with cards ${JSON.stringify(
           cardsToPlay

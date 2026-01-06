@@ -957,7 +957,7 @@ body.showing-game {
 /* 1. Base State: Continuous Shingling */
 .hand-row--local .card-container {
     margin-left: -40px;
-    transition: transform 0.2s ease, margin 0.2s ease, z-index 0s;
+    transition: transform 0.2s ease, margin 0.2s ease, z-index 0s, opacity 0.2s ease, filter 0.2s ease;
     position: relative;
 }
 
@@ -965,10 +965,27 @@ body.showing-game {
     margin-left: 0;
 }
 
+/* 1a. Spotlight Effect: When hovering the container, fade EVERYTHING out slightly */
+.hand-row--local:hover .card-container {
+    opacity: 0.3;
+    filter: blur(0.5px);
+}
+
+/* 1b. But keep the SPECIFIC card you are hovering fully visible */
+.hand-row--local .card-container:hover {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: translateY(-25px) scale(1.15) !important; 
+    z-index: 1000 !important;
+    cursor: pointer;
+}
+
 /* 2. Hybrid Elevation: Lift selected cards */
 .hand-row--local .card-container.selected-container {
     transform: translateY(-12px);
     z-index: 50;
+    opacity: 1 !important;
+    filter: none !important;
 }
 
 /* 3. Hover Depth: Pop the current card to the absolute front */
