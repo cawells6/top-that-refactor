@@ -570,7 +570,7 @@ body.showing-game #game-rules-button {
 .center-piles {
   display: flex;
   flex-direction: row;
-  gap: 4px;
+  gap: clamp(0.75rem, 4vw, 2.5rem); /* MODIFIED: Responsive spacing (was 4px) */
   align-items: center;
   justify-content: center;
   flex-wrap: nowrap;
