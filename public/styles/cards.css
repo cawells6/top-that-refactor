@@ -40,18 +40,84 @@
   position: fixed;
   width: 90px;
   height: 126px;
-  background-color: #0f1f19;
-  background-image: repeating-linear-gradient(
-    45deg,
-    #0f1f19 0,
-    #0f1f19 10px,
-    #1a2e26 10px,
-    #1a2e26 20px
-  );
-  border: 2px solid #fef7e0;
+  background: linear-gradient(135deg, #0f1f19 0%, #1a2e26 100%);
+  border: 4px solid #fef7e0;
   border-radius: 5px;
   box-shadow: 0 10px 20px rgba(0,0,0,0.4);
   z-index: 9999;
   pointer-events: none;
   transform-origin: center center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Pattern overlay for flying card */
+.flying-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(#2c4a3e 1px, transparent 1px);
+  background-size: 10px 10px;
+  opacity: 0.3;
+}
+
+/* Logo container for flying card */
+.flying-card::after {
+  content: "";
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  background-image: url('/assets/logo%20and%20slogan.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.9;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  z-index: 1;
+}
+
+/* Custom Top That Card Back */
+.card-back-custom {
+  width: var(--card-w, 90px);
+  height: var(--card-h, 126px);
+  background: linear-gradient(135deg, #0f1f19 0%, #1a2e26 100%); /* Your dark green theme */
+  border: 4px solid #fef7e0; /* Cream border like the UI */
+  border-radius: 5px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.28);
+}
+
+/* Pattern overlay (optional - adds texture) */
+.card-back-custom::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(#2c4a3e 1px, transparent 1px);
+  background-size: 10px 10px;
+  opacity: 0.3;
+}
+
+.card-back-inner {
+  width: 80%;
+  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(254, 247, 224, 0.3); /* Subtle inner border */
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.card-back-logo {
+  width: 100%;
+  height: auto;
+  opacity: 0.9;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }

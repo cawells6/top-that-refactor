@@ -21,8 +21,21 @@ export function createCardElement(
 
   // Handle back of card vs face
   if (card.back) {
-    img.src = '/assets/cards/back.png';
-    img.alt = 'Card Back';
+    // Create custom card back element
+    const cardBack = document.createElement('div');
+    cardBack.className = 'card-img card-back-custom';
+    
+    // Add inner structure and logo
+    const inner = document.createElement('div');
+    inner.className = 'card-back-inner';
+    const logo = document.createElement('img');
+    logo.className = 'card-back-logo';
+    logo.src = '/assets/logo%20and%20slogan.svg';
+    logo.alt = 'Top That';
+    inner.appendChild(logo);
+    cardBack.appendChild(inner);
+    
+    container.appendChild(cardBack);
   } else {
     // Format card values for image src
     const value = formatCardValue(card.value);
@@ -34,25 +47,32 @@ export function createCardElement(
     if (card.copied) {
       img.classList.add('copied-card');
     }
+    
+    container.appendChild(img);
   }
 
   // Make card selectable if needed
   if (selectable) {
-    img.classList.add('selectable');
-    img.style.touchAction = 'manipulation';
+    const selectableElement = container.querySelector('.card-img, .card-back-custom');
+    if (selectableElement) {
+      selectableElement.classList.add('selectable');
+      (selectableElement as HTMLElement).style.touchAction = 'manipulation';
+    }
 
     container.addEventListener('click', () => {
-      img.classList.toggle('selected');
-      container.classList.toggle(
-        'selected-container',
-        img.classList.contains('selected')
-      );
+      const selectableEl = container.querySelector('.card-img, .card-back-custom');
+      if (selectableEl) {
+        selectableEl.classList.toggle('selected');
+        container.classList.toggle(
+          'selected-container',
+          selectableEl.classList.contains('selected')
+        );
 
-      if (onSelect) onSelect(card, img.classList.contains('selected'));
+        if (onSelect) onSelect(card, selectableEl.classList.contains('selected'));
+      }
     });
   }
 
-  container.appendChild(img);
   return container;
 }
 
