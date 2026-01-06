@@ -193,7 +193,6 @@ function animateFlyer(fromRect: DOMRect, toElem: HTMLElement, cardData: Card | n
         flyer.style.top = `${toRect.top}px`;
         flyer.style.width = `${toRect.width}px`;
         flyer.style.height = `${toRect.height}px`;
-        flyer.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
     });
 
     setTimeout(() => {
