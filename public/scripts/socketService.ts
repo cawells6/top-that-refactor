@@ -242,10 +242,19 @@ export async function initializeSocketHandlers(): Promise<void> {
               });
             }
           });
+          
+          // Clear play pile
+          const playPile = document.getElementById('discard-pile');
+          if (playPile) playPile.innerHTML = '';
         }
         
-        // 2. Render skeleton (shows slots/names, hides cards)
+        // 2. Render skeleton (shows slots/names, hides cards and icons)
         renderGameState(s, state.myId, null, { skeletonMode: true });
+        
+        // Hide special card icons in skeleton mode
+        document.querySelectorAll('.card-ability-icon').forEach(icon => {
+          (icon as HTMLElement).style.display = 'none';
+        });
         
         // 3. Play the dealing animation
         await performOpeningDeal(s, state.myId || '');

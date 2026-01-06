@@ -8,105 +8,134 @@ const START_MESSAGE_TEXT = "LET'S PLAY!"; // <--- WORDSMITH HERE
 
 /**
  * The Master Orchestrator for the Opening Ceremony.
+ * Deals cards player-by-player: human first, then each CPU individually.
  */
 export async function performOpeningDeal(gameState: GameStateData, myPlayerId: string): Promise<void> {
     const deckElem = document.getElementById('deck-pile');
     if (!deckElem) return; // Safety check
 
     const deckRect = deckElem.getBoundingClientRect();
-
-    // 1. Deal Face-Down Cards (Batch Style)
-    // We deal ALL face-downs to Player 1, then ALL to Player 2...
-    for (const player of gameState.players) {
-        // We assume 3 face-down cards. Adjust if your game changes.
+    
+    // Separate human and CPU players
+    const humanPlayer = gameState.players.find(p => p.id === myPlayerId);
+    const cpuPlayers = gameState.players.filter(p => p.id !== myPlayerId);
+    
+    // 1. Deal DOWN cards to HUMAN, then show immediately
+    if (humanPlayer) {
         for (let i = 0; i < 3; i++) {
-            // Target the specific slot in the grid
-            const targetId = getSlotId(player.id, 'down', i, myPlayerId);
+            const targetId = getSlotId(humanPlayer.id, 'down', i, myPlayerId);
             const targetElem = document.getElementById(targetId);
-            
             if (targetElem) {
-                // Deal it!
-                animateFlyer(deckRect, targetElem, null, false); // null card = face down
+                animateFlyer(deckRect, targetElem, null, false);
                 await wait(DEAL_SPEED_MS);
             }
         }
+        await wait(FLIGHT_DURATION_MS);
+        revealCards('down', [humanPlayer]);
+        await wait(200); // Brief pause before moving to CPUs
     }
     
-    // Wait for last down card to land, then reveal all down cards
-    await wait(FLIGHT_DURATION_MS);
-    revealCards('down', gameState.players);
-
-    // 2. Deal Face-Up Cards (Batch Style)
-    for (const player of gameState.players) {
-        const upCards = player.upCards || [];
+    // 2. Deal DOWN cards to each CPU, show after each
+    for (const cpuPlayer of cpuPlayers) {
         for (let i = 0; i < 3; i++) {
-            const targetId = getSlotId(player.id, 'up', i, myPlayerId);
+            const targetId = getSlotId(cpuPlayer.id, 'down', i, myPlayerId);
             const targetElem = document.getElementById(targetId);
-            
+            if (targetElem) {
+                animateFlyer(deckRect, targetElem, null, false);
+                await wait(DEAL_SPEED_MS);
+            }
+        }
+        await wait(FLIGHT_DURATION_MS);
+        revealCards('down', [cpuPlayer]);
+        await wait(200); // Brief pause before next player
+    }
+
+    // 3. Deal UP cards to HUMAN, then show immediately
+    if (humanPlayer) {
+        const upCards = humanPlayer.upCards || [];
+        for (let i = 0; i < 3; i++) {
+            const targetId = getSlotId(humanPlayer.id, 'up', i, myPlayerId);
+            const targetElem = document.getElementById(targetId);
             if (targetElem && upCards[i]) {
-                // Pass the actual card data so it flies face-up
                 animateFlyer(deckRect, targetElem, upCards[i], true);
                 await wait(DEAL_SPEED_MS);
             }
         }
+        await wait(FLIGHT_DURATION_MS);
+        revealCards('up', [humanPlayer]);
+        revealSpecialIcons([humanPlayer]); // Show special icons after cards appear
+        await wait(200);
     }
     
-    // Wait for last up card to land, then reveal all up cards
-    await wait(FLIGHT_DURATION_MS);
-    revealCards('up', gameState.players);
-
-    // 3. Deal Hand Cards (Batch Style)
-    for (const player of gameState.players) {
-        const handCount = player.handCount || player.hand?.length || 0;
-        
-        // Optimization: Don't fly 20 cards if they have a huge hand. Cap it visually.
-        const visualCount = Math.min(handCount, 5);
-        
-        // Target: Either their specific hand cards (local) or their avatar (opponent)
-        const isMe = player.id === myPlayerId;
-        
-        for (let k = 0; k < visualCount; k++) {
-            let targetElem: HTMLElement | null = null;
-            
-            if (isMe) {
-                // For me, aim at specific hand slots if possible, or just the hand tray
-                const handRow = document.querySelector('#my-area .hand-row');
-                if (handRow && handRow.children[k]) {
-                    targetElem = handRow.children[k] as HTMLElement;
-                } else {
-                    targetElem = handRow as HTMLElement;
-                }
-            } else {
-                // For opponents, aim at their avatar/hand-stack
-                targetElem = document.querySelector(`.player-area[data-player-id="${player.id}"] .hand-stack`);
-                if (!targetElem) {
-                    targetElem = document.querySelector(`.player-area[data-player-id="${player.id}"] .player-avatar`);
-                }
-            }
-
-            if (targetElem) {
-                // Hands are private, so fly face-down unless it's mine? 
-                // Actually, usually in poker dealing, cards fly face-down to hands.
-                // If you want YOUR cards to flip up on arrival, pass card data.
-                const cardData = (isMe && player.hand && player.hand[k]) ? player.hand[k] : null;
-                animateFlyer(deckRect, targetElem, cardData, !!cardData); 
+    // 4. Deal UP cards to each CPU, show after each
+    for (const cpuPlayer of cpuPlayers) {
+        const upCards = cpuPlayer.upCards || [];
+        for (let i = 0; i < 3; i++) {
+            const targetId = getSlotId(cpuPlayer.id, 'up', i, myPlayerId);
+            const targetElem = document.getElementById(targetId);
+            if (targetElem && upCards[i]) {
+                animateFlyer(deckRect, targetElem, upCards[i], true);
                 await wait(DEAL_SPEED_MS);
             }
         }
+        await wait(FLIGHT_DURATION_MS);
+        revealCards('up', [cpuPlayer]);
+        revealSpecialIcons([cpuPlayer]); // Show special icons after cards appear
+        await wait(200);
+    }
+
+    // 5. Deal HAND cards to HUMAN, then show immediately
+    if (humanPlayer) {
+        const handCount = humanPlayer.handCount || humanPlayer.hand?.length || 0;
+        const visualCount = Math.min(handCount, 5);
+        
+        const handRow = document.querySelector('#my-area .hand-row');
+        for (let k = 0; k < visualCount; k++) {
+            let targetElem: HTMLElement | null = null;
+            if (handRow && handRow.children[k]) {
+                targetElem = handRow.children[k] as HTMLElement;
+            } else {
+                targetElem = handRow as HTMLElement;
+            }
+            
+            if (targetElem) {
+                const cardData = (humanPlayer.hand && humanPlayer.hand[k]) ? humanPlayer.hand[k] : null;
+                animateFlyer(deckRect, targetElem, cardData, !!cardData);
+                await wait(DEAL_SPEED_MS);
+            }
+        }
+        await wait(FLIGHT_DURATION_MS);
+        revealHandCards([humanPlayer], myPlayerId);
+        await wait(200);
     }
     
-    // Wait for last hand card to land, then reveal all hand cards
-    await wait(FLIGHT_DURATION_MS);
-    revealHandCards(gameState.players, myPlayerId);
+    // 6. Deal HAND cards to each CPU
+    for (const cpuPlayer of cpuPlayers) {
+        const handCount = cpuPlayer.handCount || cpuPlayer.hand?.length || 0;
+        const visualCount = Math.min(handCount, 5);
+        
+        const targetElem = document.querySelector(`.player-area[data-player-id="${cpuPlayer.id}"] .hand-stack`) ||
+                          document.querySelector(`.player-area[data-player-id="${cpuPlayer.id}"] .player-avatar`);
+        
+        if (targetElem) {
+            for (let k = 0; k < visualCount; k++) {
+                animateFlyer(deckRect, targetElem as HTMLElement, null, false);
+                await wait(DEAL_SPEED_MS);
+            }
+            await wait(FLIGHT_DURATION_MS);
+            revealHandCards([cpuPlayer], myPlayerId);
+            await wait(200);
+        }
+    }
 
-    // 4. Move top card from deck to discard pile to start the game
-    await wait(600);
+    // 7. Move top card from deck to discard pile to start the game
+    await wait(400);
     await animateDeckToDiscard(gameState);
 
-    // 5. Wait a moment to breathe
+    // 8. Wait a moment to breathe
     await wait(400);
 
-    // 6. Flash the "LET'S PLAY!" Message
+    // 9. Flash the "LET'S PLAY!" Message
     await showStartOverlay();
 }
 
@@ -241,6 +270,21 @@ function revealCards(type: 'up' | 'down', players: any[]) {
                     });
                 }
             }
+        }
+    });
+}
+
+/**
+ * Reveal special card ability icons after cards are shown
+ */
+function revealSpecialIcons(players: any[]) {
+    players.forEach(player => {
+        const playerArea = document.querySelector(`.player-area[data-player-id="${player.id}"]`);
+        if (playerArea) {
+            const icons = playerArea.querySelectorAll('.card-ability-icon') as NodeListOf<HTMLElement>;
+            icons.forEach(icon => {
+                icon.style.display = '';
+            });
         }
     });
 }
