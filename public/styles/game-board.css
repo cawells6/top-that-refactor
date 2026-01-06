@@ -1159,8 +1159,9 @@ body.showing-game {
     display: none;
 }
 
+/* Placeholder should be visible during initial deal animation */
 .pile-placeholder {
-    opacity: 0.1;
+    opacity: 0.4;
 }
 
 /* --- 4. OPPONENT HANDS (Neat Stacks) --- */

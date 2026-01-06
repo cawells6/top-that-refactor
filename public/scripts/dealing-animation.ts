@@ -2,51 +2,42 @@ import { GameStateData, Card } from '../../src/shared/types.js';
 import { cardImg, renderGameState } from './render.js';
 import { SoundManager } from './SoundManager.js';
 
-// --- CONFIGURATION ---
-const DEAL_INTERVAL_MS = 100;
-const FLIGHT_DURATION_MS = 600;
-const PHASE_PAUSE_MS = 400;
-const START_MESSAGE_TEXT = "LET'S PLAY!";
+const DEAL_INTERVAL_MS = 100; 
+const FLIGHT_DURATION_MS = 600; 
+const PHASE_PAUSE_MS = 400; 
 
-/**
- * The Master Orchestrator for the Opening Ceremony.
- * Implements strict Phase → Player → Group Reveal sequence.
- */
 export async function performOpeningDeal(gameState: GameStateData, myPlayerId: string): Promise<void> {
-    const playPileElem = document.getElementById('deck-pile'); // This is the "Play" source
-    if (!playPileElem) return;
+    const playSource = document.getElementById('deck-pile'); // Source "Play" pile
+    if (!playSource) return;
 
-    const playPileRect = playPileElem.getBoundingClientRect();
-
+    const playRect = playSource.getBoundingClientRect();
     const players = gameState.players;
     const meIdx = myPlayerId ? players.findIndex((p) => p.id === myPlayerId) : -1;
-    const dealingOrder = meIdx >= 0
-      ? players.slice(meIdx).concat(players.slice(0, meIdx))
-      : players.slice();
+    const dealingOrder = meIdx >= 0 ? players.slice(meIdx).concat(players.slice(0, meIdx)) : players.slice();
 
-    // --- PHASE A: DOWN CARDS (Round Robin) ---
+    // PHASE A: DOWN CARDS (Round Robin)
     for (let i = 0; i < 3; i++) {
         for (const player of dealingOrder) {
             const target = getTarget(player.id, 'down', i);
             if (target) {
-                animateFlyer(playPileRect, target, null, false);
+                animateFlyer(playRect, target, null, false);
                 await wait(DEAL_INTERVAL_MS);
             }
         }
     }
     await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
     SoundManager.play('card-land');
-    dealingOrder.forEach(p => revealGroup(p.id, 'down', 3, true));
+    dealingOrder.forEach(p => revealGroup(p.id, 'down', 3));
     await wait(PHASE_PAUSE_MS);
 
-    // --- PHASE B: UP CARDS (Round Robin) ---
+    // PHASE B: UP CARDS (Round Robin)
     for (let i = 0; i < 3; i++) {
         for (const player of dealingOrder) {
             const upCards = player.upCards || [];
             if (upCards[i]) {
                 const target = getTarget(player.id, 'up', i);
                 if (target) {
-                    animateFlyer(playPileRect, target, upCards[i], true);
+                    animateFlyer(playRect, target, upCards[i], true);
                     await wait(DEAL_INTERVAL_MS);
                 }
             }
@@ -54,26 +45,23 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
     }
     await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
     SoundManager.play('card-land');
-    dealingOrder.forEach(p => revealGroup(p.id, 'up', 3, true));
+    // IMMEDIATELY Reveal Up Cards
+    dealingOrder.forEach(p => revealGroup(p.id, 'up', 3));
     await wait(PHASE_PAUSE_MS);
 
-    // --- PHASE C: HAND CARDS (Round Robin) ---
+    // PHASE C: HAND CARDS (Round Robin)
     for (let k = 0; k < 5; k++) {
         for (const player of dealingOrder) {
             const handCount = player.handCount || player.hand?.length || 0;
             if (k < handCount) {
                 const isMe = player.id === myPlayerId;
-                let target: HTMLElement | null = null;
-                if (isMe) {
-                    const row = document.querySelector('#my-area .hand-row');
-                    if (row && row.children[k]) target = row.children[k] as HTMLElement;
-                } else {
-                    target = document.querySelector(`.player-area[data-player-id="${player.id}"] .hand-stack`) || 
-                             document.querySelector(`.player-area[data-player-id="${player.id}"] .player-avatar`);
-                }
-                if (target) {
+                const area = `.player-area[data-player-id="${player.id}"]`;
+                const handRow = document.querySelector(`${isMe ? '#my-area' : area} .hand-row`) as HTMLElement;
+                
+                if (handRow && handRow.children[k]) {
+                    const target = handRow.children[k] as HTMLElement;
                     const cardData = (isMe && player.hand) ? player.hand[k] : null;
-                    animateFlyer(playPileRect, target, cardData, isMe);
+                    animateFlyer(playRect, target, cardData, isMe); 
                     await wait(DEAL_INTERVAL_MS);
                 }
             }
@@ -82,72 +70,73 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
     await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
     SoundManager.play('card-land');
     dealingOrder.forEach(p => {
-        if (p.id === myPlayerId) revealMyHand(Math.min(p.handCount || 0, 5), true);
-        else revealOpponentHand(p.id, true);
+        if (p.id === myPlayerId) revealMyHand(Math.min(p.handCount || 0, 5));
+        else revealOpponentHand(p.id);
     });
     await wait(PHASE_PAUSE_MS);
 
-    // --- PHASE D: INITIAL FLIP (Play to Draw) ---
-    await wait(200);
-    // Move first card from "Play" (deck) to "Draw" (discard)
+    // PHASE D: START GAME FLIP (Play Source -> Draw Target)
     await animatePlayToDraw(gameState);
     
-    // --- FINAL COMMIT: MAKE CARDS STICK ---
-    // This turns off skeleton mode and resets standard rendering
+    // FINAL COMMIT: This makes all cards "stick" and restores normal UI behavior
     renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
-    
     await showStartOverlay();
 }
 
-// --- HELPER FUNCTIONS ---
+// --- HELPERS ---
 
 function getTarget(playerId: string, type: 'up'|'down', index: number): HTMLElement | null {
-    // Try ID first
-    let el = document.getElementById(`deal-target-${playerId}-${type}-${index}`);
-    // Fallback to structure
-    if (!el) {
-        el = document.querySelector(`.player-area[data-player-id="${playerId}"] .stack-row > div:nth-child(${index+1})`);
-        if (el && type === 'up') el = el.querySelector('.up-card') || el;
+    const col = document.querySelector(`.player-area[data-player-id="${playerId}"] .stack-row > div:nth-child(${index+1})`);
+    if (!col) return null;
+    
+    if (type === 'up') {
+        // Try to find existing up-card container or img
+        const upCardContainer = col.querySelector('.card-container.up-card') as HTMLElement;
+        if (upCardContainer) {
+            // Return the card-img inside for accurate positioning
+            const upCardImg = upCardContainer.querySelector('.card-img') as HTMLElement;
+            return upCardImg || upCardContainer;
+        }
+    } else if (type === 'down') {
+        // For down cards, also try to find the actual card element
+        const downCardContainer = col.querySelector('.card-container.down-card') as HTMLElement;
+        if (downCardContainer) {
+            const downCardImg = downCardContainer.querySelector('.card-img') as HTMLElement;
+            return downCardImg || downCardContainer;
+        }
     }
-    return el as HTMLElement;
+    
+    return col as HTMLElement;
 }
 
-function revealGroup(playerId: string, type: 'up'|'down', count: number, suppressSound = false) {
-    if (!suppressSound) SoundManager.play('card-land');
+function revealGroup(playerId: string, type: 'up'|'down', count: number) {
     for(let i=0; i<count; i++) {
-        const target = getTarget(playerId, type, i);
-        if (target) {
-            // Reveal Card Image
-            const img = target.querySelector('.card-img') as HTMLElement;
-            if (img) {
+        const col = document.querySelector(`.player-area[data-player-id="${playerId}"] .stack-row > div:nth-child(${i+1})`);
+        if (col) {
+            // Target ONLY the specific card class to avoid revealing the wrong one
+            const targetClass = type === 'up' ? '.up-card' : '.down-card';
+            const cardEl = col.querySelector(targetClass) as HTMLElement;
+            if (cardEl) {
+                const img = cardEl.querySelector('.card-img') as HTMLElement || cardEl;
                 img.style.visibility = 'visible';
-                img.style.opacity = '1'; // FIX: Reveal cards that were opacity:0
-            }
-            
-            // Reveal Special Icon (if any)
-            const icon = target.querySelector('.card-ability-icon') as HTMLElement;
-            if (icon) icon.style.visibility = 'visible';
-            
-            // Reveal the container itself if it was hidden
-            if (type === 'up' && target.classList.contains('card-container')) {
-                target.style.visibility = 'visible';
+                img.style.opacity = '1';
+                const icon = cardEl.querySelector('.card-ability-icon') as HTMLElement;
+                if (icon) icon.style.visibility = 'visible';
             }
         }
     }
 }
 
-function revealMyHand(count: number, suppressSound = false) {
-    if (!suppressSound) SoundManager.play('card-land');
+function revealMyHand(count: number) {
     const handRow = document.querySelector('#my-area .hand-row');
     if (!handRow) return;
-    
     for(let i=0; i<count; i++) {
-        const slot = handRow.children[i];
+        const slot = handRow.children[i] as HTMLElement;
         if (slot) {
             const img = slot.querySelector('.card-img') as HTMLElement;
-            if (img) {
-                img.style.visibility = 'visible';
-                img.style.opacity = '1'; // FIX: Reveal opacity
+            if (img) { 
+                img.style.visibility = 'visible'; 
+                img.style.opacity = '1'; 
             }
             const icon = slot.querySelector('.card-ability-icon') as HTMLElement;
             if (icon) icon.style.visibility = 'visible';
@@ -155,18 +144,13 @@ function revealMyHand(count: number, suppressSound = false) {
     }
 }
 
-function revealOpponentHand(playerId: string, suppressSound = false) {
-    if (!suppressSound) SoundManager.play('card-land');
+function revealOpponentHand(playerId: string) {
     const area = document.querySelector(`.player-area[data-player-id="${playerId}"]`);
     if (!area) return;
-    
-    // FIX: Selector changed to .hand-row
-    const cards = area.querySelectorAll('.hand-row .card-img');
-    cards.forEach(c => {
+    area.querySelectorAll('.hand-row .card-img').forEach(c => {
         (c as HTMLElement).style.visibility = 'visible';
-        (c as HTMLElement).style.opacity = '1'; // FIX: Reveal opacity
+        (c as HTMLElement).style.opacity = '1';
     });
-    
     const badge = area.querySelector('.hand-count-badge') as HTMLElement;
     if (badge) badge.style.visibility = 'visible';
 }
@@ -179,8 +163,9 @@ function animateFlyer(fromRect: DOMRect, toElem: HTMLElement, cardData: Card | n
     flyer.className = 'flying-card';
 
     if (isFaceUp && cardData) {
-        // skeletonMode=false so flyer is visible immediately
-        const content = cardImg(cardData, false, undefined, true, false); 
+        flyer.classList.add('flying-card--face-up'); // Prevent logo from showing
+        // skeletonMode=false so flyer is visible immediately, but hide icons during flight
+        const content = cardImg(cardData, false, undefined, false, false); // Changed to false to hide icon during flight
         flyer.style.background = 'none';
         flyer.style.border = 'none';
         flyer.appendChild(content);
@@ -206,6 +191,8 @@ function animateFlyer(fromRect: DOMRect, toElem: HTMLElement, cardData: Card | n
     requestAnimationFrame(() => {
         flyer.style.left = `${toRect.left}px`;
         flyer.style.top = `${toRect.top}px`;
+        flyer.style.width = `${toRect.width}px`;
+        flyer.style.height = `${toRect.height}px`;
         flyer.style.transform = `rotate(${Math.random() * 4 - 2}deg)`;
     });
 
@@ -217,30 +204,22 @@ function animateFlyer(fromRect: DOMRect, toElem: HTMLElement, cardData: Card | n
 function wait(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 
 async function animatePlayToDraw(gameState: GameStateData) {
-    const source = document.getElementById('deck-pile'); // "Play"
-    const target = document.getElementById('discard-pile'); // "Draw"
+    const source = document.getElementById('deck-pile'); // "Play" (deck source)
+    const target = document.getElementById('play-pile'); // "Draw" (the actual stack where the starter card goes)
     if (!source || !target) return;
     
-    const topCard = gameState.pile?.[gameState.pile.length-1] || null;
-    
+    const topCard = gameState.pile?.[gameState.pile.length - 1] || null;
     animateFlyer(source.getBoundingClientRect(), target, topCard, true);
     await wait(FLIGHT_DURATION_MS);
     
     SoundManager.play('card-land');
-    
-    // Force a local render of just the pile so the card actually exists to be shown
-    const playStack = target.querySelector('.play-stack') as HTMLElement;
-    if (playStack && topCard) {
-        playStack.innerHTML = '';
-        const imgEl = cardImg(topCard, false, undefined, false, false);
-        playStack.appendChild(imgEl);
-        const countEl = target.querySelector('.pile-count');
-        if (countEl) countEl.textContent = '1';
+    if (topCard) {
+        target.innerHTML = '';
+        target.appendChild(cardImg(topCard, false, undefined, false, false));
     }
 }
 
 async function showStartOverlay() {
-    // Create Overlay
     const overlay = document.createElement('div');
     Object.assign(overlay.style, {
         position: 'fixed', top: '0', left: '0', right: '0', bottom: '0',
@@ -250,7 +229,7 @@ async function showStartOverlay() {
     });
 
     const text = document.createElement('h1');
-    text.textContent = START_MESSAGE_TEXT;
+    text.textContent = "LET'S GO!";
     Object.assign(text.style, {
         color: '#ffc300', fontSize: '5rem', fontFamily: 'Impact, sans-serif',
         textTransform: 'uppercase', textShadow: '0 0 20px rgba(255,195,0,0.5)',
@@ -260,14 +239,10 @@ async function showStartOverlay() {
     overlay.appendChild(text);
     document.body.appendChild(overlay);
 
-    // Pop In
     requestAnimationFrame(() => text.style.transform = 'scale(1.2)');
-
     SoundManager.play('game-start');
-
     await wait(800);
     
-    // Fade Out
     text.style.opacity = '0';
     text.style.transform = 'scale(2)';
     overlay.style.opacity = '0';

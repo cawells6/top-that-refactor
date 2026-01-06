@@ -299,9 +299,14 @@ export function cardImg(
     iconOverlay.src = ICON_PATHS[iconType as keyof typeof ICON_PATHS];
     iconOverlay.className = 'card-ability-icon';
     Object.assign(iconOverlay.style, {
-      position: 'absolute', bottom: '5%', left: '5%', width: '37.5%', height: 'auto',
-      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', pointerEvents: 'none', zIndex: '2',
-      display: skeletonMode ? 'none' : ''
+      position: 'absolute', 
+      top: '90px',
+      left: '5px',    
+      width: '34px',  
+      height: '34px', 
+      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', 
+      pointerEvents: 'none', 
+      zIndex: '999'
     });
     container.appendChild(iconOverlay);
   }
@@ -374,144 +379,73 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
     centerArea.innerHTML = ''; 
     centerWrap = document.createElement('div');
     centerWrap.className = 'center-piles';
-    
-    const deckContainer = document.createElement('div');
-    deckContainer.className = 'pile-group pile-group--deck';
-    const deckNameplate = document.createElement('div');
-    deckNameplate.className = 'pile-nameplate';
-    deckNameplate.innerHTML = `<span class="pile-name">Play</span><span class="pile-count">0</span>`;
-    const deckStack = document.createElement('div');
-    deckStack.className = 'pile-cards deck-stack';
-    deckStack.id = 'deck-pile';
-    deckContainer.append(deckNameplate, deckStack);
-
-    const playContainer = document.createElement('div');
-    playContainer.className = 'pile-group pile-group--discard';
-    playContainer.id = 'discard-pile';
-    const playNameplate = document.createElement('div');
-    playNameplate.className = 'pile-nameplate';
-    playNameplate.innerHTML = `<span class="pile-name">Draw</span><span class="pile-count">0</span>`;
-    const playStack = document.createElement('div');
-    playStack.className = 'pile-cards play-stack';
-    playStack.id = 'play-pile';
-    playContainer.append(playNameplate, playStack);
-
-    centerWrap.append(deckContainer, playContainer);
+    // Ensure card dimensions are set
+    centerWrap.style.setProperty('--card-w-base', '90px');
+    centerWrap.style.setProperty('--card-h-base', '126px');
     centerArea.appendChild(centerWrap);
   }
 
-  // --- UPDATE DECK ---
-  const deckSize = gameState.deckSize ?? 0;
-  const deckContainer = centerWrap.querySelector('.pile-group--deck') as HTMLElement;
-  if (deckContainer) {
-    const countEl = deckContainer.querySelector('.pile-count');
-    if (countEl) countEl.textContent = String(deckSize);
+  // 1. SOURCE PILE (Left - "Play")
+  let deckContainer = centerWrap.querySelector('.pile-group--deck') as HTMLElement;
+  if (!deckContainer) {
+    deckContainer = document.createElement('div');
+    deckContainer.className = 'pile-group pile-group--deck';
+    deckContainer.innerHTML = `
+      <div class="pile-nameplate"><span class="pile-name">Play</span><span class="pile-count">0</span></div>
+      <div class="pile-cards deck-stack" id="deck-pile"></div>
+    `;
+    centerWrap.appendChild(deckContainer);
+  }
+  const deckCountEl = deckContainer.querySelector('.pile-count');
+  if (deckCountEl) deckCountEl.textContent = String(gameState.deckSize ?? 0);
 
-    const deckStack = deckContainer.querySelector('.deck-stack') as HTMLElement;
-    if (deckStack) {
-      deckStack.classList.remove('deck-full', 'deck-half', 'deck-low');
-      if (deckSize > 40) deckStack.classList.add('deck-full');
-      else if (deckSize > 20) deckStack.classList.add('deck-half');
-      else if (deckSize > 0) deckStack.classList.add('deck-low');
-
-      const hasCard = deckStack.querySelector('.deck-card');
-      const hasPlaceholder = deckStack.querySelector('.pile-placeholder');
-
-      if (deckSize > 0 && !hasCard) {
-        if(hasPlaceholder) hasPlaceholder.remove();
-        const deckBack: CardType = { back: true, value: 'A', suit: 'spades' };
-        const deckCard = cardImg(deckBack, false);
-        deckCard.classList.add('deck-card');
-        deckStack.appendChild(deckCard);
-      } else if (deckSize === 0 && !hasPlaceholder) {
-        if(hasCard) hasCard.remove();
-        const placeholder = document.createElement('div');
-        placeholder.className = 'pile-placeholder';
-        deckStack.appendChild(placeholder);
-      }
+  // 2. TARGET PILE (Right - "Draw")
+  let playContainer = centerWrap.querySelector('.pile-group--discard') as HTMLElement;
+  if (!playContainer) {
+    playContainer = document.createElement('div');
+    playContainer.className = 'pile-group pile-group--discard';
+    playContainer.id = 'discard-pile';
+    playContainer.innerHTML = `
+      <div class="pile-nameplate"><span class="pile-name">Draw</span><span class="pile-count">0</span></div>
+      <div class="pile-cards play-stack" id="play-pile"></div>
+    `;
+    centerWrap.appendChild(playContainer);
+  }
+  
+  // --- RENDER PLAY SOURCE (Always Visible) ---
+  const deckStack = deckContainer.querySelector('.deck-stack') as HTMLElement;
+  if (deckStack) {
+    const deckSize = gameState.deckSize ?? 0;
+    if (deckSize > 0 && !deckStack.querySelector('.deck-card')) {
+      deckStack.innerHTML = '';
+      const deckBack: CardType = { back: true, value: 'A', suit: 'spades' };
+      const deckCard = cardImg(deckBack, false, undefined, true, false); // skeletonMode=false
+      deckCard.classList.add('deck-card');
+      deckStack.appendChild(deckCard);
+    } else if (deckSize === 0) {
+      deckStack.innerHTML = '<div class="pile-placeholder"></div>';
     }
   }
 
-  // --- UPDATE PILE ---
+  // --- RENDER DRAW TARGET (The Discard Pile) ---
+  const playStack = playContainer.querySelector('.play-stack') as HTMLElement;
   const pile = gameState.pile ?? [];
-  const drawContainer = centerWrap.querySelector('.pile-group--discard') as HTMLElement;
-  if (drawContainer) {
-    const drawStack = drawContainer.querySelector('.play-stack') as HTMLElement;
-    
-    // FIX: During skeleton mode, ensure the pile is blank
+  const drawCountEl = playContainer.querySelector('.pile-count');
+  if (drawCountEl) drawCountEl.textContent = String(pile.length);
+
+  if (playStack) {
+    // During initial deal, Draw pile must stay blank
     if (skeletonMode) {
-        if (drawStack) drawStack.innerHTML = '<div class="pile-placeholder"></div>';
-        const countEl = drawContainer.querySelector('.pile-count');
-        if (countEl) countEl.textContent = '0';
-        return;
+      playStack.innerHTML = '<div class="pile-placeholder"></div>';
+      return;
     }
 
-    const countEl = drawContainer.querySelector('.pile-count');
-    if (countEl) countEl.textContent = String(pile.length);
-
-    const playStack = drawStack;
-    if (playStack) {
-        if (pile.length > 1) playStack.classList.add('pile-multiple');
-        else playStack.classList.remove('pile-multiple');
-
-        const logicalTop = pile.length > 0 ? pile[pile.length - 1] : null;
-        const effectiveTopCard = visualPileTop || logicalTop;
-        const cardBelow = pile.length > 1 ? pile[pile.length - 2] : null;
-
-        if (!effectiveTopCard) {
-            if (!playStack.querySelector('.pile-placeholder')) {
-                playStack.innerHTML = '';
-                const placeholder = document.createElement('div');
-                placeholder.className = 'pile-placeholder';
-                playStack.appendChild(placeholder);
-            }
-        } else {
-            const currentTop = playStack.querySelector('#pile-top-card') as HTMLElement;
-            const currentBelow = playStack.querySelector('#pile-below-card') as HTMLElement;
-            let needsUpdate = true;
-            
-            if (currentTop) {
-                const img = currentTop.querySelector('.card-img') as HTMLElement;
-                if (img && img.getAttribute('alt')?.includes(`${effectiveTopCard.value} of ${effectiveTopCard.suit}`)) {
-                     needsUpdate = false;
-                     // Check if shingle state changed
-                     const hasBelow = !!currentBelow;
-                     const shouldHaveBelow = !!(effectiveTopCard.copied && cardBelow);
-                     if (hasBelow !== shouldHaveBelow) needsUpdate = true;
-                }
-            }
-
-            if (needsUpdate) {
-                playStack.innerHTML = '';
-                
-                // If card is copied (5), show the card below it shingled
-                if (effectiveTopCard.copied && cardBelow) {
-                    const belowCard = cardImg(cardBelow, false, undefined, false);
-                    belowCard.id = 'pile-below-card';
-                    Object.assign(belowCard.style, {
-                        position: 'absolute',
-                        left: '-15px',
-                        top: '-10px',
-                        zIndex: '1'
-                    });
-                    playStack.appendChild(belowCard);
-                    
-                    const playCard = cardImg(effectiveTopCard, false, undefined, false);
-                    playCard.id = 'pile-top-card';
-                    Object.assign(playCard.style, {
-                        position: 'relative',
-                        left: '0',
-                        top: '0',
-                        zIndex: '2'
-                    });
-                    playStack.appendChild(playCard);
-                } else {
-                    const playCard = cardImg(effectiveTopCard, false, undefined, false);
-                    playCard.id = 'pile-top-card';
-                    playStack.appendChild(playCard);
-                }
-            }
-        }
+    const topCard = visualPileTop || (pile.length > 0 ? pile[pile.length - 1] : null);
+    if (topCard) {
+      playStack.innerHTML = '';
+      playStack.appendChild(cardImg(topCard, false, undefined, false, false));
+    } else {
+      playStack.innerHTML = '<div class="pile-placeholder"></div>';
     }
   }
 }
@@ -595,16 +529,17 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
 
         const upCard = upCards[i];
         const canPlayUp = isLocal && Boolean(upCard) && isMyTurn && handCount === 0;
-        let existingUpImg = col.querySelector('.up-card') as HTMLImageElement;
+        let existingUpContainer = col.querySelector('.card-container.up-card') as HTMLElement;
         
         if (upCard) {
             // Update target ID for up cards
             const colEl = col as HTMLElement;
             colEl.id = `deal-target-${playerId}-up-${i}`;
             
+            const existingUpImg = existingUpContainer?.querySelector('.card-img') as HTMLImageElement;
             const newVal = String(upCard.value);
             if (!existingUpImg || existingUpImg.dataset.value !== newVal) {
-                if (existingUpImg) existingUpImg.closest('.card-container')?.remove();
+                if (existingUpContainer) existingUpContainer.remove();
                 
                 const upCardEl = cardImg(upCard, canPlayUp, undefined, true, skeletonMode);
                 upCardEl.classList.add('up-card');
@@ -621,18 +556,19 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                 applySkeleton(upCardEl, skeletonMode);
             } else {
                 // Existing Card - FORCE SKELETON CHECK
-                applySkeleton(existingUpImg.closest('.card-container') as HTMLElement, skeletonMode);
-                const container = existingUpImg.closest('.card-container');
+                const existingIcon = existingUpContainer?.querySelector('.card-ability-icon');
+                console.log('[updateStacks] EXISTING up-card, has icon?', !!existingIcon, 'skeletonMode:', skeletonMode);
+                applySkeleton(existingUpContainer, skeletonMode);
                 if (canPlayUp && !existingUpImg.classList.contains('selectable')) {
                     existingUpImg.classList.add('selectable');
-                    container?.classList.add('selectable-container');
+                    existingUpContainer?.classList.add('selectable-container');
                 } else if (!canPlayUp && existingUpImg.classList.contains('selectable')) {
                     existingUpImg.classList.remove('selectable');
-                    container?.classList.remove('selectable-container');
+                    existingUpContainer?.classList.remove('selectable-container');
                 }
             }
         } else {
-            if (existingUpImg) existingUpImg.closest('.card-container')?.remove();
+            if (existingUpContainer) existingUpContainer.remove();
         }
         
         if (canPlayUp || canPlayDown) col.classList.add('playable-stack');

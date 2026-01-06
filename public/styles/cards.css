@@ -53,8 +53,15 @@
   overflow: hidden;
 }
 
-/* Pattern overlay for flying card */
-.flying-card::before {
+/* Face-up flying cards need visible overflow to prevent clipping */
+.flying-card--face-up {
+  overflow: visible;
+  background: none;
+  border: none;
+}
+
+/* Pattern overlay for flying card (face-down only) */
+.flying-card:not(.flying-card--face-up)::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -63,8 +70,8 @@
   opacity: 0.3;
 }
 
-/* Logo container for flying card */
-.flying-card::after {
+/* Logo container for flying card (face-down only) */
+.flying-card:not(.flying-card--face-up)::after {
   content: "";
   position: absolute;
   width: 80%;

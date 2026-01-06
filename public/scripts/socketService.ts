@@ -243,12 +243,7 @@ export async function initializeSocketHandlers(): Promise<void> {
             }
           });
           
-          // Clear play pile
-          const playPile = document.getElementById('discard-pile');
-          if (playPile) {
-            playPile.innerHTML = '';
-            playPile.style.opacity = '0';
-          }
+          // Note: Don't hide discard-pile container - it needs to show placeholder during skeleton mode
         }
         
         // 2. Render skeleton (shows slots/names, hides cards and icons)
@@ -256,13 +251,17 @@ export async function initializeSocketHandlers(): Promise<void> {
         
         // Hide special card icons in skeleton mode
         document.querySelectorAll('.card-ability-icon').forEach(icon => {
-          (icon as HTMLElement).style.display = 'none';
+          (icon as HTMLElement).style.visibility = 'hidden';
         });
         
         // 3. Play the dealing animation
         await performOpeningDeal(s, state.myId || '');
+        hasPlayedOpeningDeal = true; // Mark that opening deal has been shown
         
-        // 4. Render normal (shows everything)
+        // 4. Render normal (shows everything and restore icon visibility)
+        document.querySelectorAll('.card-ability-icon').forEach(icon => {
+          (icon as HTMLElement).style.visibility = 'visible';
+        });
         renderGameState(s, state.myId);
         return;
       }
@@ -363,6 +362,14 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
     
     showCardEvent(null, 'take', data.playerId);
+    
+    // Skip the deck-to-play animation if we just finished the opening deal
+    // (the opening deal already includes this animation in Phase D)
+    if (hasPlayedOpeningDeal) {
+      hasPlayedOpeningDeal = false; // Reset flag for future games
+      logPlayToDraw();
+      return;
+    }
     
     // Animate card from deck to play pile after a brief delay
     setTimeout(() => {
