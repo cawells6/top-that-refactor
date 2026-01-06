@@ -526,6 +526,11 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                     if (img) img.style.visibility = 'hidden';
                 }
             } else {
+                // Ensure visibility is restored when not in skeleton mode
+                if (!skeletonMode) {
+                    const img = existingDownImg.querySelector('img') as HTMLElement;
+                    if (img) img.style.visibility = 'visible';
+                }
                 const container = existingDownImg.closest('.card-container');
                 if (container) {
                     const img = container.querySelector('img');
@@ -572,6 +577,11 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                     if (img) img.style.visibility = 'hidden';
                 }
             } else {
+                // Ensure visibility is restored when not in skeleton mode
+                if (!skeletonMode) {
+                    const img = existingUpImg.querySelector('img') as HTMLElement;
+                    if (img) img.style.visibility = 'visible';
+                }
                 const container = existingUpImg.closest('.card-container');
                 if (canPlayUp && !existingUpImg.classList.contains('selectable')) {
                     existingUpImg.classList.add('selectable');

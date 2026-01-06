@@ -2,9 +2,9 @@ import { GameStateData, ClientStatePlayer, Card } from '../../src/shared/types.j
 import { cardImg } from './render.js';
 
 // --- CONFIGURATION ---
-const DEAL_SPEED_MS = 100; // Delay between launching cards (Machine Gun effect)
-const FLIGHT_DURATION_MS = 600; // How long a card is in the air
-const START_MESSAGE_TEXT = "GAME ON!"; // <--- WORDSMITH HERE
+const DEAL_SPEED_MS = 350; // Delay between launching cards (was 100ms - too fast!)
+const FLIGHT_DURATION_MS = 900; // How long a card is in the air (was 600ms)
+const START_MESSAGE_TEXT = "LET'S PLAY!"; // <--- WORDSMITH HERE
 
 /**
  * The Master Orchestrator for the Opening Ceremony.
@@ -87,10 +87,10 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
         }
     }
 
-    // 4. Wait for the last card to land + a tiny beat
-    await wait(FLIGHT_DURATION_MS);
+    // 4. Wait for the last card to land + a moment to breathe
+    await wait(FLIGHT_DURATION_MS + 400);
 
-    // 5. Flash the "GAME ON!" Message
+    // 5. Flash the "LET'S PLAY!" Message
     await showStartOverlay();
 }
 
@@ -131,16 +131,19 @@ function animateFlyer(fromRect: DOMRect, toElem: HTMLElement, cardData: Card | n
     flyer.style.width = `${fromRect.width}px`;
     flyer.style.height = `${fromRect.height}px`;
     flyer.style.zIndex = '9999';
-    flyer.style.transition = `all ${FLIGHT_DURATION_MS/1000}s cubic-bezier(0.2, 0.8, 0.2, 1)`;
+    flyer.style.boxShadow = '0 8px 20px rgba(0,0,0,0.6)';
+    flyer.style.transition = `all ${FLIGHT_DURATION_MS/1000}s cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
 
     document.body.appendChild(flyer);
 
     // Trigger Animation (Next Frame)
     requestAnimationFrame(() => {
-        flyer.style.left = `${toRect.left}px`;
-        flyer.style.top = `${toRect.top}px`;
-        // Optional: Add a slight rotation for flair
-        flyer.style.transform = `rotate(${Math.random() * 10 - 5}deg)`;
+        requestAnimationFrame(() => {
+            flyer.style.left = `${toRect.left}px`;
+            flyer.style.top = `${toRect.top}px`;
+            // Subtle rotation
+            flyer.style.transform = `rotate(${Math.random() * 6 - 3}deg) scale(1.05)`;
+        });
     });
 
     // Cleanup
