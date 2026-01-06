@@ -376,7 +376,7 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
     deckContainer.className = 'pile-group pile-group--deck';
     const deckNameplate = document.createElement('div');
     deckNameplate.className = 'pile-nameplate';
-    deckNameplate.innerHTML = `<span class="pile-name">Draw</span><span class="pile-count">0</span>`;
+    deckNameplate.innerHTML = `<span class="pile-name">Play</span><span class="pile-count">0</span>`;
     const deckStack = document.createElement('div');
     deckStack.className = 'pile-cards deck-stack';
     deckStack.id = 'deck-pile';
@@ -387,7 +387,7 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
     playContainer.id = 'discard-pile';
     const playNameplate = document.createElement('div');
     playNameplate.className = 'pile-nameplate';
-    playNameplate.innerHTML = `<span class="pile-name">Play</span><span class="pile-count">0</span>`;
+    playNameplate.innerHTML = `<span class="pile-name">Draw</span><span class="pile-count">0</span>`;
     const playStack = document.createElement('div');
     playStack.className = 'pile-cards play-stack';
     playStack.id = 'play-pile';

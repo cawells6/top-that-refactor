@@ -3,9 +3,9 @@ import { cardImg } from './render.js';
 import { SoundManager } from './SoundManager.js';
 
 // --- CONFIGURATION ---
-const DEAL_INTERVAL_MS = 150; // Speed between cards in a batch
-const FLIGHT_DURATION_MS = 600; // Time in air
-const PHASE_PAUSE_MS = 300; // Pause after a player finishes a phase
+const DEAL_INTERVAL_MS = 100;
+const FLIGHT_DURATION_MS = 600;
+const PHASE_PAUSE_MS = 400;
 const START_MESSAGE_TEXT = "LET'S PLAY!";
 
 /**
@@ -13,101 +13,84 @@ const START_MESSAGE_TEXT = "LET'S PLAY!";
  * Implements strict Phase → Player → Group Reveal sequence.
  */
 export async function performOpeningDeal(gameState: GameStateData, myPlayerId: string): Promise<void> {
-    const deckElem = document.getElementById('deck-pile');
-    if (!deckElem) return;
+    const playPileElem = document.getElementById('deck-pile'); // This is the "Play" source
+    if (!playPileElem) return;
 
-    const deckRect = deckElem.getBoundingClientRect();
+    const playPileRect = playPileElem.getBoundingClientRect();
 
-    // 1. Sort: Human First, then CPUs
-    const myPlayer = gameState.players.find(p => p.id === myPlayerId);
-    const opponents = gameState.players.filter(p => p.id !== myPlayerId);
-    const dealingOrder = myPlayer ? [myPlayer, ...opponents] : opponents;
+    const players = gameState.players;
+    const meIdx = myPlayerId ? players.findIndex((p) => p.id === myPlayerId) : -1;
+    const dealingOrder = meIdx >= 0
+      ? players.slice(meIdx).concat(players.slice(0, meIdx))
+      : players.slice();
 
-    // --- PHASE A: DOWN CARDS (Player by Player) ---
-    for (const player of dealingOrder) {
-        const cardCount = 3; // Always 3 down cards
-        
-        // 1. Launch the batch
-        for (let i = 0; i < cardCount; i++) {
+    // --- PHASE A: DOWN CARDS (Round Robin) ---
+    for (let i = 0; i < 3; i++) {
+        for (const player of dealingOrder) {
             const target = getTarget(player.id, 'down', i);
             if (target) {
-                animateFlyer(deckRect, target, null, false); // Face down
+                animateFlyer(playPileRect, target, null, false);
                 await wait(DEAL_INTERVAL_MS);
             }
         }
-        
-        // 2. Wait for the last card to land
-        await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
-        
-        // 3. REVEAL GROUP
-        revealGroup(player.id, 'down', 3);
-        await wait(PHASE_PAUSE_MS);
     }
+    await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
+    SoundManager.play('card-land');
+    dealingOrder.forEach(p => revealGroup(p.id, 'down', 3, true));
+    await wait(PHASE_PAUSE_MS);
 
-    // --- PHASE B: UP CARDS (Player by Player) ---
-    for (const player of dealingOrder) {
-        const upCards = player.upCards || [];
-        
-        // 1. Launch the batch
-        for (let i = 0; i < 3; i++) {
-            const target = getTarget(player.id, 'up', i);
-            if (target && upCards[i]) {
-                // Face up flyer
-                animateFlyer(deckRect, target, upCards[i], true);
-                await wait(DEAL_INTERVAL_MS);
+    // --- PHASE B: UP CARDS (Round Robin) ---
+    for (let i = 0; i < 3; i++) {
+        for (const player of dealingOrder) {
+            const upCards = player.upCards || [];
+            if (upCards[i]) {
+                const target = getTarget(player.id, 'up', i);
+                if (target) {
+                    animateFlyer(playPileRect, target, upCards[i], true);
+                    await wait(DEAL_INTERVAL_MS);
+                }
             }
         }
-        
-        // 2. Wait for land
-        await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
-        
-        // 3. REVEAL GROUP (And Special Icons)
-        revealGroup(player.id, 'up', 3);
-        await wait(PHASE_PAUSE_MS);
     }
+    await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
+    SoundManager.play('card-land');
+    dealingOrder.forEach(p => revealGroup(p.id, 'up', 3, true));
+    await wait(PHASE_PAUSE_MS);
 
-    // --- PHASE C: HAND CARDS (Player by Player) ---
-    for (const player of dealingOrder) {
-        const isMe = player.id === myPlayerId;
-        const handCount = player.handCount || player.hand?.length || 0;
-        const visualCount = Math.min(handCount, 5); // Cap at 5 for animation
-
-        // 1. Launch the batch
-        for (let k = 0; k < visualCount; k++) {
-            let target: HTMLElement | null = null;
-            
-            if (isMe) {
-                // My hand slots
-                const handRow = document.querySelector('#my-area .hand-row');
-                if (handRow && handRow.children[k]) target = handRow.children[k] as HTMLElement;
-            } else {
-                // Opponent stack
-                target = document.querySelector(`.player-area[data-player-id="${player.id}"] .hand-stack`);
-                if (!target) target = document.querySelector(`.player-area[data-player-id="${player.id}"] .player-avatar`);
-            }
-
-            if (target) {
-                const cardData = (isMe && player.hand) ? player.hand[k] : null;
-                animateFlyer(deckRect, target, cardData, isMe); // Face up for me, down for them
-                await wait(DEAL_INTERVAL_MS);
+    // --- PHASE C: HAND CARDS (Round Robin) ---
+    for (let k = 0; k < 5; k++) {
+        for (const player of dealingOrder) {
+            const handCount = player.handCount || player.hand?.length || 0;
+            if (k < handCount) {
+                const isMe = player.id === myPlayerId;
+                let target: HTMLElement | null = null;
+                if (isMe) {
+                    const row = document.querySelector('#my-area .hand-row');
+                    if (row && row.children[k]) target = row.children[k] as HTMLElement;
+                } else {
+                    target = document.querySelector(`.player-area[data-player-id="${player.id}"] .hand-stack`) || 
+                             document.querySelector(`.player-area[data-player-id="${player.id}"] .player-avatar`);
+                }
+                if (target) {
+                    const cardData = (isMe && player.hand) ? player.hand[k] : null;
+                    animateFlyer(playPileRect, target, cardData, isMe);
+                    await wait(DEAL_INTERVAL_MS);
+                }
             }
         }
-
-        // 2. Wait for land
-        await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
-        
-        // 3. REVEAL GROUP
-        if (isMe) {
-            revealMyHand(visualCount);
-        } else {
-            revealOpponentHand(player.id);
-        }
-        await wait(PHASE_PAUSE_MS);
     }
+    await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
+    SoundManager.play('card-land');
+    dealingOrder.forEach(p => {
+        if (p.id === myPlayerId) revealMyHand(Math.min(p.handCount || 0, 5), true);
+        else revealOpponentHand(p.id, true);
+    });
+    await wait(PHASE_PAUSE_MS);
 
-    // --- FINISH ---
+    // --- PHASE D: INITIAL FLIP (Play to Draw) ---
     await wait(200);
-    await animateDeckToDiscard(gameState);
+    // Move first card from "Play" (deck) to "Draw" (discard)
+    await animatePlayToDraw(gameState);
     await showStartOverlay();
 }
 
@@ -124,8 +107,8 @@ function getTarget(playerId: string, type: 'up'|'down', index: number): HTMLElem
     return el as HTMLElement;
 }
 
-function revealGroup(playerId: string, type: 'up'|'down', count: number) {
-    SoundManager.play('card-land');
+function revealGroup(playerId: string, type: 'up'|'down', count: number, skipSound?: boolean) {
+    if (!skipSound) SoundManager.play('card-land');
     for(let i=0; i<count; i++) {
         const target = getTarget(playerId, type, i);
         if (target) {
@@ -145,8 +128,8 @@ function revealGroup(playerId: string, type: 'up'|'down', count: number) {
     }
 }
 
-function revealMyHand(count: number) {
-    SoundManager.play('card-land');
+function revealMyHand(count: number, skipSound?: boolean) {
+    if (!skipSound) SoundManager.play('card-land');
     const handRow = document.querySelector('#my-area .hand-row');
     if (!handRow) return;
     
@@ -161,8 +144,8 @@ function revealMyHand(count: number) {
     }
 }
 
-function revealOpponentHand(playerId: string) {
-    SoundManager.play('card-land');
+function revealOpponentHand(playerId: string, skipSound?: boolean) {
+    if (!skipSound) SoundManager.play('card-land');
     const area = document.querySelector(`.player-area[data-player-id="${playerId}"]`);
     if (!area) return;
     
@@ -219,22 +202,23 @@ function animateFlyer(fromRect: DOMRect, toElem: HTMLElement, cardData: Card | n
 
 function wait(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 
-async function animateDeckToDiscard(gameState: GameStateData) {
-    const deck = document.getElementById('deck-pile');
-    const discard = document.getElementById('discard-pile');
-    if (!deck || !discard) return;
+async function animatePlayToDraw(gameState: GameStateData) {
+    const source = document.getElementById('deck-pile'); // "Play"
+    const target = document.getElementById('discard-pile'); // "Draw"
+    if (!source || !target) return;
     
     const topCard = gameState.pile?.[gameState.pile.length-1] || null;
     
-    // Fly it
-    animateFlyer(deck.getBoundingClientRect(), discard, topCard, true);
+    animateFlyer(source.getBoundingClientRect(), target, topCard, true);
     await wait(FLIGHT_DURATION_MS);
     
-    // Reveal it
     SoundManager.play('card-land');
-    if (discard) discard.style.opacity = '1';
-    const img = discard.querySelector('.card-img') as HTMLElement;
+    const img = target.querySelector('.card-img') as HTMLElement;
     if (img) img.style.visibility = 'visible';
+    
+    // Ensure "Draw" pile count updates
+    const countEl = target.closest('.pile-group')?.querySelector('.pile-count');
+    if (countEl) countEl.textContent = '1';
 }
 
 async function showStartOverlay() {
