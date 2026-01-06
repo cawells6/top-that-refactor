@@ -12,7 +12,7 @@ import {
 import playerAvatarUrl from '../assets/Player.svg';
 import robotAvatarUrl from '../assets/robot.svg';
 import logoUrl from '../src/shared/logov2.svg';
-import crownIconUrl from '../assets/crown-icon.svg';
+import crownIconUrl from '../assets/logov2-crown.svg';
 import resetIconUrl from '../src/shared/Reset-icon.png';
 import copyIconUrl from '../src/shared/Copy-icon.png';
 import burnIconUrl from '../src/shared/Burn-icon.png';
@@ -1428,7 +1428,7 @@ export function renderGameState(
     const branding = document.createElement('div');
     branding.id = 'table-branding';
     branding.innerHTML = `
-      <img src="${logoUrl}" class="branding-crown" alt="Crown" />
+      <img src="${crownIconUrl}" class="branding-crown" alt="Crown" />
       <div class="branding-title">Top That!</div>
       <div class="branding-slogan">One Crown. Zero Mercy.</div>
     `;
