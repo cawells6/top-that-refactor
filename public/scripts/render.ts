@@ -11,7 +11,7 @@ import {
 // Import assets so Vite can resolve hashed filenames
 import playerAvatarUrl from '../assets/Player.svg';
 import robotAvatarUrl from '../assets/robot.svg';
-import logoUrl from '../src/shared/noslogan.svg';
+import logoUrl from '../src/shared/logov2.svg';
 import crownIconUrl from '../assets/crown-icon.svg';
 import resetIconUrl from '../src/shared/Reset-icon.png';
 import copyIconUrl from '../src/shared/Copy-icon.png';
