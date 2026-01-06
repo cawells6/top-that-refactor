@@ -10,6 +10,7 @@ export default defineConfig({
 
   // Configure the development server
   server: {
+    host: '0.0.0.0', // Allow access from other devices on the network
     port: 5173, // Port for the Vite client-side dev server
     open: 'firefox', // This tells Vite to open Firefox
     cors: true, // Enable CORS for all origins

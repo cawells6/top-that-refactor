@@ -299,14 +299,14 @@ export function cardImg(
     iconOverlay.src = ICON_PATHS[iconType as keyof typeof ICON_PATHS];
     iconOverlay.className = 'card-ability-icon';
     Object.assign(iconOverlay.style, {
-      position: 'absolute', 
+      position: 'absolute',
       top: '90px',
-      left: '5px',    
-      width: '34px',  
-      height: '34px', 
-      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', 
-      pointerEvents: 'none', 
-      zIndex: '999'
+      left: '5px',
+      width: '34px',
+      height: '34px',
+      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))',
+      pointerEvents: 'none',
+      zIndex: '999',
     });
     container.appendChild(iconOverlay);
   }
@@ -374,7 +374,7 @@ function updateOpponentHandStack(handStack: HTMLElement, handCount: number, skel
 }
 
 function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, visualPileTop?: CardType | null, skeletonMode: boolean = false) {
-  let centerWrap = centerArea.querySelector('.center-piles');
+  let centerWrap = centerArea.querySelector('.center-piles') as HTMLDivElement | null;
   if (!centerWrap) {
     centerArea.innerHTML = ''; 
     centerWrap = document.createElement('div');
@@ -513,7 +513,19 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                 applySkeleton(existingDownImg as HTMLElement, skeletonMode);
                 const container = existingDownImg.closest('.card-container');
                 if (container) {
+                    // FIX: Always update data attributes so clicks work
+                    if (isLocal) {
+                        const containerEl = container as HTMLElement;
+                        containerEl.dataset.idx = String(i);
+                        containerEl.dataset.zone = 'downCards';
+                    }
+                    
                     const img = container.querySelector('img');
+                    if (img && isLocal) {
+                        img.dataset.idx = String(i);
+                        img.dataset.zone = 'downCards';
+                    }
+                    
                     if (canPlayDown && img && !img.classList.contains('selectable')) {
                         img.classList.add('selectable');
                         container.classList.add('selectable-container');
@@ -559,6 +571,19 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                 const existingIcon = existingUpContainer?.querySelector('.card-ability-icon');
                 console.log('[updateStacks] EXISTING up-card, has icon?', !!existingIcon, 'skeletonMode:', skeletonMode);
                 applySkeleton(existingUpContainer, skeletonMode);
+                
+                // FIX: Always update data attributes so clicks work
+                if (isLocal && existingUpContainer) {
+                    existingUpContainer.dataset.idx = String(i);
+                    existingUpContainer.dataset.zone = 'upCards';
+                    existingUpContainer.dataset.value = newVal;
+                }
+                if (isLocal && existingUpImg) {
+                    existingUpImg.dataset.idx = String(i);
+                    existingUpImg.dataset.zone = 'upCards';
+                    existingUpImg.dataset.value = newVal;
+                }
+                
                 if (canPlayUp && !existingUpImg.classList.contains('selectable')) {
                     existingUpImg.classList.add('selectable');
                     existingUpContainer?.classList.add('selectable-container');

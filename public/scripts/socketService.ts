@@ -45,6 +45,8 @@ let cardsBeingAnimated: Card[] | null = null;
 // Track if we've dealt the opening hand to avoid re-triggering animation
 // Reset this when switching games (dev restart)
 let hasDealtOpeningHand = false;
+// Used to skip the deck-to-play animation right after the opening deal (Phase D already animates it)
+let hasPlayedOpeningDeal = false;
 
 interface QueuedPlay {
   cards: Card[];
@@ -218,9 +220,10 @@ export async function initializeSocketHandlers(): Promise<void> {
     
     // DETECT FRESH GAME START and trigger opening deal animation once
     // We rely on hasDealtOpeningHand flag to run this only once per session
-    if (s.started && !hasDealtOpeningHand && s.players.length > 0) {
+    const players = s.players ?? [];
+    if (s.started && !hasDealtOpeningHand && players.length > 0) {
       // Check if this looks like a fresh deal (all players have cards)
-      const looksLikeFreshDeal = s.players.every(p => 
+      const looksLikeFreshDeal = players.every(p => 
         (p.handCount || 0) > 0 && (p.downCount || 0) === 3 && (p.upCards?.length || 0) === 3
       );
       

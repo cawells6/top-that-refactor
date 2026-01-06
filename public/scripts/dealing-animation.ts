@@ -10,7 +10,9 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
     const playSource = document.getElementById('deck-pile'); // Source "Play" pile
     if (!playSource) return;
 
-    const playRect = playSource.getBoundingClientRect();
+    // Prefer the actual deck card element for more accurate start positioning.
+    const deckCardEl = playSource.querySelector('.deck-card .card-img') as HTMLElement | null;
+    const playRect = (deckCardEl || playSource).getBoundingClientRect();
     const players = gameState.players;
     const meIdx = myPlayerId ? players.findIndex((p) => p.id === myPlayerId) : -1;
     const dealingOrder = meIdx >= 0 ? players.slice(meIdx).concat(players.slice(0, meIdx)) : players.slice();
@@ -80,6 +82,10 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
     
     // FINAL COMMIT: This makes all cards "stick" and restores normal UI behavior
     renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
+    
+    // Wait an extra second before showing the "LET'S GO!" overlay
+    await wait(1000);
+    
     await showStartOverlay();
 }
 
@@ -162,42 +168,49 @@ function animateFlyer(fromRect: DOMRect, toElem: HTMLElement, cardData: Card | n
     const flyer = document.createElement('div');
     flyer.className = 'flying-card';
 
-    if (isFaceUp && cardData) {
-        flyer.classList.add('flying-card--face-up'); // Prevent logo from showing
-        // skeletonMode=false so flyer is visible immediately, but hide icons during flight
-        const content = cardImg(cardData, false, undefined, false, false); // Changed to false to hide icon during flight
-        flyer.style.background = 'none';
-        flyer.style.border = 'none';
-        flyer.appendChild(content);
-        
-        // Ensure content is visible
-        const img = content.querySelector('img');
-        if (img) img.style.visibility = 'visible';
-    }
+    // NOTE: During the opening deal, face-up cards often haven't loaded their network images yet.
+    // To ensure all cards visibly "fly" (like the down cards), we always fly a visible card-back
+    // and reveal the real face-up/hand cards on landing via revealGroup/revealMyHand.
+    void cardData;
+    void isFaceUp;
+
+    // Place the flyer at the source center, but sized to match the destination.
+    // Animating via transforms is much more reliable than transitioning left/top.
+    const startCenterX = fromRect.left + fromRect.width / 2;
+    const startCenterY = fromRect.top + fromRect.height / 2;
+    const endCenterX = toRect.left + toRect.width / 2;
+    const endCenterY = toRect.top + toRect.height / 2;
+
+    const deltaX = endCenterX - startCenterX;
+    const deltaY = endCenterY - startCenterY;
 
     Object.assign(flyer.style, {
         position: 'fixed',
-        left: `${fromRect.left}px`,
-        top: `${fromRect.top}px`,
-        width: `${fromRect.width}px`,
-        height: `${fromRect.height}px`,
+        left: `${startCenterX - toRect.width / 2}px`,
+        top: `${startCenterY - toRect.height / 2}px`,
+        width: `${toRect.width}px`,
+        height: `${toRect.height}px`,
         zIndex: '9999',
         pointerEvents: 'none',
-        transition: `all ${FLIGHT_DURATION_MS/1000}s ease-out`
     });
 
     document.body.appendChild(flyer);
 
-    requestAnimationFrame(() => {
-        flyer.style.left = `${toRect.left}px`;
-        flyer.style.top = `${toRect.top}px`;
-        flyer.style.width = `${toRect.width}px`;
-        flyer.style.height = `${toRect.height}px`;
-    });
+    const animation = flyer.animate(
+        [
+            { transform: 'translate(0px, 0px) rotate(0deg)' },
+            { transform: `translate(${deltaX}px, ${deltaY}px) rotate(0deg)` },
+        ],
+        {
+            duration: FLIGHT_DURATION_MS,
+            easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+            fill: 'forwards',
+        }
+    );
 
-    setTimeout(() => {
+    animation.onfinish = () => {
         flyer.remove();
-    }, FLIGHT_DURATION_MS);
+    };
 }
 
 function wait(ms: number) { return new Promise(r => setTimeout(r, ms)); }

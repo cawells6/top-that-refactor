@@ -82,8 +82,16 @@ function startServer(port: number, retries = 0) {
   console.log(logMsg);
   console.log('==============================\n');
   fs.appendFileSync('server.log', logMsg + '\n', 'utf-8');
-  server.listen(port, () => {
-    const successMsg = `🃏 Top That! server running at http://localhost:${port}`;
+  server.listen(port, '0.0.0.0', () => {
+    const networkInterfaces = require('os').networkInterfaces();
+    const localIps = Object.values(networkInterfaces)
+      .flat()
+      .filter((iface: any) => iface?.family === 'IPv4' && !iface?.internal)
+      .map((iface: any) => iface?.address);
+    
+    const successMsg = `🃏 Top That! server running at:
+  - Local:   http://localhost:${port}
+  - Network: ${localIps.map((ip: string) => `http://${ip}:${port}`).join(', ')}`;
     // Print a clear separator for visibility
     console.log('\n==============================');
     console.log(successMsg);

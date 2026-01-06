@@ -978,11 +978,11 @@ async function handleDevRestart() {
   state.socket.connect();
   
   // Wait for connection
-  await new Promise(resolve => {
+  await new Promise<void>((resolve) => {
     if (state.socket.connected) {
-      resolve(null);
+      resolve();
     } else {
-      state.socket.once('connect', resolve);
+      state.socket.once('connect', () => resolve());
     }
   });
 
@@ -1100,4 +1100,3 @@ function hideRulesModalAndOverlay() {
 }
 
 export { handleRulesClick, hideRulesModalAndOverlay };
-

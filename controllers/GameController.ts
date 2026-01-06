@@ -757,12 +757,15 @@ export default class GameController {
     }
 
     this.gameState.started = true;
-    this.gameState.currentPlayerIndex = 0;
+    
+    // Randomize starting player
+    const playerCount = this.gameState.players.length;
+    this.gameState.currentPlayerIndex = Math.floor(Math.random() * playerCount);
 
     const firstPlayerId =
       this.gameState.players[this.gameState.currentPlayerIndex];
     this.log(
-      `Game started successfully. First player: ${firstPlayerId}. Emitting NEXT_TURN and pushing state.`
+      `Game started successfully. First player: ${firstPlayerId} (index ${this.gameState.currentPlayerIndex}/${playerCount}). Emitting NEXT_TURN and pushing state.`
     );
 
     this.pushState();
