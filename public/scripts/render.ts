@@ -1428,14 +1428,7 @@ export function renderGameState(
     const branding = document.createElement('div');
     branding.id = 'table-branding';
     branding.innerHTML = `
-      <svg class="branding-crown" viewBox="0 0 32 32">
-        <path d="M4 22L6 12L11 16L16 8L21 16L26 12L28 22H4Z" fill="#ffd700" stroke="#b8860b" stroke-width="1.5" stroke-linejoin="round"/>
-        <circle cx="6" cy="12" r="2" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-        <circle cx="16" cy="8" r="2.5" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-        <circle cx="26" cy="12" r="2" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-        <rect x="4" y="22" width="24" height="4" rx="1" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-        <path d="M10 24H22" stroke="#b8860b" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
+      <img src="${logoUrl}" class="branding-crown" alt="Crown" />
       <div class="branding-title">Top That!</div>
       <div class="branding-slogan">One Crown. Zero Mercy.</div>
     `;
