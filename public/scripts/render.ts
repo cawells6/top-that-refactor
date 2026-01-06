@@ -220,7 +220,8 @@ export function cardImg(
   card: CardType,
   selectable?: boolean,
   onLoad?: (img: HTMLImageElement) => void,
-  showAbilityIcon: boolean = true
+  showAbilityIcon: boolean = true,
+  skeletonMode: boolean = false
 ): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'card-container';
@@ -232,6 +233,12 @@ export function cardImg(
     // Create custom card back element instead of using img
     const cardBack = document.createElement('div');
     cardBack.className = 'card-img card-back-custom';
+    
+    // Hide in skeleton mode
+    if (skeletonMode) {
+      cardBack.style.visibility = 'hidden';
+      cardBack.style.opacity = '0';
+    }
     
     // Add inner structure and logo
     const inner = document.createElement('div');
@@ -254,7 +261,9 @@ export function cardImg(
     img.alt = `${card.value} of ${card.suit}`;
 
     img.onload = () => {
-      img.style.visibility = 'visible';
+      if (!skeletonMode) {
+        img.style.visibility = 'visible';
+      }
       if (onLoad) onLoad(img);
     };
 
@@ -266,7 +275,9 @@ export function cardImg(
           `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png`,
         ];
         img.src = fallbacks[1];
-        img.style.visibility = 'visible';
+        if (!skeletonMode) {
+          img.style.visibility = 'visible';
+        }
       }, 500);
     };
 
@@ -286,7 +297,8 @@ export function cardImg(
     iconOverlay.className = 'card-ability-icon';
     Object.assign(iconOverlay.style, {
       position: 'absolute', bottom: '5%', left: '5%', width: '37.5%', height: 'auto',
-      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', pointerEvents: 'none', zIndex: '2'
+      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', pointerEvents: 'none', zIndex: '2',
+      display: skeletonMode ? 'none' : ''
     });
     container.appendChild(iconOverlay);
   }
@@ -296,7 +308,7 @@ export function cardImg(
 
 // --- DOM RECONCILIATION HELPERS ---
 
-function updateOpponentHandStack(handStack: HTMLElement, handCount: number) {
+function updateOpponentHandStack(handStack: HTMLElement, handCount: number, skeletonMode: boolean = false) {
   // Remove any existing badges from handStack or card containers
   const oldBadge = handStack.querySelector('.hand-count-badge');
   if (oldBadge) oldBadge.remove();
@@ -321,7 +333,7 @@ function updateOpponentHandStack(handStack: HTMLElement, handCount: number) {
   if (currentCards.length < desiredCards) {
     for (let i = currentCards.length; i < desiredCards; i++) {
       const backCard: CardType = { back: true, value: 'A', suit: 'hearts' };
-      const cardEl = cardImg(backCard, false);
+      const cardEl = cardImg(backCard, false, undefined, true, skeletonMode);
       cardEl.classList.add('stacked-card');
       cardEl.style.position = 'relative'; // Anchor for badge positioning
       handStack.appendChild(cardEl);
@@ -510,7 +522,7 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
         
         if (hasDownCard) {
             if (!existingDownImg) {
-                const downCard = cardImg({ value: '', suit: '', back: true } as CardType, canPlayDown);
+                const downCard = cardImg({ value: '', suit: '', back: true } as CardType, canPlayDown, undefined, true, skeletonMode);
                 downCard.classList.add('down-card');
                 const downImg = downCard.querySelector('.card-img') as HTMLElement;
                 if (downImg) downImg.classList.add('down-card');
@@ -563,7 +575,7 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
             if (!existingUpImg || existingUpImg.dataset.value !== newVal) {
                 if (existingUpImg) existingUpImg.closest('.card-container')?.remove();
                 
-                const upCardEl = cardImg(upCard, canPlayUp, undefined, true);
+                const upCardEl = cardImg(upCard, canPlayUp, undefined, true, skeletonMode);
                 upCardEl.classList.add('up-card');
                 const upImg = upCardEl.querySelector('.card-img') as HTMLElement;
                 if (upImg) upImg.classList.add('up-card');
@@ -635,7 +647,7 @@ function updateHandRow(handRow: HTMLDivElement, cards: CardType[], isMyTurn: boo
     }
 
     if (!el) {
-      const newCardEl = cardImg(card, isMyTurn);
+      const newCardEl = cardImg(card, isMyTurn, undefined, true, skeletonMode);
       const imgEl = newCardEl.querySelector('.card-img') as HTMLElement;
       if (imgEl) {
         imgEl.dataset.idx = String(i);
@@ -670,7 +682,7 @@ function updateHandRow(handRow: HTMLDivElement, cards: CardType[], isMyTurn: boo
       imgEl.dataset.value = newVal;
 
       if (currentVal !== newVal && !card.back) {
-         const newContent = cardImg(card, isMyTurn);
+         const newContent = cardImg(card, isMyTurn, undefined, true, skeletonMode);
          // FIX: Apply data-zone to replacement element
          const newImg = newContent.querySelector('.card-img') as HTMLElement;
          if (newImg) {
@@ -1349,7 +1361,7 @@ export function renderGameState(
             }
         } else {
             // OPPONENT
-            updateOpponentHandStack(handRow, handCount);
+            updateOpponentHandStack(handRow, handCount, options.skeletonMode || false);
         }
     }
 
