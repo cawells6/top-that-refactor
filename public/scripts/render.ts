@@ -355,6 +355,11 @@ function updateOpponentHandStack(handStack: HTMLElement, handCount: number, skel
       if (handCount <= 5) badge.classList.add('badge-safe');
       else if (handCount <= 10) badge.classList.add('badge-warning');
       else badge.classList.add('badge-danger');
+      // Hide badge in skeleton mode
+      if (skeletonMode) {
+        badge.style.visibility = 'hidden';
+        badge.style.opacity = '0';
+      }
       lastCard.appendChild(badge);
     }
   }
