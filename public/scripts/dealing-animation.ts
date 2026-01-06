@@ -99,10 +99,14 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
     await wait(FLIGHT_DURATION_MS);
     revealHandCards(gameState.players, myPlayerId);
 
-    // 4. Wait a moment to breathe
+    // 4. Move top card from deck to discard pile to start the game
+    await wait(600);
+    await animateDeckToDiscard(gameState);
+
+    // 5. Wait a moment to breathe
     await wait(400);
 
-    // 5. Flash the "LET'S PLAY!" Message
+    // 6. Flash the "LET'S PLAY!" Message
     await showStartOverlay();
 }
 
@@ -239,6 +243,33 @@ function revealCards(type: 'up' | 'down', players: any[]) {
             }
         }
     });
+}
+
+/**
+ * Animate the initial card from deck to discard pile
+ */
+async function animateDeckToDiscard(gameState: GameStateData): Promise<void> {
+    const deckElem = document.getElementById('deck-pile');
+    const discardElem = document.getElementById('discard-pile');
+    
+    if (!deckElem || !discardElem) return;
+    
+    const deckRect = deckElem.getBoundingClientRect();
+    
+    // Get the top card from the discard pile (first card played)
+    const topCard = gameState.pile && gameState.pile.length > 0 ? gameState.pile[gameState.pile.length - 1] : null;
+    
+    // Animate the card flying from deck to discard
+    animateFlyer(deckRect, discardElem, topCard, true);
+    
+    // Wait for the card to land
+    await wait(FLIGHT_DURATION_MS);
+    
+    // Reveal the discard pile card with a fade-in
+    const discardCard = discardElem.querySelector('.card-img') as HTMLElement;
+    if (discardCard) {
+        discardCard.style.opacity = '1';
+    }
 }
 
 /**

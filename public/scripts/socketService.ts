@@ -227,13 +227,30 @@ export async function initializeSocketHandlers(): Promise<void> {
       if (looksLikeFreshDeal) {
         hasDealtOpeningHand = true;
         
-        // 1. Render skeleton (shows slots/names, hides cards)
+        // 1. Clear any existing cards from the table
+        const gameTable = document.getElementById('game-table');
+        if (gameTable) {
+          // Clear all player areas
+          const playerAreas = gameTable.querySelectorAll('.player-area');
+          playerAreas.forEach(area => {
+            const handRow = area.querySelector('.hand-row');
+            const stackRow = area.querySelector('.stack-row');
+            if (handRow) handRow.innerHTML = '';
+            if (stackRow) {
+              stackRow.querySelectorAll('.stack-col').forEach(col => {
+                col.innerHTML = '';
+              });
+            }
+          });
+        }
+        
+        // 2. Render skeleton (shows slots/names, hides cards)
         renderGameState(s, state.myId, null, { skeletonMode: true });
         
-        // 2. Play the dealing animation
+        // 3. Play the dealing animation
         await performOpeningDeal(s, state.myId || '');
         
-        // 3. Render normal (shows everything)
+        // 4. Render normal (shows everything)
         renderGameState(s, state.myId);
         return;
       }

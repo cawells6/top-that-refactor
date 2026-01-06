@@ -523,7 +523,10 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                 // Hide in skeleton mode
                 if (skeletonMode) {
                     const img = downCard.querySelector('.card-img') as HTMLElement;
-                    if (img) img.style.visibility = 'hidden';
+                    if (img) {
+                        img.style.visibility = 'hidden';
+                        img.style.opacity = '0';
+                    }
                 }
             } else {
                 // Ensure visibility is restored when not in skeleton mode
@@ -574,7 +577,10 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                 // Hide in skeleton mode
                 if (skeletonMode) {
                     const img = upCardEl.querySelector('.card-img') as HTMLElement;
-                    if (img) img.style.visibility = 'hidden';
+                    if (img) {
+                        img.style.visibility = 'hidden';
+                        img.style.opacity = '0';
+                    }
                 }
             } else {
                 // Ensure visibility is restored when not in skeleton mode
@@ -600,7 +606,7 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
     });
 }
 
-function updateHandRow(handRow: HTMLDivElement, cards: CardType[], isMyTurn: boolean) {
+function updateHandRow(handRow: HTMLDivElement, cards: CardType[], isMyTurn: boolean, skeletonMode: boolean = false) {
   const currentElements = Array.from(handRow.children) as HTMLDivElement[];
   
   if (cards.length === 0) {
@@ -635,6 +641,11 @@ function updateHandRow(handRow: HTMLDivElement, cards: CardType[], isMyTurn: boo
         imgEl.dataset.idx = String(i);
         imgEl.dataset.zone = 'hand';
         imgEl.dataset.value = String(normalizeCardValue(card.value) ?? card.value);
+        // Hide in skeleton mode
+        if (skeletonMode) {
+          imgEl.style.visibility = 'hidden';
+          imgEl.style.opacity = '0';
+        }
       }
       handRow.appendChild(newCardEl);
       continue;
@@ -1330,7 +1341,7 @@ export function renderGameState(
             lastLocalHandCount = handCount;
 
             // USE RECONCILIATION FOR HAND
-            updateHandRow(handRow, player.hand ?? [], isMyTurn);
+            updateHandRow(handRow, player.hand ?? [], isMyTurn, options.skeletonMode || false);
             
             // Only recalculate compression if hand count changed
             if (handCountChanged) {
