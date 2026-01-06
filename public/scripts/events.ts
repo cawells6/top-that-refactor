@@ -944,6 +944,66 @@ async function handleDealClick() {
   }
 }
 
+// Dev-only: Restart game with same settings
+async function handleDevRestart() {
+  console.log('🔄 [DEV] Restarting game with same settings...');
+  
+  const lastState = state.getLastGameState();
+  if (!lastState) {
+    console.warn('[DEV] No previous game state found');
+    return;
+  }
+
+  // Extract settings from last game
+  const players = lastState.players || [];
+  const numHumans = players.filter((p: any) => !p.isComputer).length;
+  const numCPUs = players.filter((p: any) => p.isComputer).length;
+  const myName = players.find((p: any) => p.id === state.myId)?.name || 'Dev Player';
+
+  console.log(`[DEV] Extracted settings: ${numHumans} humans, ${numCPUs} CPUs, name: ${myName}`);
+
+  // Leave current game
+  if (state.socket && state.socket.connected) {
+    state.socket.disconnect();
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  // Clear session
+  state.setCurrentRoom(null);
+  state.setMyId(null);
+  state.saveSession();
+
+  // Reconnect and create new game
+  await state.socketReady;
+  state.socket.connect();
+  
+  // Wait for connection
+  await new Promise(resolve => {
+    if (state.socket.connected) {
+      resolve(null);
+    } else {
+      state.socket.once('connect', resolve);
+    }
+  });
+
+  // Create new game with same settings
+  const playerData = {
+    playerName: myName,
+    numHumans: numHumans,
+    numCPUs: numCPUs,
+  };
+
+  console.log('[DEV] Creating new game with:', playerData);
+  
+  state.socket.emit(JOIN_GAME, playerData, (response: any) => {
+    if (response?.error) {
+      console.error('[DEV] Failed to create game:', response.error);
+    } else {
+      console.log('[DEV] Game created successfully, animation will trigger on STATE_UPDATE');
+    }
+  });
+}
+
 async function handleJoinGameClick() {
   console.log('🎯 Join game button clicked!');
   clearMessageQueueAndHide();
