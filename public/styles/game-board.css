@@ -336,6 +336,24 @@ body.showing-game {
     overflow: visible; /* To contain the full-width header */
 }
 
+.player-area.active {
+    border: 3px solid #ffd700;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    animation: playerAreaPulse 2s infinite;
+}
+
+@keyframes playerAreaPulse {
+    0% {
+        box-shadow: 0 0 15px rgba(230, 186, 4, 0.3), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(230, 186, 4, 0.5), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 15px rgba(230, 186, 4, 0.3), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+}
+
 #player-area-bottom .player-area {
     min-height: calc(var(--card-h, 126px) * 2 + 75px);
 }
@@ -524,8 +542,9 @@ body.showing-game {
 }
 
 #game-table .player-area.active {
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-    border: none;
+    border: 2px solid #e6ba04;
+    box-shadow: 0 0 15px rgba(230, 186, 4, 0.3), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    animation: playerAreaPulse 2s infinite;
     transform: none;
 }
 
@@ -539,11 +558,7 @@ body.showing-game {
 }
 
 #game-table .player-area.active .player-avatar {
-    border: 3px solid #ffd700;
-    box-shadow:
-        0 0 0 2px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(255, 215, 0, 0.6);
-    animation: avatarPulse 2s infinite;
+    /* Removed gold border and glow - now shown on game table instead */
 }
 
 #game-table .player-area.active .player-name {
@@ -571,11 +586,7 @@ body.showing-game {
 
 /* Restored pulse animation for the active player's avatar */
 #game-table .player-avatar.active-turn {
-    border-color: #ffd700;
-    box-shadow:
-        0 0 0 2px rgba(0, 0, 0, 0.5),
-        0 0 15px #ffd700;
-    animation: avatarPulse 2s infinite;
+    /* Removed - turn indicator now on game table border */
 }
 
 #my-area .player-header {
@@ -634,11 +645,13 @@ body.showing-game {
 
 /* Game branding in top-left corner */
 #table-branding {
-    position: absolute;
-    top: 40px;
-    left: 60px;
+    position: fixed;
+    top: 20px;
+    left: 20px;
     z-index: 20;
     pointer-events: none;
+    transform: scale(1.1);
+    transform-origin: top left;
 }
 
 .branding-crown {
@@ -680,11 +693,11 @@ body.showing-game {
     opacity: 0.85;
 }
 
-/* Rules button stays inside table border */
+/* Rules button positioned under logo */
 #table-rules-button {
-    position: absolute;
-    bottom: 32px;
-    right: 60px;
+    position: fixed;
+    top: 140px;
+    left: 20px;
     padding: 0.6rem 1.8rem;
     border-radius: 30px;
     border: 2px solid rgba(0, 0, 0, 0.4);
@@ -699,6 +712,45 @@ body.showing-game {
         0 10px 20px rgba(0, 0, 0, 0.45);
     z-index: 20;
     cursor: pointer;
+}
+
+/* History button positioned to the right of rules */
+#table-history-button {
+    position: fixed;
+    top: 140px;
+    left: 130px;
+    padding: 0.6rem 1.8rem;
+    border-radius: 30px;
+    border: 2px solid rgba(0, 0, 0, 0.4);
+    background: linear-gradient(145deg, #6b7280, #4b5563);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow:
+        inset 0 -3px 6px rgba(0, 0, 0, 0.35),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        0 10px 20px rgba(0, 0, 0, 0.45);
+    z-index: 20;
+    cursor: pointer;
+}
+
+#table-rules-button:hover,
+#table-history-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        inset 0 -3px 6px rgba(0, 0, 0, 0.35),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+#table-rules-button:active,
+#table-history-button:active {
+    transform: translateY(0);
+    box-shadow:
+        inset 0 -1px 3px rgba(0, 0, 0, 0.35),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3),
+        0 5px 10px rgba(0, 0, 0, 0.45);
 }
 
 /* Testing buttons outside table border */
@@ -748,6 +800,208 @@ body.showing-game {
         inset 0 -1px 3px rgba(0, 0, 0, 0.35),
         inset 0 1px 2px rgba(255, 255, 255, 0.3),
         0 5px 10px rgba(0, 0, 0, 0.45);
+}
+
+/* === GAME LOG === */
+#game-log {
+    position: absolute;
+    left: -320px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 280px;
+    max-height: 380px;
+    background: linear-gradient(145deg, rgba(40, 45, 55, 0.98), rgba(25, 30, 38, 0.98));
+    border: 3px solid #4a2511;
+    border-radius: 12px;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    z-index: 15;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: max-height 0.3s ease, width 0.3s ease;
+}
+
+#game-log.game-log--minimized {
+    max-height: 52px;
+    width: 200px;
+}
+
+#game-log.game-log--minimized .game-log-entries {
+    display: none;
+}
+
+/* Hide on smaller screens */
+@media (max-width: 1200px) {
+    #game-log {
+        width: 240px;
+        left: -260px;
+        font-size: 12px;
+    }
+    
+    #game-log.game-log--minimized {
+        width: 180px;
+    }
+}
+
+@media (max-width: 900px) {
+    #game-log {
+        display: none;
+    }
+}
+
+.game-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(145deg, #2d3748, #1a202c);
+    border-bottom: 2px solid #4a2511;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.game-log-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 1);
+}
+
+.game-log-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.game-log-minimize-btn,
+.game-log-clear-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.game-log-minimize-btn:hover {
+    background: rgba(100, 150, 255, 0.3);
+    border-color: #6496ff;
+    transform: scale(1.1);
+}
+
+.game-log-clear-btn:hover {
+    background: rgba(255, 77, 77, 0.3);
+    border-color: #ff4d4d;
+    transform: scale(1.1);
+}
+
+.game-log-entries {
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: #4a2511 rgba(255, 255, 255, 0.1);
+}
+
+.game-log-entries::-webkit-scrollbar {
+    width: 8px;
+}
+
+.game-log-entries::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.game-log-entries::-webkit-scrollbar-thumb {
+    background: #4a2511;
+    border-radius: 4px;
+}
+
+.game-log-entries::-webkit-scrollbar-thumb:hover {
+    background: #5d3016;
+}
+
+.game-log-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+}
+
+.game-log-entry {
+    display: flex;
+    gap: 10px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 3px solid transparent;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.game-log-entry:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.game-log-entry--play {
+    border-left-color: #4a9eff;
+}
+
+.game-log-entry--take {
+    border-left-color: #ff6b6b;
+}
+
+.game-log-entry--draw {
+    border-left-color: #51cf66;
+}
+
+.game-log-entry--special {
+    border-left-color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.game-log-entry--turn {
+    border-left-color: #9775fa;
+}
+
+.game-log-entry--game {
+    border-left-color: #868e96;
+}
+
+.game-log-time {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Courier New', monospace;
+}
+
+.game-log-message {
+    flex: 1;
+    color: #fff;
+    line-height: 1.4;
 }
 
 /* Center pile */
@@ -965,42 +1219,36 @@ body.showing-game {
     margin-left: 0;
 }
 
-/* 1a. Spotlight Effect: When hovering the container, fade EVERYTHING out slightly */
-.hand-row--local:hover .card-container {
-    opacity: 0.3;
-    filter: blur(0.5px);
+/* 1. Base State: Tightly Shingled Fan */
+.hand-row--local .card-container {
+    margin-left: -40px; /* Keep them tight */
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); /* Smooth lift */
+    position: relative;
+    z-index: 1; /* Tier 1: Base */
 }
 
-/* 1b. But keep the SPECIFIC card you are hovering fully visible */
-.hand-row--local .card-container:hover {
-    opacity: 1 !important;
-    filter: none !important;
-    transform: translateY(-25px) scale(1.15) !important; 
-    z-index: 1000 !important;
-    cursor: pointer;
-}
-
-/* 2. Hybrid Elevation: Lift selected cards */
+/* 2. Natural Lift: Raise selected cards but DO NOT change their Z-Order */
 .hand-row--local .card-container.selected-container {
-    transform: translateY(-12px);
-    z-index: 50;
+    /* Lift it up so the index is visible */
+    transform: translateY(-28px) !important; 
+    
+    /* CRITICAL: We removed 'z-index: 50'. 
+       Now it stays in its original stack (behind the card to the right). */
+    
     opacity: 1 !important;
     filter: none !important;
 }
 
-/* 3. Hover Depth: Pop the current card to the absolute front */
+/* 3. Hover Priority: The card you are LOOKING at must always be on top */
 .hand-row--local .card-container.selectable-container:hover {
     z-index: 100 !important;
 }
 
-/* 4. Selection: Gold Illumination Glow */
+/* 4. Selection: Subtle white glow */
 .hand-row--local .card-container.selected-container .card-img {
     box-shadow: 
-        0 0 20px rgba(255, 215, 0, 0.8),
-        0 0 40px rgba(255, 215, 0, 0.6),
-        0 0 60px rgba(255, 215, 0, 0.4),
-        0 4px 12px rgba(0, 0, 0, 0.5);
-    filter: brightness(1.15) saturate(1.1);
+        0 0 12px rgba(255, 255, 255, 0.4),
+        0 0 24px rgba(255, 255, 255, 0.2);
 }
 
 .player-header .turn-indicator {

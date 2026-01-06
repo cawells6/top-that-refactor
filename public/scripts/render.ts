@@ -48,6 +48,136 @@ let suppressNextHandAnimation = false;
 let lastHandOverlap = 0;
 let lastHandCompressed = false;
 
+// === GAME LOG FUNCTIONALITY ===
+interface LogEntry {
+  id: number;
+  timestamp: Date;
+  message: string;
+  type: 'play' | 'take' | 'draw' | 'special' | 'turn' | 'game';
+}
+
+const MAX_LOG_ENTRIES = 5;
+let logEntries: LogEntry[] = [];
+let nextLogId = 0;
+let gameLogMinimized = false;
+
+function addLogEntry(message: string, type: LogEntry['type'] = 'game'): void {
+  const entry: LogEntry = {
+    id: nextLogId++,
+    timestamp: new Date(),
+    message,
+    type
+  };
+
+  logEntries.unshift(entry); // Add to beginning
+  
+  if (logEntries.length > MAX_LOG_ENTRIES) {
+    logEntries = logEntries.slice(0, MAX_LOG_ENTRIES);
+  }
+
+  renderGameLog();
+}
+
+function renderGameLog(): void {
+  const logContainer = document.getElementById('game-log-entries');
+  if (!logContainer) return;
+
+  if (logEntries.length === 0) {
+    logContainer.innerHTML = '<div class="game-log-empty">No moves yet...</div>';
+    return;
+  }
+
+  logContainer.innerHTML = logEntries
+    .map(entry => {
+      const timeStr = entry.timestamp.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      
+      return `
+        <div class="game-log-entry game-log-entry--${entry.type}" data-id="${entry.id}">
+          <span class="game-log-time">${timeStr}</span>
+          <span class="game-log-message">${entry.message}</span>
+        </div>
+      `;
+    })
+    .join('');
+}
+
+function formatCardValue(value: string | number): string {
+  if (value === 10) return '🔥';
+  if (value === 2) return '2️⃣';
+  if (value === 5) return '5️⃣';
+  if (value === 7) return '7️⃣';
+  return String(value);
+}
+
+function formatCards(cards: Array<{ value: string | number }>): string {
+  if (cards.length === 1) {
+    return formatCardValue(cards[0].value);
+  }
+  return `${cards.length}x ${formatCardValue(cards[0].value)}`;
+}
+
+function getPlayerDisplayName(playerId: string, players: any[]): string {
+  const player = players.find(p => p.id === playerId);
+  return player ? player.name : 'Unknown';
+}
+
+export function logCardPlayed(playerId: string, cards: CardType[], players: any[]): void {
+  const playerName = getPlayerDisplayName(playerId, players);
+  const cardStr = formatCards(cards);
+  addLogEntry(`${playerName} played ${cardStr}`, 'play');
+}
+
+export function logPileTaken(playerId: string, pileSize: number, players: any[]): void {
+  const playerName = getPlayerDisplayName(playerId, players);
+  addLogEntry(`${playerName} took the pile (${pileSize} cards)`, 'take');
+}
+
+export function logDeckToPile(): void {
+  addLogEntry('Card drawn from deck to play pile', 'draw');
+}
+
+export function logSpecialEffect(effectType: string, value?: any): void {
+  let message = '';
+  switch(effectType) {
+    case 'ten':
+      message = '🔥 Pile burned!';
+      break;
+    case 'two':
+      message = '2️⃣ Pile reset!';
+      break;
+    case 'five':
+      message = '5️⃣ Peek at pile';
+      break;
+    case 'four':
+      message = '💥 Four of a kind!';
+      break;
+    default:
+      message = `Special card effect: ${effectType}`;
+  }
+  addLogEntry(message, 'special');
+}
+
+export function logTurnChange(playerId: string, players: any[]): void {
+  const playerName = getPlayerDisplayName(playerId, players);
+  addLogEntry(`${playerName}'s turn`, 'turn');
+}
+
+export function logGameStart(): void {
+  logEntries = []; // Clear on game start
+  nextLogId = 0;
+  addLogEntry('Game started!', 'game');
+}
+
+export function logGameOver(winnerName: string): void {
+  addLogEntry(`🏆 ${winnerName} wins!`, 'game');
+}
+
+// === END GAME LOG FUNCTIONALITY ===
+
 export function resetHandTracking(): void {
   suppressNextHandAnimation = true;
 }
@@ -103,30 +233,48 @@ export function cardImg(
 
   img.src = imgSrc;
   img.alt = card.back ? 'Card back' : `${card.value} of ${card.suit}`;
-
-  img.onload = () => {
-    img.style.visibility = 'visible';
-    if (onLoad) onLoad(img);
-  };
-
-  img.onerror = () => {
-    setTimeout(() => {
-      const fallbacks = [
-        `/cards-api/static/img/${cardCode}.png`,
-        `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png`,
-      ];
-      img.src = fallbacks[1];
+  
+  if (card.back) {
+    // Create custom card back element instead of using img
+    const cardBack = document.createElement('div');
+    cardBack.className = 'card-img card-back-custom';
+    
+    // Add inner structure and logo
+    const inner = document.createElement('div');
+    inner.className = 'card-back-inner';
+    const logo = document.createElement('img');
+    logo.className = 'card-back-logo';
+    logo.src = '/assets/logo and slogan.svg';
+    logo.alt = 'Top That';
+    inner.appendChild(logo);
+    cardBack.appendChild(inner);
+    
+    container.appendChild(cardBack);
+  } else {
+    img.onload = () => {
       img.style.visibility = 'visible';
-    }, 500);
-  };
+      if (onLoad) onLoad(img);
+    };
 
-  if (selectable) {
-    img.classList.add('selectable');
-    img.style.touchAction = 'manipulation';
-    container.classList.add('selectable-container');
+    img.onerror = () => {
+      setTimeout(() => {
+        const fallbacks = [
+          `/cards-api/static/img/${cardCode}.png`,
+          `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png`,
+        ];
+        img.src = fallbacks[1];
+        img.style.visibility = 'visible';
+      }, 500);
+    };
+
+    if (selectable) {
+      img.classList.add('selectable');
+      img.style.touchAction = 'manipulation';
+      container.classList.add('selectable-container');
+    }
+
+    container.appendChild(img);
   }
-
-  container.appendChild(img);
 
   const iconType = getCardIconType(card);
   if (showAbilityIcon && iconType) {
@@ -211,6 +359,7 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
     deckNameplate.innerHTML = `<span class="pile-name">Draw</span><span class="pile-count">0</span>`;
     const deckStack = document.createElement('div');
     deckStack.className = 'pile-cards deck-stack';
+    deckStack.id = 'deck-pile';
     deckContainer.append(deckNameplate, deckStack);
 
     const playContainer = document.createElement('div');
@@ -221,6 +370,7 @@ function updateCenterArea(centerArea: HTMLElement, gameState: GameStateData, vis
     playNameplate.innerHTML = `<span class="pile-name">Play</span><span class="pile-count">0</span>`;
     const playStack = document.createElement('div');
     playStack.className = 'pile-cards play-stack';
+    playStack.id = 'play-pile';
     playContainer.append(playNameplate, playStack);
 
     centerWrap.append(deckContainer, playContainer);
@@ -354,11 +504,12 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
         if (hasDownCard) {
             if (!existingDownImg) {
                 const downCard = cardImg({ value: '', suit: '', back: true } as CardType, canPlayDown);
+                downCard.classList.add('down-card');
                 const downImg = downCard.querySelector('.card-img') as HTMLElement;
-                downImg.classList.add('down-card');
+                if (downImg) downImg.classList.add('down-card');
                 if (isLocal) {
-                    downImg.dataset.idx = String(i);
-                    downImg.dataset.zone = 'downCards';
+                    downCard.dataset.idx = String(i);
+                    downCard.dataset.zone = 'downCards';
                 }
                 col.insertBefore(downCard, col.firstChild);
             } else {
@@ -388,12 +539,13 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
                 if (existingUpImg) existingUpImg.closest('.card-container')?.remove();
                 
                 const upCardEl = cardImg(upCard, canPlayUp, undefined, true);
+                upCardEl.classList.add('up-card');
                 const upImg = upCardEl.querySelector('.card-img') as HTMLElement;
-                upImg.classList.add('up-card');
+                if (upImg) upImg.classList.add('up-card');
                 if (isLocal) {
-                    upImg.dataset.idx = String(i);
-                    upImg.dataset.zone = 'upCards';
-                    upImg.dataset.value = newVal;
+                    upCardEl.dataset.idx = String(i);
+                    upCardEl.dataset.zone = 'upCards';
+                    upCardEl.dataset.value = newVal;
                 }
                 col.appendChild(upCardEl);
             } else {
@@ -863,6 +1015,57 @@ function animatePileToPlayer(targetPlayerId: string): void {
   };
 }
 
+export function animateDeckToPlayPile(): void {
+  const deckEl = document.getElementById('deck-pile');
+  const playPileEl = document.getElementById('play-pile');
+
+  console.log('🎴 Animating deck to play pile:', { deckEl, playPileEl });
+
+  if (!deckEl || !playPileEl) {
+    console.log('❌ Could not find deck or play pile elements for animation');
+    return;
+  }
+
+  // Hide the play pile card during animation
+  const playPileCard = playPileEl.querySelector('.card-container');
+  if (playPileCard) {
+    (playPileCard as HTMLElement).style.opacity = '0';
+  }
+
+  const startRect = deckEl.getBoundingClientRect();
+  const endRect = playPileEl.getBoundingClientRect();
+
+  const flyer = document.createElement('div');
+  flyer.classList.add('flying-card');
+  flyer.style.left = `${startRect.left}px`;
+  flyer.style.top = `${startRect.top}px`;
+  
+  document.body.appendChild(flyer);
+
+  const deltaX = endRect.left - startRect.left;
+  const deltaY = endRect.top - startRect.top;
+
+  const animation = flyer.animate([
+    { transform: 'translate(0, 0) scale(1) rotate(0deg)', opacity: 1 },
+    { transform: `translate(${deltaX}px, ${deltaY}px) scale(1) rotate(5deg)`, opacity: 1 }
+  ], {
+    duration: 500,
+    easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
+    fill: 'forwards'
+  });
+
+  animation.onfinish = () => {
+    flyer.remove();
+    // Show the play pile card after animation completes
+    if (playPileCard) {
+      (playPileCard as HTMLElement).style.opacity = '1';
+    }
+  };
+}
+
+// Track last turn for turn change logging
+let lastCurrentPlayerId: string | null = null;
+
 export function renderGameState(
   gameState: GameStateData,
   localPlayerId: string | null,
@@ -871,6 +1074,15 @@ export function renderGameState(
   if (!gameState?.started) {
     lastLocalHandCount = -1;
     lastLocalHandCards = [];
+    lastCurrentPlayerId = null; // Reset on game restart
+  }
+  
+  // Track turn changes
+  if (gameState.currentPlayerId && gameState.currentPlayerId !== lastCurrentPlayerId) {
+    if (lastCurrentPlayerId !== null) { // Don't log on initial render
+      logTurnChange(gameState.currentPlayerId, gameState.players);
+    }
+    lastCurrentPlayerId = gameState.currentPlayerId;
   }
   
   // --- HYBRID CAPTURE START ---
@@ -1027,14 +1239,42 @@ export function renderGameState(
     
     const avatar = panel.querySelector('.player-avatar');
     if (avatar) {
-        if (player.id === gameState.currentPlayerId) avatar.classList.add('active-turn');
-        else avatar.classList.remove('active-turn');
+        // No longer applying active-turn to avatar - using player-area border instead
         const img = avatar.querySelector('img');
         if (img) img.src = player.isComputer ? robotAvatarUrl : playerAvatarUrl;
+    }
+    
+    // Apply active class to the panel itself (it IS the player-area)
+    console.log('🔍 Checking active class:', {
+        playerId: player.id,
+        playerName: player.name,
+        currentPlayerId: gameState.currentPlayerId,
+        isTheirTurn: player.id === gameState.currentPlayerId,
+        panelHasPlayerAreaClass: panel.classList.contains('player-area'),
+        panelId: panel.id
+    });
+    
+    if (player.id === gameState.currentPlayerId) {
+        console.log('🟡 Adding active class to player:', player.name, player.id);
+        panel.classList.add('active');
+    } else {
+        panel.classList.remove('active');
     }
 
     // 4. UPDATE HAND
     const handRow = panel.querySelector('.hand-row') as HTMLDivElement;
+    
+    // Track hand size changes for debugging
+    if (isLocalPlayer) {
+        console.log('👤 Local player hand update:', {
+            playerId: player.id,
+            handCount,
+            upCardsCount: player.upCards?.length || 0,
+            downCardsCount: player.downCards?.length || 0,
+            hasValidPlay: handCount > 0
+        });
+    }
+    
     if (handRow) {
         if (isLocalPlayer) {
             // Apply cached compression ONCE before updates
@@ -1107,23 +1347,96 @@ export function renderGameState(
         rulesButton.onclick = () => document.dispatchEvent(new CustomEvent('open-rules-modal'));
         table.appendChild(rulesButton);
       }
-      if (!table.querySelector('#table-branding')) {
-        const branding = document.createElement('div');
-        branding.id = 'table-branding';
-        branding.innerHTML = `
-          <svg class="branding-crown" viewBox="0 0 32 32">
-            <path d="M4 22L6 12L11 16L16 8L21 16L26 12L28 22H4Z" fill="#ffd700" stroke="#b8860b" stroke-width="1.5" stroke-linejoin="round"/>
-            <circle cx="6" cy="12" r="2" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-            <circle cx="16" cy="8" r="2.5" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-            <circle cx="26" cy="12" r="2" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-            <rect x="4" y="22" width="24" height="4" rx="1" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
-            <path d="M10 24H22" stroke="#b8860b" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-          <div class="branding-title">Top That!</div>
-          <div class="branding-slogan">One Crown. Zero Mercy.</div>
-        `;
-        table.appendChild(branding);
+      
+      if (!table.querySelector('#table-history-button')) {
+        const historyButton = document.createElement('button');
+        historyButton.id = 'table-history-button';
+        historyButton.className = 'action-button action-button--history';
+        historyButton.textContent = 'Move History';
+        historyButton.onclick = () => {
+          const logPanel = document.getElementById('game-log');
+          if (logPanel) {
+            if (logPanel.style.display === 'none') {
+              logPanel.style.display = 'block';
+            } else {
+              logPanel.style.display = 'none';
+            }
+          }
+        };
+        table.appendChild(historyButton);
       }
+      
+      // Initialize game log panel (hidden by default)
+      if (!document.getElementById('game-log')) {
+        const logPanel = document.createElement('div');
+        logPanel.id = 'game-log';
+        logPanel.style.display = 'none'; // Start hidden
+        logPanel.innerHTML = `
+          <div class="game-log-header">
+            <h3>Move History</h3>
+            <div class="game-log-controls">
+              <button id="game-log-minimize" class="game-log-minimize-btn" title="Minimize">−</button>
+              <button id="game-log-clear" class="game-log-clear-btn" title="Close">×</button>
+            </div>
+          </div>
+          <div id="game-log-entries" class="game-log-entries">
+            <div class="game-log-empty">No moves yet...</div>
+          </div>
+        `;
+        table.appendChild(logPanel);
+        
+        // Add minimize button handler
+        const minimizeBtn = document.getElementById('game-log-minimize');
+        if (minimizeBtn) {
+          minimizeBtn.addEventListener('click', () => {
+            const logPanel = document.getElementById('game-log');
+            const entriesContainer = document.getElementById('game-log-entries');
+            if (logPanel && entriesContainer) {
+              gameLogMinimized = !gameLogMinimized;
+              if (gameLogMinimized) {
+                logPanel.classList.add('game-log--minimized');
+                minimizeBtn.textContent = '+';
+                minimizeBtn.title = 'Expand';
+              } else {
+                logPanel.classList.remove('game-log--minimized');
+                minimizeBtn.textContent = '−';
+                minimizeBtn.title = 'Minimize';
+              }
+            }
+          });
+        }
+        
+        // Add clear button handler
+        const clearBtn = document.getElementById('game-log-clear');
+        if (clearBtn) {
+          clearBtn.addEventListener('click', () => {
+            const logPanel = document.getElementById('game-log');
+            if (logPanel) {
+              logPanel.style.display = 'none';
+            }
+          });
+        }
+      }
+  }
+  
+  // Ensure branding outside the table border
+  const gameTable = document.getElementById('game-table');
+  if (gameTable && !gameTable.querySelector('#table-branding')) {
+    const branding = document.createElement('div');
+    branding.id = 'table-branding';
+    branding.innerHTML = `
+      <svg class="branding-crown" viewBox="0 0 32 32">
+        <path d="M4 22L6 12L11 16L16 8L21 16L26 12L28 22H4Z" fill="#ffd700" stroke="#b8860b" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="6" cy="12" r="2" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+        <circle cx="16" cy="8" r="2.5" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+        <circle cx="26" cy="12" r="2" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+        <rect x="4" y="22" width="24" height="4" rx="1" fill="#ffd700" stroke="#b8860b" stroke-width="1"/>
+        <path d="M10 24H22" stroke="#b8860b" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div class="branding-title">Top That!</div>
+      <div class="branding-slogan">One Crown. Zero Mercy.</div>
+    `;
+    gameTable.appendChild(branding);
   }
 }
 

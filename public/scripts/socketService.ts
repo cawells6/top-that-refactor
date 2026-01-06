@@ -5,7 +5,15 @@ import {
   resetHandTracking, 
   animateCardFromPlayer, 
   waitForFlyingCard,
-  animateVictory
+  animateVictory,
+  animateDeckToPlayPile,
+  logCardPlayed,
+  logPileTaken,
+  logDeckToPile,
+  logSpecialEffect,
+  logTurnChange,
+  logGameStart,
+  logGameOver
 } from './render.js';
 import * as state from './state.js';
 import { waitForTestContinue } from './manualMode.js';
@@ -180,6 +188,12 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
 
     if (data.cards && data.cards.length > 0) {
+      // Log the card play
+      const currentState = state.getLastGameState();
+      if (currentState && data.playerId) {
+        logCardPlayed(data.playerId, data.cards, currentState.players);
+      }
+      
       // INSTEAD of processing immediately, we add to the Queue.
       // This ensures order is preserved.
       playQueue.push(data);
@@ -205,6 +219,7 @@ export async function initializeSocketHandlers(): Promise<void> {
 
   state.socket.on(GAME_STARTED, (s?: GameStateData) => {
     showGameTable();
+    logGameStart();
     if (s) {
       state.setLastGameState(s);
       renderGameState(s, state.myId);
@@ -236,6 +251,9 @@ export async function initializeSocketHandlers(): Promise<void> {
       }
 
       isAnimatingSpecialEffect = true;
+      
+      // Log the special effect
+      logSpecialEffect(effectType, payload?.value);
       
       setTimeout(() => {
         showCardEvent(payload?.value ?? null, effectType);
@@ -273,15 +291,28 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(PILE_PICKED_UP, (data: { playerId: string; pileSize: number }) => {
     console.log('Pile picked up by:', data.playerId);
     
+    // Log the pile pickup
+    const currentState = state.getLastGameState();
+    if (currentState) {
+      logPileTaken(data.playerId, data.pileSize, currentState.players);
+    }
+    
     if (data.playerId === state.myId) {
       resetHandTracking();
     }
     
     showCardEvent(null, 'take', data.playerId);
+    
+    // Animate card from deck to play pile after a brief delay
+    setTimeout(() => {
+      animateDeckToPlayPile();
+      logDeckToPile();
+    }, 400);
   });
 
   state.socket.on(GAME_OVER, (data: { winnerId: string; winnerName: string }) => {
     console.log('Game Over! Winner:', data.winnerName, 'ID:', data.winnerId);
+    logGameOver(data.winnerName);
     animateVictory(data.winnerId);
   });
 
