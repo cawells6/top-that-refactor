@@ -31,6 +31,10 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
             }
         }
     }
+    
+    // Wait for last down card to land, then reveal all down cards
+    await wait(FLIGHT_DURATION_MS);
+    revealCards('down', gameState.players);
 
     // 2. Deal Face-Up Cards (Batch Style)
     for (const player of gameState.players) {
@@ -46,6 +50,10 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
             }
         }
     }
+    
+    // Wait for last up card to land, then reveal all up cards
+    await wait(FLIGHT_DURATION_MS);
+    revealCards('up', gameState.players);
 
     // 3. Deal Hand Cards (Batch Style)
     for (const player of gameState.players) {
@@ -86,9 +94,13 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
             }
         }
     }
+    
+    // Wait for last hand card to land, then reveal all hand cards
+    await wait(FLIGHT_DURATION_MS);
+    revealHandCards(gameState.players, myPlayerId);
 
-    // 4. Wait for the last card to land + a moment to breathe
-    await wait(FLIGHT_DURATION_MS + 400);
+    // 4. Wait a moment to breathe
+    await wait(400);
 
     // 5. Flash the "LET'S PLAY!" Message
     await showStartOverlay();
@@ -203,4 +215,69 @@ async function showStartOverlay() {
     
     await wait(300);
     overlay.remove();
+}
+
+/**
+ * Reveal cards after animation completes
+ */
+function revealCards(type: 'up' | 'down', players: any[]) {
+    players.forEach(player => {
+        for (let i = 0; i < 3; i++) {
+            const targetId = `deal-target-${player.id}-${type}-${i}`;
+            const targetElem = document.getElementById(targetId);
+            if (targetElem) {
+                const cardImg = targetElem.querySelector('.card-img') as HTMLElement;
+                if (cardImg) {
+                    cardImg.style.visibility = 'visible';
+                    cardImg.style.opacity = '0';
+                    // Fade in
+                    requestAnimationFrame(() => {
+                        cardImg.style.transition = 'opacity 0.3s ease';
+                        cardImg.style.opacity = '1';
+                    });
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Reveal hand cards after animation completes
+ */
+function revealHandCards(players: any[], myPlayerId: string) {
+    players.forEach(player => {
+        const isMe = player.id === myPlayerId;
+        
+        if (isMe) {
+            // Reveal my hand cards
+            const handRow = document.querySelector('#my-area .hand-row');
+            if (handRow) {
+                const cards = handRow.querySelectorAll('.card-img') as NodeListOf<HTMLElement>;
+                cards.forEach((cardImg, idx) => {
+                    setTimeout(() => {
+                        cardImg.style.visibility = 'visible';
+                        cardImg.style.opacity = '0';
+                        requestAnimationFrame(() => {
+                            cardImg.style.transition = 'opacity 0.3s ease';
+                            cardImg.style.opacity = '1';
+                        });
+                    }, idx * 50); // Stagger slightly
+                });
+            }
+        } else {
+            // For opponents, just make the hand count badge visible
+            const playerArea = document.querySelector(`.player-area[data-player-id="${player.id}"]`);
+            if (playerArea) {
+                const badge = playerArea.querySelector('.hand-count-badge') as HTMLElement;
+                if (badge) {
+                    badge.style.visibility = 'visible';
+                    badge.style.opacity = '0';
+                    requestAnimationFrame(() => {
+                        badge.style.transition = 'opacity 0.3s ease';
+                        badge.style.opacity = '1';
+                    });
+                }
+            }
+        }
+    });
 }

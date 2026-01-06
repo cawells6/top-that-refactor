@@ -528,8 +528,8 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
             } else {
                 // Ensure visibility is restored when not in skeleton mode
                 if (!skeletonMode) {
-                    const img = existingDownImg.querySelector('img') as HTMLElement;
-                    if (img) img.style.visibility = 'visible';
+                    const cardImgEl = existingDownImg.querySelector('.card-img') as HTMLElement;
+                    if (cardImgEl) cardImgEl.style.visibility = 'visible';
                 }
                 const container = existingDownImg.closest('.card-container');
                 if (container) {
@@ -579,8 +579,8 @@ function updateStacks(stackRow: HTMLElement, upCards: (CardType|null)[], downCou
             } else {
                 // Ensure visibility is restored when not in skeleton mode
                 if (!skeletonMode) {
-                    const img = existingUpImg.querySelector('img') as HTMLElement;
-                    if (img) img.style.visibility = 'visible';
+                    const cardImgEl = existingUpImg.querySelector('.card-img') as HTMLElement;
+                    if (cardImgEl) cardImgEl.style.visibility = 'visible';
                 }
                 const container = existingUpImg.closest('.card-container');
                 if (canPlayUp && !existingUpImg.classList.contains('selectable')) {
