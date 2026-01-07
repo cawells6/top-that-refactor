@@ -170,10 +170,24 @@ export class TutorialController {
 
     // B. Apply Position
     if (target) {
+      // Scroll element into view if needed to ensure correct positioning
+      target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
+      
       const rect = target.getBoundingClientRect();
       console.log('[Tutorial] Spotlight target found:', target, 'Position:', rect);
       console.log('[Tutorial] Window size:', window.innerWidth, 'x', window.innerHeight);
-      console.log('[Tutorial] Spotlight element position property:', this.spotlight.style.position || 'not set');
+      console.log('[Tutorial] Target offsetParent:', target.offsetParent);
+      console.log('[Tutorial] Computed transform:', window.getComputedStyle(target).transform);
+      
+      // Sanity check: if position looks wrong, abort and log error
+      if (rect.left < 0 || rect.left > window.innerWidth || 
+          rect.top < 0 || rect.top > window.innerHeight) {
+        console.error('[Tutorial] Target position is off-screen! Rect:', rect);
+        console.error('[Tutorial] This usually means the element hasnt rendered yet or has wrong transform');
+        // Try again after another delay
+        setTimeout(() => this.updateSpotlight(), 200);
+        return;
+      }
       
       // Add some padding
       const padding = 10;
@@ -185,7 +199,7 @@ export class TutorialController {
       this.spotlight.style.width = `${rect.width + padding * 2}px`;
       this.spotlight.style.height = `${rect.height + padding * 2}px`;
       
-      console.log('[Tutorial] Applied spotlight styles:', {
+      console.log('[Tutorial] ✅ Applied spotlight styles:', {
         top: this.spotlight.style.top,
         left: this.spotlight.style.left,
         width: this.spotlight.style.width,
