@@ -294,6 +294,7 @@ export default class GameController {
     const lobbyPlayers = Array.from(this.players.values()).map((p: Player) => ({
       id: p.id,
       name: p.name,
+      avatar: p.avatar, // Include avatar
       status: p.status,
       isComputer: p.isComputer, // Include bot information
       isSpectator: p.isSpectator,
@@ -543,6 +544,7 @@ export default class GameController {
     }
     const player = new Player(id);
     player.name = name;
+    player.avatar = playerData.avatar || '🤴'; // Save the avatar!
     player.socketId = socket.id;
     player.isSpectator = isSpectator;
     if (this.players.size === 0) {
@@ -677,7 +679,13 @@ export default class GameController {
         });
         
         const cpuPlayer = new Player(cpuId);
-        cpuPlayer.name = getRandomCpuName(usedNames);
+        
+        // Randomize Bot Identity
+        const { getRandomAvatar, CPU_NAMES } = await import('../src/shared/avatars.js');
+        const randomAvatar = getRandomAvatar();
+        cpuPlayer.name = CPU_NAMES[Math.floor(Math.random() * CPU_NAMES.length)];
+        cpuPlayer.avatar = randomAvatar.icon; // Assign Emoji
+        
         cpuPlayer.isComputer = true;
         this.players.set(cpuId, cpuPlayer);
         this.log(
@@ -1722,6 +1730,7 @@ export default class GameController {
         return {
           id: player.id,
           name: player.name,
+          avatar: player.avatar, // Include avatar
           hand: isSelf || player.isComputer ? player.hand : undefined,
           handCount: player.hand.length,
           upCards: player.upCards,

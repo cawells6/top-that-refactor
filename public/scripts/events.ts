@@ -448,8 +448,42 @@ function applySpectatorMode(): void {
   syncCounterUI();
 }
 
+// Initialize the Avatar Picker
+function initializeAvatarPicker() {
+  const grid = document.getElementById('avatar-grid');
+  const input = document.getElementById('selected-avatar') as HTMLInputElement;
+  
+  if (!grid || !input) return;
+  
+  // Import avatars from shared module
+  import('../../src/shared/avatars.js').then(({ ROYALTY_AVATARS }) => {
+    grid.innerHTML = '';
+    
+    ROYALTY_AVATARS.forEach((av, index) => {
+      const el = document.createElement('div');
+      el.className = 'avatar-option';
+      if (index === 0) el.classList.add('selected'); // Select first by default
+      el.textContent = av.icon;
+      el.title = av.label;
+      el.onclick = () => {
+        // Deselect all
+        grid.querySelectorAll('.avatar-option').forEach(d => d.classList.remove('selected'));
+        // Select this
+        el.classList.add('selected');
+        input.value = av.icon;
+      };
+      grid.appendChild(el);
+    });
+  }).catch(err => {
+    console.error('Failed to load avatars:', err);
+  });
+}
+
 export async function initializePageEventListeners() {
   console.log('🚀 [events.ts] initializePageEventListeners called!');
+
+  // Initialize avatar picker
+  initializeAvatarPicker();
 
   // Only setup modal buttons now (header buttons removed)
   const setupRulesButton = document.getElementById('setup-rules-button');
@@ -854,13 +888,18 @@ async function handleDealClick() {
 
   state.setDesiredCpuCount(numCPUs);
 
+  const avatarInput = document.getElementById('selected-avatar') as HTMLInputElement;
+  const selectedAvatar = avatarInput ? avatarInput.value : '🤴';
+
   const playerDataForEmit: {
     playerName: string;
+    avatar?: string;
     numHumans: number;
     numCPUs: number;
     spectator?: boolean;
   } = {
     playerName: name, // changed from 'name' to 'playerName' for JoinGamePayload
+    avatar: selectedAvatar, // SEND AVATAR
     numHumans: numHumans,
     numCPUs: numCPUs,
   };
@@ -1042,9 +1081,14 @@ async function handleJoinGameClick() {
   const code = codeValidation.code;
   state.setCurrentRoom(code);
   state.saveSession();
+  
+  const avatarInput = document.getElementById('selected-avatar') as HTMLInputElement;
+  const selectedAvatar = avatarInput ? avatarInput.value : '🤴';
+  
   const joinPayload = {
     roomId: code,
     playerName: name,
+    avatar: selectedAvatar, // SEND AVATAR
     numHumans: 1,
     numCPUs: 0,
   };

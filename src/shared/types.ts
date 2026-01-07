@@ -12,6 +12,7 @@ export interface Card {
 export interface ClientStatePlayer {
   id: string;
   name: string;
+  avatar?: string;
   handCount?: number;
   upCount?: number;
   downCount?: number;
@@ -39,6 +40,7 @@ export interface GameStateData {
 export interface LobbyPlayer {
   id: string;
   name: string;
+  avatar?: string;
   status: 'host' | 'invited' | 'joined' | 'ready';
   isComputer?: boolean; // Whether this player is a bot/CPU
   isSpectator?: boolean;
@@ -57,6 +59,7 @@ export interface InSessionLobbyState {
 export interface JoinGamePayload {
   id?: string;
   playerName: string;
+  avatar?: string;
   numHumans: number;
   numCPUs: number;
   roomId?: string;

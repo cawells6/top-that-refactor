@@ -171,3 +171,46 @@
   from { box-shadow: 0 0 0 0 rgba(255, 195, 0, 0.4); }
   to { box-shadow: 0 0 0 8px rgba(255, 195, 0, 0); }
 }
+
+/* Avatar Picker */
+.avatar-selection-section {
+  margin: 1rem 0;
+}
+
+.avatar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: rgba(0,0,0,0.05);
+  border-radius: 12px;
+}
+
+.avatar-option {
+  width: 48px;
+  height: 48px;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #ccc;
+  transition: transform 0.2s, border-color 0.2s, background-color 0.2s;
+  user-select: none;
+}
+
+.avatar-option:hover {
+  transform: scale(1.1);
+  border-color: #ffd700;
+}
+
+.avatar-option.selected {
+  background-color: #fff8e1;
+  border-color: #ffc300;
+  box-shadow: 0 0 0 2px #ffc300;
+  transform: scale(1.15);
+}

@@ -400,6 +400,12 @@ body.showing-game {
     transform: translate(-50%, -50%);
 }
 
+/* Adjust player avatar to handle emojis */
+#game-table .player-avatar .emoji-avatar {
+    font-size: 2.2rem; /* Large size for game board */
+    background: #fff; /* White background behind emoji */
+}
+
 /* Nudge the robot icon left for better visual centering */
 #game-table .computer-player .player-avatar img {
     transform: translate(-55%, -50%);
@@ -495,6 +501,11 @@ body.showing-game {
 .table > :not(#player-area-bottom) .player-avatar {
     width: 38px;  /* Smaller than your 48px */
     height: 38px;
+}
+
+/* Make it slightly smaller for opponents */
+.table > :not(#player-area-bottom) .player-avatar .emoji-avatar {
+    font-size: 1.6rem;
 }
 
 .table > :not(#player-area-bottom) .player-name {

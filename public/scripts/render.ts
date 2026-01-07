@@ -1557,9 +1557,22 @@ export function renderGameState(
 
     const avatar = panel.querySelector('.player-avatar');
     if (avatar) {
-      // No longer applying active-turn to avatar - using player-area border instead
-      const img = avatar.querySelector('img');
-      if (img) img.src = player.isComputer ? robotAvatarUrl : playerAvatarUrl;
+      // Clear previous content
+      avatar.innerHTML = '';
+
+      if (player.avatar) {
+        // RENDER EMOJI AVATAR
+        const emojiDiv = document.createElement('div');
+        emojiDiv.className = 'emoji-avatar';
+        emojiDiv.textContent = player.avatar;
+        avatar.appendChild(emojiDiv);
+      } else {
+        // FALLBACK TO LEGACY IMAGES
+        const img = document.createElement('img');
+        img.src = player.isComputer ? robotAvatarUrl : playerAvatarUrl;
+        img.alt = 'avatar';
+        avatar.appendChild(img);
+      }
     }
 
     // Apply active class to the panel itself (it IS the player-area)

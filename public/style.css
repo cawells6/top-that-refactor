@@ -1576,3 +1576,14 @@ body.showing-game #lobby-container {
 body.spectator-mode .spectator-banner {
   display: inline-flex;
 }
+
+/* Ensure emojis render as graphics */
+.emoji-avatar {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}

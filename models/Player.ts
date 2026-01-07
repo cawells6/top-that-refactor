@@ -13,6 +13,7 @@ export default class Player {
   public upCards: Array<Card | null>;
   public downCards: Card[];
   public name: string;
+  public avatar?: string;
   public isComputer: boolean;
   public isSpectator: boolean;
   public disconnected: boolean;
@@ -27,6 +28,7 @@ export default class Player {
     this.upCards = [];
     this.downCards = [];
     this.name = '';
+    this.avatar = '🤴'; // Default fallback
     this.isComputer = false;
     this.isSpectator = false;
     this.disconnected = false;
