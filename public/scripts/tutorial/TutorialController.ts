@@ -18,6 +18,7 @@ export class TutorialController {
 
   // DOM Elements
   private overlay: HTMLElement | null = null;
+  private spotlight: HTMLElement | null = null;
   private cardEl: HTMLElement | null = null;
 
   constructor() {
@@ -30,6 +31,9 @@ export class TutorialController {
 
     // Start the first step
     this.loadStep(0);
+
+    // Handle window resize to fix spotlight positions
+    window.addEventListener('resize', () => this.updateSpotlight());
   }
 
   // --- STEP MANAGEMENT ---
@@ -49,7 +53,6 @@ export class TutorialController {
     this.upCards = this.parseCards(this.currentStep.scenario.upCards);
 
     // Special handling for Face-Down cards in the specific failure step
-    // If we are in FACEDOWN_FAIL, force the '3H' to show on pile for context
     if (this.currentStep.id === 'FACEDOWN_FAIL') {
       const failCard = this.parseCard('3H');
       if (failCard) this.pile.push(failCard);
@@ -58,7 +61,7 @@ export class TutorialController {
     // Generate dummy down cards based on count
     this.downCards = Array(this.currentStep.scenario.downCards)
       .fill(null)
-      .map((_) => ({
+      .map(() => ({
         value: 2,
         suit: 'hearts',
         back: true,
@@ -68,8 +71,13 @@ export class TutorialController {
     this.updateRender();
     this.updateInstructionCard();
 
-    // 3. Auto-advance for INTRO steps if they are just "click anywhere"
+    // 3. Move Spotlight to the correct element (after a slight render delay)
+    setTimeout(() => this.updateSpotlight(), 300);
+
+    // 4. Auto-advance for INTRO steps if they are just "click anywhere"
     if (this.currentStep.id === 'INTRO_WELCOME') {
+      // Just highlight the whole center area loosely or nothing
+      this.clearSpotlight();
       document.addEventListener('click', this.handleGlobalClick, { once: true });
     }
   }
@@ -85,7 +93,81 @@ export class TutorialController {
   }
 
   private finishTutorial() {
+    // Clean up spotlight
+    if (this.spotlight) {
+      this.spotlight.remove();
+      this.spotlight = null;
+    }
+    // Clean up overlay and card
+    if (this.overlay) {
+      this.overlay.remove();
+      this.overlay = null;
+    }
+    if (this.cardEl) {
+      this.cardEl.remove();
+      this.cardEl = null;
+    }
     window.location.href = '/'; // Return to lobby
+  }
+
+  // --- SPOTLIGHT LOGIC (The "Dim and Highlight" System) ---
+
+  private updateSpotlight() {
+    if (!this.spotlight) return;
+
+    let target: HTMLElement | null = null;
+    const config = this.currentStep.validation;
+
+    // A. Find Target based on Step Logic
+    if (config.type === 'pickup_pile' || config.type === 'facedown_pickup') {
+      // Highlight the Pile
+      target =
+        document.querySelector('.pile-container') ||
+        document.querySelector('.table-center');
+    } else if (config.type === 'play_card' || config.type === 'four_of_kind') {
+      // Highlight a specific card in Hand, UpCards, or DownCards
+      if (config.cardValue) {
+        // Find specific value in hand (e.g. '3')
+        const selector = `.card-img[data-value="${config.cardValue}"]`;
+        // Prefer cards in 'my-area' (hand)
+        const hand = document.getElementById('my-area');
+        if (hand) {
+          target = hand.querySelector(selector) as HTMLElement;
+          if (target) target = target.closest('.card-container') as HTMLElement;
+        }
+      } else if (config.expectedAction?.startsWith('click_index')) {
+        // Highlight specific Up/Down card slot
+        const slotIndex = 0;
+        const playerArea = document.getElementById('my-area');
+        if (playerArea && playerArea.children[slotIndex]) {
+          target = playerArea.children[slotIndex] as HTMLElement;
+        }
+      } else if (this.currentStep.id === 'HAND_BASIC') {
+        // Default fallback for first step: Highlight first card
+        const playerArea = document.getElementById('my-area');
+        if (playerArea && playerArea.children[0]) {
+          target = playerArea.children[0] as HTMLElement;
+        }
+      }
+    }
+
+    // B. Apply Position
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      // Add some padding
+      const padding = 10;
+      this.spotlight.style.opacity = '1';
+      this.spotlight.style.top = `${rect.top - padding}px`;
+      this.spotlight.style.left = `${rect.left - padding}px`;
+      this.spotlight.style.width = `${rect.width + padding * 2}px`;
+      this.spotlight.style.height = `${rect.height + padding * 2}px`;
+    } else {
+      this.clearSpotlight();
+    }
+  }
+
+  private clearSpotlight() {
+    if (this.spotlight) this.spotlight.style.opacity = '0';
   }
 
   // --- INTERACTION HANDLING ---
@@ -118,17 +200,16 @@ export class TutorialController {
     );
 
     // 3. Pile Click (Pickup)
+    // We attach to body/table to catch bubbling events from the pile
     document.getElementById('game-table')?.addEventListener(
       'click',
       (e) => {
         const target = e.target as HTMLElement;
-        if (
-          target.closest('.pile') ||
-          target.closest('.pile-container') ||
-          target.id === 'take-button'
-        ) {
+        const pile =
+          target.closest('.pile-container') || target.closest('.table-center');
+
+        if (pile || target.id === 'take-button') {
           e.stopImmediatePropagation();
-          // Decide if this is a pickup action
           if (
             this.currentStep.validation.type === 'pickup_pile' ||
             this.currentStep.validation.type === 'facedown_pickup'
@@ -137,24 +218,24 @@ export class TutorialController {
           }
         }
 
-        // Handle Down/Up card single clicks for specific steps
+        // Handle Down/Up card single clicks
         if (target.closest('.card-container')) {
           const container = target.closest('.card-container') as HTMLElement;
 
-          // Check if it's a click on down-cards/up-cards when expected
+          // Check if it's a click on down-cards/up-cards
           if (
             this.currentStep.validation.type === 'play_card' &&
             this.currentStep.validation.expectedAction?.startsWith('click_index')
           ) {
-            // Simple index check based on DOM position
+            // Determine index relative to parent
             const index = Array.from(
               container.parentElement?.children || []
             ).indexOf(container);
             this.validateAction('play_card', 'click', index);
           }
 
-          // Handle Face-Down Fail logic (clicking a down card to reveal it)
           if (this.currentStep.validation.type === 'facedown_fail') {
+            // In the failure step, clicking the card triggers the "fail" state
             this.validateAction('facedown_fail');
           }
         }
@@ -184,10 +265,8 @@ export class TutorialController {
 
     // --- SCENARIO: FACE DOWN REVEAL FAIL ---
     if (validConfig.type === 'facedown_fail' && actionType === 'facedown_fail') {
-      // Move to next step (which explains the pickup)
-      if (actionType === 'pickup_pile' || source === 'take-button') {
-        this.nextStep();
-      }
+      // When they click the face-down card that fails, we advance to explain the pickup
+      this.nextStep();
       return;
     }
 
@@ -196,25 +275,22 @@ export class TutorialController {
       validConfig.type === 'play_card' ||
       validConfig.type === 'four_of_kind'
     ) {
-      // A. Handle specific "Click Index" expectations (Up/Down cards)
+      // A. Handle Up/Down Card Clicks (Single Click)
       if (validConfig.expectedAction?.startsWith('click_index')) {
-        // We just assume if they clicked the right zone it's good for tutorial simplicity
         if (index !== undefined && index === 0) {
-          // Tutorial usually asks for first card
           this.nextStep();
           return;
         }
       }
 
-      // B. Handle Standard Hand Play
+      // B. Handle Standard Hand Play (Double Click or Select+Button)
       const selectedElements = document.querySelectorAll('.card-img.selected');
       const selectedIndices: number[] = [];
 
       selectedElements.forEach((el) => {
         const container = el.closest('.card-container') as HTMLElement;
         if (container) {
-          // Find index in myHand (assuming hand container)
-          const handContainer = document.getElementById('my-area'); // Hand ID
+          const handContainer = document.getElementById('my-area');
           if (handContainer && handContainer.contains(container)) {
             const idx = Array.from(handContainer.children).indexOf(container);
             if (idx >= 0) selectedIndices.push(idx);
@@ -222,7 +298,6 @@ export class TutorialController {
         }
       });
 
-      // 1. Check if cards are selected
       if (selectedIndices.length === 0) {
         if (source === 'button') showToast('Select a card first!', 'error');
         return;
@@ -230,7 +305,7 @@ export class TutorialController {
 
       const playedCards = selectedIndices.map((i) => this.myHand[i]).filter((c) => c);
 
-      // 2. Validate Card Value
+      // Validation Checks
       if (validConfig.cardValue) {
         const wrongCard = playedCards.some(
           (c) => String(c.value) !== String(validConfig.cardValue)
@@ -241,19 +316,11 @@ export class TutorialController {
         }
       }
 
-      // 3. Validate Count (Multi-play)
       if (validConfig.cardCount && playedCards.length < validConfig.cardCount) {
         showToast(`Select ALL ${validConfig.cardCount} cards!`, 'error');
         return;
       }
 
-      // 4. Validate Four of a Kind - tutorial setup implies 1 card + 3 on pile
-      if (validConfig.type === 'four_of_kind') {
-        // Config: myHand: ['7D'], pile: ['7H', '7C', '7S']
-        // So we only play 1 card
-      }
-
-      // Success!
       this.nextStep();
     }
   }
@@ -261,36 +328,36 @@ export class TutorialController {
   // --- RENDERING & PARSING ---
 
   private updateRender() {
-    renderGameState(
-      {
-        players: [
-          {
-            id: 'me',
-            name: 'Recruit',
-            hand: this.myHand,
-            upCards: this.upCards as Card[],
-            downCards: this.downCards as Card[],
-            isComputer: false,
-          },
-          {
-            id: 'bot',
-            name: 'Drill Sergeant',
-            handCount: 5,
-            upCards: [null, null, null] as any,
-            downCards: [null, null, null] as any,
-            isComputer: true,
-          },
-        ],
-        pile: this.pile,
-        started: true,
-        currentPlayerId: 'me',
-        deckSize: 10,
-        discardCount: 0,
-        lastRealCard:
-          this.pile.length > 0 ? this.pile[this.pile.length - 1] : null,
-      },
-      'me'
-    );
+    const localGameState = {
+      currentPlayer: 'You',
+      players: [
+        {
+          name: 'You',
+          cards: this.myHand.length,
+          handVisible: this.myHand,
+          upCardsVisible: this.upCards,
+          downCardsVisible: this.downCards
+        },
+        {
+          name: 'The King',
+          cards: 6,
+          handVisible: [],
+          upCardsVisible: [
+            { suit: 'hidden', value: 'BACK' },
+            { suit: 'hidden', value: 'BACK' },
+            { suit: 'hidden', value: 'BACK' }
+          ],
+          downCardsVisible: [
+            { suit: 'hidden', value: 'BACK' },
+            { suit: 'hidden', value: 'BACK' },
+            { suit: 'hidden', value: 'BACK' }
+          ]
+        }
+      ],
+      pile: this.pile
+    };
+
+    renderGameState(localGameState);
   }
 
   private updateInstructionCard() {
@@ -309,10 +376,15 @@ export class TutorialController {
   private createTutorialUI() {
     // 1. Create Overlay
     this.overlay = document.createElement('div');
-    this.overlay.className = 'tutorial-overlay'; // From tutorial.css
+    this.overlay.className = 'tutorial-overlay';
     document.body.appendChild(this.overlay);
 
-    // 2. Create Instruction Card
+    // 2. Create Spotlight
+    this.spotlight = document.createElement('div');
+    this.spotlight.className = 'tutorial-spotlight';
+    document.body.appendChild(this.spotlight);
+
+    // 3. Create Instruction Card
     this.cardEl = document.createElement('div');
     this.cardEl.className = 'tutorial-card';
     this.cardEl.innerHTML = `
