@@ -71,11 +71,14 @@ export class TutorialController {
     this.updateRender();
     this.updateInstructionCard();
 
-    // 3. Move Spotlight to the correct element (after a slight render delay)
-    setTimeout(() => {
-      this.updateSpotlight();
-      console.log('[Tutorial] Spotlight update for step:', this.currentStep.id);
-    }, 300);
+    // 3. Move Spotlight to the correct element (after render completes)
+    // Use requestAnimationFrame + setTimeout to ensure DOM has painted
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        this.updateSpotlight();
+        console.log('[Tutorial] Spotlight update for step:', this.currentStep.id);
+      }, 100);
+    });
 
     // 4. Auto-advance for INTRO steps if they are just "click anywhere"
     if (this.currentStep.id === 'INTRO_WELCOME') {
@@ -121,6 +124,12 @@ export class TutorialController {
     let target: HTMLElement | null = null;
     const config = this.currentStep.validation;
 
+    // Skip spotlight for intro steps
+    if (config.type === 'intro') {
+      this.clearSpotlight();
+      return;
+    }
+
     // A. Find Target based on Step Logic
     if (config.type === 'pickup_pile' || config.type === 'facedown_pickup') {
       // Highlight the Draw pile (right side)
@@ -163,14 +172,27 @@ export class TutorialController {
     if (target) {
       const rect = target.getBoundingClientRect();
       console.log('[Tutorial] Spotlight target found:', target, 'Position:', rect);
+      console.log('[Tutorial] Window size:', window.innerWidth, 'x', window.innerHeight);
+      console.log('[Tutorial] Spotlight element position property:', this.spotlight.style.position || 'not set');
+      
       // Add some padding
       const padding = 10;
+      this.spotlight.style.position = 'fixed'; // Ensure it's fixed
       this.spotlight.style.display = 'block';
       this.spotlight.style.opacity = '1';
       this.spotlight.style.top = `${rect.top - padding}px`;
       this.spotlight.style.left = `${rect.left - padding}px`;
       this.spotlight.style.width = `${rect.width + padding * 2}px`;
       this.spotlight.style.height = `${rect.height + padding * 2}px`;
+      
+      console.log('[Tutorial] Applied spotlight styles:', {
+        top: this.spotlight.style.top,
+        left: this.spotlight.style.left,
+        width: this.spotlight.style.width,
+        height: this.spotlight.style.height,
+        display: this.spotlight.style.display,
+        opacity: this.spotlight.style.opacity
+      });
     } else {
       console.warn('[Tutorial] No spotlight target found for step:', this.currentStep.id, 'config:', config);
       this.clearSpotlight();
