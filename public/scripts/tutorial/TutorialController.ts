@@ -210,18 +210,12 @@ export class TutorialController {
         });
       }
       
-      // CRITICAL: If rect position looks absurd (way beyond visible viewport), don't apply it
+      // Use visualViewport dimensions if available for more accurate positioning
       const viewportWidth = visualViewport?.width || document.documentElement.clientWidth;
       const viewportHeight = visualViewport?.height || document.documentElement.clientHeight;
       
-      if (rect.left > viewportWidth * 2 || rect.top > viewportHeight * 2) {
-        console.error('[Tutorial] ❌ Target position is way off-screen!');
-        console.error('[Tutorial] Expected viewport:', viewportWidth, 'x', viewportHeight);
-        console.error('[Tutorial] Card position:', rect.left, ',', rect.top);
-        console.error('[Tutorial] This suggests a zoom or transform issue. Hiding spotlight.');
-        this.clearSpotlight();
-        return;
-      }
+      console.log('[Tutorial] 📐 Calculated viewport:', viewportWidth, 'x', viewportHeight);
+      console.log('[Tutorial] 🎯 Card is at:', rect.left, ',', rect.top, '- In viewport?', rect.left < viewportWidth && rect.top < viewportHeight);
       
       // Add some padding
       const padding = 10;
