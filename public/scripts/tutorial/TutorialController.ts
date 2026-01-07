@@ -329,35 +329,43 @@ export class TutorialController {
 
   private updateRender() {
     const localGameState = {
-      currentPlayer: 'You',
+      started: true,
+      currentPlayerId: 'tutorial-player',
       players: [
         {
+          id: 'tutorial-player',
           name: 'You',
-          cards: this.myHand.length,
-          handVisible: this.myHand,
-          upCardsVisible: this.upCards,
-          downCardsVisible: this.downCards
+          handCount: this.myHand.length,
+          hand: this.myHand,
+          upCards: this.upCards,
+          downCards: this.downCards,
+          isComputer: false
         },
         {
+          id: 'tutorial-opponent',
           name: 'The King',
-          cards: 6,
-          handVisible: [],
-          upCardsVisible: [
-            { suit: 'hidden', value: 'BACK' },
-            { suit: 'hidden', value: 'BACK' },
-            { suit: 'hidden', value: 'BACK' }
+          handCount: 6,
+          hand: [],
+          upCards: [
+            { suit: 'hidden', value: 'BACK', back: true },
+            { suit: 'hidden', value: 'BACK', back: true },
+            { suit: 'hidden', value: 'BACK', back: true }
           ],
-          downCardsVisible: [
-            { suit: 'hidden', value: 'BACK' },
-            { suit: 'hidden', value: 'BACK' },
-            { suit: 'hidden', value: 'BACK' }
-          ]
+          downCards: [
+            { suit: 'hidden', value: 'BACK', back: true },
+            { suit: 'hidden', value: 'BACK', back: true },
+            { suit: 'hidden', value: 'BACK', back: true }
+          ],
+          isComputer: true
         }
       ],
-      pile: this.pile
+      pile: this.pile,
+      deckSize: 20,
+      discardCount: 0,
+      lastRealCard: this.pile.length > 0 ? this.pile[this.pile.length - 1] : null
     };
 
-    renderGameState(localGameState);
+    renderGameState(localGameState, 'tutorial-player');
   }
 
   private updateInstructionCard() {
