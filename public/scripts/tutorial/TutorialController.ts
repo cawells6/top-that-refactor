@@ -114,11 +114,6 @@ export class TutorialController {
     }
   }
 
-  private previousStep() {
-    if (this.currentStepIndex > 0) {
-      this.loadStep(this.currentStepIndex - 1);
-    }
-  }
   // ... rest of constructor and other methods
   private finishTutorial() {
     // Clean up highlights and UI elements
@@ -181,6 +176,55 @@ export class TutorialController {
     }
   }
 
+  // --- CARD SELECTION HELPERS (Match Real Game) ---
+  
+  private enforceSelectionRules(clickedCard: HTMLElement): void {
+    if (!clickedCard.classList.contains('selected')) {
+      return;
+    }
+
+    const zone = clickedCard.dataset.zone;
+    if (!zone) {
+      return;
+    }
+
+    const selectedCards = Array.from(
+      document.querySelectorAll('.card-img.selected')
+    ) as HTMLElement[];
+
+    selectedCards.forEach((card) => {
+      if (card === clickedCard) {
+        return;
+      }
+
+      // Different zone = deselect
+      if (card.dataset.zone !== zone) {
+        card.classList.remove('selected');
+        const container = card.closest('.card-container');
+        if (container) container.classList.remove('selected-container');
+        return;
+      }
+
+      // Up/Down cards: only one at a time
+      if (zone === 'upCards' || zone === 'downCards') {
+        card.classList.remove('selected');
+        const container = card.closest('.card-container');
+        if (container) container.classList.remove('selected-container');
+        return;
+      }
+
+      // Hand cards: must be same value
+      if (zone === 'hand') {
+        const value = clickedCard.dataset.value;
+        if (value && card.dataset.value && card.dataset.value !== value) {
+          card.classList.remove('selected');
+          const container = card.closest('.card-container');
+          if (container) container.classList.remove('selected-container');
+        }
+      }
+    });
+  }
+
   // --- INTERACTION HANDLING ---
   // ... (rest of the file is unchanged)
   private interceptGameControls() {
@@ -202,15 +246,87 @@ export class TutorialController {
       'dblclick',
       (e) => {
         const target = e.target as HTMLElement;
-        if (target.closest('.card-container')) {
+        
+        // Use the same getSelectableCard logic as the real game
+        let selectableCard: HTMLElement | null = null;
+        if (target.classList.contains('card-img') && target.classList.contains('selectable')) {
+          selectableCard = target;
+        } else {
+          const cardContainer = target.closest('.card-container');
+          if (cardContainer) {
+            const img = cardContainer.querySelector('.card-img.selectable');
+            if (img) selectableCard = img as HTMLElement;
+          }
+        }
+        
+        if (selectableCard) {
           e.stopImmediatePropagation();
+          e.preventDefault();
+          
+          // Match real game: forceSelectCard + enforceSelectionRules
+          selectableCard.classList.add('selected');
+          const container = selectableCard.closest('.card-container');
+          if (container) {
+            container.classList.add('selected-container');
+          }
+          
+          // Enforce selection rules (same as real game)
+          this.enforceSelectionRules(selectableCard);
+          
+          // Then validate and play
           this.validateAction('play_card', 'dblclick');
         }
       },
       true
     );
 
-    // 3. Pile Click (Pickup)
+    // 3. Single Click on Card (Selection Toggle)
+    document.addEventListener(
+      'click',
+      (e) => {
+        const target = e.target as HTMLElement;
+        
+        // Skip if clicking play/take buttons
+        if (target.closest('#play-button') || target.id === 'take-button' || target.closest('#take-button')) {
+          return;
+        }
+        
+        // Check for selectable card click
+        let selectableCard: HTMLElement | null = null;
+        if (target.classList.contains('card-img') && target.classList.contains('selectable')) {
+          selectableCard = target;
+        } else {
+          const cardContainer = target.closest('.card-container');
+          if (cardContainer) {
+            const img = cardContainer.querySelector('.card-img.selectable');
+            if (img) selectableCard = img as HTMLElement;
+          }
+        }
+        
+        if (selectableCard) {
+          e.stopImmediatePropagation();
+          
+          const wasSelected = selectableCard.classList.contains('selected');
+          if (wasSelected) {
+            // Deselect
+            selectableCard.classList.remove('selected');
+            const container = selectableCard.closest('.card-container');
+            if (container) container.classList.remove('selected-container');
+          } else {
+            // Select
+            selectableCard.classList.add('selected');
+            const container = selectableCard.closest('.card-container');
+            if (container) container.classList.add('selected-container');
+            
+            // Enforce selection rules
+            this.enforceSelectionRules(selectableCard);
+          }
+        }
+      },
+      true
+    );
+
+    // 4. Pile Click (Pickup)
     // We attach to body/table to catch bubbling events from the pile
     document.getElementById('game-table')?.addEventListener(
       'click',
@@ -229,11 +345,11 @@ export class TutorialController {
           }
         }
 
-        // Handle Down/Up card single clicks
+        // Handle Down/Up card single clicks for specific tutorial steps
         if (target.closest('.card-container')) {
           const container = target.closest('.card-container') as HTMLElement;
 
-          // Check if it's a click on down-cards/up-cards
+          // Check if it's a click on down-cards/up-cards for index-based validation
           if (
             this.currentStep.validation.type === 'play_card' &&
             this.currentStep.validation.expectedAction?.startsWith('click_index')

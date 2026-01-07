@@ -104,64 +104,52 @@
   justify-content: center;
   align-items: center;
   gap: 15px;
+  min-height: 40px; /* Ensure space for buttons */
 }
 
 .tutorial-card__progress {
   font-size: 0.9rem;
   color: #888;
   font-weight: 500;
+  position: absolute;
+  left: 1.5rem;
 }
 
-/* Navigation button container */
-.tutorial-nav-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Previous button for tutorial navigation */
-.tutorial-prev-btn {
+.tutorial-prev-btn,
+.tutorial-next-btn {
   padding: 10px 30px;
-  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-  color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
   font-weight: 600;
   transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(127, 140, 141, 0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0, 0.1);
+}
+
+.tutorial-prev-btn:hover,
+.tutorial-next-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0, 0.2);
+}
+
+.tutorial-prev-btn:active,
+.tutorial-next-btn:active {
+  transform: translateY(0);
+}
+
+/* Next button style */
+.tutorial-next-btn {
+  background: linear-gradient(135deg, #f6c556 0%, #f39c12 100%);
+  color: #2c3e50;
+}
+
+/* Previous button style */
+.tutorial-prev-btn {
+  background: #e0e0e0;
+  color: #555;
 }
 
 .tutorial-prev-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(127, 140, 141, 0.5);
-}
-
-.tutorial-prev-btn:active {
-  transform: translateY(0);
-}
-
-/* Next button for tutorial progression */
-.tutorial-next-btn {
-  padding: 10px 30px;
-  background: linear-gradient(135deg, #f6c556 0%, #f39c12 100%);
-  color: #2c3e50;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(246, 197, 86, 0.3);
-}
-
-.tutorial-next-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(246, 197, 86, 0.5);
-}
-
-.tutorial-next-btn:active {
-  transform: translateY(0);
+  background: #f0f0f0;
 }
