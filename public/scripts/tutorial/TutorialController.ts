@@ -170,22 +170,56 @@ export class TutorialController {
 
     // B. Apply Position
     if (target) {
-      // Scroll element into view if needed to ensure correct positioning
-      target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
-      
       const rect = target.getBoundingClientRect();
-      console.log('[Tutorial] Spotlight target found:', target, 'Position:', rect);
-      console.log('[Tutorial] Window size:', window.innerWidth, 'x', window.innerHeight);
-      console.log('[Tutorial] Target offsetParent:', target.offsetParent);
-      console.log('[Tutorial] Computed transform:', window.getComputedStyle(target).transform);
+      const zoom = window.devicePixelRatio || 1;
+      const visualViewport = (window as any).visualViewport;
       
-      // Sanity check: if position looks wrong, abort and log error
-      if (rect.left < 0 || rect.left > window.innerWidth || 
-          rect.top < 0 || rect.top > window.innerHeight) {
-        console.error('[Tutorial] Target position is off-screen! Rect:', rect);
-        console.error('[Tutorial] This usually means the element hasnt rendered yet or has wrong transform');
-        // Try again after another delay
-        setTimeout(() => this.updateSpotlight(), 200);
+      console.log('[Tutorial] 🎯 Spotlight target found:', target);
+      console.log('[Tutorial] 📍 Raw rect:', rect);
+      console.log('[Tutorial] 🖥️ Window dimensions:', {
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        outerWidth: window.outerWidth,
+        outerHeight: window.outerHeight,
+        devicePixelRatio: zoom,
+        documentElement: {
+          clientWidth: document.documentElement.clientWidth,
+          clientHeight: document.documentElement.clientHeight,
+        },
+        visualViewport: visualViewport ? {
+          width: visualViewport.width,
+          height: visualViewport.height,
+          scale: visualViewport.scale,
+        } : 'not supported'
+      });
+      console.log('[Tutorial] 🎨 Target styles:', {
+        offsetParent: target.offsetParent,
+        transform: window.getComputedStyle(target).transform,
+        position: window.getComputedStyle(target).position,
+      });
+      
+      // Check if game board is scaled/transformed
+      const gameTable = document.getElementById('game-table');
+      if (gameTable) {
+        const tableTransform = window.getComputedStyle(gameTable).transform;
+        const tableRect = gameTable.getBoundingClientRect();
+        console.log('[Tutorial] 🎲 Game table:', {
+          transform: tableTransform,
+          rect: tableRect,
+          width: tableRect.width,
+        });
+      }
+      
+      // CRITICAL: If rect position looks absurd (way beyond visible viewport), don't apply it
+      const viewportWidth = visualViewport?.width || document.documentElement.clientWidth;
+      const viewportHeight = visualViewport?.height || document.documentElement.clientHeight;
+      
+      if (rect.left > viewportWidth * 2 || rect.top > viewportHeight * 2) {
+        console.error('[Tutorial] ❌ Target position is way off-screen!');
+        console.error('[Tutorial] Expected viewport:', viewportWidth, 'x', viewportHeight);
+        console.error('[Tutorial] Card position:', rect.left, ',', rect.top);
+        console.error('[Tutorial] This suggests a zoom or transform issue. Hiding spotlight.');
+        this.clearSpotlight();
         return;
       }
       
