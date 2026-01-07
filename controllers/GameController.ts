@@ -19,6 +19,7 @@ import {
   PICK_UP_PILE,
   LOBBY_STATE_UPDATE,
   PLAYER_READY,
+  ANIMATIONS_COMPLETE,
 } from '../src/shared/events.ts';
 import {
   Card,
@@ -272,6 +273,7 @@ export default class GameController {
     );
     socket.on(PLAY_CARD, (data: PlayData) => this.handlePlayCard(socket, data));
     socket.on(PICK_UP_PILE, () => this.handlePickUpPile(socket));
+    socket.on(ANIMATIONS_COMPLETE, () => this.handleAnimationsComplete(socket));
     socket.on(PLAYER_READY, (playerName: string) => {
       const playerId = this.socketIdToPlayerId.get(socket.id);
       if (playerId) {
@@ -774,11 +776,8 @@ export default class GameController {
     // Keep lobby state in sync after start so clients can hide the modal.
     this.pushLobbyState();
 
-    const hasHumanPlayers = this.getHumanPlayers().length > 0;
-    const firstPlayer = this.players.get(firstPlayerId);
-    if (!hasHumanPlayers && firstPlayer?.isComputer) {
-      this.scheduleComputerTurn(firstPlayer, this.cpuTurnDelayMs);
-    }
+    // Note: CPU turns are scheduled when client emits 'animations-complete' event
+    // This ensures CPU waits for dealing animation + "LET'S GO!" overlay to finish
   }
 
   /**
@@ -1436,6 +1435,43 @@ export default class GameController {
       );
     }
     this.turnLock = false;
+  }
+
+  private handleAnimationsComplete(socket: Socket): void {
+    const playerId = this.socketIdToPlayerId.get(socket.id);
+    if (!playerId) {
+      this.log('[handleAnimationsComplete] No player ID found for socket');
+      return;
+    }
+    
+    const player = this.players.get(playerId);
+    if (!player) {
+      this.log('[handleAnimationsComplete] Player record missing for socket');
+      return;
+    }
+
+    if (!this.gameState.started) {
+      this.log('[handleAnimationsComplete] Game has not started; ignoring animation completion');
+      return;
+    }
+
+    this.log('[handleAnimationsComplete] Client animations finished');
+
+    const currentPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
+    const currentPlayer = this.players.get(currentPlayerId);
+
+    if (!currentPlayer) {
+      this.log('[handleAnimationsComplete] No current player found when animations completed');
+      return;
+    }
+
+    if (!currentPlayer.isComputer) {
+      this.log('[handleAnimationsComplete] Current player is human; no CPU scheduling needed');
+      return;
+    }
+
+    this.log(`[handleAnimationsComplete] Scheduling CPU turn for ${currentPlayerId} in 1 second`);
+    this.scheduleComputerTurn(currentPlayer, 1000);
   }
 
   private playComputerTurn(computerPlayer: Player): void {

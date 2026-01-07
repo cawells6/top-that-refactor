@@ -1,6 +1,7 @@
 import { GameStateData, Card } from '../../src/shared/types.js';
 import { cardImg, renderGameState } from './render.js';
 import { SoundManager } from './SoundManager.js';
+import { ANIMATIONS_COMPLETE } from '../../src/shared/events.js';
 
 const DEAL_INTERVAL_MS = 100; 
 const FLIGHT_DURATION_MS = 600; 
@@ -87,6 +88,16 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
     await wait(1000);
     
     await showStartOverlay();
+    
+    // Signal server that animations are complete so CPU can take their turn
+    const stateModule = await import('./state.js');
+    await stateModule.socketReady;
+    const activeSocket = stateModule.socket;
+    if (activeSocket?.connected) {
+        activeSocket.emit(ANIMATIONS_COMPLETE);
+    } else {
+        console.warn('[DealingAnimation] Socket not ready to emit animations complete');
+    }
 }
 
 // --- HELPERS ---
@@ -243,8 +254,8 @@ async function showStartOverlay() {
     const text = document.createElement('h1');
     text.textContent = "LET'S GO!";
     Object.assign(text.style, {
-        color: '#ffc300', fontSize: '5rem', fontFamily: 'Impact, sans-serif',
-        textTransform: 'uppercase', textShadow: '0 0 20px rgba(255,195,0,0.5)',
+        color: '#ffe94d', fontSize: '5rem', fontFamily: 'Impact, sans-serif',
+        textTransform: 'uppercase', textShadow: '0 0 30px rgba(255,233,77,0.9), 0 0 50px rgba(255,195,0,0.7)',
         transform: 'scale(0)', transition: 'transform 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67)'
     });
 

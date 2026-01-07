@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import { Socket } from 'net';
+import * as os from 'os';
 
 import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
@@ -83,7 +84,7 @@ function startServer(port: number, retries = 0) {
   console.log('==============================\n');
   fs.appendFileSync('server.log', logMsg + '\n', 'utf-8');
   server.listen(port, '0.0.0.0', () => {
-    const networkInterfaces = require('os').networkInterfaces();
+    const networkInterfaces = os.networkInterfaces();
     const localIps = Object.values(networkInterfaces)
       .flat()
       .filter((iface: any) => iface?.family === 'IPv4' && !iface?.internal)

@@ -5,6 +5,7 @@ export const JOIN_GAME: string = 'join-game';
 export const JOINED: string = 'joined';
 export const START_GAME: string = 'start-game';
 export const GAME_STARTED: string = 'game-started'; // Confirms game has started, includes initial full state
+export const ANIMATIONS_COMPLETE: string = 'animations-complete'; // Client signals opening animations are done
 export const NEXT_TURN: string = 'next-turn';
 export const GAME_OVER: string = 'game-over';
 export const REJOIN: string = 'rejoin'; // Player attempts to rejoin a game in progress

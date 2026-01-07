@@ -28,6 +28,23 @@ const ICON_PATHS = {
   invalid: invalidIconUrl,
 };
 
+// Preload the card back logo to prevent empty card backs
+let logoPreloaded = false;
+const logoPreloadPromise = new Promise<void>((resolve) => {
+  const logoImg = new Image();
+  logoImg.onload = () => {
+    logoPreloaded = true;
+    console.log('[Assets] Card back logo preloaded');
+    resolve();
+  };
+  logoImg.onerror = () => {
+    console.warn('[Assets] Failed to preload card back logo');
+    logoPreloaded = true; // Still mark as complete to prevent blocking
+    resolve();
+  };
+  logoImg.src = logoUrl;
+});
+
 function preloadIcons() {
   console.log('[Assets] Preloading special card icons...');
   Object.values(ICON_PATHS).forEach((src) => {
@@ -250,6 +267,15 @@ export function cardImg(
     logo.className = 'card-back-logo';
     logo.src = logoUrl; // Use imported asset URL for proper Vite hashing
     logo.alt = 'Top That';
+    
+    // Ensure logo visibility after it loads (prevents blank card backs)
+    if (!logoPreloaded) {
+      logo.style.opacity = '0';
+      logo.onload = () => {
+        logo.style.opacity = '1';
+      };
+    }
+    
     inner.appendChild(logo);
     cardBack.appendChild(inner);
     
