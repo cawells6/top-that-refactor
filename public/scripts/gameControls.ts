@@ -276,7 +276,8 @@ export function initializeGameControls(): void {
     }
     
     // Check take button with direct ID first to avoid timing issues
-    if (target.id === 'take-button' || target.closest('#take-button')) {
+    // FEATURE: Also allow clicking the pile to take it.
+    if (target.id === 'take-button' || target.closest('#take-button') || target.closest('#discard-pile')) {
       handleTakeClick();
       return;
     }
@@ -305,8 +306,9 @@ export function initializeGameControls(): void {
     }
 
     event.preventDefault();
+    // FEATURE: Ensure the card being double-clicked is selected,
+    // then play the entire current selection.
     forceSelectCard(selectableCard);
-    enforceSelectionRules(selectableCard);
     handlePlayClick();
   });
 }

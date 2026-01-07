@@ -9,6 +9,7 @@ import { tutorialSteps, StepConfig } from './tutorialSteps.js';
 export class TutorialController {
   private currentStepIndex = 0;
   private currentStep: StepConfig;
+  private isAutoAdvancing = false;
 
   // Game State Containers
   private myHand: Card[] = [];
@@ -17,9 +18,8 @@ export class TutorialController {
   private downCards: (Card | null)[] = [];
 
   // DOM Elements
-  private overlay: HTMLElement | null = null;
-  private spotlight: HTMLElement | null = null;
   private cardEl: HTMLElement | null = null;
+  private highlightedElement: HTMLElement | null = null;
 
   constructor() {
     this.currentStep = tutorialSteps[0];
@@ -32,13 +32,15 @@ export class TutorialController {
     // Start the first step
     this.loadStep(0);
 
-    // Handle window resize to fix spotlight positions
-    window.addEventListener('resize', () => this.updateSpotlight());
+    // Handle window resize to fix highlight positions
+    window.addEventListener('resize', () => this.updateHighlight());
   }
 
   // --- STEP MANAGEMENT ---
 
   private loadStep(index: number) {
+    if (this.isAutoAdvancing) return;
+
     if (index >= tutorialSteps.length) {
       this.finishTutorial();
       return;
@@ -71,19 +73,27 @@ export class TutorialController {
     this.updateRender();
     this.updateInstructionCard();
 
-    // 3. Move Spotlight to the correct element (after render completes)
-    // Use requestAnimationFrame + setTimeout to ensure DOM has painted
-    requestAnimationFrame(() => {
+    // 3. Handle Auto-advancing steps
+    if (this.currentStep.isAuto) {
+      this.isAutoAdvancing = true;
+      this.clearHighlight();
       setTimeout(() => {
-        this.updateSpotlight();
-        console.log('[Tutorial] Spotlight update for step:', this.currentStep.id);
-      }, 100);
+        this.isAutoAdvancing = false;
+        this.nextStep();
+      }, 2000); // Wait 2 seconds for the user to read the opponent's move
+      return; // Stop further processing for this step
+    }
+
+    // 4. Move Highlight to the correct element (after render completes)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.updateHighlight();
+      });
     });
 
-    // 4. Auto-advance for INTRO steps if they are just "click anywhere"
+    // 5. Auto-advance for INTRO steps
     if (this.currentStep.id === 'INTRO_WELCOME') {
-      // Just highlight the whole center area loosely or nothing
-      this.clearSpotlight();
+      this.clearHighlight();
       document.addEventListener('click', this.handleGlobalClick, { once: true });
     }
   }
@@ -98,17 +108,21 @@ export class TutorialController {
     this.loadStep(this.currentStepIndex + 1);
   }
 
+  private previousStep() {
+    if (this.currentStepIndex > 0) {
+      this.loadStep(this.currentStepIndex - 1);
+    }
+  }
+
+  private previousStep() {
+    if (this.currentStepIndex > 0) {
+      this.loadStep(this.currentStepIndex - 1);
+    }
+  }
+  // ... rest of constructor and other methods
   private finishTutorial() {
-    // Clean up spotlight
-    if (this.spotlight) {
-      this.spotlight.remove();
-      this.spotlight = null;
-    }
-    // Clean up overlay and card
-    if (this.overlay) {
-      this.overlay.remove();
-      this.overlay = null;
-    }
+    // Clean up highlights and UI elements
+    this.clearHighlight();
     if (this.cardEl) {
       this.cardEl.remove();
       this.cardEl = null;
@@ -116,140 +130,59 @@ export class TutorialController {
     window.location.href = '/'; // Return to lobby
   }
 
-  // --- SPOTLIGHT LOGIC (The "Dim and Highlight" System) ---
+  // --- HIGHLIGHT LOGIC ---
 
-  private updateSpotlight() {
-    if (!this.spotlight) return;
+  private updateHighlight() {
+    this.clearHighlight();
 
     let target: HTMLElement | null = null;
     const config = this.currentStep.validation;
 
-    // Skip spotlight for intro steps
-    if (config.type === 'intro') {
-      this.clearSpotlight();
-      return;
+    if (config.type === 'intro' || this.currentStep.id.startsWith('INTRO_')) {
+      return; // No highlight for intro steps
     }
 
     // A. Find Target based on Step Logic
     if (config.type === 'pickup_pile' || config.type === 'facedown_pickup') {
-      // Highlight the Draw pile (right side)
-      target = document.querySelector('.pile-group--discard .pile-cards') as HTMLElement;
-      if (!target) {
-        target = document.querySelector('#discard-pile') as HTMLElement;
-      }
+      target = document.getElementById('take-button');
     } else if (config.type === 'play_card' || config.type === 'four_of_kind') {
-      // Highlight a specific card in Hand, UpCards, or DownCards
       if (config.cardValue) {
-        // Find specific value in hand (e.g. '3')
-        // Cards are in #my-area .hand-row
+        // Find a specific card in the hand
         const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
         if (handRow) {
-          // Find the card with matching data-value
-          const cardImgs = handRow.querySelectorAll('.card-img');
+          const cardImgs = handRow.querySelectorAll<HTMLElement>('.card-img');
           for (const img of Array.from(cardImgs)) {
-            const imgEl = img as HTMLElement;
-            if (imgEl.dataset.value === config.cardValue) {
-              target = imgEl.closest('.card-container') as HTMLElement;
+            if (img.dataset.value === config.cardValue) {
+              target = img.closest('.card-container') as HTMLElement;
               break;
             }
           }
-          
-          // Fallback: if no match, highlight first card
-          if (!target && handRow.children[0]) {
-            target = handRow.children[0] as HTMLElement;
-          }
         }
       } else if (config.expectedAction?.startsWith('click_index')) {
-        // Highlight specific Up/Down card slot
+        // Highlight a specific Up/Down card
         const stackRow = document.querySelector('#my-area .stack-row') as HTMLElement;
-        if (stackRow && stackRow.children[0]) {
+        if (stackRow && stackRow.children.length > 0) {
           target = stackRow.children[0] as HTMLElement;
         }
       }
     }
 
-    // B. Apply Position
+    // B. Apply Highlight
     if (target) {
-      const rect = target.getBoundingClientRect();
-      const zoom = window.devicePixelRatio || 1;
-      const visualViewport = (window as any).visualViewport;
-      
-      console.log('[Tutorial] 🎯 Spotlight target found:', target);
-      console.log('[Tutorial] 📍 Raw rect:', rect);
-      console.log('[Tutorial] 🖥️ Window dimensions:', {
-        innerWidth: window.innerWidth,
-        innerHeight: window.innerHeight,
-        outerWidth: window.outerWidth,
-        outerHeight: window.outerHeight,
-        devicePixelRatio: zoom,
-        documentElement: {
-          clientWidth: document.documentElement.clientWidth,
-          clientHeight: document.documentElement.clientHeight,
-        },
-        visualViewport: visualViewport ? {
-          width: visualViewport.width,
-          height: visualViewport.height,
-          scale: visualViewport.scale,
-        } : 'not supported'
-      });
-      console.log('[Tutorial] 🎨 Target styles:', {
-        offsetParent: target.offsetParent,
-        transform: window.getComputedStyle(target).transform,
-        position: window.getComputedStyle(target).position,
-      });
-      
-      // Check if game board is scaled/transformed
-      const gameTable = document.getElementById('game-table');
-      if (gameTable) {
-        const tableTransform = window.getComputedStyle(gameTable).transform;
-        const tableRect = gameTable.getBoundingClientRect();
-        console.log('[Tutorial] 🎲 Game table:', {
-          transform: tableTransform,
-          rect: tableRect,
-          width: tableRect.width,
-        });
-      }
-      
-      // Use visualViewport dimensions if available for more accurate positioning
-      const viewportWidth = visualViewport?.width || document.documentElement.clientWidth;
-      const viewportHeight = visualViewport?.height || document.documentElement.clientHeight;
-      
-      console.log('[Tutorial] 📐 Calculated viewport:', viewportWidth, 'x', viewportHeight);
-      console.log('[Tutorial] 🎯 Card is at:', rect.left, ',', rect.top, '- In viewport?', rect.left < viewportWidth && rect.top < viewportHeight);
-      
-      // Add some padding
-      const padding = 10;
-      this.spotlight.style.position = 'fixed'; // Ensure it's fixed
-      this.spotlight.style.display = 'block';
-      this.spotlight.style.opacity = '1';
-      this.spotlight.style.top = `${rect.top - padding}px`;
-      this.spotlight.style.left = `${rect.left - padding}px`;
-      this.spotlight.style.width = `${rect.width + padding * 2}px`;
-      this.spotlight.style.height = `${rect.height + padding * 2}px`;
-      
-      console.log('[Tutorial] ✅ Applied spotlight styles:', {
-        top: this.spotlight.style.top,
-        left: this.spotlight.style.left,
-        width: this.spotlight.style.width,
-        height: this.spotlight.style.height,
-        display: this.spotlight.style.display,
-        opacity: this.spotlight.style.opacity
-      });
-    } else {
-      console.warn('[Tutorial] No spotlight target found for step:', this.currentStep.id, 'config:', config);
-      this.clearSpotlight();
+      target.classList.add('tutorial-highlight');
+      this.highlightedElement = target;
     }
   }
 
-  private clearSpotlight() {
-    if (this.spotlight) {
-      this.spotlight.style.opacity = '0';
-      this.spotlight.style.display = 'none';
+  private clearHighlight() {
+    if (this.highlightedElement) {
+      this.highlightedElement.classList.remove('tutorial-highlight');
+      this.highlightedElement = null;
     }
   }
 
   // --- INTERACTION HANDLING ---
-
+  // ... (rest of the file is unchanged)
   private interceptGameControls() {
     // 1. Play Button Click
     const playButton = document.getElementById('play-button');
@@ -408,7 +341,7 @@ export class TutorialController {
   private updateRender() {
     const localGameState = {
       started: true,
-      currentPlayerId: 'tutorial-player',
+      currentPlayerId: this.currentStep.isAuto ? 'tutorial-opponent' : 'tutorial-player',
       players: [
         {
           id: 'tutorial-player',
@@ -459,39 +392,49 @@ export class TutorialController {
     if (progEl)
       progEl.textContent = `Step ${this.currentStepIndex + 1} of ${tutorialSteps.length}`;
 
-    // Add "Next" button for intro/explanation steps
-    if (footerEl && this.currentStep.id === 'INTRO_WELCOME') {
-      // Remove existing button first to prevent duplicates
-      footerEl.querySelector('.tutorial-next-btn')?.remove();
+    // Always remove the button first to ensure a clean state
+    footerEl?.querySelector('.tutorial-next-btn')?.remove();
+    footerEl?.querySelector('.tutorial-prev-btn')?.remove();
+    footerEl?.querySelector('.tutorial-nav-buttons')?.remove();
+
+    // Add navigation buttons container
+    if (footerEl && (this.currentStepIndex > 0 || (this.currentStep.showNextButton && !this.currentStep.isAuto))) {
+      const btnContainer = document.createElement('div');
+      btnContainer.className = 'tutorial-nav-buttons';
       
-      const nextBtn = document.createElement('button');
-      nextBtn.className = 'tutorial-next-btn';
-      nextBtn.textContent = 'Next';
-      nextBtn.addEventListener('click', () => this.nextStep());
-      footerEl.appendChild(nextBtn);
+      // Add Previous button (except on first step)
+      if (this.currentStepIndex > 0) {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'tutorial-nav-btn tutorial-prev-btn';
+        prevBtn.textContent = '← Previous';
+        prevBtn.addEventListener('click', () => this.previousStep());
+        btnContainer.appendChild(prevBtn);
+      }
       
-      console.log('[Tutorial] Next button added for INTRO_WELCOME');
-    } else if (footerEl) {
-      // Remove next button if it exists
-      footerEl.querySelector('.tutorial-next-btn')?.remove();
+      // Add Next/Finish button if needed
+      if (this.currentStep.showNextButton && !this.currentStep.isAuto) {
+        const isFinalStep = this.currentStep.id === 'COMPLETE';
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'tutorial-nav-btn tutorial-next-btn';
+        nextBtn.textContent = isFinalStep ? 'Finish' : ('Next →');
+
+        nextBtn.addEventListener('click', () => {
+          if (isFinalStep) {
+            this.finishTutorial();
+          } else {
+            this.nextStep();
+          }
+        });
+
+        btnContainer.appendChild(nextBtn);
+      }
+      
+      footerEl.appendChild(btnContainer);
     }
   }
 
   private createTutorialUI() {
-    // 1. Create Overlay
-    this.overlay = document.createElement('div');
-    this.overlay.className = 'tutorial-overlay';
-    document.body.appendChild(this.overlay);
-
-    // 2. Create Spotlight
-    this.spotlight = document.createElement('div');
-    this.spotlight.className = 'tutorial-spotlight';
-    this.spotlight.style.opacity = '0';
-    this.spotlight.style.display = 'none';
-    document.body.appendChild(this.spotlight);
-    console.log('[Tutorial] Spotlight created:', this.spotlight);
-
-    // 3. Create Instruction Card
+    // Instruction Card is the only UI we create now
     this.cardEl = document.createElement('div');
     this.cardEl.className = 'tutorial-card';
     this.cardEl.innerHTML = `
@@ -513,7 +456,7 @@ export class TutorialController {
   }
 
   // --- HELPERS ---
-
+  // ... (rest of the file is unchanged)
   private parseCards(cardStrings: string[]): Card[] {
     return cardStrings.map((s) => this.parseCard(s)).filter((c): c is Card => !!c);
   }

@@ -6,6 +6,8 @@ export interface StepConfig {
   id: string;
   title: string;
   instruction: string;
+  showNextButton?: boolean;
+  isAuto?: boolean;
   scenario: {
     myHand: string[];
     pile: string[];
@@ -18,7 +20,8 @@ export interface StepConfig {
       | 'pickup_pile'
       | 'facedown_fail'
       | 'facedown_pickup'
-      | 'four_of_kind';
+      | 'four_of_kind'
+      | 'auto';
     expectedAction?: string;
     cardValue?: string;
     cardCount?: number;
@@ -40,16 +43,17 @@ export const tutorialSteps: StepConfig[] = [
     validation: {
       type: 'play_card', // Dummy validation - any click continues
     },
+    showNextButton: true,
     allowSkip: false,
   },
   {
     id: 'HAND_BASIC',
     title: 'Playing from Your Hand',
     instruction:
-      'You have a 3, 4, and 5. The pile shows a 2. <strong>Click the 3 of Hearts to select it</strong>, then click the <strong>Play</strong> button (or double-click the card).',
+      'The goal is to get rid of your cards. Let\'s start by playing a card from your hand. The pile is empty, so you can play anything. <strong>Play your 3.</strong>',
     scenario: {
-      myHand: ['3H', '4D', '5C'],
-      pile: ['2S'],
+      myHand: ['3H', '8D', 'QC'],
+      pile: [],
       upCards: [],
       downCards: 0,
     },
@@ -57,28 +61,45 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       cardValue: '3',
     },
+    showNextButton: true,
+  },
+  {
+    id: 'OPPONENT_PLAYS_1',
+    title: "Opponent's Turn",
+    instruction: 'The King plays a 7.',
+    isAuto: true,
+    scenario: {
+      myHand: ['8D', 'QC'],
+      pile: ['7S'],
+      upCards: [],
+      downCards: 0,
+    },
+    validation: {
+      type: 'auto',
+    },
   },
   {
     id: 'HAND_HIGHER',
-    title: 'Playing Equal or Higher',
+    title: 'Playing a Higher Card',
     instruction:
-      'Now the pile shows 3. You can play 3 or higher. <strong>Select and play your 4</strong> (click to select, then click Play button).',
+      'The King played a 7. You must play a card with a higher rank. <strong>Select and play your 8.</strong>',
     scenario: {
-      myHand: ['4D', '5C'],
-      pile: ['3H'],
+      myHand: ['8D', 'QC'],
+      pile: ['7S'],
       upCards: [],
       downCards: 0,
     },
     validation: {
       type: 'play_card',
-      cardValue: '4',
+      cardValue: '8',
     },
+    showNextButton: true,
   },
   {
     id: 'HAND_MULTIPLE',
     title: 'Playing Multiple Cards',
     instruction:
-      'You have three 6s! Double-click one to play all matching cards at once.',
+      'You can play multiple cards if they have the same rank. <strong>Click all three of your 6s to select them</strong>, then either click the <strong>Play</strong> button or double-click the last card to play them all.',
     scenario: {
       myHand: ['6H', '6D', '6C'],
       pile: ['4D'],
@@ -90,12 +111,13 @@ export const tutorialSteps: StepConfig[] = [
       cardValue: '6',
       cardCount: 3,
     },
+    showNextButton: true,
   },
   {
     id: 'SPECIAL_TWO',
     title: 'Special Card: 2',
     instruction:
-      'A 2 resets the pile - you can play anything after it. Play your 2.',
+      'A 2 is a special card that resets the pile. It can be played on any card. After a 2 is played, the next player can play any card. <strong>Play your 2.</strong>',
     scenario: {
       myHand: ['2H', '8D'],
       pile: ['KS'],
@@ -106,6 +128,7 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       cardValue: '2',
     },
+    showNextButton: true,
   },
   {
     id: 'SPECIAL_FIVE',
@@ -122,12 +145,13 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       cardValue: '5',
     },
+    showNextButton: true,
   },
   {
     id: 'SPECIAL_TEN',
     title: 'Special Card: 10',
     instruction:
-      'A 10 burns the pile! Play your 10 to clear the pile and continue.',
+      'A 10 is a special card that "burns" the pile, clearing it from play. After the pile is burned, the turn moves to the next player. <strong>Play your 10.</strong>',
     scenario: {
       myHand: ['10H', '3D'],
       pile: ['9S', '9H'],
@@ -138,12 +162,13 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       cardValue: '10',
     },
+    showNextButton: true,
   },
   {
     id: 'PICKUP_FAIL',
     title: 'No Valid Play? Pick Up the Pile',
     instruction:
-      "You have 3 and 4, but the pile shows King. You can't play! Click the pile to pick it up.",
+      "You have no valid move! Click the <strong>Take</strong> button or click the pile itself to pick it up.",
     scenario: {
       myHand: ['3H', '4D'],
       pile: ['KS', 'QH', 'JD'],
@@ -153,6 +178,7 @@ export const tutorialSteps: StepConfig[] = [
     validation: {
       type: 'pickup_pile',
     },
+    showNextButton: true,
   },
   {
     id: 'UPCARDS_INTRO',
@@ -169,6 +195,7 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       expectedAction: 'click_index_0', // First up card
     },
+    showNextButton: true,
   },
   {
     id: 'DOWNCARDS_INTRO',
@@ -185,6 +212,7 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       expectedAction: 'click_index_0', // First down card
     },
+    showNextButton: true,
   },
   {
     id: 'FACEDOWN_FAIL',
@@ -201,11 +229,13 @@ export const tutorialSteps: StepConfig[] = [
       type: 'facedown_fail',
       expectedAction: 'pile_pickup_with_facedown',
     },
+    showNextButton: true,
   },
   {
     id: 'FACEDOWN_PICKUP',
     title: 'Picking Up After Failed Flip',
-    instruction: 'Click the pile to pick it up along with your failed card.',
+    instruction:
+      'Click the <strong>Take</strong> button or the pile itself to pick it up along with your failed card.',
     scenario: {
       myHand: [],
       pile: ['8D', '3H'], // 3H is the failed face-down card
@@ -215,22 +245,25 @@ export const tutorialSteps: StepConfig[] = [
     validation: {
       type: 'facedown_pickup',
     },
+    showNextButton: true,
   },
   {
     id: 'FOUR_OF_KIND',
-    title: 'Four of a Kind Burns!',
+    title: 'Four of a Kind Burns the Pile',
     instruction:
-      'Playing four cards of the same rank burns the pile, just like a 10! The pile has three 7s - play your 7 to complete the set.',
+      'If you play four cards of the same rank at once, it burns the pile! <strong>Select all four of your 7s and click Play</strong> to burn the pile.',
     scenario: {
-      myHand: ['7D'],
-      pile: ['7H', '7C', '7S'],
+      myHand: ['7D', '7H', '7C', '7S'],
+      pile: ['KS'],
       upCards: [],
       downCards: 0,
     },
     validation: {
       type: 'four_of_kind',
       cardValue: '7',
+      cardCount: 4,
     },
+    showNextButton: true,
   },
   {
     id: 'COMPLETE',
@@ -246,6 +279,7 @@ export const tutorialSteps: StepConfig[] = [
     validation: {
       type: 'play_card', // Dummy - any click ends tutorial
     },
+    showNextButton: true,
     allowSkip: false,
   },
 ];
