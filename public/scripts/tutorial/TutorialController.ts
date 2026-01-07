@@ -72,7 +72,10 @@ export class TutorialController {
     this.updateInstructionCard();
 
     // 3. Move Spotlight to the correct element (after a slight render delay)
-    setTimeout(() => this.updateSpotlight(), 300);
+    setTimeout(() => {
+      this.updateSpotlight();
+      console.log('[Tutorial] Spotlight update for step:', this.currentStep.id);
+    }, 300);
 
     // 4. Auto-advance for INTRO steps if they are just "click anywhere"
     if (this.currentStep.id === 'INTRO_WELCOME') {
@@ -120,33 +123,38 @@ export class TutorialController {
 
     // A. Find Target based on Step Logic
     if (config.type === 'pickup_pile' || config.type === 'facedown_pickup') {
-      // Highlight the Pile
-      target =
-        document.querySelector('.pile-container') ||
-        document.querySelector('.table-center');
+      // Highlight the Draw pile (right side)
+      target = document.querySelector('.pile-group--discard .pile-cards') as HTMLElement;
+      if (!target) {
+        target = document.querySelector('#discard-pile') as HTMLElement;
+      }
     } else if (config.type === 'play_card' || config.type === 'four_of_kind') {
       // Highlight a specific card in Hand, UpCards, or DownCards
       if (config.cardValue) {
         // Find specific value in hand (e.g. '3')
-        const selector = `.card-img[data-value="${config.cardValue}"]`;
-        // Prefer cards in 'my-area' (hand)
-        const hand = document.getElementById('my-area');
-        if (hand) {
-          target = hand.querySelector(selector) as HTMLElement;
-          if (target) target = target.closest('.card-container') as HTMLElement;
+        // Cards are in #my-area .hand-row
+        const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
+        if (handRow) {
+          // Find the card with matching data-value
+          const cardImgs = handRow.querySelectorAll('.card-img');
+          for (const img of Array.from(cardImgs)) {
+            const imgEl = img as HTMLElement;
+            if (imgEl.dataset.value === config.cardValue) {
+              target = imgEl.closest('.card-container') as HTMLElement;
+              break;
+            }
+          }
+          
+          // Fallback: if no match, highlight first card
+          if (!target && handRow.children[0]) {
+            target = handRow.children[0] as HTMLElement;
+          }
         }
       } else if (config.expectedAction?.startsWith('click_index')) {
         // Highlight specific Up/Down card slot
-        const slotIndex = 0;
-        const playerArea = document.getElementById('my-area');
-        if (playerArea && playerArea.children[slotIndex]) {
-          target = playerArea.children[slotIndex] as HTMLElement;
-        }
-      } else if (this.currentStep.id === 'HAND_BASIC') {
-        // Default fallback for first step: Highlight first card
-        const playerArea = document.getElementById('my-area');
-        if (playerArea && playerArea.children[0]) {
-          target = playerArea.children[0] as HTMLElement;
+        const stackRow = document.querySelector('#my-area .stack-row') as HTMLElement;
+        if (stackRow && stackRow.children[0]) {
+          target = stackRow.children[0] as HTMLElement;
         }
       }
     }
@@ -154,6 +162,7 @@ export class TutorialController {
     // B. Apply Position
     if (target) {
       const rect = target.getBoundingClientRect();
+      console.log('[Tutorial] Spotlight target found:', target, 'Position:', rect);
       // Add some padding
       const padding = 10;
       this.spotlight.style.opacity = '1';
@@ -162,6 +171,7 @@ export class TutorialController {
       this.spotlight.style.width = `${rect.width + padding * 2}px`;
       this.spotlight.style.height = `${rect.height + padding * 2}px`;
     } else {
+      console.warn('[Tutorial] No spotlight target found for step:', this.currentStep.id, 'config:', config);
       this.clearSpotlight();
     }
   }
