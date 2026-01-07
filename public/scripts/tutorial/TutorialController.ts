@@ -165,6 +165,7 @@ export class TutorialController {
       console.log('[Tutorial] Spotlight target found:', target, 'Position:', rect);
       // Add some padding
       const padding = 10;
+      this.spotlight.style.display = 'block';
       this.spotlight.style.opacity = '1';
       this.spotlight.style.top = `${rect.top - padding}px`;
       this.spotlight.style.left = `${rect.left - padding}px`;
@@ -177,7 +178,10 @@ export class TutorialController {
   }
 
   private clearSpotlight() {
-    if (this.spotlight) this.spotlight.style.opacity = '0';
+    if (this.spotlight) {
+      this.spotlight.style.opacity = '0';
+      this.spotlight.style.display = 'none';
+    }
   }
 
   // --- INTERACTION HANDLING ---
@@ -393,14 +397,16 @@ export class TutorialController {
 
     // Add "Next" button for intro/explanation steps
     if (footerEl && this.currentStep.id === 'INTRO_WELCOME') {
-      const existingBtn = footerEl.querySelector('.tutorial-next-btn');
-      if (!existingBtn) {
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'tutorial-next-btn';
-        nextBtn.textContent = 'Next';
-        nextBtn.addEventListener('click', () => this.nextStep());
-        footerEl.appendChild(nextBtn);
-      }
+      // Remove existing button first to prevent duplicates
+      footerEl.querySelector('.tutorial-next-btn')?.remove();
+      
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'tutorial-next-btn';
+      nextBtn.textContent = 'Next';
+      nextBtn.addEventListener('click', () => this.nextStep());
+      footerEl.appendChild(nextBtn);
+      
+      console.log('[Tutorial] Next button added for INTRO_WELCOME');
     } else if (footerEl) {
       // Remove next button if it exists
       footerEl.querySelector('.tutorial-next-btn')?.remove();
@@ -416,7 +422,10 @@ export class TutorialController {
     // 2. Create Spotlight
     this.spotlight = document.createElement('div');
     this.spotlight.className = 'tutorial-spotlight';
+    this.spotlight.style.opacity = '0';
+    this.spotlight.style.display = 'none';
     document.body.appendChild(this.spotlight);
+    console.log('[Tutorial] Spotlight created:', this.spotlight);
 
     // 3. Create Instruction Card
     this.cardEl = document.createElement('div');

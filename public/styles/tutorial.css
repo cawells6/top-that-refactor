@@ -24,6 +24,7 @@
   pointer-events: none;
   transition: all 0.3s ease;
   animation: pulse 2s infinite;
+  opacity: 0; /* Hidden by default, shown by JS */
 }
 
 @keyframes pulse {
