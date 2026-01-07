@@ -29,14 +29,25 @@ export class TutorialController {
     initializeGameControls();
     this.interceptGameControls();
 
-    // Start the first step with dealing animation
-    this.startTutorialWithAnimation();
+    // Start the first step with dealing animation (fire and forget with error handling)
+    this.startTutorialWithAnimation().catch(err => {
+      console.error('[Tutorial] Animation failed, falling back to direct load:', err);
+      // Fallback: just load step 0 directly if animation fails
+      this.loadStep(0);
+    });
 
     // Handle window resize to fix highlight positions
     window.addEventListener('resize', () => this.updateHighlight());
   }
 
   private async startTutorialWithAnimation() {
+    // Ensure game table is visible for animation
+    const gameTable = document.getElementById('game-table');
+    if (gameTable) {
+      gameTable.classList.remove('hidden');
+      gameTable.style.display = 'grid';
+    }
+
     // Load step 0 to set initial state
     const firstStep = tutorialSteps[0];
     this.myHand = this.parseCards(firstStep.scenario.myHand);
@@ -50,6 +61,9 @@ export class TutorialController {
     const skeletonState = this.buildGameState();
     const { renderGameState } = await import('../render.js');
     renderGameState(skeletonState, 'tutorial-player', null, { skeletonMode: true });
+
+    // Wait a frame to ensure DOM is updated
+    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
 
     // Play simplified dealing animation
     await this.playTutorialDealAnimation();
@@ -100,7 +114,31 @@ export class TutorialController {
     }
     await wait(PHASE_PAUSE);
 
-    // Final render without skeleton
+    // Phase D: Flip starter card from deck to play pile (like real game)
+    if (this.pile.length > 0) {
+      const playPile = document.getElementById('play-pile');
+      if (playPile) {
+        this.animateTutorialCard(playRect, playPile, this.pile[0]);
+        await wait(600); // Match flight duration
+        
+        // Render the card on the pile
+        const { cardImg } = await import('../render.js');
+        playPile.innerHTML = '';
+        const cardEl = cardImg(this.pile[0], false, undefined, false, false);
+        playPile.appendChild(cardEl);
+      }
+    }
+    await wait(PHASE_PAUSE);
+
+    // Clear ALL skeleton mode styling from DOM (including card backs)
+    const allCards = document.querySelectorAll('.card-img, .card-ability-icon, .hand-count-badge, .card-back-logo');
+    allCards.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.visibility = 'visible';
+      htmlEl.style.opacity = '1';
+    });
+
+    // Force complete re-render without skeleton mode
     const finalState = this.buildGameState();
     const { renderGameState } = await import('../render.js');
     renderGameState(finalState, 'tutorial-player', null, { skeletonMode: false });
@@ -108,36 +146,54 @@ export class TutorialController {
     await wait(500);
   }
 
-  private animateTutorialCard(playRect: DOMRect, target: HTMLElement, cardData: Card | null): void {
+  private async animateTutorialCard(playRect: DOMRect, target: HTMLElement, cardData: Card | null): Promise<void> {
     const targetRect = target.getBoundingClientRect();
-    const { cardImg } = require('../render.js');
     
-    const flyCard = cardData 
-      ? cardImg(cardData, false, undefined, false, false)
-      : cardImg({ value: '', suit: '', back: true } as Card, false, undefined, false, false);
+    // Create a simple card-back flyer (just like the real game does)
+    const flyer = document.createElement('div');
+    flyer.className = 'tutorial-flying-card flying-card';
     
-    flyCard.classList.add('tutorial-flying-card');
-    Object.assign(flyCard.style, {
+    // Calculate centers for smooth transform-based animation
+    const startCenterX = playRect.left + playRect.width / 2;
+    const startCenterY = playRect.top + playRect.height / 2;
+    const endCenterX = targetRect.left + targetRect.width / 2;
+    const endCenterY = targetRect.top + targetRect.height / 2;
+    
+    const deltaX = endCenterX - startCenterX;
+    const deltaY = endCenterY - startCenterY;
+    
+    // Position at source center, but sized to match destination (prevents resizing during flight)
+    Object.assign(flyer.style, {
       position: 'fixed',
-      left: `${playRect.left}px`,
-      top: `${playRect.top}px`,
-      width: `${playRect.width}px`,
-      height: `${playRect.height}px`,
-      zIndex: '2000',
+      left: `${startCenterX - targetRect.width / 2}px`,
+      top: `${startCenterY - targetRect.height / 2}px`,
+      width: `${targetRect.width}px`,
+      height: `${targetRect.height}px`,
+      zIndex: '9999',
       pointerEvents: 'none',
-      transition: 'all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)',
     });
 
-    document.body.appendChild(flyCard);
+    document.body.appendChild(flyer);
 
-    requestAnimationFrame(() => {
-      flyCard.style.left = `${targetRect.left}px`;
-      flyCard.style.top = `${targetRect.top}px`;
-      flyCard.style.width = `${targetRect.width}px`;
-      flyCard.style.height = `${targetRect.height}px`;
+    // Use Web Animations API for smooth transform-based animation
+    const animation = flyer.animate(
+      [
+        { transform: 'translate(0px, 0px)' },
+        { transform: `translate(${deltaX}px, ${deltaY}px)` },
+      ],
+      {
+        duration: 600,
+        easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+        fill: 'forwards',
+      }
+    );
 
-      setTimeout(() => flyCard.remove(), 600);
-    });
+    animation.onfinish = () => {
+      flyer.remove();
+    };
+
+    // Keep the data for potential future use
+    void cardData;
   }
 
   private buildGameState() {
@@ -151,7 +207,8 @@ export class TutorialController {
           handCount: this.myHand.length,
           hand: this.myHand,
           upCards: this.upCards,
-          downCards: this.downCards,
+          downCards: this.downCards.filter((c): c is Card => c !== null), // Filter out nulls
+          downCount: this.downCards.length,
           isComputer: false
         },
         {
@@ -164,11 +221,8 @@ export class TutorialController {
             { suit: 'hidden', value: 'BACK', back: true },
             { suit: 'hidden', value: 'BACK', back: true }
           ],
-          downCards: [
-            { suit: 'hidden', value: 'BACK', back: true },
-            { suit: 'hidden', value: 'BACK', back: true },
-            { suit: 'hidden', value: 'BACK', back: true }
-          ],
+          downCards: [],
+          downCount: 3,
           isComputer: true
         }
       ],
@@ -181,8 +235,13 @@ export class TutorialController {
 
   // --- STEP MANAGEMENT ---
 
-  private loadStep(index: number) {
-    if (this.isAutoAdvancing) return;
+  private loadStep(index: number, direction: 'forward' | 'backward' = 'forward') {
+    // Clear auto-advancing flag when navigating backward
+    if (direction === 'backward') {
+      this.isAutoAdvancing = false;
+    }
+    
+    if (this.isAutoAdvancing && direction === 'forward') return;
 
     if (index >= tutorialSteps.length) {
       this.finishTutorial();
@@ -191,6 +250,10 @@ export class TutorialController {
 
     this.currentStepIndex = index;
     this.currentStep = tutorialSteps[index];
+
+    // CRITICAL: Clear all selected cards when loading any step
+    document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.selected-container').forEach(el => el.classList.remove('selected-container'));
 
     // 1. Parse Scenario from Config
     this.myHand = this.parseCards(this.currentStep.scenario.myHand);
@@ -215,15 +278,24 @@ export class TutorialController {
     // 2. Update UI
     this.updateRender();
     this.updateInstructionCard();
+    
+    // Show tutorial card if it was hidden during animation
+    if (this.cardEl) {
+      this.cardEl.style.opacity = '1';
+    }
 
-    // 3. Handle Auto-advancing steps
-    if (this.currentStep.isAuto) {
+    // 3. Handle Auto-advancing steps (only when moving forward)
+    if (this.currentStep.isAuto && direction === 'forward') {
       this.isAutoAdvancing = true;
       this.clearHighlight();
-      setTimeout(() => {
-        this.isAutoAdvancing = false;
-        this.nextStep();
-      }, 2000); // Wait 2 seconds for the user to read the opponent's move
+      
+      // Animate opponent's card playing
+      this.animateOpponentPlay().then(() => {
+        setTimeout(() => {
+          this.isAutoAdvancing = false;
+          this.nextStep();
+        }, 2000); // Wait 2 seconds for the user to read the opponent's move
+      });
       return; // Stop further processing for this step
     }
 
@@ -237,7 +309,12 @@ export class TutorialController {
     // 5. Auto-advance for INTRO steps
     if (this.currentStep.id === 'INTRO_WELCOME') {
       this.clearHighlight();
-      document.addEventListener('click', this.handleGlobalClick, { once: true });
+      // Wait for user click (no timer - they read at their own pace)
+      const clickHandler = (e: MouseEvent) => {
+        document.removeEventListener('click', clickHandler);
+        this.nextStep();
+      };
+      document.addEventListener('click', clickHandler);
     }
   }
 
@@ -253,7 +330,9 @@ export class TutorialController {
 
   private previousStep() {
     if (this.currentStepIndex > 0) {
-      this.loadStep(this.currentStepIndex - 1);
+      // Remove any global click listeners before going back
+      document.removeEventListener('click', this.handleGlobalClick);
+      this.loadStep(this.currentStepIndex - 1, 'backward');
     }
   }
 
@@ -276,7 +355,7 @@ export class TutorialController {
     let target: HTMLElement | null = null;
     const config = this.currentStep.validation;
 
-    if (config.type === 'intro' || this.currentStep.id.startsWith('INTRO_')) {
+    if (this.currentStep.id.startsWith('INTRO_')) {
       return; // No highlight for intro steps
     }
 
@@ -305,16 +384,38 @@ export class TutorialController {
       }
     }
 
-    // B. Apply Highlight
+    // B. Apply Highlight with inline pulsing animation
     if (target) {
-      target.classList.add('tutorial-highlight');
       this.highlightedElement = target;
+      // Store original styles
+      const originalAnimation = target.style.animation;
+      const originalBoxShadow = target.style.boxShadow;
+      const originalZIndex = target.style.zIndex;
+      
+      // Apply pulsing glow
+      target.style.animation = 'tutorial-pulse 2s ease-in-out infinite';
+      target.style.boxShadow = '0 0 20px 5px rgba(111, 180, 255, 0.8)';
+      target.style.zIndex = '100';
+      
+      // Store originals for restoration
+      target.dataset.tutorialOriginalAnimation = originalAnimation;
+      target.dataset.tutorialOriginalBoxShadow = originalBoxShadow;
+      target.dataset.tutorialOriginalZIndex = originalZIndex;
     }
   }
 
   private clearHighlight() {
     if (this.highlightedElement) {
-      this.highlightedElement.classList.remove('tutorial-highlight');
+      // Restore original styles
+      const el = this.highlightedElement;
+      el.style.animation = el.dataset.tutorialOriginalAnimation || '';
+      el.style.boxShadow = el.dataset.tutorialOriginalBoxShadow || '';
+      el.style.zIndex = el.dataset.tutorialOriginalZIndex || '';
+      
+      // Clean up data attributes
+      delete el.dataset.tutorialOriginalAnimation;
+      delete el.dataset.tutorialOriginalBoxShadow;
+      delete el.dataset.tutorialOriginalZIndex;
       this.highlightedElement = null;
     }
   }
@@ -514,12 +615,12 @@ export class TutorialController {
     );
   }
 
-  private validateAction(actionType: string, source?: string, index?: number) {
+  private async validateAction(actionType: string, source?: string, index?: number) {
     const validConfig = this.currentStep.validation;
 
     // --- SCENARIO: PICK UP PILE ---
     if (validConfig.type === 'pickup_pile' && actionType === 'pickup_pile') {
-      showToast('Good job! You picked up the pile.', 'info');
+      showToast('Good job!', 'success');
       this.nextStep();
       return;
     }
@@ -528,7 +629,7 @@ export class TutorialController {
       validConfig.type === 'facedown_pickup' &&
       actionType === 'facedown_pickup'
     ) {
-      showToast('Recovered! Now continue playing.', 'info');
+      showToast('Good job!', 'success');
       this.nextStep();
       return;
     }
@@ -548,6 +649,7 @@ export class TutorialController {
       // A. Handle Up/Down Card Clicks (Single Click)
       if (validConfig.expectedAction?.startsWith('click_index')) {
         if (index !== undefined && index === 0) {
+          showToast('Perfect!', 'success');
           this.nextStep();
           return;
         }
@@ -592,11 +694,100 @@ export class TutorialController {
         return;
       }
 
-      this.nextStep();
+      // SUCCESS! Show toast and animate cards
+      showToast('Great!', 'success');
+      
+      // Animate each selected card to the pile
+      this.animateCardsToDrawPile(selectedIndices).then(async () => {
+        // Update game state after animation
+        playedCards.forEach(card => this.pile.push(card));
+        this.myHand = this.myHand.filter((_, i) => !selectedIndices.includes(i));
+        
+        // Clear selections
+        document.querySelectorAll('.card-img.selected').forEach(el => {
+          el.classList.remove('selected');
+          const container = el.closest('.card-container');
+          if (container) container.classList.remove('selected-container');
+        });
+        
+        // Re-render to show the updated pile with the player's card
+        this.updateRender();
+        
+        // Show special card effect if applicable
+        const topCard = playedCards[playedCards.length - 1];
+        const { isSpecialCard, isTwoCard, isFiveCard, isTenCard } = await import('../../../utils/cardUtils.js');
+        
+        if (isSpecialCard(topCard.value)) {
+          const { showCardEvent } = await import('../render.js');
+          let effectType = 'regular';
+          
+          if (isTwoCard(topCard.value)) effectType = 'two';
+          else if (isFiveCard(topCard.value)) effectType = 'five';
+          else if (isTenCard(topCard.value)) effectType = 'ten';
+          else if (playedCards.length === 4) effectType = 'four';
+          
+          // Show effect after small delay
+          setTimeout(() => {
+            showCardEvent(topCard.value, effectType);
+          }, 200);
+          
+          // Wait longer for special card effect to display
+          setTimeout(() => {
+            this.nextStep();
+          }, 2500);
+        } else {
+          // Regular card - wait 1 second before advancing
+          setTimeout(() => {
+            this.nextStep();
+          }, 1000);
+        }
+      });
     }
   }
 
   // --- RENDERING & PARSING ---
+
+  private async animateCardsToDrawPile(selectedIndices: number[]): Promise<void> {
+    const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
+    if (!handRow) {
+      console.warn('[Tutorial] Could not find hand row for animation');
+      return;
+    }
+
+    const { animatePlayerPlay } = await import('../render.js');
+    
+    // Store references to card elements BEFORE any state changes
+    const cardElements = selectedIndices
+      .map(idx => handRow.children[idx] as HTMLElement)
+      .filter(el => el);
+    
+    if (cardElements.length === 0) {
+      console.warn('[Tutorial] No card elements found for animation');
+      return;
+    }
+    
+    // Animate each selected card sequentially
+    for (const cardElement of cardElements) {
+      animatePlayerPlay(cardElement);
+      // Small delay between animations for visual effect
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+    
+    // Wait for last animation to complete
+    await new Promise(resolve => setTimeout(resolve, 600));
+  }
+
+  private async animateOpponentPlay(): Promise<void> {
+    // Animate CPU's card flying from their area to the pile
+    const { animateCardFromPlayer } = await import('../render.js');
+    
+    // Get the cards that were played (last cards in pile that aren't from previous step)
+    const currentPile = this.pile;
+    if (currentPile.length > 0) {
+      // Animate from opponent area (tutorial-opponent)
+      await animateCardFromPlayer('tutorial-opponent', [currentPile[currentPile.length - 1]]);
+    }
+  }
 
   private updateRender() {
     const localGameState = this.buildGameState();
@@ -614,33 +805,39 @@ export class TutorialController {
     if (titleEl) titleEl.textContent = this.currentStep.title;
     if (descEl) descEl.innerHTML = this.currentStep.instruction; // Use innerHTML for <strong> tags
     if (progEl)
-      progEl.textContent = `Step ${this.currentStepIndex + 1} of ${tutorialSteps.length}`;
+      progEl.textContent = `${this.currentStepIndex + 1}/${tutorialSteps.length}`;
 
-    // Always remove the button first to ensure a clean state
-    footerEl?.querySelector('.tutorial-next-btn')?.remove();
-    footerEl?.querySelector('.tutorial-prev-btn')?.remove();
-    footerEl?.querySelector('.tutorial-nav-buttons')?.remove();
-
-    // Add navigation buttons container
-    if (footerEl && (this.currentStepIndex > 0 || (this.currentStep.showNextButton && !this.currentStep.isAuto))) {
+    // Always remove ALL existing buttons and hints first to ensure a clean state
+    footerEl?.querySelectorAll('button, .tutorial-nav-buttons, .tutorial-hint-text')?.forEach(el => el.remove());
+    
+    if (footerEl) {
+      // Always show button container
       const btnContainer = document.createElement('div');
       btnContainer.className = 'tutorial-nav-buttons';
       
-      // Add Previous button (except on first step)
-      if (this.currentStepIndex > 0) {
+      // Add Previous button only if not on first step and not on final step
+      if (this.currentStepIndex > 0 && !this.currentStep.showNextButton) {
         const prevBtn = document.createElement('button');
         prevBtn.className = 'tutorial-nav-btn tutorial-prev-btn';
-        prevBtn.textContent = '← Previous';
+        prevBtn.textContent = 'Back';
         prevBtn.addEventListener('click', () => this.previousStep());
         btnContainer.appendChild(prevBtn);
       }
       
-      // Add Next/Finish button if needed
+      // Add hint text on all pages except intro and final step
+      if (this.currentStepIndex > 0 && !this.currentStep.showNextButton) {
+        const hintText = document.createElement('div');
+        hintText.className = 'tutorial-hint-text';
+        hintText.innerHTML = '<span>✨</span> Complete the action to continue';
+        btnContainer.appendChild(hintText);
+      }
+      
+      // Add Next/Finish button ONLY on final step
       if (this.currentStep.showNextButton && !this.currentStep.isAuto) {
         const isFinalStep = this.currentStep.id === 'COMPLETE';
         const nextBtn = document.createElement('button');
         nextBtn.className = 'tutorial-nav-btn tutorial-next-btn';
-        nextBtn.textContent = isFinalStep ? 'Finish' : ('Next →');
+        nextBtn.textContent = isFinalStep ? 'Finish' : 'Next';
 
         nextBtn.addEventListener('click', () => {
           if (isFinalStep) {
@@ -654,26 +851,65 @@ export class TutorialController {
       }
       
       footerEl.appendChild(btnContainer);
+      
+      // Always add Exit button to bottom-right
+      const exitBtn = document.createElement('button');
+      exitBtn.className = 'tutorial-skip-btn';
+      exitBtn.textContent = 'Exit';
+      exitBtn.addEventListener('click', () => this.showExitConfirmation());
+      footerEl.appendChild(exitBtn);
     }
+  }
+
+  private showExitConfirmation() {
+    // Create custom confirmation modal
+    const modal = document.createElement('div');
+    modal.className = 'tutorial-exit-modal';
+    modal.innerHTML = `
+      <div class="tutorial-exit-content">
+        <p>Are you sure you want to exit the tutorial?</p>
+        <div class="tutorial-exit-buttons">
+          <button class="tutorial-exit-cancel">Cancel</button>
+          <button class="tutorial-exit-confirm">Exit</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Add event listeners
+    const cancelBtn = modal.querySelector('.tutorial-exit-cancel');
+    const confirmBtn = modal.querySelector('.tutorial-exit-confirm');
+
+    cancelBtn?.addEventListener('click', () => modal.remove());
+    confirmBtn?.addEventListener('click', () => {
+      modal.remove();
+      this.finishTutorial();
+    });
+
+    // Click outside to cancel
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
   }
 
   private createTutorialUI() {
     // Instruction Card is the only UI we create now
     this.cardEl = document.createElement('div');
     this.cardEl.className = 'tutorial-card';
+    this.cardEl.style.opacity = '0'; // Hide during animation
     this.cardEl.innerHTML = `
       <div class="tutorial-card__header">
         <h3 class="tutorial-card__title">Welcome</h3>
-        <button class="tutorial-skip-btn">Exit Tutorial</button>
+        <span class="tutorial-card__progress">Step 1</span>
       </div>
       <p class="tutorial-card__instruction">Loading...</p>
       <div class="tutorial-card__footer">
-        <span class="tutorial-card__progress">Step 1</span>
       </div>
     `;
 
     this.cardEl.querySelector('.tutorial-skip-btn')?.addEventListener('click', () => {
-      if (confirm('Exit tutorial?')) this.finishTutorial();
+      this.showExitConfirmation();
     });
 
     document.body.appendChild(this.cardEl);

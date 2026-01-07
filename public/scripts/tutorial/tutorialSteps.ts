@@ -33,24 +33,24 @@ export const tutorialSteps: StepConfig[] = [
   {
     id: 'INTRO_WELCOME',
     title: 'Welcome to Top That!',
-    instruction: "Let's learn how to play. Click the Next button below to continue.",
+    instruction:
+      "Your only mission? One-up your opponent and become the king! This game is all about outplaying, outsmarting, and seizing the moment. Let's dive into the mechanics so you can start dueling in no time.<br><br><strong>Click anywhere when you're ready to continue!</strong>",
     scenario: {
       myHand: ['3H', '8D', 'QC'], // Start with 3 cards like real game
-      pile: [],
+      pile: ['7S'], // Start with a card on the pile like real game
       upCards: ['JH', 'KD', '9S'], // Show up cards
       downCards: 3, // Show down cards
     },
     validation: {
       type: 'play_card', // Dummy validation - any click continues
     },
-    showNextButton: true,
     allowSkip: false,
   },
   {
     id: 'HAND_BASIC',
     title: 'Playing from Your Hand',
     instruction:
-      'The goal is to get rid of your cards. Let\'s start by playing a card from your hand. The pile is empty, so you can play anything. <strong>Play your 3.</strong>',
+      "First things first: get rid of all your cards to win. When the pile is empty, you can play anything. Perfect time to discard those low cards! Pro tip: play your weaker cards early so you're not stuck with them later forcing you to take the pile. <strong>Play your 3</strong> to commence your conquest!",
     scenario: {
       myHand: ['3H', '8D', 'QC'],
       pile: [],
@@ -61,15 +61,15 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       cardValue: '3',
     },
-    showNextButton: true,
   },
   {
     id: 'OPPONENT_PLAYS_1',
     title: "Opponent's Turn",
-    instruction: 'The King plays a 7.',
+    instruction:
+      'The King just played a 7. Notice you still have 3 cards? After you play from your hand, you automatically draw back up to 3 cards (as long as the deck has cards left). This keeps the game moving!',
     isAuto: true,
     scenario: {
-      myHand: ['8D', 'QC'],
+      myHand: ['8D', 'QC', '4S'], // Auto-drew 4S after playing 3
       pile: ['7S'],
       upCards: ['JH', 'KD', '9S'], // Keep up cards visible
       downCards: 3, // Keep down cards visible
@@ -82,9 +82,9 @@ export const tutorialSteps: StepConfig[] = [
     id: 'HAND_HIGHER',
     title: 'Playing a Higher Card',
     instruction:
-      'The King played a 7. You must play a card with a higher rank. <strong>Select and play your 8.</strong>',
+      "Here's the core rule: you must play higher than what's on the pile. The King played a 7, so you need an 8 or higher. <strong>Pro tip:</strong> Play the lowest card that works (your 8) to save your high cards (like that Queen) for when you really need them. Time to <strong>top that with your 8!</strong>",
     scenario: {
-      myHand: ['8D', 'QC'],
+      myHand: ['8D', 'QC', '4S'], // Still have 3 cards
       pile: ['7S'],
       upCards: ['JH', 'KD', '9S'], // Keep up cards visible
       downCards: 3, // Keep down cards visible
@@ -93,15 +93,14 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       cardValue: '8',
     },
-    showNextButton: true,
   },
   {
     id: 'HAND_MULTIPLE',
     title: 'Playing Multiple Cards',
     instruction:
-      'You can play multiple cards if they have the same rank. <strong>Click all three of your 6s to select them</strong>, then either click the <strong>Play</strong> button or double-click the last card to play them all.',
+      'Got matching cards? Play them all at once for maximum impact! <strong>Click all three 6s to select them</strong>, then hit <strong>Play</strong> or double-click the last one. A powerful strategic move!',
     scenario: {
-      myHand: ['6H', '6D', '6C'],
+      myHand: ['6H', '6D', '6C'], // Drew two more 6s and lost the others
       pile: ['4D'],
       upCards: ['JH', 'KD', '9S'], // Keep up cards visible
       downCards: 3, // Keep down cards visible
@@ -111,15 +110,14 @@ export const tutorialSteps: StepConfig[] = [
       cardValue: '6',
       cardCount: 3,
     },
-    showNextButton: true,
   },
   {
     id: 'SPECIAL_TWO',
-    title: 'Special Card: 2',
+    title: 'Special Card: The Reset',
     instruction:
-      'A 2 is a special card that resets the pile. It can be played on any card. After a 2 is played, the next player can play any card. <strong>Play your 2.</strong>',
+      'Stuck with low cards? The 2 is your royal pardon! It can be played on anything and resets the pile. <strong>Play your 2</strong> and seize control!',
     scenario: {
-      myHand: ['2H', '8D'],
+      myHand: ['2H', '8D', '4C'], // Now late game - deck is empty so no more auto-draws
       pile: ['KS'],
       upCards: [],
       downCards: 0,
@@ -128,15 +126,14 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       cardValue: '2',
     },
-    showNextButton: true,
   },
   {
     id: 'SPECIAL_FIVE',
-    title: 'Special Card: 5',
+    title: 'Special Card: The Copycat',
     instruction:
-      'A 5 copies the last card played. The pile shows 2, so 5 also acts as 2. Play your 5.',
+      "The 5 is a shapeshifter. It copies whatever's on top of the pile! Right now there's a 2, so your 5 becomes a 2. A cunning tactic! <strong>Play your 5</strong> and watch it transform!",
     scenario: {
-      myHand: ['5H', '3D'],
+      myHand: ['5H', '3D', '7C'],
       pile: ['2S'],
       upCards: [],
       downCards: 0,
@@ -145,15 +142,14 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       cardValue: '5',
     },
-    showNextButton: true,
   },
   {
     id: 'SPECIAL_TEN',
-    title: 'Special Card: 10',
+    title: 'Special Card: Burn the Pile',
     instruction:
-      'A 10 is a special card that "burns" the pile, clearing it from play. After the pile is burned, the turn moves to the next player. <strong>Play your 10.</strong>',
+      'The 10 is pure destruction. It burns the pile and those cards are removed from the game entirely! <strong>Unleash your 10</strong> and watch it all burn!',
     scenario: {
-      myHand: ['10H', '3D'],
+      myHand: ['10H', '3D', '4S'],
       pile: ['9S', '9H'],
       upCards: [],
       downCards: 0,
@@ -162,63 +158,59 @@ export const tutorialSteps: StepConfig[] = [
       type: 'play_card',
       cardValue: '10',
     },
-    showNextButton: true,
   },
   {
     id: 'PICKUP_FAIL',
-    title: 'No Valid Play? Pick Up the Pile',
+    title: 'No Valid Play',
     instruction:
-      "You have no valid move! Click the <strong>Take</strong> button or click the pile itself to pick it up.",
+      "You're cornered! When you can't play anything, you must collect the pile. Even the greatest monarchs face setbacks. Click <strong>Take</strong> or click the pile to collect it.",
     scenario: {
-      myHand: ['3H', '4D'],
+      myHand: ['3H', '4D', '6C'],
       pile: ['KS', 'QH', 'JD'],
-      upCards: [],
-      downCards: 0,
+      upCards: ['JH', 'KD', '9S'], // Keep up cards visible
+      downCards: 3, // Keep down cards visible
     },
     validation: {
       type: 'pickup_pile',
     },
-    showNextButton: true,
   },
   {
     id: 'UPCARDS_INTRO',
-    title: 'Up Cards',
+    title: 'Up Cards: Phase 2',
     instruction:
-      "When your hand is empty, you play from visible 'up cards'. Click one to play it (you can only play one at a time).",
+      "Hand empty? No problem! Now you play from your visible 'up cards'. Everyone can see them, so choose wisely. You can only play one at a time though! <strong>Click your 7</strong> to play it.",
     scenario: {
       myHand: [],
       pile: ['3S'],
       upCards: ['7H', '9D', '4C'],
-      downCards: 0,
+      downCards: 3, // Keep down cards visible for context
     },
     validation: {
       type: 'play_card',
       expectedAction: 'click_index_0', // First up card
     },
-    showNextButton: true,
   },
   {
     id: 'DOWNCARDS_INTRO',
-    title: 'Down Cards',
+    title: 'Down Cards: The Mystery Round',
     instruction:
-      "When up cards are gone, you play face-down cards. You don't know what they are until you flip them! Click one.",
+      "Final phase! When your up cards are gone, it's time to flip face-down cards. The catch? You don't know what they are until you flip them! Could be an Ace, could be a 3... only one way to find out. <strong>Click a down card</strong> and test your fortune!",
     scenario: {
       myHand: [],
       pile: ['5S'],
-      upCards: [],
+      upCards: ['7H', '9D', '4C'], // Keep visible for context (grayed out)
       downCards: 3,
     },
     validation: {
       type: 'play_card',
       expectedAction: 'click_index_0', // First down card
     },
-    showNextButton: true,
   },
   {
     id: 'FACEDOWN_FAIL',
-    title: 'Face-Down Card Too Low',
+    title: 'Ouch! Card Too Low',
     instruction:
-      "You flipped a 3, but the pile shows 8. That's too low! You must pick up the pile (including the 3).",
+      "You flipped a 3, but the pile has an 8... unfortunate! When your flipped card is too low, you must collect the whole pile (including your failed card). That's the risk of the gamble!",
     scenario: {
       myHand: [],
       pile: ['8D'],
@@ -229,13 +221,12 @@ export const tutorialSteps: StepConfig[] = [
       type: 'facedown_fail',
       expectedAction: 'pile_pickup_with_facedown',
     },
-    showNextButton: true,
   },
   {
     id: 'FACEDOWN_PICKUP',
-    title: 'Picking Up After Failed Flip',
+    title: 'Accept Your Fate',
     instruction:
-      'Click the <strong>Take</strong> button or the pile itself to pick it up along with your failed card.',
+      'Time to face the consequences. Click <strong>Take</strong> or click the pile to collect all those cards into your hand. Fortune favors the bold!',
     scenario: {
       myHand: [],
       pile: ['8D', '3H'], // 3H is the failed face-down card
@@ -245,13 +236,12 @@ export const tutorialSteps: StepConfig[] = [
     validation: {
       type: 'facedown_pickup',
     },
-    showNextButton: true,
   },
   {
     id: 'FOUR_OF_KIND',
-    title: 'Four of a Kind Burns the Pile',
+    title: 'The Ultimate Combo: Four of a Kind',
     instruction:
-      'If you play four cards of the same rank at once, it burns the pile! <strong>Select all four of your 7s and click Play</strong> to burn the pile.',
+      "Here's the ultimate power move: play four matching cards at once and the entire pile explodes! This is your moment of glory. <strong>Select all four 7s and hit Play</strong>. Demonstrate your mastery!",
     scenario: {
       myHand: ['7D', '7H', '7C', '7S'],
       pile: ['KS'],
@@ -263,13 +253,12 @@ export const tutorialSteps: StepConfig[] = [
       cardValue: '7',
       cardCount: 4,
     },
-    showNextButton: true,
   },
   {
     id: 'COMPLETE',
-    title: 'Tutorial Complete!',
+    title: 'Ready to Claim Your Throne!',
     instruction:
-      "Great job! You're ready to play. Click 'Finish' to return to the lobby.",
+      "Congratulations! You've mastered the basics. Now it's time to test your skills against worthy opponents. Think you can reign supreme? There's only one way to prove it. Click 'Finish' to begin your ascent to the throne!",
     scenario: {
       myHand: [],
       pile: [],
@@ -279,7 +268,7 @@ export const tutorialSteps: StepConfig[] = [
     validation: {
       type: 'play_card', // Dummy - any click ends tutorial
     },
-    showNextButton: true,
+    showNextButton: true, // Keep for final step
     allowSkip: false,
   },
 ];

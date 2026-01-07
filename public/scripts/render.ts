@@ -5,15 +5,33 @@ import {
   isSpecialCard,
 } from '../../utils/cardUtils.js';
 // Import assets so Vite can resolve hashed filenames
+// @ts-ignore - Vite handles asset imports
 import playerAvatarUrl from '../assets/Player.svg';
+// @ts-ignore - Vite handles asset imports
 import robotAvatarUrl from '../assets/robot.svg';
+// @ts-ignore - Vite handles asset imports
 import fourOfAKindIconUrl from '../src/shared/4ofakind-icon.png';
+// @ts-ignore - Vite handles asset imports
 import burnIconUrl from '../src/shared/Burn-icon.png';
+// @ts-ignore - Vite handles asset imports
 import copyIconUrl from '../src/shared/Copy-icon.png';
+// @ts-ignore - Vite handles asset imports
 import crownIconUrl from '../src/shared/crownv2.svg';
+// @ts-ignore - Vite handles asset imports
 import invalidIconUrl from '../src/shared/invalid play-icon.png';
+// @ts-ignore - Vite handles asset imports
 import logoUrl from '../src/shared/logov2.svg';
+// @ts-ignore - Vite handles asset imports
 import resetIconUrl from '../src/shared/Reset-icon.png';
+
+// --- GLOBAL MOUSE POSITION TRACKER ---
+// Track mouse position globally for hover state restoration
+if (typeof window !== 'undefined') {
+  document.addEventListener('mousemove', (e) => {
+    (window as any).lastMouseX = e.clientX;
+    (window as any).lastMouseY = e.clientY;
+  }, { passive: true });
+}
 
 // --- PRELOAD LOGIC START ---
 const ICON_PATHS = {
@@ -176,7 +194,7 @@ export function logSpecialEffect(effectType: string, _value?: any): void {
       message = '2️⃣ Pile reset!';
       break;
     case 'five':
-      message = '5️⃣ Peek at pile';
+      message = '5️⃣ Copies top card!';
       break;
     case 'four':
       message = '💥 Four of a kind!';
@@ -791,7 +809,52 @@ function updateHandRow(
             newContent.classList.add('selectable-container');
           }
         }
+        
+        // Store the bounding rect before replacement to check cursor position
+        const oldRect = el.getBoundingClientRect();
+        
         handRow.replaceChild(newContent, el);
+        
+        // Force hover state refresh by checking actual mouse position
+        // Use a small delay to ensure DOM is updated
+        setTimeout(() => {
+          const mouseX = (window as any).lastMouseX;
+          const mouseY = (window as any).lastMouseY;
+          
+          if (mouseX !== undefined && mouseY !== undefined) {
+            const newRect = newContent.getBoundingClientRect();
+            
+            // Check if mouse is within the new card's bounds
+            if (
+              mouseX >= newRect.left &&
+              mouseX <= newRect.right &&
+              mouseY >= newRect.top &&
+              mouseY <= newRect.bottom
+            ) {
+              const newImgEl = newContent.querySelector('.card-img') as HTMLElement;
+              if (newImgEl) {
+                // Force CSS hover state by triggering mouseover
+                const mouseOverEvent = new MouseEvent('mouseover', {
+                  bubbles: true,
+                  cancelable: true,
+                  view: window,
+                  clientX: mouseX,
+                  clientY: mouseY
+                });
+                const mouseEnterEvent = new MouseEvent('mouseenter', {
+                  bubbles: true,
+                  cancelable: true,
+                  view: window,
+                  clientX: mouseX,
+                  clientY: mouseY
+                });
+                newImgEl.dispatchEvent(mouseOverEvent);
+                newImgEl.dispatchEvent(mouseEnterEvent);
+                newContent.dispatchEvent(mouseOverEvent);
+              }
+            }
+          }
+        }, 0);
       }
     }
   }
@@ -916,11 +979,11 @@ function applyHandCompression(
   }
 }
 
-export function animatePlayerPlay(cardElement: HTMLElement): void {
+export function animatePlayerPlay(cardElement: HTMLElement): Promise<void> {
   const pileEl =
     document.getElementById('pile-top-card') ||
     document.getElementById('discard-pile');
-  if (!pileEl || !cardElement) return;
+  if (!pileEl || !cardElement) return Promise.resolve();
 
   const animationTask = new Promise<void>((resolve) => {
     const startRect = cardElement.getBoundingClientRect();
@@ -974,8 +1037,9 @@ export function animatePlayerPlay(cardElement: HTMLElement): void {
   });
 
   activeFlyPromise = animationTask;
-  animationTask.then(() => {
+  return animationTask.then(() => {
     if (activeFlyPromise === animationTask) activeFlyPromise = null;
+    return;
   });
 }
 
@@ -1076,11 +1140,10 @@ export function animateCardFromPlayer(
   });
 
   activeFlyPromise = animationTask;
-  animationTask.then(() => {
+  return animationTask.then(() => {
     if (activeFlyPromise === animationTask) activeFlyPromise = null;
+    return;
   });
-
-  return animationTask;
 }
 
 export function showCardEvent(

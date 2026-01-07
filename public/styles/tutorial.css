@@ -2,6 +2,18 @@
  * Tutorial overlay and highlight system
  */
 
+/* Tutorial pulse animation for highlighting elements */
+@keyframes tutorial-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px 5px rgba(111, 180, 255, 0.6);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px 10px rgba(111, 180, 255, 1);
+    transform: scale(1.05);
+  }
+}
+
 /* The overlay is no longer used for darkening, but kept for structure if needed. */
 .tutorial-overlay {
   display: none; /* Disabled */
@@ -45,20 +57,40 @@
 }
 
 
-/* Instruction card - remains the same */
+/* Instruction card - positioned to the right of play area */
 .tutorial-card {
   position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 600px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  top: 50%;
+  /* Position based on game table dimensions:
+     - Table max-width: min(98vw, 2400px)
+     - Half table width = min(49vw, 1200px)
+     - Table border: 22px
+     - Small gap from border: 30px
+     - Tutorial card position = 50% + half-table + border + gap
+  */
+  left: calc(50% + min(49vw, 1200px) + 52px);
+  transform: translateY(-50%);
+  width: 380px;
+  max-height: 85vh;
+  background: linear-gradient(135deg, #ffffff 0%, #fef9f0 100%);
+  border: 3px solid #ffc300;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 195, 0, 0.2);
   z-index: 2002;
   pointer-events: auto;
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.3s ease;
+}
+
+/* Adjust for smaller screens where calc positioning doesn't work well */
+@media (max-width: 1600px) {
+  .tutorial-card {
+    right: 20px;
+    left: auto;
+    transform: translateY(-50%);
+  }
 }
 
 .tutorial-card__header {
@@ -69,10 +101,25 @@
 }
 
 .tutorial-card__title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f6c556 0%, #f39c12 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tutorial-card__progress {
+  background: linear-gradient(135deg, #f6c556 0%, #f39c12 100%);
+  color: #2c3e50;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
 }
 
 .tutorial-skip-btn {
@@ -81,50 +128,60 @@
   border: none;
   border-radius: 6px;
   padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  z-index: 2003;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(211, 47, 47, 0.3);
+  min-width: 50px;
+  order: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .tutorial-skip-btn:hover {
   background: #b71c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(183, 28, 28, 0.4);
 }
 
 .tutorial-card__instruction {
-  font-size: 1.1rem;
-  line-height: 1.5;
-  color: #555;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #2c3e50;
   margin: 0 0 1rem 0;
+  font-weight: 400;
+  text-transform: none !important;
 }
 
 .tutorial-card__footer {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   gap: 15px;
-  min-height: 40px; /* Ensure space for buttons */
+  min-height: 40px;
 }
 
-.tutorial-card__progress {
-  font-size: 0.9rem;
-  color: #888;
-  font-weight: 500;
-  position: absolute;
-  left: 1.5rem;
+.tutorial-nav-buttons {
+  display: flex;  flex-wrap: wrap;  gap: 12px;
+  justify-content: center;
+  flex: 1;
+  order: 2;
 }
 
 .tutorial-prev-btn,
 .tutorial-next-btn {
-  padding: 10px 30px;
+  padding: 10px 24px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 0.95rem;
   font-weight: 600;
   transition: all 0.2s;
   box-shadow: 0 2px 8px rgba(0,0,0, 0.1);
+  min-width: 100px;
 }
 
 .tutorial-prev-btn:hover,
@@ -144,12 +201,106 @@
   color: #2c3e50;
 }
 
-/* Previous button style */
+/* Previous button style - matches Next button yellow */
 .tutorial-prev-btn {
+  background: linear-gradient(135deg, #f6c556 0%, #f39c12 100%);
+  color: #2c3e50;
+}
+
+.tutorial-prev-btn:hover {
+  background: linear-gradient(135deg, #f5b93c 0%, #e67e22 100%);
+}
+
+/* Hint text for auto-advance */
+.tutorial-hint-text {
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
+  margin-top: 8px;
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.tutorial-hint-text span {
+  display: inline-block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Exit confirmation modal */
+.tutorial-exit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.tutorial-exit-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  text-align: center;
+}
+
+.tutorial-exit-content h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.tutorial-exit-content p {
+  margin: 0 0 1.5rem 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.tutorial-exit-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.tutorial-exit-cancel,
+.tutorial-exit-confirm {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 100px;
+}
+
+.tutorial-exit-cancel {
   background: #e0e0e0;
   color: #555;
 }
 
-.tutorial-prev-btn:hover {
-  background: #f0f0f0;
+.tutorial-exit-cancel:hover {
+  background: #d0d0d0;
+  transform: translateY(-1px);
+}
+
+.tutorial-exit-confirm {
+  background: #d32f2f;
+  color: white;
+}
+
+.tutorial-exit-confirm:hover {
+  background: #b71c1c;
+  transform: translateY(-1px);
 }
