@@ -1,0 +1,173 @@
+/**
+ * Tutorial overlay and spotlight system
+ */
+
+/* Dark overlay behind everything */
+.tutorial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 2000;
+  pointer-events: none;
+}
+
+/* Spotlight highlight for interactive elements */
+.tutorial-spotlight {
+  position: fixed;
+  border: 3px solid #f6c556;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(246, 197, 86, 0.6), inset 0 0 20px rgba(246, 197, 86, 0.3);
+  z-index: 2001;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(246, 197, 86, 0.6), inset 0 0 20px rgba(246, 197, 86, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(246, 197, 86, 0.9), inset 0 0 30px rgba(246, 197, 86, 0.5);
+  }
+}
+
+/* Instruction card */
+.tutorial-card {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 2002;
+  pointer-events: auto;
+  padding: 1.5rem;
+}
+
+.tutorial-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tutorial-card__title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.tutorial-skip-btn {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 2003;
+  transition: background 0.2s;
+}
+
+.tutorial-skip-btn:hover {
+  background: #b71c1c;
+}
+
+.tutorial-card__instruction {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #555;
+  margin: 0 0 1rem 0;
+}
+
+.tutorial-card__footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tutorial-card__progress {
+  font-size: 0.9rem;
+  color: #888;
+  font-weight: 500;
+}
+
+/* Error message */
+.tutorial-error {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #d32f2f;
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  z-index: 2004;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Revealed face-down card indicator */
+.card-container.revealed-fail {
+  animation: shake 0.5s ease;
+  border: 2px solid #d32f2f;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
+/* Coach overlay (for existing tutorial) */
+#coach-overlay {
+  position: fixed;
+  bottom: 180px;
+  right: 20px;
+  width: 280px;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+#coach-bubble {
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+  border: 4px solid #333;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 1.2rem;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+  position: relative;
+  float: right;
+  margin-right: -20px;
+  margin-top: 20px;
+}
