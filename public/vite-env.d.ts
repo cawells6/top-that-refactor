@@ -8,7 +8,7 @@ interface ImportMetaEnv {
   readonly SSR: boolean;
 }
 
-// Asset type declarations for Vite
+// Asset type declarations for Vite - comprehensive patterns
 declare module '*.svg' {
   const content: string;
   export default content;
@@ -20,6 +20,32 @@ declare module '*.png' {
 }
 
 declare module '*.jpg' {
+  const content: string;
+  export default content;
+}
+
+// Support relative path imports from any directory
+declare module '*/*.svg' {
+  const content: string;
+  export default content;
+}
+
+declare module '*/*.png' {
+  const content: string;
+  export default content;
+}
+
+declare module '*/*/*.svg' {
+  const content: string;
+  export default content;
+}
+
+declare module '*/*/*.png' {
+  const content: string;
+  export default content;
+}
+
+declare module '*/*/*/*.png' {
   const content: string;
   export default content;
 }
