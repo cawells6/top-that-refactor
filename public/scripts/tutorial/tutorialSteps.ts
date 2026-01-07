@@ -35,10 +35,10 @@ export const tutorialSteps: StepConfig[] = [
     title: 'Welcome to Top That!',
     instruction: "Let's learn how to play. Click the Next button below to continue.",
     scenario: {
-      myHand: [],
+      myHand: ['3H', '8D', 'QC'], // Start with 3 cards like real game
       pile: [],
-      upCards: [],
-      downCards: 0,
+      upCards: ['JH', 'KD', '9S'], // Show up cards
+      downCards: 3, // Show down cards
     },
     validation: {
       type: 'play_card', // Dummy validation - any click continues
@@ -54,8 +54,8 @@ export const tutorialSteps: StepConfig[] = [
     scenario: {
       myHand: ['3H', '8D', 'QC'],
       pile: [],
-      upCards: [],
-      downCards: 0,
+      upCards: ['JH', 'KD', '9S'], // Keep up cards visible
+      downCards: 3, // Keep down cards visible
     },
     validation: {
       type: 'play_card',
@@ -71,8 +71,8 @@ export const tutorialSteps: StepConfig[] = [
     scenario: {
       myHand: ['8D', 'QC'],
       pile: ['7S'],
-      upCards: [],
-      downCards: 0,
+      upCards: ['JH', 'KD', '9S'], // Keep up cards visible
+      downCards: 3, // Keep down cards visible
     },
     validation: {
       type: 'auto',
@@ -86,8 +86,8 @@ export const tutorialSteps: StepConfig[] = [
     scenario: {
       myHand: ['8D', 'QC'],
       pile: ['7S'],
-      upCards: [],
-      downCards: 0,
+      upCards: ['JH', 'KD', '9S'], // Keep up cards visible
+      downCards: 3, // Keep down cards visible
     },
     validation: {
       type: 'play_card',
@@ -103,8 +103,8 @@ export const tutorialSteps: StepConfig[] = [
     scenario: {
       myHand: ['6H', '6D', '6C'],
       pile: ['4D'],
-      upCards: [],
-      downCards: 0,
+      upCards: ['JH', 'KD', '9S'], // Keep up cards visible
+      downCards: 3, // Keep down cards visible
     },
     validation: {
       type: 'play_card',

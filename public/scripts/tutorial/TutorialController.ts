@@ -29,11 +29,154 @@ export class TutorialController {
     initializeGameControls();
     this.interceptGameControls();
 
-    // Start the first step
-    this.loadStep(0);
+    // Start the first step with dealing animation
+    this.startTutorialWithAnimation();
 
     // Handle window resize to fix highlight positions
     window.addEventListener('resize', () => this.updateHighlight());
+  }
+
+  private async startTutorialWithAnimation() {
+    // Load step 0 to set initial state
+    const firstStep = tutorialSteps[0];
+    this.myHand = this.parseCards(firstStep.scenario.myHand);
+    this.pile = this.parseCards(firstStep.scenario.pile);
+    this.upCards = this.parseCards(firstStep.scenario.upCards);
+    this.downCards = Array(firstStep.scenario.downCards)
+      .fill(null)
+      .map(() => ({ value: 2, suit: 'hearts', back: true }));
+
+    // Render in skeleton mode (hide cards/icons)
+    const skeletonState = this.buildGameState();
+    const { renderGameState } = await import('../render.js');
+    renderGameState(skeletonState, 'tutorial-player', null, { skeletonMode: true });
+
+    // Play simplified dealing animation
+    await this.playTutorialDealAnimation();
+
+    // Now load step 0 normally
+    this.loadStep(0);
+  }
+
+  private async playTutorialDealAnimation(): Promise<void> {
+    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const DEAL_INTERVAL = 100;
+    const PHASE_PAUSE = 400;
+
+    const playSource = document.getElementById('deck-pile');
+    if (!playSource) return;
+
+    const playRect = playSource.getBoundingClientRect();
+
+    // Phase A: Down cards (just show them)
+    for (let i = 0; i < 3; i++) {
+      const target = document.querySelector(`#my-area .stack-row > div:nth-child(${i+1})`) as HTMLElement;
+      if (target) {
+        this.animateTutorialCard(playRect, target, null);
+        await wait(DEAL_INTERVAL);
+      }
+    }
+    await wait(PHASE_PAUSE);
+
+    // Phase B: Up cards
+    for (let i = 0; i < 3; i++) {
+      const upCard = this.upCards[i];
+      const target = document.querySelector(`#my-area .stack-row > div:nth-child(${i+1})`) as HTMLElement;
+      if (target && upCard) {
+        this.animateTutorialCard(playRect, target, upCard);
+        await wait(DEAL_INTERVAL);
+      }
+    }
+    await wait(PHASE_PAUSE);
+
+    // Phase C: Hand cards
+    for (let i = 0; i < this.myHand.length; i++) {
+      const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
+      if (handRow && handRow.children[i]) {
+        const target = handRow.children[i] as HTMLElement;
+        this.animateTutorialCard(playRect, target, this.myHand[i]);
+        await wait(DEAL_INTERVAL);
+      }
+    }
+    await wait(PHASE_PAUSE);
+
+    // Final render without skeleton
+    const finalState = this.buildGameState();
+    const { renderGameState } = await import('../render.js');
+    renderGameState(finalState, 'tutorial-player', null, { skeletonMode: false });
+
+    await wait(500);
+  }
+
+  private animateTutorialCard(playRect: DOMRect, target: HTMLElement, cardData: Card | null): void {
+    const targetRect = target.getBoundingClientRect();
+    const { cardImg } = require('../render.js');
+    
+    const flyCard = cardData 
+      ? cardImg(cardData, false, undefined, false, false)
+      : cardImg({ value: '', suit: '', back: true } as Card, false, undefined, false, false);
+    
+    flyCard.classList.add('tutorial-flying-card');
+    Object.assign(flyCard.style, {
+      position: 'fixed',
+      left: `${playRect.left}px`,
+      top: `${playRect.top}px`,
+      width: `${playRect.width}px`,
+      height: `${playRect.height}px`,
+      zIndex: '2000',
+      pointerEvents: 'none',
+      transition: 'all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)',
+    });
+
+    document.body.appendChild(flyCard);
+
+    requestAnimationFrame(() => {
+      flyCard.style.left = `${targetRect.left}px`;
+      flyCard.style.top = `${targetRect.top}px`;
+      flyCard.style.width = `${targetRect.width}px`;
+      flyCard.style.height = `${targetRect.height}px`;
+
+      setTimeout(() => flyCard.remove(), 600);
+    });
+  }
+
+  private buildGameState() {
+    return {
+      started: true,
+      currentPlayerId: this.currentStep.isAuto ? 'tutorial-opponent' : 'tutorial-player',
+      players: [
+        {
+          id: 'tutorial-player',
+          name: 'You',
+          handCount: this.myHand.length,
+          hand: this.myHand,
+          upCards: this.upCards,
+          downCards: this.downCards,
+          isComputer: false
+        },
+        {
+          id: 'tutorial-opponent',
+          name: 'The King',
+          handCount: 6,
+          hand: [],
+          upCards: [
+            { suit: 'hidden', value: 'BACK', back: true },
+            { suit: 'hidden', value: 'BACK', back: true },
+            { suit: 'hidden', value: 'BACK', back: true }
+          ],
+          downCards: [
+            { suit: 'hidden', value: 'BACK', back: true },
+            { suit: 'hidden', value: 'BACK', back: true },
+            { suit: 'hidden', value: 'BACK', back: true }
+          ],
+          isComputer: true
+        }
+      ],
+      pile: this.pile,
+      deckSize: 20,
+      discardCount: 0,
+      lastRealCard: this.pile.length > 0 ? this.pile[this.pile.length - 1] : null
+    };
   }
 
   // --- STEP MANAGEMENT ---
@@ -417,9 +560,10 @@ export class TutorialController {
       selectedElements.forEach((el) => {
         const container = el.closest('.card-container') as HTMLElement;
         if (container) {
-          const handContainer = document.getElementById('my-area');
-          if (handContainer && handContainer.contains(container)) {
-            const idx = Array.from(handContainer.children).indexOf(container);
+          // Find the hand-row specifically (not just my-area)
+          const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
+          if (handRow && handRow.contains(container)) {
+            const idx = Array.from(handRow.children).indexOf(container);
             if (idx >= 0) selectedIndices.push(idx);
           }
         }
@@ -455,43 +599,7 @@ export class TutorialController {
   // --- RENDERING & PARSING ---
 
   private updateRender() {
-    const localGameState = {
-      started: true,
-      currentPlayerId: this.currentStep.isAuto ? 'tutorial-opponent' : 'tutorial-player',
-      players: [
-        {
-          id: 'tutorial-player',
-          name: 'You',
-          handCount: this.myHand.length,
-          hand: this.myHand,
-          upCards: this.upCards,
-          downCards: this.downCards,
-          isComputer: false
-        },
-        {
-          id: 'tutorial-opponent',
-          name: 'The King',
-          handCount: 6,
-          hand: [],
-          upCards: [
-            { suit: 'hidden', value: 'BACK', back: true },
-            { suit: 'hidden', value: 'BACK', back: true },
-            { suit: 'hidden', value: 'BACK', back: true }
-          ],
-          downCards: [
-            { suit: 'hidden', value: 'BACK', back: true },
-            { suit: 'hidden', value: 'BACK', back: true },
-            { suit: 'hidden', value: 'BACK', back: true }
-          ],
-          isComputer: true
-        }
-      ],
-      pile: this.pile,
-      deckSize: 20,
-      discardCount: 0,
-      lastRealCard: this.pile.length > 0 ? this.pile[this.pile.length - 1] : null
-    };
-
+    const localGameState = this.buildGameState();
     renderGameState(localGameState, 'tutorial-player');
   }
 
