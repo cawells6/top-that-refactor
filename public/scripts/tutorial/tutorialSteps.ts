@@ -30,7 +30,7 @@ export const tutorialSteps: StepConfig[] = [
   {
     id: 'INTRO_WELCOME',
     title: 'Welcome to Top That!',
-    instruction: "Let's learn how to play. Click anywhere to continue.",
+    instruction: "Let's learn how to play. Click the Next button below to continue.",
     scenario: {
       myHand: [],
       pile: [],
@@ -46,7 +46,7 @@ export const tutorialSteps: StepConfig[] = [
     id: 'HAND_BASIC',
     title: 'Playing from Your Hand',
     instruction:
-      'You have a 3, 4, and 5. The pile shows a 2. Play your 3 by clicking it.',
+      'You have a 3, 4, and 5. The pile shows a 2. <strong>Click the 3 of Hearts to select it</strong>, then click the <strong>Play</strong> button (or double-click the card).',
     scenario: {
       myHand: ['3H', '4D', '5C'],
       pile: ['2S'],
@@ -62,7 +62,7 @@ export const tutorialSteps: StepConfig[] = [
     id: 'HAND_HIGHER',
     title: 'Playing Equal or Higher',
     instruction:
-      'Now the pile shows 3. You can play 3 or higher. Play your 4.',
+      'Now the pile shows 3. You can play 3 or higher. <strong>Select and play your 4</strong> (click to select, then click Play button).',
     scenario: {
       myHand: ['4D', '5C'],
       pile: ['3H'],

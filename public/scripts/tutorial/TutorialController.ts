@@ -374,11 +374,27 @@ export class TutorialController {
     const titleEl = this.cardEl.querySelector('.tutorial-card__title');
     const descEl = this.cardEl.querySelector('.tutorial-card__instruction');
     const progEl = this.cardEl.querySelector('.tutorial-card__progress');
+    const footerEl = this.cardEl.querySelector('.tutorial-card__footer');
 
     if (titleEl) titleEl.textContent = this.currentStep.title;
-    if (descEl) descEl.textContent = this.currentStep.instruction;
+    if (descEl) descEl.innerHTML = this.currentStep.instruction; // Use innerHTML for <strong> tags
     if (progEl)
       progEl.textContent = `Step ${this.currentStepIndex + 1} of ${tutorialSteps.length}`;
+
+    // Add "Next" button for intro/explanation steps
+    if (footerEl && this.currentStep.id === 'INTRO_WELCOME') {
+      const existingBtn = footerEl.querySelector('.tutorial-next-btn');
+      if (!existingBtn) {
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'tutorial-next-btn';
+        nextBtn.textContent = 'Next';
+        nextBtn.addEventListener('click', () => this.nextStep());
+        footerEl.appendChild(nextBtn);
+      }
+    } else if (footerEl) {
+      // Remove next button if it exists
+      footerEl.querySelector('.tutorial-next-btn')?.remove();
+    }
   }
 
   private createTutorialUI() {
