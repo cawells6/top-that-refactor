@@ -1,15 +1,17 @@
 // public/scripts/tutorial/TutorialController.ts
 
-import { renderGameState } from '../render.js';
+import { logCardPlayed, logGameStart, renderGameState } from '../render.js';
 import { Card } from '../../../src/shared/types.js';
 import { showToast } from '../uiHelpers.js';
 import { initializeGameControls } from '../gameControls.js';
+import { normalizeCardValue } from '../../../utils/cardUtils.js';
 import { tutorialSteps, StepConfig } from './tutorialSteps.js';
 
 export class TutorialController {
   private currentStepIndex = 0;
   private currentStep: StepConfig;
   private isAutoAdvancing = false;
+  private isTransitionLocked = false;
 
   // Game State Containers
   private myHand: Card[] = [];
@@ -19,7 +21,9 @@ export class TutorialController {
 
   // DOM Elements
   private cardEl: HTMLElement | null = null;
-  private highlightedElement: HTMLElement | null = null;
+  private highlightedElements: HTMLElement[] = [];
+  private ghostHandEl: HTMLDivElement | null = null;
+  private ghostHandAbort: AbortController | null = null;
 
   constructor() {
     this.currentStep = tutorialSteps[0];
@@ -37,7 +41,44 @@ export class TutorialController {
     });
 
     // Handle window resize to fix highlight positions
-    window.addEventListener('resize', () => this.updateHighlight());
+    window.addEventListener('resize', () => {
+      this.updateHighlight();
+      this.startGhostHandCue();
+      this.positionTutorialCard();
+    });
+  }
+
+  private positionTutorialCard() {
+    if (!this.cardEl) return;
+
+    const table = document.querySelector('#game-table .table') as HTMLElement | null;
+    if (!table) return;
+
+    const tableRect = table.getBoundingClientRect();
+    const cardRect = this.cardEl.getBoundingClientRect();
+    if (cardRect.width === 0 || cardRect.height === 0) return;
+
+    const gapPx = 16;
+    const marginPx = 16;
+
+    // Prefer placing the card just to the right of the table border.
+    const desiredLeft = Math.round(tableRect.right + gapPx);
+    const maxLeft = Math.round(window.innerWidth - cardRect.width - marginPx);
+    const left = Math.min(Math.max(desiredLeft, marginPx), maxLeft);
+
+    const desiredTop = Math.round(
+      tableRect.top + (tableRect.height - cardRect.height) / 2
+    );
+    const maxTop = Math.round(window.innerHeight - cardRect.height - marginPx);
+    const top = Math.min(Math.max(desiredTop, marginPx), maxTop);
+
+    // If there's genuinely no room on the right, this will clamp inside the viewport
+    // (and may overlap the table on smaller screens), but it stays "anchored" to it.
+    this.cardEl.style.left = `${left}px`;
+    this.cardEl.style.top = `${top}px`;
+    this.cardEl.style.right = 'auto';
+    this.cardEl.style.bottom = 'auto';
+    this.cardEl.style.transform = 'none';
   }
 
   private async startTutorialWithAnimation() {
@@ -204,6 +245,7 @@ export class TutorialController {
         {
           id: 'tutorial-player',
           name: 'You',
+          avatar: '🫅',
           handCount: this.myHand.length,
           hand: this.myHand,
           upCards: this.upCards,
@@ -214,6 +256,7 @@ export class TutorialController {
         {
           id: 'tutorial-opponent',
           name: 'The King',
+          avatar: '🤴',
           handCount: 6,
           hand: [],
           upCards: [
@@ -236,6 +279,11 @@ export class TutorialController {
   // --- STEP MANAGEMENT ---
 
   private loadStep(index: number, direction: 'forward' | 'backward' = 'forward') {
+    // Cleanup: intro uses a global "click anywhere" handler.
+    document.removeEventListener('click', this.handleGlobalClick);
+    this.isTransitionLocked = false;
+    this.stopGhostHandCue();
+
     // Clear auto-advancing flag when navigating backward
     if (direction === 'backward') {
       this.isAutoAdvancing = false;
@@ -260,12 +308,6 @@ export class TutorialController {
     this.pile = this.parseCards(this.currentStep.scenario.pile);
     this.upCards = this.parseCards(this.currentStep.scenario.upCards);
 
-    // Special handling for Face-Down cards in the specific failure step
-    if (this.currentStep.id === 'FACEDOWN_FAIL') {
-      const failCard = this.parseCard('3H');
-      if (failCard) this.pile.push(failCard);
-    }
-
     // Generate dummy down cards based on count
     this.downCards = Array(this.currentStep.scenario.downCards)
       .fill(null)
@@ -278,6 +320,10 @@ export class TutorialController {
     // 2. Update UI
     this.updateRender();
     this.updateInstructionCard();
+
+    if (this.currentStep.id === 'HELP_RULES_HISTORY') {
+      this.seedMoveHistoryDemo();
+    }
     
     // Show tutorial card if it was hidden during animation
     if (this.cardEl) {
@@ -303,6 +349,7 @@ export class TutorialController {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         this.updateHighlight();
+        this.startGhostHandCue();
       });
     });
 
@@ -310,16 +357,13 @@ export class TutorialController {
     if (this.currentStep.id === 'INTRO_WELCOME') {
       this.clearHighlight();
       // Wait for user click (no timer - they read at their own pace)
-      const clickHandler = (e: MouseEvent) => {
-        document.removeEventListener('click', clickHandler);
-        this.nextStep();
-      };
-      document.addEventListener('click', clickHandler);
+      document.addEventListener('click', this.handleGlobalClick);
     }
   }
 
   private handleGlobalClick = () => {
     if (this.currentStep.id === 'INTRO_WELCOME') {
+      document.removeEventListener('click', this.handleGlobalClick);
       this.nextStep();
     }
   };
@@ -340,6 +384,7 @@ export class TutorialController {
   private finishTutorial() {
     // Clean up highlights and UI elements
     this.clearHighlight();
+    this.stopGhostHandCue();
     if (this.cardEl) {
       this.cardEl.remove();
       this.cardEl = null;
@@ -352,52 +397,85 @@ export class TutorialController {
   private updateHighlight() {
     this.clearHighlight();
 
-    let target: HTMLElement | null = null;
+    const targets: HTMLElement[] = [];
     const config = this.currentStep.validation;
 
     if (this.currentStep.id.startsWith('INTRO_')) {
       return; // No highlight for intro steps
     }
 
-    // A. Find Target based on Step Logic
-    if (config.type === 'pickup_pile' || config.type === 'facedown_pickup') {
-      target = document.getElementById('take-button');
-    } else if (config.type === 'play_card' || config.type === 'four_of_kind') {
-      if (config.cardValue) {
-        // Find a specific card in the hand
-        const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
-        if (handRow) {
-          const cardImgs = handRow.querySelectorAll<HTMLElement>('.card-img');
-          for (const img of Array.from(cardImgs)) {
-            if (img.dataset.value === config.cardValue) {
-              target = img.closest('.card-container') as HTMLElement;
-              break;
+    // A. Find Target(s) based on Step Logic
+    if (this.currentStep.id === 'HELP_RULES_HISTORY') {
+      const rulesBtn = document.getElementById('table-rules-button') as HTMLElement | null;
+      const historyBtn = document.getElementById('table-history-button') as HTMLElement | null;
+      if (rulesBtn) targets.push(rulesBtn);
+      if (historyBtn) targets.push(historyBtn);
+    } else {
+      let target: HTMLElement | null = null;
+
+      if (config.type === 'pickup_pile' || config.type === 'facedown_pickup') {
+        target = document.getElementById('take-button');
+      } else if (config.type === 'play_card' || config.type === 'four_of_kind') {
+        if (config.cardValue) {
+          // Find a specific card in the hand
+          const expectedValue = String(
+            normalizeCardValue(config.cardValue) ?? config.cardValue
+          );
+          const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
+          if (handRow) {
+            const cardImgs = handRow.querySelectorAll<HTMLElement>('.card-img');
+            for (const img of Array.from(cardImgs)) {
+              if (img.dataset.value === expectedValue) {
+                target = img.closest('.card-container') as HTMLElement;
+                break;
+              }
+            }
+          }
+        } else if (config.expectedAction?.startsWith('click_index')) {
+          const expectedIdxStr = config.expectedAction.split('_').pop() || '0';
+          const expectedIdx = Number.parseInt(expectedIdxStr, 10);
+
+          const stackRow = document.querySelector(
+            '#my-area .stack-row'
+          ) as HTMLElement | null;
+          const expectedZone = this.getExpectedIndexClickZone();
+
+          if (
+            stackRow &&
+            !Number.isNaN(expectedIdx) &&
+            expectedIdx >= 0 &&
+            expectedIdx < stackRow.children.length
+          ) {
+            const col = stackRow.children[expectedIdx] as HTMLElement;
+            if (expectedZone === 'upCards') {
+              target =
+                (col.querySelector('.card-container.up-card') as HTMLElement | null) ??
+                col;
+            } else if (expectedZone === 'downCards') {
+              target = (col.querySelector('.card-container') as HTMLElement | null) ?? col;
+            } else {
+              target = col;
             }
           }
         }
-      } else if (config.expectedAction?.startsWith('click_index')) {
-        // Highlight a specific Up/Down card
-        const stackRow = document.querySelector('#my-area .stack-row') as HTMLElement;
-        if (stackRow && stackRow.children.length > 0) {
-          target = stackRow.children[0] as HTMLElement;
-        }
       }
+
+      if (target) targets.push(target);
     }
 
     // B. Apply Highlight with inline pulsing animation
-    if (target) {
-      this.highlightedElement = target;
-      // Store original styles
+    if (targets.length === 0) return;
+
+    this.highlightedElements = targets;
+    for (const target of targets) {
       const originalAnimation = target.style.animation;
       const originalBoxShadow = target.style.boxShadow;
       const originalZIndex = target.style.zIndex;
-      
-      // Apply pulsing glow
+
       target.style.animation = 'tutorial-pulse 2s ease-in-out infinite';
       target.style.boxShadow = '0 0 20px 5px rgba(111, 180, 255, 0.8)';
       target.style.zIndex = '100';
-      
-      // Store originals for restoration
+
       target.dataset.tutorialOriginalAnimation = originalAnimation;
       target.dataset.tutorialOriginalBoxShadow = originalBoxShadow;
       target.dataset.tutorialOriginalZIndex = originalZIndex;
@@ -405,19 +483,232 @@ export class TutorialController {
   }
 
   private clearHighlight() {
-    if (this.highlightedElement) {
-      // Restore original styles
-      const el = this.highlightedElement;
+    for (const el of this.highlightedElements) {
       el.style.animation = el.dataset.tutorialOriginalAnimation || '';
       el.style.boxShadow = el.dataset.tutorialOriginalBoxShadow || '';
       el.style.zIndex = el.dataset.tutorialOriginalZIndex || '';
-      
-      // Clean up data attributes
+
       delete el.dataset.tutorialOriginalAnimation;
       delete el.dataset.tutorialOriginalBoxShadow;
       delete el.dataset.tutorialOriginalZIndex;
-      this.highlightedElement = null;
     }
+    this.highlightedElements = [];
+  }
+
+  private stopGhostHandCue(): void {
+    this.ghostHandAbort?.abort();
+    this.ghostHandAbort = null;
+    this.ghostHandEl?.remove();
+    this.ghostHandEl = null;
+  }
+
+  private startGhostHandCue(): void {
+    this.stopGhostHandCue();
+
+    if (this.isTransitionLocked || this.isAutoAdvancing) {
+      return;
+    }
+    if (this.currentStep.id.startsWith('INTRO_')) {
+      return;
+    }
+
+    const targets = this.getGhostHandTargets();
+    if (targets.length === 0) {
+      return;
+    }
+
+    const el = document.createElement('div');
+    el.className = 'tutorial-ghost-hand';
+    el.innerHTML = `
+      <div class="tutorial-ghost-hand__icon" aria-hidden="true">👇</div>
+      <div class="tutorial-ghost-hand__ring" aria-hidden="true"></div>
+    `;
+    document.body.appendChild(el);
+
+    this.ghostHandEl = el;
+    this.ghostHandAbort = new AbortController();
+    void this.runGhostHandLoop(targets, this.ghostHandAbort.signal);
+  }
+
+  private getGhostHandTargets(): HTMLElement[] {
+    const config = this.currentStep.validation;
+
+    if (this.currentStep.id === 'HELP_RULES_HISTORY') {
+      const rulesBtn = document.getElementById('table-rules-button') as HTMLElement | null;
+      const historyBtn = document.getElementById('table-history-button') as HTMLElement | null;
+      return [rulesBtn, historyBtn].filter((el): el is HTMLElement => Boolean(el));
+    }
+
+    if (config.type === 'pickup_pile' || config.type === 'facedown_pickup') {
+      const takeBtn = document.getElementById('take-button') as HTMLElement | null;
+      const pile = document.getElementById('discard-pile') as HTMLElement | null;
+      const target = takeBtn ?? pile;
+      return target ? [target] : [];
+    }
+
+    if (config.type === 'play_card' || config.type === 'four_of_kind') {
+      if (config.expectedAction?.startsWith('click_index')) {
+        const expectedIdxStr = config.expectedAction.split('_').pop() || '0';
+        const expectedIdx = Number.parseInt(expectedIdxStr, 10);
+        const stackRow = document.querySelector('#my-area .stack-row') as HTMLElement | null;
+        const expectedZone = this.getExpectedIndexClickZone();
+        if (!stackRow || !expectedZone || Number.isNaN(expectedIdx)) {
+          return [];
+        }
+
+        const col = stackRow.children[expectedIdx] as HTMLElement | undefined;
+        if (!col) return [];
+
+        if (expectedZone === 'upCards') {
+          const up = col.querySelector('.card-container.up-card') as HTMLElement | null;
+          return [up ?? col];
+        }
+        const down = col.querySelector('.card-container.down-card') as HTMLElement | null;
+        return [down ?? col];
+      }
+
+      if (config.cardValue) {
+        const expectedValue = String(
+          normalizeCardValue(config.cardValue) ?? config.cardValue
+        );
+
+        const handRow = document.querySelector('#my-area .hand-row') as HTMLElement | null;
+        if (!handRow) return [];
+
+        const matchingCards = Array.from(
+          handRow.querySelectorAll<HTMLElement>('.card-img')
+        )
+          .filter((img) => img.dataset.value === expectedValue)
+          .map((img) => img.closest('.card-container') as HTMLElement | null)
+          .filter((el): el is HTMLElement => Boolean(el));
+
+        if (matchingCards.length === 0) return [];
+
+        const desiredCount = config.cardCount ?? 1;
+        const pickedCards = matchingCards.slice(0, desiredCount);
+        const playBtn = document.getElementById('play-button') as HTMLElement | null;
+        return playBtn ? [...pickedCards, playBtn] : pickedCards;
+      }
+    }
+
+    return [];
+  }
+
+  private async runGhostHandLoop(
+    targets: HTMLElement[],
+    signal: AbortSignal
+  ): Promise<void> {
+    if (!this.ghostHandEl) return;
+
+    const icon = this.ghostHandEl.querySelector(
+      '.tutorial-ghost-hand__icon'
+    ) as HTMLElement | null;
+    const ring = this.ghostHandEl.querySelector(
+      '.tutorial-ghost-hand__ring'
+    ) as HTMLElement | null;
+
+    if (!icon || !ring) return;
+
+    while (!signal.aborted) {
+      for (const target of targets) {
+        if (signal.aborted) break;
+
+        this.positionGhostHand(target);
+        await this.waitForGhost(120, signal);
+        if (signal.aborted) break;
+
+        const tapAnim = icon.animate(
+          [
+            { transform: 'translateY(0px) scale(1)', opacity: 0.9 },
+            { transform: 'translateY(10px) scale(0.95)', opacity: 1 },
+            { transform: 'translateY(0px) scale(1)', opacity: 0.9 },
+          ],
+          {
+            duration: 700,
+            easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+          }
+        );
+        ring.animate(
+          [
+            { transform: 'translate(-50%, -50%) scale(0.25)', opacity: 0 },
+            { transform: 'translate(-50%, -50%) scale(0.75)', opacity: 0.25 },
+            { transform: 'translate(-50%, -50%) scale(1.2)', opacity: 0 },
+          ],
+          { duration: 700, easing: 'ease-out' }
+        );
+
+        await Promise.race([
+          new Promise<void>((resolve) => {
+            tapAnim.onfinish = () => resolve();
+            tapAnim.oncancel = () => resolve();
+          }),
+          this.waitForGhost(800, signal),
+        ]);
+
+        await this.waitForGhost(350, signal);
+      }
+
+      await this.waitForGhost(800, signal);
+    }
+  }
+
+  private positionGhostHand(target: HTMLElement): void {
+    if (!this.ghostHandEl) return;
+
+    const rect = target.getBoundingClientRect();
+    const x = Math.round(rect.left + rect.width / 2);
+    const y = Math.round(rect.top + rect.height / 2);
+
+    // Keep the cue visible even near edges.
+    const padding = 14;
+    const clampedX = Math.min(Math.max(x, padding), window.innerWidth - padding);
+    const clampedY = Math.min(Math.max(y, padding), window.innerHeight - padding);
+
+    this.ghostHandEl.style.left = `${clampedX}px`;
+    this.ghostHandEl.style.top = `${clampedY}px`;
+  }
+
+  private waitForGhost(ms: number, signal: AbortSignal): Promise<void> {
+    return new Promise((resolve) => {
+      if (signal.aborted) {
+        resolve();
+        return;
+      }
+      const id = window.setTimeout(resolve, ms);
+      signal.addEventListener(
+        'abort',
+        () => {
+          clearTimeout(id);
+          resolve();
+        },
+        { once: true }
+      );
+    });
+  }
+
+  private getExpectedIndexClickZone(): 'upCards' | 'downCards' | null {
+    if (this.currentStep.id.startsWith('UPCARDS_')) return 'upCards';
+    if (this.currentStep.id.startsWith('DOWNCARDS_')) return 'downCards';
+    return null;
+  }
+
+  private seedMoveHistoryDemo() {
+    const logPanel = document.getElementById('game-log') as HTMLElement | null;
+    if (logPanel) {
+      // Keep it hidden so the user learns the Move History button,
+      // but reset it in case they opened it earlier in the tutorial.
+      logPanel.style.display = 'none';
+      logPanel.classList.remove('game-log--minimized');
+    }
+
+    const players = [
+      { id: 'tutorial-player', name: 'You' },
+      { id: 'tutorial-opponent', name: 'The King' },
+    ];
+
+    logGameStart();
+    logCardPlayed('tutorial-player', [{ value: 8, suit: 'diamonds' }], players);
+    logCardPlayed('tutorial-opponent', [{ value: 7, suit: 'spades' }], players);
   }
 
   // --- CARD SELECTION HELPERS (Match Real Game) ---
@@ -472,20 +763,7 @@ export class TutorialController {
   // --- INTERACTION HANDLING ---
   // ... (rest of the file is unchanged)
   private interceptGameControls() {
-    // 1. Play Button Click
-    const playButton = document.getElementById('play-button');
-    if (playButton) {
-      playButton.addEventListener(
-        'click',
-        (e) => {
-          e.stopImmediatePropagation();
-          this.validateAction('play_card', 'button');
-        },
-        true
-      );
-    }
-
-    // 2. Double Click on Card
+    // 1. Double Click on Card
     document.addEventListener(
       'dblclick',
       (e) => {
@@ -524,17 +802,32 @@ export class TutorialController {
       true
     );
 
-    // 3. Single Click on Card (Selection Toggle)
+    // 2. Single Click on Card (Selection Toggle) + Play button (delegated)
     document.addEventListener(
       'click',
       (e) => {
         const target = e.target as HTMLElement;
-        
-        // Skip if clicking play/take buttons
-        if (target.closest('#play-button') || target.id === 'take-button' || target.closest('#take-button')) {
+         
+        // Play button: delegated handler (the button is created dynamically by render.ts)
+        if (target.closest('#play-button')) {
+          // Always block the real game controls (no sockets in tutorial).
+          e.stopImmediatePropagation();
+
+          // Intro steps advance on "click anywhere" (including the Play button).
+          if (this.currentStep.id.startsWith('INTRO_')) {
+            this.nextStep();
+            return;
+          }
+
+          this.validateAction('play_card', 'button');
           return;
         }
-        
+
+        // Skip if clicking take button (handled by the game-table listener below)
+        if (target.id === 'take-button' || target.closest('#take-button')) {
+          return;
+        }
+         
         // Check for selectable card click
         let selectableCard: HTMLElement | null = null;
         if (target.classList.contains('card-img') && target.classList.contains('selectable')) {
@@ -564,13 +857,33 @@ export class TutorialController {
             
             // Enforce selection rules
             this.enforceSelectionRules(selectableCard);
+
+            // Some tutorial steps expect a direct click on an Up/Down card (no Play button).
+            // Because we stop propagation above, we must validate here too.
+            if (
+              this.currentStep.validation.type === 'play_card' &&
+              this.currentStep.validation.expectedAction?.startsWith(
+                'click_index'
+              )
+            ) {
+              const container = selectableCard.closest(
+                '.card-container'
+              ) as HTMLElement | null;
+              const idxStr = selectableCard.dataset.idx || container?.dataset.idx || '';
+              const zone = selectableCard.dataset.zone || container?.dataset.zone || '';
+              const idx = Number.parseInt(idxStr, 10);
+              const expectedZone = this.getExpectedIndexClickZone();
+              if (expectedZone && zone === expectedZone && !Number.isNaN(idx)) {
+                this.validateAction('play_card', 'click', idx);
+              }
+            }
           }
         }
       },
       true
     );
 
-    // 4. Pile Click (Pickup)
+    // 3. Pile Click (Pickup)
     // We attach to body/table to catch bubbling events from the pile
     document.getElementById('game-table')?.addEventListener(
       'click',
@@ -598,11 +911,13 @@ export class TutorialController {
             this.currentStep.validation.type === 'play_card' &&
             this.currentStep.validation.expectedAction?.startsWith('click_index')
           ) {
-            // Determine index relative to parent
-            const index = Array.from(
-              container.parentElement?.children || []
-            ).indexOf(container);
-            this.validateAction('play_card', 'click', index);
+            const idxStr = container.dataset.idx || '';
+            const zone = container.dataset.zone || '';
+            const idx = Number.parseInt(idxStr, 10);
+            const expectedZone = this.getExpectedIndexClickZone();
+            if (expectedZone && zone === expectedZone && !Number.isNaN(idx)) {
+              this.validateAction('play_card', 'click', idx);
+            }
           }
 
           if (this.currentStep.validation.type === 'facedown_fail') {
@@ -616,11 +931,17 @@ export class TutorialController {
   }
 
   private async validateAction(actionType: string, source?: string, index?: number) {
+    if (this.isTransitionLocked) {
+      return;
+    }
+
     const validConfig = this.currentStep.validation;
 
     // --- SCENARIO: PICK UP PILE ---
     if (validConfig.type === 'pickup_pile' && actionType === 'pickup_pile') {
       showToast('Good job!', 'success');
+      this.isTransitionLocked = true;
+      this.stopGhostHandCue();
       this.nextStep();
       return;
     }
@@ -630,6 +951,8 @@ export class TutorialController {
       actionType === 'facedown_pickup'
     ) {
       showToast('Good job!', 'success');
+      this.isTransitionLocked = true;
+      this.stopGhostHandCue();
       this.nextStep();
       return;
     }
@@ -637,6 +960,8 @@ export class TutorialController {
     // --- SCENARIO: FACE DOWN REVEAL FAIL ---
     if (validConfig.type === 'facedown_fail' && actionType === 'facedown_fail') {
       // When they click the face-down card that fails, we advance to explain the pickup
+      this.isTransitionLocked = true;
+      this.stopGhostHandCue();
       this.nextStep();
       return;
     }
@@ -648,28 +973,33 @@ export class TutorialController {
     ) {
       // A. Handle Up/Down Card Clicks (Single Click)
       if (validConfig.expectedAction?.startsWith('click_index')) {
-        if (index !== undefined && index === 0) {
+        const expectedIdxStr = validConfig.expectedAction.split('_').pop() || '0';
+        const expectedIdx = Number.parseInt(expectedIdxStr, 10);
+        if (index !== undefined && index === expectedIdx) {
+          // Special demo: show the "too low from Up Cards" pickup flow.
+          if (this.currentStep.id === 'UPCARDS_PICKUP_RULE') {
+            this.isTransitionLocked = true;
+            this.stopGhostHandCue();
+            await this.runUpCardPickupRuleDemo(index);
+            return;
+          }
+
           showToast('Perfect!', 'success');
+          this.isTransitionLocked = true;
+          this.stopGhostHandCue();
           this.nextStep();
           return;
         }
       }
 
       // B. Handle Standard Hand Play (Double Click or Select+Button)
-      const selectedElements = document.querySelectorAll('.card-img.selected');
-      const selectedIndices: number[] = [];
-
-      selectedElements.forEach((el) => {
-        const container = el.closest('.card-container') as HTMLElement;
-        if (container) {
-          // Find the hand-row specifically (not just my-area)
-          const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
-          if (handRow && handRow.contains(container)) {
-            const idx = Array.from(handRow.children).indexOf(container);
-            if (idx >= 0) selectedIndices.push(idx);
-          }
-        }
-      });
+      const selectedElements = Array.from(
+        document.querySelectorAll('#my-area .card-img.selected')
+      ) as HTMLElement[];
+      const selectedIndices = selectedElements
+        .map((el) => Number.parseInt(el.dataset.idx || '', 10))
+        .filter((idx) => !Number.isNaN(idx))
+        .sort((a, b) => a - b);
 
       if (selectedIndices.length === 0) {
         if (source === 'button') showToast('Select a card first!', 'error');
@@ -696,7 +1026,9 @@ export class TutorialController {
 
       // SUCCESS! Show toast and animate cards
       showToast('Great!', 'success');
-      
+      this.isTransitionLocked = true;
+      this.stopGhostHandCue();
+       
       // Animate each selected card to the pile
       this.animateCardsToDrawPile(selectedIndices).then(async () => {
         // Update game state after animation
@@ -743,6 +1075,49 @@ export class TutorialController {
         }
       });
     }
+  }
+
+  private async runUpCardPickupRuleDemo(clickedIdx: number): Promise<void> {
+    const clicked = this.upCards[clickedIdx];
+    if (!clicked) {
+      this.nextStep();
+      return;
+    }
+
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+    // 1) Animate the Up Card as if it was played to the pile
+    const stackRow = document.querySelector('#my-area .stack-row') as HTMLElement | null;
+    const col = stackRow?.children[clickedIdx] as HTMLElement | undefined;
+    const upContainer =
+      (col?.querySelector('.card-container.up-card') as HTMLElement | null) ?? null;
+
+    if (upContainer) {
+      const { animatePlayerPlay } = await import('../render.js');
+      await animatePlayerPlay(upContainer);
+    }
+
+    // 2) Show the card on the pile briefly (and reveal the down card underneath)
+    this.upCards[clickedIdx] = null;
+    this.pile = [...this.pile, clicked];
+    this.updateRender();
+
+    showToast("Too low — you must pick up the pile!", 'info');
+    await wait(450);
+
+    // 3) Animate the pickup and move the pile (+ the tried card) into the hand
+    const { showCardEvent } = await import('../render.js');
+    showCardEvent(null, 'take', 'tutorial-player');
+
+    await wait(650);
+
+    this.myHand = [...this.myHand, ...this.pile];
+    this.pile = [];
+    this.updateRender();
+
+    await wait(900);
+    this.nextStep();
   }
 
   // --- RENDERING & PARSING ---
@@ -913,6 +1288,7 @@ export class TutorialController {
     });
 
     document.body.appendChild(this.cardEl);
+    this.positionTutorialCard();
   }
 
   // --- HELPERS ---

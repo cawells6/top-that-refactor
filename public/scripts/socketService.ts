@@ -5,6 +5,7 @@ import {
   resetHandTracking, 
   animateCardFromPlayer, 
   waitForFlyingCard,
+  blankDrawPileFor,
   animateVictory,
   animateDeckToPlayPile,
   logCardPlayed,
@@ -40,8 +41,10 @@ import { isSpecialCard } from '../../utils/cardUtils.js';
 
 // --- VISUAL & QUEUE STATE ---
 let isAnimatingSpecialEffect = false;
+let lockedSpecialEffectState: GameStateData | null = null;
 let pendingStateUpdate: GameStateData | null = null;
 let cardsBeingAnimated: Card[] | null = null;
+let cardsBeingAnimatedPlayerId: string | null = null;
 // Track if we've dealt the opening hand to avoid re-triggering animation
 // Reset this when switching games (dev restart)
 let hasDealtOpeningHand = false;
@@ -64,6 +67,10 @@ let bufferedCardPlay: Card[] | null = null;
 let safetyUnlockTimer: ReturnType<typeof setTimeout> | null = null;
 let burnHoldTimer: ReturnType<typeof setTimeout> | null = null;
 const ANIMATION_DELAY_MS = 2000;
+const BURN_TURN_HOLD_MS = 1000;
+const TAKE_PILE_BLANK_MS = 1000;
+const DECK_TO_PILE_ANIMATION_MS = 500;
+const POST_FLIP_RENDER_BUFFER_MS = 50;
 
 /**
  * Process the queue of card plays one by one.
@@ -95,6 +102,7 @@ async function processPlayQueue() {
     // 2. RENDER STEP (Card hits the pile)
     renderPlayedCards(play.cards);
     cardsBeingAnimated = play.cards;
+    cardsBeingAnimatedPlayerId = play.playerId ?? state.myId ?? null;
 
     // 3. SPECIAL CARD CHECK
     const topCard = play.cards[play.cards.length - 1];
@@ -103,6 +111,7 @@ async function processPlayQueue() {
        console.log('[Queue] Special card landed. Pausing queue for effect.');
        
        isAnimatingSpecialEffect = true;
+       lockedSpecialEffectState = null; // capture the first post-effect STATE_UPDATE
        playQueue.shift(); // Remove this item as we've "played" it
        isProcessingQueue = false; // Release lock so Special Effect can take over
        
@@ -131,10 +140,11 @@ async function processPlayQueue() {
 }
 
 function finishAnimationSequence() {
-  pendingStateUpdate = null;
   cardsBeingAnimated = null;
+  cardsBeingAnimatedPlayerId = null;
   bufferedCardPlay = null;
   isAnimatingSpecialEffect = false;
+  lockedSpecialEffectState = null;
   
   if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
   if (burnHoldTimer) {
@@ -194,8 +204,8 @@ export async function initializeSocketHandlers(): Promise<void> {
       console.log('[Socket] New card played during burn hold - cancelling hold');
       clearTimeout(burnHoldTimer);
       burnHoldTimer = null;
-      pendingStateUpdate = null;
       isAnimatingSpecialEffect = false;
+      lockedSpecialEffectState = null;
     }
 
     if (data.cards && data.cards.length > 0) {
@@ -274,6 +284,9 @@ export async function initializeSocketHandlers(): Promise<void> {
     // This prevents the turn arrow from jumping to the next player while the card is still flying.
     if (isAnimatingSpecialEffect || isProcessingQueue || playQueue.length > 0) {
       console.log('[BUFFERED] STATE_UPDATE deferred due to animation.');
+      if (isAnimatingSpecialEffect && !lockedSpecialEffectState) {
+        lockedSpecialEffectState = s;
+      }
       pendingStateUpdate = s;
     } else {
       renderGameState(s, state.myId);
@@ -321,27 +334,45 @@ export async function initializeSocketHandlers(): Promise<void> {
       setTimeout(() => {
         showCardEvent(payload?.value ?? null, effectType);
       }, 50);
+
+      // Render the post-effect state (e.g., 5 + copied card) during the effect window,
+      // but DO NOT jump ahead to later states that include subsequent plays.
+      if (effectType === 'five') {
+        (async () => {
+          const deadline = Date.now() + 500;
+          while (!lockedSpecialEffectState && Date.now() < deadline) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+          if (lockedSpecialEffectState) {
+            renderGameState(lockedSpecialEffectState, state.myId);
+          }
+        })();
+      }
       
       setTimeout(async () => {
         console.log('[ANIMATION END] Releasing buffers.');
-        
-        // Prioritize the Pending Update (which likely contains the post-effect state)
-        const stateToRender = pendingStateUpdate || state.getLastGameState();
-        
-        if (stateToRender) {
-            // Check if this was a Burn (Empty Pile) to hold the dramatic pause
-            if (stateToRender.pile.length === 0 && cardsBeingAnimated && cardsBeingAnimated.length > 0) {
-                console.log('[ANIMATION] Holding empty state for effect...');
-                renderGameState(stateToRender, state.myId); 
-                burnHoldTimer = setTimeout(async () => {
-                    burnHoldTimer = null;
-                    finishAnimationSequence();
-                    await waitForTestContinue();
-                }, 1000);
-                return;
-            } else {
-                renderGameState(stateToRender, state.myId);
-            }
+
+        if (effectType === 'ten' || effectType === 'four') {
+          const latestState = pendingStateUpdate ?? state.getLastGameState();
+          const holdPlayerId = cardsBeingAnimatedPlayerId;
+
+          if (latestState && holdPlayerId && (latestState.pile?.length ?? 0) === 0) {
+            // Show the burned pile (empty) immediately, but hold the turn highlight briefly
+            // so the burn state reads clearly before the next player is highlighted.
+            renderGameState(
+              { ...latestState, currentPlayerId: holdPlayerId },
+              state.myId
+            );
+
+            if (burnHoldTimer) clearTimeout(burnHoldTimer);
+            burnHoldTimer = setTimeout(async () => {
+              burnHoldTimer = null;
+              finishAnimationSequence();
+              await waitForTestContinue();
+            }, BURN_TURN_HOLD_MS);
+
+            return;
+          }
         }
 
         finishAnimationSequence();
@@ -351,13 +382,17 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
   );
 
-  state.socket.on(PILE_PICKED_UP, (data: { playerId: string; pileSize: number }) => {
+  state.socket.on(PILE_PICKED_UP, (data: { playerId: string; pileSize?: number }) => {
     console.log('Pile picked up by:', data.playerId);
     
     // Log the pile pickup
     const currentState = state.getLastGameState();
     if (currentState) {
-      logPileTaken(data.playerId, data.pileSize, currentState.players);
+      const pileSize =
+        typeof data.pileSize === 'number'
+          ? data.pileSize
+          : currentState.pile?.length ?? 0;
+      logPileTaken(data.playerId, pileSize, currentState.players);
     }
     
     if (data.playerId === state.myId) {
@@ -370,15 +405,42 @@ export async function initializeSocketHandlers(): Promise<void> {
     // (the opening deal already includes this animation in Phase D)
     if (hasPlayedOpeningDeal) {
       hasPlayedOpeningDeal = false; // Reset flag for future games
-      logPlayToDraw();
+      // Only log the flip if the pile actually has a new top card.
+      const latestState = state.getLastGameState();
+      if (latestState?.pile?.length) {
+        logPlayToDraw();
+      }
       return;
     }
     
-    // Animate card from deck to play pile after a brief delay
+    // Show the pile empty briefly before the deck flip animation.
+    blankDrawPileFor(
+      TAKE_PILE_BLANK_MS + DECK_TO_PILE_ANIMATION_MS + POST_FLIP_RENDER_BUFFER_MS
+    );
+    const blankState = state.getLastGameState();
+    if (blankState) {
+      renderGameState(blankState, state.myId);
+    }
+
+    // Animate card from deck to play pile after a short "blank" beat.
     setTimeout(() => {
+      // Guard: when the "Play" pile (deck) is empty, some late-game flows can
+      // still emit PILE_PICKED_UP. Only animate/log the flip if a new pile top
+      // actually exists in the latest state.
+      const latestState = state.getLastGameState();
+      if (!latestState?.pile?.length) {
+        return;
+      }
+
       animateDeckToPlayPile();
       logPlayToDraw();
-    }, 400);
+
+      // Ensure the drawn card becomes visible right after the flip animation ends.
+      setTimeout(() => {
+        const s = state.getLastGameState();
+        if (s) renderGameState(s, state.myId);
+      }, DECK_TO_PILE_ANIMATION_MS + POST_FLIP_RENDER_BUFFER_MS);
+    }, TAKE_PILE_BLANK_MS);
   });
 
   state.socket.on(GAME_OVER, (data: { winnerId: string; winnerName: string }) => {

@@ -177,18 +177,75 @@
 /* Avatar Picker */
 .avatar-selection-section {
   margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar-dropdown {
+  width: min(520px, 90%);
+  max-width: 520px;
+}
+
+.avatar-dropdown__summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 2px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.avatar-dropdown__summary::-webkit-details-marker {
+  display: none;
+}
+
+.avatar-dropdown[open] .avatar-dropdown__summary {
+  border-color: #ffc300;
+  box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.25);
+}
+
+.avatar-dropdown__preview.emoji-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #eee;
+  background: #fffdf5;
+  font-size: 26px;
+}
+
+.avatar-dropdown__text {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #1b2e3c;
+}
+
+.avatar-dropdown__chevron {
+  opacity: 0.65;
+}
+
+.avatar-dropdown__panel {
+  margin-top: 12px;
 }
 
 .avatar-grid {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  justify-items: center;
   gap: 12px;
-  margin-bottom: 20px;
-  padding: 10px;
-  background: rgba(0,0,0,0.05);
+  margin: 0;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 12px;
-  overflow-x: auto;
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: thin;
 }
 
@@ -258,37 +315,63 @@
   margin-top: 0.5rem;
 }
 
-/* Player item avatar sizing inside the in-session lobby modal */
-.player-item {
-  display: flex;
+/* Lobby USERS/BOTS silhouettes (pre-game) */
+#lobby-container .player-silhouettes {
+  display: flex !important;
   align-items: center;
-  gap: 12px;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  height: auto !important;
+  min-height: 60px !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  padding: 0.5rem 0.6rem !important;
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
 }
 
-.player-item .player-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+#lobby-container .player-silhouette {
+  width: 52px;
+  height: 52px;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  user-select: none;
 }
 
-.player-item .player-avatar img {
-  width: 90%;
-  height: 90%;
-  object-fit: contain;
+#lobby-container .player-silhouette.human {
+  border-color: #ffc300;
+  background: #fffdf5;
 }
 
-.player-item .player-avatar .emoji-avatar {
-  font-size: 2.6rem; /* Larger emoji in lobby */
-  line-height: 1;
+#lobby-container .player-silhouette.cpu {
+  border-color: #b0bec5;
+  background: #eceff1;
 }
 
-/* Remove silhouette styles */
-.player-silhouettes, #human-silhouettes, #cpu-silhouettes {
-  display: none !important;
+#lobby-container .player-silhouette.placeholder {
+  border-style: dashed;
+  border-color: #ccc;
+  background: transparent;
+  color: #aaa;
+  font-size: 20px;
+}
+
+#lobby-container .player-silhouette.is-avatar-picker {
+  cursor: pointer;
+}
+
+#lobby-container .player-silhouette.is-avatar-picker:hover {
+  border-color: #ffc300;
+  box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.25);
+}
+
+#lobby-container .player-silhouette .emoji-avatar {
+  font-size: 32px;
 }

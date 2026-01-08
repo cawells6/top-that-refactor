@@ -58,7 +58,9 @@ function startServer(port: number, retries = 0) {
     console.log(`[SERVER] New socket connection: ${socket.id}`);
 
     // Log all registered event listeners for debugging
-    console.log(`[SERVER] Socket ${socket.id} events:`, socket.eventNames());
+    // Filter out the word 'error' so logs stay clean
+    const events = socket.eventNames().filter((e) => e !== 'error');
+    console.log(`[SERVER] Socket ${socket.id} events:`, events);
 
     socket.on('disconnect', (reason) => {
       console.log(`[SERVER] Socket ${socket.id} disconnected: ${reason}`);

@@ -24,15 +24,6 @@ import logoUrl from '../src/shared/logov2.svg';
 // @ts-ignore - Vite handles asset imports
 import resetIconUrl from '../src/shared/Reset-icon.png';
 
-// --- GLOBAL MOUSE POSITION TRACKER ---
-// Track mouse position globally for hover state restoration
-if (typeof window !== 'undefined') {
-  document.addEventListener('mousemove', (e) => {
-    (window as any).lastMouseX = e.clientX;
-    (window as any).lastMouseY = e.clientY;
-  }, { passive: true });
-}
-
 // --- PRELOAD LOGIC START ---
 const ICON_PATHS = {
   two: resetIconUrl,
@@ -83,6 +74,17 @@ let activeFlyPromise: Promise<void> | null = null;
 
 export function waitForFlyingCard(): Promise<void> {
   return activeFlyPromise || Promise.resolve();
+}
+
+let drawPileBlankUntilMs = 0;
+
+export function blankDrawPileFor(ms: number): void {
+  const duration = Math.max(0, ms);
+  drawPileBlankUntilMs = Math.max(drawPileBlankUntilMs, Date.now() + duration);
+}
+
+function shouldBlankDrawPile(): boolean {
+  return Date.now() < drawPileBlankUntilMs;
 }
 
 let lastLocalHandCount = -1;
@@ -278,7 +280,6 @@ export function cardImg(
 ): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'card-container';
-  container.style.position = 'relative';
 
   const cardCode = card.back ? 'back' : code(card);
 
@@ -311,6 +312,12 @@ export function cardImg(
 
     inner.appendChild(logo);
     cardBack.appendChild(inner);
+
+    if (selectable) {
+      cardBack.classList.add('selectable');
+      cardBack.style.touchAction = 'manipulation';
+      container.classList.add('selectable-container');
+    }
 
     container.appendChild(cardBack);
   } else {
@@ -359,16 +366,6 @@ export function cardImg(
     const iconOverlay = document.createElement('img');
     iconOverlay.src = ICON_PATHS[iconType as keyof typeof ICON_PATHS];
     iconOverlay.className = 'card-ability-icon';
-    Object.assign(iconOverlay.style, {
-      position: 'absolute',
-      top: '90px',
-      left: '5px',
-      width: '34px',
-      height: '34px',
-      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))',
-      pointerEvents: 'none',
-      zIndex: '999',
-    });
     container.appendChild(iconOverlay);
   }
 
@@ -510,12 +507,14 @@ function updateCenterArea(
   // --- RENDER DRAW TARGET (The Discard Pile) ---
   const playStack = playContainer.querySelector('.play-stack') as HTMLElement;
   const pile = gameState.pile ?? [];
+  const forceBlank = !skeletonMode && shouldBlankDrawPile();
   const drawCountEl = playContainer.querySelector('.pile-count');
-  if (drawCountEl) drawCountEl.textContent = String(pile.length);
+  if (drawCountEl) drawCountEl.textContent = forceBlank ? '0' : String(pile.length);
 
   if (playStack) {
     // During initial deal, Draw pile must stay blank
-    if (skeletonMode) {
+    if (skeletonMode || forceBlank) {
+      playStack.classList.remove('pile-multiple');
       playStack.innerHTML = '<div class="pile-placeholder"></div>';
       return;
     }
@@ -524,8 +523,31 @@ function updateCenterArea(
       visualPileTop || (pile.length > 0 ? pile[pile.length - 1] : null);
     if (topCard) {
       playStack.innerHTML = '';
-      playStack.appendChild(cardImg(topCard, false, undefined, false, false));
+
+      const shouldShowCopyShingle = Boolean((topCard as any).copied) && pile.length >= 2;
+      if (shouldShowCopyShingle) {
+        const belowCard = pile[pile.length - 2];
+
+        const belowEl = cardImg(belowCard, false, undefined, false, false);
+        belowEl.id = 'pile-below-card';
+        belowEl.classList.add('pile-shingle', 'pile-shingle--below');
+
+        const topEl = cardImg(topCard, false, undefined, false, false);
+        topEl.id = 'pile-top-card';
+        topEl.classList.add('pile-shingle', 'pile-shingle--top');
+
+        playStack.classList.add('pile-multiple');
+        playStack.appendChild(belowEl);
+        playStack.appendChild(topEl);
+      } else {
+        const topEl = cardImg(topCard, false, undefined, false, false);
+        topEl.id = 'pile-top-card';
+
+        playStack.classList.remove('pile-multiple');
+        playStack.appendChild(topEl);
+      }
     } else {
+      playStack.classList.remove('pile-multiple');
       playStack.innerHTML = '<div class="pile-placeholder"></div>';
     }
   }
@@ -583,10 +605,12 @@ function updateStacks(
     const hasDownCard = downCount > i;
     const canPlayDown =
       isLocal && hasDownCard && isMyTurn && handCount === 0 && upCount === 0;
-    let existingDownImg = col.querySelector('.down-card');
+    let existingDownContainer = col.querySelector(
+      '.card-container.down-card'
+    ) as HTMLElement | null;
 
     if (hasDownCard) {
-      if (!existingDownImg) {
+      if (!existingDownContainer) {
         // New Card
         const downCard = cardImg(
           { value: '', suit: '', back: true } as CardType,
@@ -601,6 +625,10 @@ function updateStacks(
         if (isLocal) {
           downCard.dataset.idx = String(i);
           downCard.dataset.zone = 'downCards';
+          if (downImg) {
+            downImg.dataset.idx = String(i);
+            downImg.dataset.zone = 'downCards';
+          }
         }
         col.insertBefore(downCard, col.firstChild);
 
@@ -608,37 +636,33 @@ function updateStacks(
         applySkeleton(downCard, skeletonMode);
       } else {
         // Existing Card - FORCE SKELETON CHECK
-        applySkeleton(existingDownImg as HTMLElement, skeletonMode);
-        const container = existingDownImg.closest('.card-container');
-        if (container) {
-          // FIX: Always update data attributes so clicks work
-          if (isLocal) {
-            const containerEl = container as HTMLElement;
-            containerEl.dataset.idx = String(i);
-            containerEl.dataset.zone = 'downCards';
-          }
+        applySkeleton(existingDownContainer as HTMLElement, skeletonMode);
 
-          const img = container.querySelector('img');
-          if (img && isLocal) {
-            img.dataset.idx = String(i);
-            img.dataset.zone = 'downCards';
-          }
+        const cardFace = existingDownContainer.querySelector(
+          '.card-img'
+        ) as HTMLElement | null;
 
-          if (canPlayDown && img && !img.classList.contains('selectable')) {
-            img.classList.add('selectable');
-            container.classList.add('selectable-container');
-          } else if (
-            !canPlayDown &&
-            img &&
-            img.classList.contains('selectable')
-          ) {
-            img.classList.remove('selectable');
-            container.classList.remove('selectable-container');
+        if (isLocal) {
+          existingDownContainer.dataset.idx = String(i);
+          existingDownContainer.dataset.zone = 'downCards';
+          if (cardFace) {
+            cardFace.dataset.idx = String(i);
+            cardFace.dataset.zone = 'downCards';
+          }
+        }
+
+        if (cardFace) {
+          if (canPlayDown && !cardFace.classList.contains('selectable')) {
+            cardFace.classList.add('selectable');
+            existingDownContainer.classList.add('selectable-container');
+          } else if (!canPlayDown && cardFace.classList.contains('selectable')) {
+            cardFace.classList.remove('selectable');
+            existingDownContainer.classList.remove('selectable-container');
           }
         }
       }
     } else {
-      if (existingDownImg) existingDownImg.closest('.card-container')?.remove();
+      if (existingDownContainer) existingDownContainer.remove();
     }
 
     const upCard = upCards[i];
@@ -673,6 +697,11 @@ function updateStacks(
           upCardEl.dataset.idx = String(i);
           upCardEl.dataset.zone = 'upCards';
           upCardEl.dataset.value = newVal;
+          if (upImg) {
+            upImg.dataset.idx = String(i);
+            upImg.dataset.zone = 'upCards';
+            upImg.dataset.value = newVal;
+          }
         }
         col.appendChild(upCardEl);
 
@@ -680,14 +709,6 @@ function updateStacks(
         applySkeleton(upCardEl, skeletonMode);
       } else {
         // Existing Card - FORCE SKELETON CHECK
-        const existingIcon =
-          existingUpContainer?.querySelector('.card-ability-icon');
-        console.log(
-          '[updateStacks] EXISTING up-card, has icon?',
-          !!existingIcon,
-          'skeletonMode:',
-          skeletonMode
-        );
         applySkeleton(existingUpContainer, skeletonMode);
 
         // FIX: Always update data attributes so clicks work
@@ -771,6 +792,7 @@ function updateHandRow(
         imgEl.dataset.value = String(
           normalizeCardValue(card.value) ?? card.value
         );
+        imgEl.dataset.cardCode = card.back ? 'back' : code(card);
       }
       handRow.appendChild(newCardEl);
 
@@ -778,6 +800,10 @@ function updateHandRow(
       applySkeleton(newCardEl, skeletonMode);
       continue;
     }
+
+    // Defensive: undo optimistic "hide" styles from play animation if this element is reused.
+    el.style.removeProperty('opacity');
+    el.style.removeProperty('pointer-events');
 
     // Existing Card - FORCE SKELETON CHECK
     applySkeleton(el, skeletonMode);
@@ -794,13 +820,17 @@ function updateHandRow(
 
       const currentVal = imgEl.dataset.value;
       const newVal = String(normalizeCardValue(card.value) ?? card.value);
+      const currentCode = imgEl.dataset.cardCode;
+      const newCode = card.back ? 'back' : code(card);
 
       // Update attributes on existing element so clicks work
       imgEl.dataset.idx = String(i);
       imgEl.dataset.zone = 'hand';
       imgEl.dataset.value = newVal;
+      imgEl.dataset.cardCode = newCode;
 
-      if (currentVal !== newVal && !card.back) {
+      // NOTE: Using full card code avoids bugs when two cards share a rank (e.g., two 9s).
+      if (currentCode !== newCode || currentVal !== newVal) {
         const newContent = cardImg(
           card,
           isMyTurn,
@@ -814,57 +844,15 @@ function updateHandRow(
           newImg.dataset.idx = String(i);
           newImg.dataset.zone = 'hand';
           newImg.dataset.value = newVal;
+          newImg.dataset.cardCode = newCode;
           if (isMyTurn) {
             newImg.classList.add('selectable');
             newContent.classList.add('selectable-container');
           }
         }
-        
-        // Store the bounding rect before replacement to check cursor position
-        const oldRect = el.getBoundingClientRect();
-        
+
+        applySkeleton(newContent, skeletonMode);
         handRow.replaceChild(newContent, el);
-        
-        // Force hover state refresh by checking actual mouse position
-        // Use a small delay to ensure DOM is updated
-        setTimeout(() => {
-          const mouseX = (window as any).lastMouseX;
-          const mouseY = (window as any).lastMouseY;
-          
-          if (mouseX !== undefined && mouseY !== undefined) {
-            const newRect = newContent.getBoundingClientRect();
-            
-            // Check if mouse is within the new card's bounds
-            if (
-              mouseX >= newRect.left &&
-              mouseX <= newRect.right &&
-              mouseY >= newRect.top &&
-              mouseY <= newRect.bottom
-            ) {
-              const newImgEl = newContent.querySelector('.card-img') as HTMLElement;
-              if (newImgEl) {
-                // Force CSS hover state by triggering mouseover
-                const mouseOverEvent = new MouseEvent('mouseover', {
-                  bubbles: true,
-                  cancelable: true,
-                  view: window,
-                  clientX: mouseX,
-                  clientY: mouseY
-                });
-                const mouseEnterEvent = new MouseEvent('mouseenter', {
-                  bubbles: true,
-                  cancelable: true,
-                  view: window,
-                  clientX: mouseX,
-                  clientY: mouseY
-                });
-                newImgEl.dispatchEvent(mouseOverEvent);
-                newImgEl.dispatchEvent(mouseEnterEvent);
-                newContent.dispatchEvent(mouseOverEvent);
-              }
-            }
-          }
-        }, 0);
       }
     }
   }
@@ -875,6 +863,7 @@ export function renderPlayedCards(cards: CardType[]): void {
   if (!playStack || cards.length === 0) return;
 
   playStack.innerHTML = '';
+  playStack.classList.remove('pile-multiple');
   const topCard = cards[cards.length - 1];
   const cardEl = cardImg(topCard, false, undefined, false);
   cardEl.id = 'pile-top-card';
@@ -926,6 +915,8 @@ function applyHandCompression(
   handRow: HTMLDivElement,
   cardCount: number
 ): void {
+  const handTray = panel.querySelector('.hand-tray--local') as HTMLElement | null;
+
   if (cardCount <= 1) {
     if (handRow.classList.contains('hand-row--compressed')) {
       handRow.classList.remove('hand-row--compressed');
@@ -933,6 +924,7 @@ function applyHandCompression(
       lastHandCompressed = false;
       lastHandOverlap = 0;
     }
+    handTray?.classList.remove('hand-tray--scroll');
     return;
   }
 
@@ -955,24 +947,22 @@ function applyHandCompression(
   const cardTotalWidth = cardWidth + marginLeft + marginRight;
 
   const rowStyles = window.getComputedStyle(handRow);
-  const gapValue = rowStyles.gap || rowStyles.columnGap || '0';
-  const gap = parseFloat(gapValue) || 0;
-  const totalWidth = cardTotalWidth * cardCount + gap * (cardCount - 1);
+  const baseOverlap =
+    parseFloat(rowStyles.getPropertyValue('--hand-base-overlap')) || -14;
 
-  if (totalWidth <= availableWidth) {
-    if (handRow.classList.contains('hand-row--compressed')) {
-      handRow.classList.remove('hand-row--compressed');
-      handRow.style.removeProperty('--hand-overlap');
-    }
-    return;
-  }
+  const requiredOverlap =
+    (availableWidth - cardTotalWidth * cardCount) / (cardCount - 1);
 
-  let overlap =
-    (availableWidth - cardTotalWidth * cardCount) / (cardCount - 1) - gap;
-  if (overlap > 0) overlap = 0;
+  let overlap = Math.min(baseOverlap, requiredOverlap);
 
-  const minOverlap = -cardTotalWidth * 0.9;
-  if (overlap < minOverlap) overlap = minOverlap;
+  const minPeek =
+    parseFloat(rowStyles.getPropertyValue('--hand-min-peek')) || 32;
+  const minOverlap = -Math.max(0, cardTotalWidth - minPeek);
+
+  const needsScroll = overlap < minOverlap;
+  if (needsScroll) overlap = minOverlap;
+  if (needsScroll) handTray?.classList.add('hand-tray--scroll');
+  else handTray?.classList.remove('hand-tray--scroll');
 
   // IMPORTANT: Only touch the DOM if values changed significantly
   const currentOverlap =
@@ -1585,18 +1575,7 @@ export function renderGameState(
       }
     }
 
-    // Apply active class to the panel itself (it IS the player-area)
-    console.log('🔍 Checking active class:', {
-      playerId: player.id,
-      playerName: player.name,
-      currentPlayerId: gameState.currentPlayerId,
-      isTheirTurn: player.id === gameState.currentPlayerId,
-      panelHasPlayerAreaClass: panel.classList.contains('player-area'),
-      panelId: panel.id,
-    });
-
     if (player.id === gameState.currentPlayerId) {
-      console.log('🟡 Adding active class to player:', player.name, player.id);
       panel.classList.add('active');
     } else {
       panel.classList.remove('active');
@@ -1604,17 +1583,6 @@ export function renderGameState(
 
     // 4. UPDATE HAND
     const handRow = panel.querySelector('.hand-row') as HTMLDivElement;
-
-    // Track hand size changes for debugging
-    if (isLocalPlayer) {
-      console.log('👤 Local player hand update:', {
-        playerId: player.id,
-        handCount,
-        upCardsCount: player.upCards?.length || 0,
-        downCardsCount: player.downCards?.length || 0,
-        hasValidPlay: handCount > 0,
-      });
-    }
 
     if (handRow) {
       if (isLocalPlayer) {

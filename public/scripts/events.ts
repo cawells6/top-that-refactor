@@ -12,6 +12,8 @@ import type { AvatarItem } from '../../src/shared/avatars.js';
 let royaltyAvatars: AvatarItem[] = [];
 let selectedAvatar: AvatarItem | null = null;
 let defaultAvatar: AvatarItem | null = null;
+let shuffledBotAvatars: AvatarItem[] = [];
+let botAvatarAssignments: AvatarItem[] = [];
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -118,22 +120,107 @@ function setButtonDisabled(el: HTMLElement | null, disabled: boolean) {
   if (el && 'disabled' in el) (el as HTMLButtonElement).disabled = disabled;
 }
 
+function getBotAvatarPool(): AvatarItem[] {
+  return shuffledBotAvatars.length > 0 ? shuffledBotAvatars : royaltyAvatars;
+}
+
+function updateAvatarDropdownUI() {
+  const preview = document.getElementById('selected-avatar-preview');
+  const text = document.getElementById('selected-avatar-text');
+
+  if (preview) preview.textContent = selectedAvatar ? selectedAvatar.icon : '?';
+  if (text) {
+    text.textContent = selectedAvatar ? selectedAvatar.label : 'Select an avatar';
+  }
+}
+
+function openAvatarDropdown() {
+  const dropdown = document.getElementById(
+    'avatar-dropdown'
+  ) as HTMLDetailsElement | null;
+  if (!dropdown) return;
+  dropdown.open = true;
+  dropdown.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function closeAvatarDropdown() {
+  const dropdown = document.getElementById(
+    'avatar-dropdown'
+  ) as HTMLDetailsElement | null;
+  if (!dropdown) return;
+  dropdown.open = false;
+}
+
+function getFallbackBotAvatar(slotIndex: number): AvatarItem {
+  return {
+    id: `robot_${slotIndex + 1}`,
+    icon: '🤖',
+    label: 'Robot',
+  };
+}
+
+function reconcileBotAvatarAssignments(desiredCpuCount: number) {
+  const pool = getBotAvatarPool();
+  if (pool.length === 0) {
+    botAvatarAssignments = [];
+    return;
+  }
+
+  // Keep previous bot choices stable across UI updates. Only change a bot's
+  // avatar if it conflicts with the selected human avatar or duplicates another bot.
+  const targetLen = Math.max(botAvatarAssignments.length, desiredCpuCount);
+  const excludedId = selectedAvatar?.id;
+  const used = new Set<string>();
+  const next: Array<AvatarItem | null> = new Array(targetLen).fill(null);
+
+  for (let i = 0; i < targetLen; i++) {
+    const existing = botAvatarAssignments[i];
+    if (!existing) continue;
+    if (existing.id === excludedId) continue;
+    if (used.has(existing.id)) continue;
+    next[i] = existing;
+    used.add(existing.id);
+  }
+
+  const pickNext = () =>
+    pool.find((a) => a.id !== excludedId && !used.has(a.id)) || null;
+
+  for (let i = 0; i < targetLen; i++) {
+    if (next[i]) continue;
+    const chosen = pickNext();
+    if (!chosen) break;
+    next[i] = chosen;
+    used.add(chosen.id);
+  }
+
+  for (let i = 0; i < targetLen; i++) {
+    if (!next[i]) next[i] = getFallbackBotAvatar(i);
+  }
+
+  botAvatarAssignments = next as AvatarItem[];
+}
+
 // Create a player silhouette element
 function createPlayerSilhouette(
   type: 'human' | 'cpu',
-  avatarIcon: string
+  avatarIcon: string | null
 ): HTMLElement {
   const silhouette = document.createElement('div');
-  silhouette.className = `player-silhouette ${type}`;
 
-  const avatarSpan = document.createElement('span');
-  avatarSpan.className = 'lobby-avatar-emoji';
-  avatarSpan.textContent = avatarIcon;
-  silhouette.appendChild(avatarSpan);
+  if (avatarIcon) {
+    silhouette.className = `player-silhouette ${type}`;
+    const emoji = document.createElement('div');
+    emoji.className = 'emoji-avatar';
+    emoji.textContent = avatarIcon;
+    silhouette.appendChild(emoji);
+  } else {
+    // Empty state / Placeholder
+    silhouette.className = `player-silhouette ${type} placeholder`;
+    silhouette.textContent = '?';
+  }
 
   return silhouette;
 }
-
 
 // Update player silhouettes based on current counts
 function updatePlayerSilhouettes() {
@@ -159,29 +246,42 @@ function updatePlayerSilhouettes() {
   const humanCount = parseInt(totalPlayersInput.value, 10) || 0;
   const cpuCount = parseInt(cpuPlayersInput.value, 10) || 0;
 
-  // --- Human Silhouettes ---
+  reconcileBotAvatarAssignments(cpuCount);
+
+  // 1. Render Human (Use selected avatar or null)
   updateSilhouettesInContainer(
     humanSilhouettesContainer,
     'human',
     humanCount,
-    selectedAvatar?.icon || defaultAvatar?.icon || '🤴'
+    selectedAvatar ? selectedAvatar.icon : null
   );
 
-  // --- CPU Silhouettes ---
-  // Filter out the currently selected avatar to avoid duplicates
-  const availableBotAvatars = royaltyAvatars.filter(
-    (av) => av.id !== selectedAvatar?.id
-  );
+  // Make the local human slot clickable to open the avatar picker.
+  const localSlot = humanSilhouettesContainer
+    .firstElementChild as HTMLElement | null;
+  if (localSlot) {
+    localSlot.classList.add('is-avatar-picker');
+    localSlot.title = 'Click to choose your avatar';
+    localSlot.tabIndex = 0;
+    localSlot.setAttribute('role', 'button');
+    localSlot.onclick = () => openAvatarDropdown();
+    localSlot.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openAvatarDropdown();
+      }
+    };
+  }
 
+  // 2. Render CPU (Stable randomized pool)
   updateSilhouettesInContainer(
     cpuSilhouettesContainer,
     'cpu',
     cpuCount,
-    null, // Pass null to use the list
-    availableBotAvatars
+    null,
+    botAvatarAssignments
   );
 }
-
 
 function syncCounterUI() {
   const humansMinusBtn = document.getElementById('humans-minus');
@@ -197,8 +297,6 @@ function syncCounterUI() {
   const totalCountSpan = document.getElementById('total-count');
 
   if (!totalPlayersInput || !cpuPlayersInput) return;
-
-  ensureSilhouetteContainers();
   const humans = parseInt(totalPlayersInput.value || '1', 10);
   const cpus = parseInt(cpuPlayersInput.value || '0', 10);
   const total = humans + cpus;
@@ -217,41 +315,32 @@ function updateSilhouettesInContainer(
   container: HTMLElement,
   type: 'human' | 'cpu',
   targetCount: number,
-  icon: string | null,
+  specificIcon: string | null,
   iconList: AvatarItem[] = []
 ) {
-  // Clear the container before re-rendering
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
-  }
+  // Simple diff: Clear and Rebuild (safest for "Frankenstein" code)
+  container.innerHTML = '';
 
   if (targetCount === 0) return;
 
-  // If a specific icon is provided (for humans), use it
-  if (icon) {
+  if (type === 'human') {
+    // Humans: Only the local player gets the selected avatar; other human slots
+    // stay as placeholders until those players join.
     for (let i = 0; i < targetCount; i++) {
-      const silhouette = createPlayerSilhouette(type, icon);
-      container.appendChild(silhouette);
+      const iconForSlot = i === 0 ? specificIcon : null;
+      container.appendChild(createPlayerSilhouette(type, iconForSlot));
     }
-  }
-  // Otherwise, use the list of icons (for CPUs)
-  else if (iconList.length > 0) {
+  } else {
+    // CPUs: Cycle through the randomized list
     for (let i = 0; i < targetCount; i++) {
-      // Cycle through the provided list of avatars
-      const avatar = iconList[i % iconList.length];
-      const silhouette = createPlayerSilhouette(type, avatar.icon);
-      container.appendChild(silhouette);
-    }
-  }
-  // Fallback for CPUs if list is somehow empty
-  else if (type === 'cpu') {
-    for (let i = 0; i < targetCount; i++) {
-      const silhouette = createPlayerSilhouette(type, '💂');
-      container.appendChild(silhouette);
+      const avatar =
+        iconList.length > 0 ? iconList[i % iconList.length] : { icon: '🤖' };
+      container.appendChild(
+        createPlayerSilhouette(type, avatar.icon as string)
+      );
     }
   }
 }
-
 
 // Validation functions that only check, don't show messages
 function validatePlayerCounts(): { isValid: boolean; message: string } {
@@ -317,30 +406,7 @@ function validateNameInput(): NameValidationResult {
   return { isValid: true, message: '', name };
 }
 
-function ensureSilhouetteContainers() {
-  let humanSilhouettesContainer = document.getElementById('human-silhouettes');
-  let cpuSilhouettesContainer = document.getElementById('cpu-silhouettes');
-  if (!humanSilhouettesContainer) {
-    const parent = document.querySelector('.player-section--users');
-    if (parent) {
-      const div = document.createElement('div');
-      div.id = 'human-silhouettes';
-      div.className = 'player-silhouettes';
-      parent.appendChild(div);
-      console.debug('[Lobby] Created human-silhouettes container');
-    }
-  }
-  if (!cpuSilhouettesContainer) {
-    const parent = document.querySelector('.player-section--bots');
-    if (parent) {
-      const div = document.createElement('div');
-      div.id = 'cpu-silhouettes';
-      div.className = 'player-silhouettes';
-      parent.appendChild(div);
-      console.debug('[Lobby] Created cpu-silhouettes container');
-    }
-  }
-}
+// ensureSilhouetteContainers removed - containers are expected to exist in DOM
 
 function validateRoomCodeInput(): {
   isValid: boolean;
@@ -476,8 +542,7 @@ function applySpectatorMode(): void {
 function initializeAvatarPicker() {
   const grid = document.getElementById('avatar-grid');
   if (!grid) return;
-
-  grid.innerHTML = ''; // Clear existing options
+  grid.innerHTML = '';
 
   royaltyAvatars.forEach((av) => {
     const el = document.createElement('div');
@@ -485,26 +550,37 @@ function initializeAvatarPicker() {
     el.textContent = av.icon;
     el.title = av.label;
 
-    // Set initial selected state
     if (selectedAvatar && selectedAvatar.id === av.id) {
       el.classList.add('selected');
     }
 
     el.onclick = () => {
-      // Update state
+      // 1. Select the avatar
       selectedAvatar = av;
 
-      // Update UI
+      // 2. Visual update of grid
       grid
         .querySelectorAll('.avatar-option')
         .forEach((opt) => opt.classList.remove('selected'));
       el.classList.add('selected');
 
-      // Re-render silhouettes with the new avatar
+      updateAvatarDropdownUI();
+      closeAvatarDropdown();
+
+      // 3. Re-render silhouettes (this puts the avatar in the user slot)
       updatePlayerSilhouettes();
     };
     grid.appendChild(el);
   });
+}
+
+function shuffleArray<T>(array: T[]): T[] {
+  const newArr = [...array];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
 }
 
 /**
@@ -516,26 +592,32 @@ export async function initializeLobby() {
   try {
     const avatarModule = await import('../../src/shared/avatars.js');
     royaltyAvatars = avatarModule.ROYALTY_AVATARS;
-    defaultAvatar = royaltyAvatars.find((a) => a.id === 'king') || royaltyAvatars[0];
-    selectedAvatar = defaultAvatar;
 
-    console.log('✅ Avatars loaded successfully.');
+    // Default setup: No avatar selected for human initially
+    defaultAvatar =
+      royaltyAvatars.find((a) => a.id === 'king') || royaltyAvatars[0];
+    selectedAvatar = null;
 
-    // Now that data is ready, initialize the rest of the page
+    // Create a shuffled pool for bots so they look random
+    shuffledBotAvatars = shuffleArray(royaltyAvatars);
+
     initializePageEventListeners();
   } catch (err) {
-    console.error('🚨 Failed to load critical avatar data. Lobby may not function correctly.', err);
+    console.error(
+      '🚨 Failed to load critical avatar data. Lobby may not function correctly.',
+      err
+    );
     // Still attempt to initialize the page, but avatars will be broken.
     initializePageEventListeners();
   }
 }
-
 
 export function initializePageEventListeners() {
   console.log('🚀 [events.ts] initializePageEventListeners called!');
 
   // Initialize avatar picker
   initializeAvatarPicker();
+  updateAvatarDropdownUI();
   syncCounterUI();
   // Ensure silhouettes render after DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
@@ -634,7 +716,6 @@ export function initializePageEventListeners() {
   } catch (stateError) {
     console.error('❌ Error loading state:', stateError);
   }
-
 
   // UI hooks
   const joinGameButton = document.getElementById('join-game-button');
@@ -953,10 +1034,12 @@ async function handleDealClick() {
     spectator?: boolean;
   } = {
     playerName: name,
-    avatar: selectedAvatar?.icon || defaultAvatar?.icon || '🤴',
     numHumans: numHumans,
     numCPUs: numCPUs,
   };
+  if (selectedAvatar) {
+    (playerDataForEmit as any).avatar = selectedAvatar.icon;
+  }
   if (isSpectator) {
     playerDataForEmit.spectator = true;
   }
@@ -1040,7 +1123,7 @@ async function handleDealClick() {
 // Dev-only: Restart game with same settings
 async function handleDevRestart() {
   console.log('🔄 [DEV] Restarting game with same settings...');
-  
+
   const lastState = state.getLastGameState();
   if (!lastState) {
     console.warn('[DEV] No previous game state found');
@@ -1051,14 +1134,17 @@ async function handleDevRestart() {
   const players = lastState.players || [];
   const numHumans = players.filter((p: any) => !p.isComputer).length;
   const numCPUs = players.filter((p: any) => p.isComputer).length;
-  const myName = players.find((p: any) => p.id === state.myId)?.name || 'Dev Player';
+  const myName =
+    players.find((p: any) => p.id === state.myId)?.name || 'Dev Player';
 
-  console.log(`[DEV] Extracted settings: ${numHumans} humans, ${numCPUs} CPUs, name: ${myName}`);
+  console.log(
+    `[DEV] Extracted settings: ${numHumans} humans, ${numCPUs} CPUs, name: ${myName}`
+  );
 
   // Leave current game
   if (state.socket && state.socket.connected) {
     state.socket.disconnect();
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   // Clear session
@@ -1069,7 +1155,7 @@ async function handleDevRestart() {
   // Reconnect and create new game
   await state.socketReady;
   state.socket.connect();
-  
+
   // Wait for connection
   await new Promise<void>((resolve) => {
     if (state.socket.connected) {
@@ -1084,16 +1170,19 @@ async function handleDevRestart() {
     playerName: myName,
     numHumans: numHumans,
     numCPUs: numCPUs,
-    avatar: selectedAvatar?.icon || defaultAvatar?.icon || '🤴',
+    // Only attach avatar if user explicitly selected one
+    ...(selectedAvatar ? { avatar: selectedAvatar.icon } : {}),
   };
 
   console.log('[DEV] Creating new game with:', playerData);
-  
+
   state.socket.emit(JOIN_GAME, playerData, (response: any) => {
     if (response?.error) {
       console.error('[DEV] Failed to create game:', response.error);
     } else {
-      console.log('[DEV] Game created successfully, animation will trigger on STATE_UPDATE');
+      console.log(
+        '[DEV] Game created successfully, animation will trigger on STATE_UPDATE'
+      );
     }
   });
 }
@@ -1136,11 +1225,12 @@ async function handleJoinGameClick() {
   const code = codeValidation.code;
   state.setCurrentRoom(code);
   state.saveSession();
-  
+
   const joinPayload = {
     roomId: code,
     playerName: name,
-    avatar: selectedAvatar?.icon || defaultAvatar?.icon || '🤴',
+    // Only include avatar when selected
+    ...(selectedAvatar ? { avatar: selectedAvatar.icon } : {}),
     numHumans: 1,
     numCPUs: 0,
   };
@@ -1194,6 +1284,5 @@ function hideRulesModalAndOverlay() {
 
   console.log('✅ Rules modal closed, lobby restored');
 }
-
 
 export { handleRulesClick, hideRulesModalAndOverlay };

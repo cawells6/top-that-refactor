@@ -1,10 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Ultra-minimal development starter
-# No duplicate cleanup or verbose messages
+# Ultra-minimal development starter.
+# Quiet by default (only warnings/errors). Set TOPTHAT_VERBOSE=1 for full logs.
 
-# Just run the script directly
-./run.js
+if [ "${TOPTHAT_VERBOSE:-}" = "1" ]; then
+  node ./run.js
+  exit $?
+fi
 
-# Use the exit code from the script
+echo "[run] Filtering output (warnings/errors only). Set TOPTHAT_VERBOSE=1 for full logs." >&2
+bash scripts/run-quiet.sh node ./run.js
 exit $?

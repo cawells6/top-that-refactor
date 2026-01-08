@@ -44,6 +44,20 @@ jest.mock('./state.js', () => {
 jest.mock('./render.js', () => ({
   renderGameState: jest.fn(),
   showCardEvent: jest.fn(),
+  renderPlayedCards: jest.fn(),
+  resetHandTracking: jest.fn(),
+  animateCardFromPlayer: jest.fn(),
+  waitForFlyingCard: jest.fn(() => Promise.resolve()),
+  blankDrawPileFor: jest.fn(),
+  animateVictory: jest.fn(),
+  animateDeckToPlayPile: jest.fn(),
+  logCardPlayed: jest.fn(),
+  logPileTaken: jest.fn(),
+  logPlayToDraw: jest.fn(),
+  logSpecialEffect: jest.fn(),
+  logTurnChange: jest.fn(),
+  logGameStart: jest.fn(),
+  logGameOver: jest.fn(),
 }));
 
 jest.mock('./uiManager.js', () => ({

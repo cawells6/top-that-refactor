@@ -56,21 +56,47 @@
   }
 }
 
+/* --- Ghost Hand Cue (repeats until action) --- */
+.tutorial-ghost-hand {
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -100%);
+  z-index: 2001;
+  pointer-events: none;
+  user-select: none;
+  touch-action: none;
+}
+
+.tutorial-ghost-hand__icon {
+  font-size: 42px;
+  line-height: 1;
+  opacity: 0.9;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35));
+  transform-origin: 50% 100%;
+}
+
+.tutorial-ghost-hand__ring {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: 3px solid rgba(111, 180, 255, 0.9);
+  box-shadow: 0 0 18px rgba(111, 180, 255, 0.55);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
 
 /* Instruction card - positioned to the right of play area */
 .tutorial-card {
   position: fixed;
   top: 50%;
-  /* Position based on game table dimensions:
-     - Table max-width: min(98vw, 2400px)
-     - Half table width = min(49vw, 1200px)
-     - Table border: 22px
-     - Small gap from border: 30px
-     - Tutorial card position = 50% + half-table + border + gap
-  */
-  left: calc(50% + min(49vw, 1200px) + 52px);
+  right: 16px;
   transform: translateY(-50%);
-  width: 380px;
+  width: min(380px, calc(100vw - 32px));
   max-height: 85vh;
   background: linear-gradient(135deg, #ffffff 0%, #fef9f0 100%);
   border: 3px solid #ffc300;
@@ -84,12 +110,16 @@
   transition: opacity 0.3s ease;
 }
 
-/* Adjust for smaller screens where calc positioning doesn't work well */
-@media (max-width: 1600px) {
+@media (max-width: 900px) {
   .tutorial-card {
-    right: 20px;
-    left: auto;
-    transform: translateY(-50%);
+    top: auto;
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    transform: none;
+    width: auto;
+    max-height: 46vh;
+    padding: 1rem;
   }
 }
 

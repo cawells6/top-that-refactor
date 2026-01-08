@@ -70,6 +70,8 @@
   --card-h-base: clamp(68px, 8.6vw, 130px);
   --card-w: var(--card-w-base);
   --card-h: var(--card-h-base);
+  --hand-base-overlap: -14px;
+  --hand-min-peek: 32px;
   --table-edge: #0b2a1f;
   --table-felt-dark: #0d3426;
   --table-felt-light: #17543d;
@@ -369,6 +371,22 @@ body.showing-game #game-rules-button {
   z-index: 2;
 }
 
+.hand-tray--local.hand-tray--scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  justify-content: flex-start;
+  padding: 0 12px;
+  scroll-snap-type: x proximity;
+}
+
+.hand-tray--local.hand-tray--scroll .hand-row--local {
+  justify-content: flex-start;
+}
+
+.hand-tray--local.hand-tray--scroll .card-container {
+  scroll-snap-align: center;
+}
+
 .hand-row--local {
   flex-wrap: nowrap;
   width: 100%;
@@ -503,26 +521,12 @@ body.showing-game #game-rules-button {
   height: calc(var(--card-h, 126px) + 12px);
 }
 
-.stack .card-img.down-card {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-}
-
 .stack .card-container.down-card {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 1;
   margin: 0;
-}
-
-.stack .card-img.up-card {
-  position: absolute;
-  top: 12px;
-  left: 0;
-  z-index: 2;
 }
 
 .stack .card-container.up-card {
@@ -771,6 +775,8 @@ body.showing-game #game-rules-button {
     --card-h-base: clamp(58px, 14vw, 100px);
     --card-w: var(--card-w-base);
     --card-h: var(--card-h-base);
+    --hand-base-overlap: -10px;
+    --hand-min-peek: 26px;
   }
 
   .player-header {

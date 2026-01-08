@@ -239,6 +239,7 @@ export default class GameController {
   private gameTimeouts: Set<NodeJS.Timeout> = new Set();
   private pendingComputerTurns: Set<string> = new Set();
   private turnLock: boolean = false;
+  private openingCpuFallbackTimeout: NodeJS.Timeout | null = null;
   
   // Transition State Management
   private isTurnTransitioning: boolean = false;
@@ -786,6 +787,13 @@ export default class GameController {
 
     // Note: CPU turns are scheduled when client emits 'animations-complete' event
     // This ensures CPU waits for dealing animation + "LET'S GO!" overlay to finish
+
+    // Failsafe: if no client ever emits ANIMATIONS_COMPLETE (e.g., animation is skipped
+    // or errors), the game can stall forever on a CPU's opening turn.
+    const firstPlayer = this.players.get(firstPlayerId);
+    if (firstPlayer?.isComputer) {
+      this.scheduleOpeningCpuFallback(firstPlayerId);
+    }
   }
 
   /**
@@ -1128,11 +1136,27 @@ export default class GameController {
          this.gameState.clearPile({ toDiscard: false });
 
          // 4. Notify & Transition
-         this.io.to(this.roomId).emit(PILE_PICKED_UP, { playerId: player.id });
+
+         // After any pickup, flip a new starter card from the deck (if available).
+         if (this.gameState.deck && this.gameState.deck.length > 0) {
+           const newStartCard = this.gameState.deck.pop();
+           if (newStartCard) {
+             this.gameState.addToPile(newStartCard);
+             const normalizedValue = normalizeCardValue(newStartCard.value);
+             if (normalizedValue !== 'five') {
+               this.gameState.lastRealCard = newStartCard;
+             }
+           }
+         }
+
+         this.io.to(this.roomId).emit(PILE_PICKED_UP, {
+           playerId: player.id,
+           pileSize: pickupCards.length,
+         });
          this.log(`Invalid ${zone} play by ${player.id}. Forced pickup.`);
          
          // Trigger turn transition
-         this.processTurnTransition(this.turnTransitionDelayMs);
+         this.processTurnTransition(1600);
          return;
       }
 
@@ -1199,21 +1223,6 @@ export default class GameController {
       this.roomId,
       { fourOfKindPlayed }
     );
-    
-    // After pile is burned (10 or 4-of-a-kind), draw new card from draw pile to start play pile
-    if (pileClearedBySpecial && this.gameState.deck && this.gameState.deck.length > 0) {
-      const newStartCard = this.gameState.deck.pop();
-      if (newStartCard) {
-        this.gameState.addToPile(newStartCard);
-        const normalizedValue = normalizeCardValue(newStartCard.value);
-        if (normalizedValue !== 'five') {
-          this.gameState.lastRealCard = newStartCard;
-        }
-        this.log(
-          `Pile burned. Drew new card (${newStartCard.value} of ${newStartCard.suit}) from draw pile to start play pile. Draw pile now has ${this.gameState.deck.length} cards.`
-        );
-      }
-    }
     
     const specialEffectTriggered =
       fourOfKindPlayed || isSpecialCard(cardsToPlay[0]?.value);
@@ -1319,7 +1328,7 @@ export default class GameController {
       // Player picks up the entire discard pile (gameState.pile)
       const pileCount = this.gameState.pile.length;
       player.pickUpPile([...this.gameState.pile]);
-      this.gameState.pile = [];
+      this.gameState.clearPile({ toDiscard: false });
       
       // Draw one card from draw pile to start the play pile again
       if (this.gameState.deck && this.gameState.deck.length > 0) {
@@ -1339,15 +1348,17 @@ export default class GameController {
           `Player ${player.id} picked up ${pileCount} cards. No cards left in deck to start discard pile. New hand size: ${player.hand.length}`
         );
       }
-      
-      // Push state immediately so clients see the new discard pile card
-      this.pushState();
-      this.io.to(this.roomId).emit(PILE_PICKED_UP, { playerId: player.id });
+
+      // Notify clients so they can animate the pickup before the next state render.
+      this.io.to(this.roomId).emit(PILE_PICKED_UP, {
+        playerId: player.id,
+        pileSize: pileCount,
+      });
     }
 
-    // Process transition with longer delay after pile pickup so clients can see the new card
-    // Use 1000ms instead of standard 400ms to ensure visibility
-    this.processTurnTransition(1000);
+    // Process transition with longer delay after pile pickup so clients can see the
+    // blank beat + deck flip animation before the next player highlight.
+    this.processTurnTransition(1600);
   }
 
   private hasValidPlay(
@@ -1465,6 +1476,9 @@ export default class GameController {
 
     this.log('[handleAnimationsComplete] Client animations finished');
 
+    // Any client reporting animations complete means it's safe to drop the startup failsafe.
+    this.clearOpeningCpuFallback();
+
     const currentPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
     const currentPlayer = this.players.get(currentPlayerId);
 
@@ -1571,10 +1585,55 @@ export default class GameController {
     this.gameTimeouts.add(timeoutId);
   }
 
+  private clearOpeningCpuFallback(): void {
+    if (!this.openingCpuFallbackTimeout) return;
+    clearTimeout(this.openingCpuFallbackTimeout);
+    this.gameTimeouts.delete(this.openingCpuFallbackTimeout);
+    this.openingCpuFallbackTimeout = null;
+  }
+
+  private scheduleOpeningCpuFallback(expectedCpuPlayerId: string): void {
+    this.clearOpeningCpuFallback();
+
+    // ~10s covers the opening deal + overlay; only used if ANIMATIONS_COMPLETE never arrives.
+    const FALLBACK_DELAY_MS = 12000;
+
+    const timeoutId = setTimeout(() => {
+      this.gameTimeouts.delete(timeoutId);
+      if (this.openingCpuFallbackTimeout === timeoutId) {
+        this.openingCpuFallbackTimeout = null;
+      }
+
+      if (!this.gameState.started) return;
+      if (
+        this.gameState.currentPlayerIndex < 0 ||
+        this.gameState.currentPlayerIndex >= this.gameState.players.length
+      ) {
+        return;
+      }
+
+      const currentPlayerId =
+        this.gameState.players[this.gameState.currentPlayerIndex];
+      if (currentPlayerId !== expectedCpuPlayerId) return;
+
+      const currentPlayer = this.players.get(currentPlayerId);
+      if (!currentPlayer || !currentPlayer.isComputer) return;
+
+      this.log(
+        `[OpeningCpuFallback] No ANIMATIONS_COMPLETE received; starting CPU turn for ${currentPlayerId}`
+      );
+      this.scheduleComputerTurn(currentPlayer, 0);
+    }, FALLBACK_DELAY_MS);
+
+    this.openingCpuFallbackTimeout = timeoutId;
+    this.gameTimeouts.add(timeoutId);
+  }
+
   private clearAllTimeouts(): void {
     this.gameTimeouts.forEach((id) => clearTimeout(id));
     this.gameTimeouts.clear();
     this.pendingComputerTurns.clear();
+    this.openingCpuFallbackTimeout = null;
     
     // Clear transition timeout if active
     if (this.transitionTimeout) {

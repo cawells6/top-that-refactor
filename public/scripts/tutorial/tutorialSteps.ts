@@ -191,6 +191,22 @@ export const tutorialSteps: StepConfig[] = [
     },
   },
   {
+    id: 'UPCARDS_PICKUP_RULE',
+    title: "Up Cards: If it's too low...",
+    instruction:
+      "When you play from your <strong>Up Cards</strong> (or later, your <strong>Down Cards</strong>), there's a key difference from your hand: if the card you try is <strong>too low</strong>, you don't just lose the turn — you must pick up the <strong>Draw pile</strong> plus <strong>the one card you tried to play</strong>.<br><br><strong>You do NOT pick up your other stack cards.</strong><br><br>To see it: <strong>click your 3</strong> (it's too low for the King).",
+    scenario: {
+      myHand: [],
+      pile: ['KS'],
+      upCards: ['6D', '7C', '3H'],
+      downCards: 3,
+    },
+    validation: {
+      type: 'play_card',
+      expectedAction: 'click_index_2', // Third up card (the 3)
+    },
+  },
+  {
     id: 'DOWNCARDS_INTRO',
     title: 'Down Cards: The Mystery Round',
     instruction:
@@ -198,43 +214,12 @@ export const tutorialSteps: StepConfig[] = [
     scenario: {
       myHand: [],
       pile: ['5S'],
-      upCards: ['7H', '9D', '4C'], // Keep visible for context (grayed out)
+      upCards: [],
       downCards: 3,
     },
     validation: {
       type: 'play_card',
       expectedAction: 'click_index_0', // First down card
-    },
-  },
-  {
-    id: 'FACEDOWN_FAIL',
-    title: 'Ouch! Card Too Low',
-    instruction:
-      "You flipped a 3, but the pile has an 8... unfortunate! When your flipped card is too low, you must collect the whole pile (including your failed card). That's the risk of the gamble!",
-    scenario: {
-      myHand: [],
-      pile: ['8D'],
-      upCards: [],
-      downCards: 2,
-    },
-    validation: {
-      type: 'facedown_fail',
-      expectedAction: 'pile_pickup_with_facedown',
-    },
-  },
-  {
-    id: 'FACEDOWN_PICKUP',
-    title: 'Accept Your Fate',
-    instruction:
-      'Time to face the consequences. Click <strong>Take</strong> or click the pile to collect all those cards into your hand. Fortune favors the bold!',
-    scenario: {
-      myHand: [],
-      pile: ['8D', '3H'], // 3H is the failed face-down card
-      upCards: [],
-      downCards: 2,
-    },
-    validation: {
-      type: 'facedown_pickup',
     },
   },
   {
@@ -253,6 +238,23 @@ export const tutorialSteps: StepConfig[] = [
       cardValue: '7',
       cardCount: 4,
     },
+  },
+  {
+    id: 'HELP_RULES_HISTORY',
+    title: 'Need a refresher?',
+    instruction:
+      "If you ever forget a rule or want to see what just happened, use the two buttons in the <strong>top-left</strong>: <strong>Rules</strong> and <strong>Move History</strong>. Rules is your quick cheat-sheet, and Move History shows the most recent moves.",
+    showNextButton: true,
+    scenario: {
+      myHand: [],
+      pile: ['8D'],
+      upCards: [],
+      downCards: 0,
+    },
+    validation: {
+      type: 'auto',
+    },
+    allowSkip: false,
   },
   {
     id: 'COMPLETE',

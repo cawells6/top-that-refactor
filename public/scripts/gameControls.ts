@@ -7,6 +7,8 @@ import { animatePlayerPlay, isValidPlay } from './render.js';
 
 let initialized = false;
 
+type SelectableCardElement = HTMLImageElement;
+
 function isMyTurn(): boolean {
   const lastGameState = state.lastGameState;
   const myId = state.myId;
@@ -241,7 +243,7 @@ function handleTakeClick(): void {
   clearSelectedCards();
 }
 
-function getSelectableCard(target: HTMLElement): HTMLImageElement | null {
+function getSelectableCard(target: HTMLElement): SelectableCardElement | null {
   if (target.classList.contains('card-img')) {
     const img = target as HTMLImageElement;
     return img.classList.contains('selectable') ? img : null;

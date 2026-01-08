@@ -16,10 +16,10 @@
     "dev:client": "vite --open",
     "build:client": "vite build",
     "preview:client": "vite preview",
-    "lint": "eslint . --ext .ts,.js --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,js,json,md,html,css}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,json,md,html,css\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md,html,css}\"",
     "postbuild": "find dist -name '*.js' -exec sed -i 's/\\.ts/\\.js/g' {} +",
     "start:multi": "concurrently \"PORT=3000 node --loader ts-node/esm ./server.ts\" \"PORT=8080 node --loader ts-node/esm ./server.ts\"",
     "dev:multi": "concurrently \"cross-env PORT=3000 node --loader ts-node/esm ./server.ts\" \"cross-env PORT=8080 node --loader ts-node/esm ./server.ts\"",
@@ -46,7 +46,8 @@
     "dev:enhanced": "node scripts/start-dev.js",
     "dev:safe": "npx kill-port 3000 5173 && node wait-enhanced.js && npm run dev:all",
     "start:dev": "node scripts/start-dev.js",
-    "run": "./run"
+    "run": "./run",
+    "run:quiet": "bash scripts/run-quiet.sh npm run dev:all:clean"
   },
   "dependencies": {
     "chokidar-cli": "^3.0.0",

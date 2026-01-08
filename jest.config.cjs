@@ -19,6 +19,7 @@ module.exports = {
   moduleNameMapper: {
     // --- Keep your existing specific mocks first ---
     '^socket.io-client$': '<rootDir>/__mocks__/socket.io-client.js', // This is a specific .js file mock
+    '\\.(svg|png|jpg|jpeg|gif|webp)$': '<rootDir>/__mocks__/fileMock.js',
 
     // --- Path aliases from tsconfig.json (map to module path without extension) ---
     // Jest will append extensions based on moduleFileExtensions

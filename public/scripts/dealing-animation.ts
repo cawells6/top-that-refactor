@@ -8,95 +8,112 @@ const FLIGHT_DURATION_MS = 600;
 const PHASE_PAUSE_MS = 400; 
 
 export async function performOpeningDeal(gameState: GameStateData, myPlayerId: string): Promise<void> {
-    const playSource = document.getElementById('deck-pile'); // Source "Play" pile
-    if (!playSource) return;
+    try {
+        const playSource = document.getElementById('deck-pile'); // Source "Play" pile
+        if (!playSource) {
+            console.warn('[DealingAnimation] deck-pile not found; skipping opening deal animation');
 
-    // Prefer the actual deck card element for more accurate start positioning.
-    const deckCardEl = playSource.querySelector('.deck-card .card-img') as HTMLElement | null;
-    const playRect = (deckCardEl || playSource).getBoundingClientRect();
-    const players = gameState.players;
-    const meIdx = myPlayerId ? players.findIndex((p) => p.id === myPlayerId) : -1;
-    const dealingOrder = meIdx >= 0 ? players.slice(meIdx).concat(players.slice(0, meIdx)) : players.slice();
-
-    // PHASE A: DOWN CARDS (Round Robin)
-    for (let i = 0; i < 3; i++) {
-        for (const player of dealingOrder) {
-            const target = getTarget(player.id, 'down', i);
-            if (target) {
-                animateFlyer(playRect, target, null, false);
-                await wait(DEAL_INTERVAL_MS);
-            }
+            // Ensure we still show the start overlay so the game flow continues.
+            renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
+            await showStartOverlay();
+            return;
         }
-    }
-    await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
-    SoundManager.play('card-land');
-    dealingOrder.forEach(p => revealGroup(p.id, 'down', 3));
-    await wait(PHASE_PAUSE_MS);
 
-    // PHASE B: UP CARDS (Round Robin)
-    for (let i = 0; i < 3; i++) {
-        for (const player of dealingOrder) {
-            const upCards = player.upCards || [];
-            if (upCards[i]) {
-                const target = getTarget(player.id, 'up', i);
+        // Prefer the actual deck card element for more accurate start positioning.
+        const deckCardEl = playSource.querySelector('.deck-card .card-img') as HTMLElement | null;
+        const playRect = (deckCardEl || playSource).getBoundingClientRect();
+        const players = gameState.players;
+        const meIdx = myPlayerId ? players.findIndex((p) => p.id === myPlayerId) : -1;
+        const dealingOrder = meIdx >= 0 ? players.slice(meIdx).concat(players.slice(0, meIdx)) : players.slice();
+
+        // PHASE A: DOWN CARDS (Round Robin)
+        for (let i = 0; i < 3; i++) {
+            for (const player of dealingOrder) {
+                const target = getTarget(player.id, 'down', i);
                 if (target) {
-                    animateFlyer(playRect, target, upCards[i], true);
+                    animateFlyer(playRect, target, null, false);
                     await wait(DEAL_INTERVAL_MS);
                 }
             }
         }
-    }
-    await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
-    SoundManager.play('card-land');
-    // IMMEDIATELY Reveal Up Cards
-    dealingOrder.forEach(p => revealGroup(p.id, 'up', 3));
-    await wait(PHASE_PAUSE_MS);
+        await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
+        SoundManager.play('card-land');
+        dealingOrder.forEach(p => revealGroup(p.id, 'down', 3));
+        await wait(PHASE_PAUSE_MS);
 
-    // PHASE C: HAND CARDS (Round Robin)
-    for (let k = 0; k < 5; k++) {
-        for (const player of dealingOrder) {
-            const handCount = player.handCount || player.hand?.length || 0;
-            if (k < handCount) {
-                const isMe = player.id === myPlayerId;
-                const area = `.player-area[data-player-id="${player.id}"]`;
-                const handRow = document.querySelector(`${isMe ? '#my-area' : area} .hand-row`) as HTMLElement;
-                
-                if (handRow && handRow.children[k]) {
-                    const target = handRow.children[k] as HTMLElement;
-                    const cardData = (isMe && player.hand) ? player.hand[k] : null;
-                    animateFlyer(playRect, target, cardData, isMe); 
-                    await wait(DEAL_INTERVAL_MS);
+        // PHASE B: UP CARDS (Round Robin)
+        for (let i = 0; i < 3; i++) {
+            for (const player of dealingOrder) {
+                const upCards = player.upCards || [];
+                if (upCards[i]) {
+                    const target = getTarget(player.id, 'up', i);
+                    if (target) {
+                        animateFlyer(playRect, target, upCards[i], true);
+                        await wait(DEAL_INTERVAL_MS);
+                    }
                 }
             }
         }
-    }
-    await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
-    SoundManager.play('card-land');
-    dealingOrder.forEach(p => {
-        if (p.id === myPlayerId) revealMyHand(Math.min(p.handCount || 0, 5));
-        else revealOpponentHand(p.id);
-    });
-    await wait(PHASE_PAUSE_MS);
+        await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
+        SoundManager.play('card-land');
+        // IMMEDIATELY Reveal Up Cards
+        dealingOrder.forEach(p => revealGroup(p.id, 'up', 3));
+        await wait(PHASE_PAUSE_MS);
 
-    // PHASE D: START GAME FLIP (Play Source -> Draw Target)
-    await animatePlayToDraw(gameState);
-    
-    // FINAL COMMIT: This makes all cards "stick" and restores normal UI behavior
-    renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
-    
-    // Wait an extra second before showing the "LET'S GO!" overlay
-    await wait(1000);
-    
-    await showStartOverlay();
-    
-    // Signal server that animations are complete so CPU can take their turn
-    const stateModule = await import('./state.js');
-    await stateModule.socketReady;
-    const activeSocket = stateModule.socket;
-    if (activeSocket?.connected) {
-        activeSocket.emit(ANIMATIONS_COMPLETE);
-    } else {
-        console.warn('[DealingAnimation] Socket not ready to emit animations complete');
+        // PHASE C: HAND CARDS (Round Robin)
+        for (let k = 0; k < 5; k++) {
+            for (const player of dealingOrder) {
+                const handCount = player.handCount || player.hand?.length || 0;
+                if (k < handCount) {
+                    const isMe = player.id === myPlayerId;
+                    const area = `.player-area[data-player-id="${player.id}"]`;
+                    const handRow = document.querySelector(`${isMe ? '#my-area' : area} .hand-row`) as HTMLElement;
+                    
+                    if (handRow && handRow.children[k]) {
+                        const target = handRow.children[k] as HTMLElement;
+                        const cardData = (isMe && player.hand) ? player.hand[k] : null;
+                        animateFlyer(playRect, target, cardData, isMe); 
+                        await wait(DEAL_INTERVAL_MS);
+                    }
+                }
+            }
+        }
+        await wait(FLIGHT_DURATION_MS - DEAL_INTERVAL_MS);
+        SoundManager.play('card-land');
+        dealingOrder.forEach(p => {
+            if (p.id === myPlayerId) revealMyHand(Math.min(p.handCount || 0, 5));
+            else revealOpponentHand(p.id);
+        });
+        await wait(PHASE_PAUSE_MS);
+
+        // PHASE D: START GAME FLIP (Play Source -> Draw Target)
+        await animatePlayToDraw(gameState);
+        
+        // FINAL COMMIT: This makes all cards "stick" and restores normal UI behavior
+        renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
+        
+        // Wait an extra second before showing the "LET'S GO!" overlay
+        await wait(1000);
+        
+        await showStartOverlay();
+    } catch (err) {
+        console.error('[DealingAnimation] Opening deal animation failed:', err);
+    } finally {
+        // Signal server that animations are complete so CPU can take their turn.
+        // This must fire even if the animation is skipped or fails, otherwise games can
+        // stall on a CPU's first turn.
+        try {
+            const stateModule = await import('./state.js');
+            await stateModule.socketReady;
+            const activeSocket = stateModule.socket;
+            if (activeSocket?.connected) {
+                activeSocket.emit(ANIMATIONS_COMPLETE);
+            } else {
+                console.warn('[DealingAnimation] Socket not ready to emit animations complete');
+            }
+        } catch (emitErr) {
+            console.warn('[DealingAnimation] Failed to emit animations complete:', emitErr);
+        }
     }
 }
 
@@ -232,14 +249,13 @@ async function animatePlayToDraw(gameState: GameStateData) {
     if (!source || !target) return;
     
     const topCard = gameState.pile?.[gameState.pile.length - 1] || null;
+    if (!topCard) return;
     animateFlyer(source.getBoundingClientRect(), target, topCard, true);
     await wait(FLIGHT_DURATION_MS);
     
     SoundManager.play('card-land');
-    if (topCard) {
-        target.innerHTML = '';
-        target.appendChild(cardImg(topCard, false, undefined, false, false));
-    }
+    target.innerHTML = '';
+    target.appendChild(cardImg(topCard, false, undefined, false, false));
 }
 
 async function showStartOverlay() {

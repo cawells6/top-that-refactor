@@ -111,12 +111,27 @@
                             </div>
 
                             <!-- Avatar Selection -->
-                            <div class="avatar-selection-section">
-                              <label class="section-title">CHOOSE YOUR AVATAR</label>
-                              <div class="avatar-grid" id="avatar-grid">
-                                <!-- Avatars will be dynamically added here -->
-                              </div>
-                              
+                            <div class="avatar-selection-section" aria-label="Avatar selection">
+                              <label class="section-title section-title--input">CHOOSE YOUR AVATAR</label>
+                              <details class="avatar-dropdown" id="avatar-dropdown">
+                                <summary class="avatar-dropdown__summary">
+                                  <span
+                                    class="avatar-dropdown__preview emoji-avatar"
+                                    id="selected-avatar-preview"
+                                    aria-hidden="true"
+                                    >?</span
+                                  >
+                                  <span class="avatar-dropdown__text" id="selected-avatar-text"
+                                    >Select an avatar</span
+                                  >
+                                  <span class="avatar-dropdown__chevron" aria-hidden="true">▾</span>
+                                </summary>
+                                <div class="avatar-dropdown__panel">
+                                  <div class="avatar-grid" id="avatar-grid">
+                                    <!-- Avatars will be dynamically added here -->
+                                  </div>
+                                </div>
+                              </details>
                             </div>
 
                             <div class="player-selection player-selection--host">
@@ -157,7 +172,7 @@
 
                               <!-- Bots Players Section -->
                               <div class="player-section player-section--bots">
-                                <h3 class="section-title">BOTS</h3>
+                                <h3 class="section-title">AUTOMANS</h3>
                                 <div class="player-counter">
                                   <button
                                     type="button"
@@ -506,4 +521,3 @@
     </script>
   </body>
 </html>
-
