@@ -1,6 +1,7 @@
 // card.ts - Handles card rendering logic
 import { Card } from '../../src/types.js';
 import logoUrl from '../src/shared/logov2.svg';
+// Import card assets directory base so Vite emits hashed assets
 
 /**
  * Creates a card element with appropriate styling and behavior

@@ -60,7 +60,7 @@
     border-bottom-color: #381c0d;
     border-radius: 150px;
     background-color: var(--felt-color);
-    background-image: url('/assets/felt-texture.svg');
+    background-image: url('../assets/felt-texture.svg');
     background-repeat: repeat;
     background-size: 200px 200px;
     box-shadow:
@@ -306,9 +306,7 @@
 
 /* 2. Enhanced Visual Design & "Finesse" */
 
-body.showing-game {
-    /* Let the table handle the background */
-}
+
 
 /* Player area enhancements */
 .player-area {
@@ -402,8 +400,12 @@ body.showing-game {
 
 /* Adjust player avatar to handle emojis */
 #game-table .player-avatar .emoji-avatar {
-    font-size: 2.2rem; /* Large size for game board */
+    font-size: 3rem; /* Larger emoji for game board */
     background: #fff; /* White background behind emoji */
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Nudge the robot icon left for better visual centering */
@@ -568,9 +570,7 @@ body.showing-game {
     z-index: 20;
 }
 
-#game-table .player-area.active .player-avatar {
-    /* Removed gold border and glow - now shown on game table instead */
-}
+
 
 #game-table .player-area.active .player-name {
     color: rgba(255, 215, 0, 0.95);
@@ -596,9 +596,7 @@ body.showing-game {
 }
 
 /* Restored pulse animation for the active player's avatar */
-#game-table .player-avatar.active-turn {
-    /* Removed - turn indicator now on game table border */
-}
+
 
 #my-area .player-header {
     border-bottom: none;

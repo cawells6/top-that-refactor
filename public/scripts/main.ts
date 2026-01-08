@@ -2,7 +2,7 @@
 import { JOIN_GAME } from '@shared/events.ts';
 
 import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
-import { initializePageEventListeners } from './events.js';
+import { initializeLobby } from './events.js';
 import { initializeGameControls } from './gameControls.js';
 import { initializeSocketHandlers } from './socketService.js';
 import { initializeManualMode } from './manualMode.js';
@@ -122,7 +122,7 @@ export async function initMain({
       console.log('[Client] Socket.IO disconnected:', reason);
     });
 
-    await initializePageEventListeners();
+    await initializeLobby();
     initializeSocketHandlers();
     initializeGameControls();
     initializeManualMode();

@@ -8,28 +8,15 @@ export const ROYALTY_AVATARS: AvatarItem[] = [
   // The Court
   { id: 'king', icon: '🤴', label: 'King' },
   { id: 'queen', icon: '👸', label: 'Queen' },
-  { id: 'prince', icon: '🤴', label: 'Prince' },
-  { id: 'princess', icon: '👸', label: 'Princess' },
-  { id: 'jester', icon: '🤡', label: 'Jester' },
   { id: 'guard', icon: '💂', label: 'Guard' },
-  
-  // Magic & Mystery
-  { id: 'wizard', icon: '🧙', label: 'Wizard' },
   { id: 'fairy', icon: '🧚', label: 'Fairy' },
   { id: 'dragon', icon: '🐉', label: 'Dragon' },
   { id: 'genie', icon: '🧞', label: 'Genie' },
-  
-  // Combat & Items
   { id: 'knight', icon: '🛡️', label: 'Knight' },
   { id: 'swords', icon: '⚔️', label: 'Duelist' },
   { id: 'crown', icon: '👑', label: 'Crown' },
   { id: 'castle', icon: '🏰', label: 'Castle' },
-  
-  // Animals
-  { id: 'lion', icon: '🦁', label: 'Lion' },
-  { id: 'unicorn', icon: '🦄', label: 'Unicorn' },
-  { id: 'eagle', icon: '🦅', label: 'Eagle' },
-  { id: 'owl', icon: '🦉', label: 'Owl' }
+  { id: 'unicorn', icon: '🦄', label: 'Unicorn' }
 ];
 
 export const CPU_NAMES = [

@@ -5,11 +5,13 @@ import {
   JOINED,
   LOBBY_STATE_UPDATE,
   START_GAME,
-} from '../../src/shared/events.ts';
+} from '../../src/shared/events.js';
+import type { AvatarItem } from '../../src/shared/avatars.js';
 
-// Import assets so Vite can resolve hashed filenames
-import playerAvatarUrl from '../assets/Player.svg';
-import robotAvatarUrl from '../assets/robot.svg';
+// --- Avatar State Management ---
+let royaltyAvatars: AvatarItem[] = [];
+let selectedAvatar: AvatarItem | null = null;
+let defaultAvatar: AvatarItem | null = null;
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -119,51 +121,19 @@ function setButtonDisabled(el: HTMLElement | null, disabled: boolean) {
 // Create a player silhouette element
 function createPlayerSilhouette(
   type: 'human' | 'cpu',
-  index: number
+  avatarIcon: string
 ): HTMLElement {
   const silhouette = document.createElement('div');
   silhouette.className = `player-silhouette ${type}`;
-  silhouette.setAttribute('data-index', index.toString());
 
-  const img = document.createElement('img');
-  // Intentionally set alt to empty if you only want emoji on error,
-  // or set proper alt text for accessibility and ensure it's visually hidden if image loads.
-  img.alt = ''; // Prevents alt text from showing if image is slow to load but not erroring
-  img.loading = 'eager';
-  img.decoding = 'async';
-  img.width = 75;
-  img.height = 75;
+  const avatarSpan = document.createElement('span');
+  avatarSpan.className = 'lobby-avatar-emoji';
+  avatarSpan.textContent = avatarIcon;
+  silhouette.appendChild(avatarSpan);
 
-  if (type === 'human') {
-    img.src = playerAvatarUrl;
-    img.className = 'user-icon'; // For specific styling if needed
-  } else {
-    // 'cpu'
-    img.src = robotAvatarUrl; // Fixed capitalization to match actual file name
-    img.className = 'robot-icon'; // For specific styling if needed
-  }
-
-  const emojiFallback = document.createElement('span');
-  emojiFallback.className = 'silhouette-emoji-fallback';
-  emojiFallback.textContent = type === 'cpu' ? '🤖' : '🙂';
-  emojiFallback.style.display = 'none'; // Initially hidden
-
-  img.onload = function () {
-    // Image loaded successfully, ensure emoji is hidden and image is shown
-    img.style.display = '';
-    emojiFallback.style.display = 'none';
-  };
-
-  img.onerror = function () {
-    // Image failed to load, hide img tag and show emoji
-    img.style.display = 'none'; // Hide the broken image element
-    emojiFallback.style.display = ''; // Show the emoji
-  };
-
-  silhouette.appendChild(img);
-  silhouette.appendChild(emojiFallback); // Add emoji fallback to the DOM but hidden
   return silhouette;
 }
+
 
 // Update player silhouettes based on current counts
 function updatePlayerSilhouettes() {
@@ -177,17 +147,41 @@ function updatePlayerSilhouettes() {
     document.getElementById('human-silhouettes');
   const cpuSilhouettesContainer = document.getElementById('cpu-silhouettes');
 
-  if (!humanSilhouettesContainer || !cpuSilhouettesContainer) return;
+  if (
+    !humanSilhouettesContainer ||
+    !cpuSilhouettesContainer ||
+    !totalPlayersInput ||
+    !cpuPlayersInput
+  ) {
+    return;
+  }
 
-  const humanCount = parseInt(totalPlayersInput?.value || '1', 10);
-  const cpuCount = parseInt(cpuPlayersInput?.value || '0', 10);
+  const humanCount = parseInt(totalPlayersInput.value, 10) || 0;
+  const cpuCount = parseInt(cpuPlayersInput.value, 10) || 0;
 
-  // Update human silhouettes
-  updateSilhouettesInContainer(humanSilhouettesContainer, 'human', humanCount);
+  // --- Human Silhouettes ---
+  updateSilhouettesInContainer(
+    humanSilhouettesContainer,
+    'human',
+    humanCount,
+    selectedAvatar?.icon || defaultAvatar?.icon || '🤴'
+  );
 
-  // Update CPU silhouettes
-  updateSilhouettesInContainer(cpuSilhouettesContainer, 'cpu', cpuCount);
+  // --- CPU Silhouettes ---
+  // Filter out the currently selected avatar to avoid duplicates
+  const availableBotAvatars = royaltyAvatars.filter(
+    (av) => av.id !== selectedAvatar?.id
+  );
+
+  updateSilhouettesInContainer(
+    cpuSilhouettesContainer,
+    'cpu',
+    cpuCount,
+    null, // Pass null to use the list
+    availableBotAvatars
+  );
 }
+
 
 function syncCounterUI() {
   const humansMinusBtn = document.getElementById('humans-minus');
@@ -204,6 +198,7 @@ function syncCounterUI() {
 
   if (!totalPlayersInput || !cpuPlayersInput) return;
 
+  ensureSilhouetteContainers();
   const humans = parseInt(totalPlayersInput.value || '1', 10);
   const cpus = parseInt(cpuPlayersInput.value || '0', 10);
   const total = humans + cpus;
@@ -213,15 +208,6 @@ function syncCounterUI() {
     totalCountSpan.textContent = total.toString();
   }
 
-  totalPlayersInput.min = minHumans.toString();
-  totalPlayersInput.max = (4 - cpus).toString();
-  cpuPlayersInput.max = (4 - humans).toString();
-
-  setButtonDisabled(humansMinusBtn, humans <= minHumans);
-  setButtonDisabled(humansPlusBtn, total >= 4);
-  setButtonDisabled(cpusMinusBtn, cpus <= 0);
-  setButtonDisabled(cpusPlusBtn, total >= 4);
-
   updatePlayerSilhouettes();
   updateStartGameButton();
 }
@@ -230,30 +216,42 @@ function syncCounterUI() {
 function updateSilhouettesInContainer(
   container: HTMLElement,
   type: 'human' | 'cpu',
-  targetCount: number
+  targetCount: number,
+  icon: string | null,
+  iconList: AvatarItem[] = []
 ) {
-  const currentSilhouettes = container.querySelectorAll('.player-silhouette');
-  const currentCount = currentSilhouettes.length;
+  // Clear the container before re-rendering
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
 
-  if (currentCount < targetCount) {
-    // Add new silhouettes
-    for (let i = currentCount; i < targetCount; i++) {
-      const silhouette = createPlayerSilhouette(type, i);
+  if (targetCount === 0) return;
+
+  // If a specific icon is provided (for humans), use it
+  if (icon) {
+    for (let i = 0; i < targetCount; i++) {
+      const silhouette = createPlayerSilhouette(type, icon);
       container.appendChild(silhouette);
     }
-  } else if (currentCount > targetCount) {
-    // Remove excess silhouettes with animation
-    for (let i = currentCount - 1; i >= targetCount; i--) {
-      const silhouette = currentSilhouettes[i] as HTMLElement;
-      silhouette.classList.add('removing');
-      setTimeout(() => {
-        if (silhouette.parentNode) {
-          silhouette.parentNode.removeChild(silhouette);
-        }
-      }, 300); // Match animation duration
+  }
+  // Otherwise, use the list of icons (for CPUs)
+  else if (iconList.length > 0) {
+    for (let i = 0; i < targetCount; i++) {
+      // Cycle through the provided list of avatars
+      const avatar = iconList[i % iconList.length];
+      const silhouette = createPlayerSilhouette(type, avatar.icon);
+      container.appendChild(silhouette);
+    }
+  }
+  // Fallback for CPUs if list is somehow empty
+  else if (type === 'cpu') {
+    for (let i = 0; i < targetCount; i++) {
+      const silhouette = createPlayerSilhouette(type, '💂');
+      container.appendChild(silhouette);
     }
   }
 }
+
 
 // Validation functions that only check, don't show messages
 function validatePlayerCounts(): { isValid: boolean; message: string } {
@@ -291,11 +289,13 @@ function validatePlayerCounts(): { isValid: boolean; message: string } {
   return { isValid: true, message: '' };
 }
 
-function validateNameInput(): {
+interface NameValidationResult {
   isValid: boolean;
   message: string;
   name: string;
-} {
+}
+
+function validateNameInput(): NameValidationResult {
   const nameInput = uiManager.getNameInput();
   if (!nameInput) {
     return { isValid: false, message: 'Name input not found.', name: '' };
@@ -315,6 +315,31 @@ function validateNameInput(): {
     };
   }
   return { isValid: true, message: '', name };
+}
+
+function ensureSilhouetteContainers() {
+  let humanSilhouettesContainer = document.getElementById('human-silhouettes');
+  let cpuSilhouettesContainer = document.getElementById('cpu-silhouettes');
+  if (!humanSilhouettesContainer) {
+    const parent = document.querySelector('.player-section--users');
+    if (parent) {
+      const div = document.createElement('div');
+      div.id = 'human-silhouettes';
+      div.className = 'player-silhouettes';
+      parent.appendChild(div);
+      console.debug('[Lobby] Created human-silhouettes container');
+    }
+  }
+  if (!cpuSilhouettesContainer) {
+    const parent = document.querySelector('.player-section--bots');
+    if (parent) {
+      const div = document.createElement('div');
+      div.id = 'cpu-silhouettes';
+      div.className = 'player-silhouettes';
+      parent.appendChild(div);
+      console.debug('[Lobby] Created cpu-silhouettes container');
+    }
+  }
 }
 
 function validateRoomCodeInput(): {
@@ -408,7 +433,6 @@ function initializeCounterButtons() {
     cpusPlusBtn.onclick = () => {
       const current = parseInt(cpuPlayersInput?.value || '0', 10);
       const humans = parseInt(totalPlayersInput?.value || '1', 10);
-      const total = current + humans;
 
       if (current + humans < 4) {
         cpuPlayersInput.value = (current + 1).toString();
@@ -451,39 +475,72 @@ function applySpectatorMode(): void {
 // Initialize the Avatar Picker
 function initializeAvatarPicker() {
   const grid = document.getElementById('avatar-grid');
-  const input = document.getElementById('selected-avatar') as HTMLInputElement;
-  
-  if (!grid || !input) return;
-  
-  // Import avatars from shared module
-  import('../../src/shared/avatars.js').then(({ ROYALTY_AVATARS }) => {
-    grid.innerHTML = '';
-    
-    ROYALTY_AVATARS.forEach((av, index) => {
-      const el = document.createElement('div');
-      el.className = 'avatar-option';
-      if (index === 0) el.classList.add('selected'); // Select first by default
-      el.textContent = av.icon;
-      el.title = av.label;
-      el.onclick = () => {
-        // Deselect all
-        grid.querySelectorAll('.avatar-option').forEach(d => d.classList.remove('selected'));
-        // Select this
-        el.classList.add('selected');
-        input.value = av.icon;
-      };
-      grid.appendChild(el);
-    });
-  }).catch(err => {
-    console.error('Failed to load avatars:', err);
+  if (!grid) return;
+
+  grid.innerHTML = ''; // Clear existing options
+
+  royaltyAvatars.forEach((av) => {
+    const el = document.createElement('div');
+    el.className = 'avatar-option';
+    el.textContent = av.icon;
+    el.title = av.label;
+
+    // Set initial selected state
+    if (selectedAvatar && selectedAvatar.id === av.id) {
+      el.classList.add('selected');
+    }
+
+    el.onclick = () => {
+      // Update state
+      selectedAvatar = av;
+
+      // Update UI
+      grid
+        .querySelectorAll('.avatar-option')
+        .forEach((opt) => opt.classList.remove('selected'));
+      el.classList.add('selected');
+
+      // Re-render silhouettes with the new avatar
+      updatePlayerSilhouettes();
+    };
+    grid.appendChild(el);
   });
 }
 
-export async function initializePageEventListeners() {
+/**
+ * Main entry point for initializing the lobby.
+ * Pre-loads avatar data and then sets up all event listeners.
+ */
+export async function initializeLobby() {
+  console.log('🚀 [events.ts] Initializing lobby...');
+  try {
+    const avatarModule = await import('../../src/shared/avatars.js');
+    royaltyAvatars = avatarModule.ROYALTY_AVATARS;
+    defaultAvatar = royaltyAvatars.find((a) => a.id === 'king') || royaltyAvatars[0];
+    selectedAvatar = defaultAvatar;
+
+    console.log('✅ Avatars loaded successfully.');
+
+    // Now that data is ready, initialize the rest of the page
+    initializePageEventListeners();
+  } catch (err) {
+    console.error('🚨 Failed to load critical avatar data. Lobby may not function correctly.', err);
+    // Still attempt to initialize the page, but avatars will be broken.
+    initializePageEventListeners();
+  }
+}
+
+
+export function initializePageEventListeners() {
   console.log('🚀 [events.ts] initializePageEventListeners called!');
 
   // Initialize avatar picker
   initializeAvatarPicker();
+  syncCounterUI();
+  // Ensure silhouettes render after DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    updatePlayerSilhouettes();
+  });
 
   // Only setup modal buttons now (header buttons removed)
   const setupRulesButton = document.getElementById('setup-rules-button');
@@ -888,9 +945,6 @@ async function handleDealClick() {
 
   state.setDesiredCpuCount(numCPUs);
 
-  const avatarInput = document.getElementById('selected-avatar') as HTMLInputElement;
-  const selectedAvatar = avatarInput ? avatarInput.value : '🤴';
-
   const playerDataForEmit: {
     playerName: string;
     avatar?: string;
@@ -898,8 +952,8 @@ async function handleDealClick() {
     numCPUs: number;
     spectator?: boolean;
   } = {
-    playerName: name, // changed from 'name' to 'playerName' for JoinGamePayload
-    avatar: selectedAvatar, // SEND AVATAR
+    playerName: name,
+    avatar: selectedAvatar?.icon || defaultAvatar?.icon || '🤴',
     numHumans: numHumans,
     numCPUs: numCPUs,
   };
@@ -1030,6 +1084,7 @@ async function handleDevRestart() {
     playerName: myName,
     numHumans: numHumans,
     numCPUs: numCPUs,
+    avatar: selectedAvatar?.icon || defaultAvatar?.icon || '🤴',
   };
 
   console.log('[DEV] Creating new game with:', playerData);
@@ -1082,13 +1137,10 @@ async function handleJoinGameClick() {
   state.setCurrentRoom(code);
   state.saveSession();
   
-  const avatarInput = document.getElementById('selected-avatar') as HTMLInputElement;
-  const selectedAvatar = avatarInput ? avatarInput.value : '🤴';
-  
   const joinPayload = {
     roomId: code,
     playerName: name,
-    avatar: selectedAvatar, // SEND AVATAR
+    avatar: selectedAvatar?.icon || defaultAvatar?.icon || '🤴',
     numHumans: 1,
     numCPUs: 0,
   };
@@ -1142,5 +1194,6 @@ function hideRulesModalAndOverlay() {
 
   console.log('✅ Rules modal closed, lobby restored');
 }
+
 
 export { handleRulesClick, hideRulesModalAndOverlay };

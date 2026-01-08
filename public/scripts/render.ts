@@ -42,6 +42,16 @@ const ICON_PATHS = {
   invalid: invalidIconUrl,
 };
 
+// Set header logo if present (use imported logoUrl so Vite can hash it)
+if (typeof document !== 'undefined') {
+  const headerLogo = document.getElementById('site-logo') as HTMLImageElement | null;
+  if (headerLogo) {
+    headerLogo.src = logoUrl;
+    headerLogo.onload = () => console.log('Logo loaded successfully:', headerLogo.src);
+    headerLogo.onerror = () => console.error('Logo failed to load:', headerLogo.src);
+  }
+}
+
 // Preload the card back logo to prevent empty card backs
 let logoPreloaded = false;
 

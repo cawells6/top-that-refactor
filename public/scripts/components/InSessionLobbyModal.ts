@@ -170,16 +170,39 @@ export class InSessionLobbyModal {
       const playerEl = document.createElement('div');
       playerEl.className = 'player-item';
       playerEl.setAttribute('role', 'listitem');
-      const label = player.name + (player.id === state.myId ? ' (You)' : '');
-      playerEl.textContent = label;
 
+      // Avatar element
+      const avatarEl = document.createElement('div');
+      avatarEl.className = 'player-avatar';
+
+      if (player.avatar) {
+        const emojiDiv = document.createElement('div');
+        emojiDiv.className = 'emoji-avatar';
+        emojiDiv.textContent = player.avatar;
+        avatarEl.appendChild(emojiDiv);
+      } else {
+        const img = document.createElement('img');
+        img.src = player.isComputer ? '/assets/robot.svg' : '/assets/Player.svg';
+        img.alt = 'avatar';
+        avatarEl.appendChild(img);
+      }
+
+      // Name / label
+      const labelWrap = document.createElement('div');
+      labelWrap.className = 'player-meta';
+      const nameEl = document.createElement('div');
+      nameEl.className = 'player-name';
+      nameEl.textContent = player.name + (player.id === state.myId ? ' (You)' : '');
+      labelWrap.appendChild(nameEl);
+
+      // Badges (spectator / host)
       if (player.isSpectator) {
         playerEl.classList.add('spectator');
         const spectatorBadge = document.createElement('span');
         spectatorBadge.textContent = 'Spectator';
         spectatorBadge.className = 'spectator-badge';
         spectatorBadge.setAttribute('aria-label', 'Spectator');
-        playerEl.appendChild(spectatorBadge);
+        labelWrap.appendChild(spectatorBadge);
       }
 
       if (player.id === lobbyState.hostId) {
@@ -187,8 +210,13 @@ export class InSessionLobbyModal {
         hostBadge.textContent = 'Host';
         hostBadge.className = 'host-badge';
         hostBadge.setAttribute('aria-label', 'Host player');
-        playerEl.appendChild(hostBadge);
+        labelWrap.appendChild(hostBadge);
       }
+
+      // Build player element: left side avatar + name, right side badges (kept in labelWrap)
+      playerEl.appendChild(avatarEl);
+      playerEl.appendChild(labelWrap);
+
       this.playersContainer.appendChild(playerEl);
     });
 

@@ -227,8 +227,8 @@ body.showing-game #game-rules-button {
 }
 
 .player-avatar {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%; /* Circular avatar */
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -239,8 +239,8 @@ body.showing-game #game-rules-button {
 }
 
 .player-avatar img {
-  width: 70%;
-  height: 70%;
+  width: 90%;
+  height: 90%;
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }

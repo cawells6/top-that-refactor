@@ -41,9 +41,11 @@
   flex-grow: 1;
   font-weight: bold;
   font-family: monospace;
-  font-size: 1.2rem;
-  padding: 4px 8px;
-  margin-right: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: center;
+  display: block;
   border: 1px solid var(--input-border, #bbb);
   border-radius: 4px;
   background-color: #fff;
@@ -179,13 +181,15 @@
 
 .avatar-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   gap: 12px;
   margin-bottom: 20px;
   padding: 10px;
   background: rgba(0,0,0,0.05);
   border-radius: 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .avatar-option {
@@ -213,4 +217,78 @@
   border-color: #ffc300;
   box-shadow: 0 0 0 2px #ffc300;
   transform: scale(1.15);
+}
+
+.players-section {
+  margin: 1.5rem 0;
+}
+.players-grid {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.player-slot {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 1rem 1.2rem;
+  min-width: 120px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+.player-slot.you {
+  border: 2px solid #ffc300;
+}
+.player-slot.bot {
+  border: 2px solid #bbb;
+}
+.player-slot .player-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+.player-slot .avatar-picker {
+  margin-top: 0.5rem;
+}
+
+/* Player item avatar sizing inside the in-session lobby modal */
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.player-item .player-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+.player-item .player-avatar img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+
+.player-item .player-avatar .emoji-avatar {
+  font-size: 2.6rem; /* Larger emoji in lobby */
+  line-height: 1;
+}
+
+/* Remove silhouette styles */
+.player-silhouettes, #human-silhouettes, #cpu-silhouettes {
+  display: none !important;
 }

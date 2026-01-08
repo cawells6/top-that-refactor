@@ -27,8 +27,7 @@
 
     <!-- Google Fonts for logo-style section titles and rules typography -->
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Luckiest+Guy&family=Outfit:wght@600;700&family=Source+Sans+3:wght@500;600;700&family=Source+Serif+4:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="preload" as="image" href="/assets/Player.svg">
-    <link rel="preload" as="image" href="/assets/robot.svg">
+    <!-- Preload tags removed; assets are imported and set via JS for proper Vite hashing -->
 
     <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />
@@ -92,38 +91,98 @@
             <div class="setup-header">
               <!-- Logo using noslogan.svg -->
               <div class="header-logo">
-                <img
-                  src="/src/shared/logov2.svg?v=2024"
-                  alt="Top That! Logo"
-                  onload="console.log('Logo loaded successfully:', this.src);"
-                  onerror="console.error('Logo failed to load:', this.src);"
-                />
+                <img id="site-logo" src="" alt="Top That! Logo" />
               </div>
             </div>
 
             <form id="lobby-form" autocomplete="off">
-              <!-- Player Name Input -->
-              <div class="name-input-section">
-                <label class="section-title section-title--input" for="player-name-input">
-                  WHO'S PLAYING TODAY?
-                </label>
-                <input
-                  type="text"
-                  id="player-name-input"
-                  placeholder=""
-                  maxlength="20"
-                  required
-                />
-              </div>
+                            <!-- Player Name Input -->
+                            <div class="name-input-section">
+                              <label class="section-title section-title--input" for="player-name-input">
+                                WHO'S PLAYING TODAY?
+                              </label>
+                              <input
+                                type="text"
+                                id="player-name-input"
+                                placeholder=""
+                                maxlength="20"
+                                required
+                              />
+                            </div>
 
-              <!-- Avatar Selection -->
-              <div class="avatar-selection-section">
-                <label class="section-title">CHOOSE YOUR AVATAR</label>
-                <div class="avatar-grid" id="avatar-grid">
-                  <!-- Avatars will be dynamically added here -->
-                </div>
-                <input type="hidden" id="selected-avatar" value="🤴" />
-              </div>
+                            <!-- Avatar Selection -->
+                            <div class="avatar-selection-section">
+                              <label class="section-title">CHOOSE YOUR AVATAR</label>
+                              <div class="avatar-grid" id="avatar-grid">
+                                <!-- Avatars will be dynamically added here -->
+                              </div>
+                              
+                            </div>
+
+                            <div class="player-selection player-selection--host">
+                              <!-- Human Players Section -->
+                              <div class="player-section player-section--users">
+                                <h3 class="section-title">USERS</h3>
+                                <div class="player-counter">
+                                  <button
+                                    type="button"
+                                    class="counter-btn"
+                                    id="humans-minus"
+                                    data-target="total-players-input"
+                                  >
+                                    -
+                                  </button>
+                                  <input
+                                    type="number"
+                                    id="total-players-input"
+                                    min="1"
+                                    max="4"
+                                    value="1"
+                                    readonly
+                                  />
+                                  <button
+                                    type="button"
+                                    class="counter-btn"
+                                    id="humans-plus"
+                                    data-target="total-players-input"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <!-- Dynamic Human Player Silhouettes -->
+                                <div class="player-silhouettes" id="human-silhouettes">
+                                  <!-- Silhouettes will be dynamically added/removed here -->
+                                </div>
+                              </div>
+
+                              <!-- Bots Players Section -->
+                              <div class="player-section player-section--bots">
+                                <h3 class="section-title">BOTS</h3>
+                                <div class="player-counter">
+                                  <button
+                                    type="button"
+                                    class="counter-btn"
+                                    id="cpus-minus"
+                                    data-target="cpu-players-input"
+                                  >
+                                    -
+                                  </button>
+                                  <input type="number" id="cpu-players-input" min="0" value="1" readonly />
+                                  <button
+                                    type="button"
+                                    class="counter-btn"
+                                    id="cpus-plus"
+                                    data-target="cpu-players-input"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <!-- Dynamic Bots Player Silhouettes -->
+                                <div class="player-silhouettes" id="cpu-silhouettes">
+                                  <!-- Silhouettes will be dynamically added/removed here -->
+                                </div>
+                              </div>
+                            </div>
 
               <div class="lobby-tabs" role="tablist" aria-label="Lobby mode">
                 <button
@@ -158,68 +217,7 @@
 
               <div class="lobby-tab-panel lobby-tab-panel--host is-active" data-tab-panel="host">
                 <div class="player-selection player-selection--host">
-                  <!-- Human Players Section -->
-                  <div class="player-section player-section--users">
-                    <h3 class="section-title">USERS</h3>
-                    <div class="player-counter">
-                      <button
-                        type="button"
-                        class="counter-btn"
-                        id="humans-minus"
-                        data-target="total-players-input"
-                      >
-                        -
-                      </button>
-                      <input
-                        type="number"
-                        id="total-players-input"
-                        min="1"
-                        max="4"
-                        value="1"
-                        readonly
-                      />
-                      <button
-                        type="button"
-                        class="counter-btn"
-                        id="humans-plus"
-                        data-target="total-players-input"
-                      >
-                        +
-                      </button>
-                    </div>
-                    <!-- Dynamic Human Player Silhouettes -->
-                    <div class="player-silhouettes" id="human-silhouettes">
-                      <!-- Silhouettes will be dynamically added/removed here -->
-                    </div>
-                  </div>
-
-                  <!-- Bots Players Section -->
-                  <div class="player-section player-section--bots">
-                    <h3 class="section-title">BOTS</h3>
-                    <div class="player-counter">
-                      <button
-                        type="button"
-                        class="counter-btn"
-                        id="cpus-minus"
-                        data-target="cpu-players-input"
-                      >
-                        -
-                      </button>
-                      <input type="number" id="cpu-players-input" min="0" value="1" readonly />
-                      <button
-                        type="button"
-                        class="counter-btn"
-                        id="cpus-plus"
-                        data-target="cpu-players-input"
-                      >
-                        +
-                      </button>
-                    </div>
-                    <!-- Dynamic Bots Player Silhouettes -->
-                    <div class="player-silhouettes" id="cpu-silhouettes">
-                      <!-- Silhouettes will be dynamically added/removed here -->
-                    </div>
-                  </div>
+                  <!-- Merged player controls (humans/bots) will be handled in JS -->
                 </div>
                 <div class="lobby-buttons-row">
                   <button id="setup-tutorial-button" class="header-btn" type="button" style="background-color: #6fb4ff;">TUTORIAL</button>
