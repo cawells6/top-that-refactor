@@ -247,10 +247,10 @@ const seatAccents: Record<string, string> = {
 
 function getCardIconType(card: CardType): string | null {
   if (card.back) return null;
-  const val = String(card.value);
-  if (val === '2') return 'two';
-  if (val === '5') return 'five';
-  if (val === '10') return 'ten';
+  const val = normalizeCardValue(card.value);
+  if (val === 'two') return 'two';
+  if (val === 'five') return 'five';
+  if (val === 'ten') return 'ten';
   return null;
 }
 
@@ -528,11 +528,11 @@ function updateCenterArea(
       if (shouldShowCopyShingle) {
         const belowCard = pile[pile.length - 2];
 
-        const belowEl = cardImg(belowCard, false, undefined, false, false);
+        const belowEl = cardImg(belowCard, false, undefined, true, false);
         belowEl.id = 'pile-below-card';
         belowEl.classList.add('pile-shingle', 'pile-shingle--below');
 
-        const topEl = cardImg(topCard, false, undefined, false, false);
+        const topEl = cardImg(topCard, false, undefined, true, false);
         topEl.id = 'pile-top-card';
         topEl.classList.add('pile-shingle', 'pile-shingle--top');
 
@@ -540,8 +540,27 @@ function updateCenterArea(
         playStack.appendChild(belowEl);
         playStack.appendChild(topEl);
       } else {
-        const topEl = cardImg(topCard, false, undefined, false, false);
+        const normalizedTopValue = normalizeCardValue(topCard.value);
+        const isStarterSpecial =
+          pile.length === 1 &&
+          (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
+
+        const topEl = cardImg(topCard, false, undefined, true, false);
         topEl.id = 'pile-top-card';
+
+        if (isStarterSpecial) {
+          topEl.classList.add('card-container--special-inactive');
+
+          const note = document.createElement('div');
+          note.className = 'card-ability-note';
+          note.textContent = normalizedTopValue === 'five' ? 'NO COPY' : 'NO BURN';
+          topEl.appendChild(note);
+
+          topEl.title =
+            normalizedTopValue === 'five'
+              ? "No card beneath to copy. This 5 plays like a normal 5."
+              : "Starter 10s don't burn the pile. This 10 plays like a normal 10.";
+        }
 
         playStack.classList.remove('pile-multiple');
         playStack.appendChild(topEl);
@@ -865,7 +884,7 @@ export function renderPlayedCards(cards: CardType[]): void {
   playStack.innerHTML = '';
   playStack.classList.remove('pile-multiple');
   const topCard = cards[cards.length - 1];
-  const cardEl = cardImg(topCard, false, undefined, false);
+  const cardEl = cardImg(topCard, false, undefined, true);
   cardEl.id = 'pile-top-card';
   playStack.appendChild(cardEl);
 }

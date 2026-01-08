@@ -6,6 +6,8 @@ import { ANIMATIONS_COMPLETE } from '../../src/shared/events.js';
 const DEAL_INTERVAL_MS = 100; 
 const FLIGHT_DURATION_MS = 600; 
 const PHASE_PAUSE_MS = 400; 
+const START_OVERLAY_AUTO_DISMISS_MS = 8000;
+const START_OVERLAY_FADE_MS = 180;
 
 export async function performOpeningDeal(gameState: GameStateData, myPlayerId: string): Promise<void> {
     try {
@@ -91,10 +93,7 @@ export async function performOpeningDeal(gameState: GameStateData, myPlayerId: s
         
         // FINAL COMMIT: This makes all cards "stick" and restores normal UI behavior
         renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
-        
-        // Wait an extra second before showing the "LET'S GO!" overlay
-        await wait(1000);
-        
+
         await showStartOverlay();
     } catch (err) {
         console.error('[DealingAnimation] Opening deal animation failed:', err);
@@ -259,34 +258,77 @@ async function animatePlayToDraw(gameState: GameStateData) {
 }
 
 async function showStartOverlay() {
+    const existing = document.getElementById('game-start-overlay');
+    existing?.remove();
+
     const overlay = document.createElement('div');
-    Object.assign(overlay.style, {
-        position: 'fixed', top: '0', left: '0', right: '0', bottom: '0',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: '10000', pointerEvents: 'none',
-        background: 'radial-gradient(circle, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 70%)'
-    });
+    overlay.id = 'game-start-overlay';
+    overlay.className = 'game-start-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-label', 'Game start prompt');
 
-    const text = document.createElement('h1');
-    text.textContent = "LET'S GO!";
-    Object.assign(text.style, {
-        color: '#ffe94d', fontSize: '5rem', fontFamily: 'Impact, sans-serif',
-        textTransform: 'uppercase', textShadow: '0 0 30px rgba(255,233,77,0.9), 0 0 50px rgba(255,195,0,0.7)',
-        transform: 'scale(0)', transition: 'transform 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67)'
-    });
+    const card = document.createElement('div');
+    card.className = 'game-start-overlay__card';
 
-    overlay.appendChild(text);
+    const title = document.createElement('div');
+    title.className = 'game-start-overlay__title';
+    title.textContent = 'Ready?';
+
+    const hint = document.createElement('div');
+    hint.className = 'game-start-overlay__hint';
+    hint.textContent = "Click anywhere to start";
+
+    card.appendChild(title);
+    card.appendChild(hint);
+    overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-    requestAnimationFrame(() => text.style.transform = 'scale(1.2)');
+    // Small entrance cue + audio sting (kept subtle by the new UI).
+    requestAnimationFrame(() => overlay.classList.add('is-visible'));
     SoundManager.play('game-start');
-    await wait(800);
-    
-    text.style.opacity = '0';
-    text.style.transform = 'scale(2)';
-    overlay.style.opacity = '0';
-    overlay.style.transition = 'opacity 0.3s ease';
-    
-    await wait(300);
+
+    await new Promise<void>((resolve) => {
+        let done = false;
+        let timeoutId: number | null = null;
+
+        function cleanup() {
+            overlay.removeEventListener('pointerdown', onStart);
+            overlay.removeEventListener('click', onStart);
+            window.removeEventListener('keydown', onKeyDown);
+            if (timeoutId !== null) {
+                window.clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        }
+
+        function finish() {
+            if (done) return;
+            done = true;
+            cleanup();
+            resolve();
+        }
+
+        function onStart(event: Event) {
+            event.preventDefault();
+            event.stopPropagation();
+            finish();
+        }
+
+        function onKeyDown(event: KeyboardEvent) {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            event.stopPropagation();
+            finish();
+        }
+
+        overlay.addEventListener('pointerdown', onStart, { once: true });
+        overlay.addEventListener('click', onStart, { once: true });
+        window.addEventListener('keydown', onKeyDown);
+
+        timeoutId = window.setTimeout(() => finish(), START_OVERLAY_AUTO_DISMISS_MS);
+    });
+
+    overlay.classList.add('is-hiding');
+    await wait(START_OVERLAY_FADE_MS);
     overlay.remove();
 }

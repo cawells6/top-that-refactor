@@ -1537,3 +1537,87 @@
 
 /* Ensure the forced down cards still look distinct if needed, 
    but they will also be dimmed by the parent rule above */
+
+/* Game start overlay (post-opening-deal prompt) */
+.game-start-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    background: radial-gradient(circle at 50% 40%, rgba(15, 23, 42, 0.72) 0%, rgba(15, 23, 42, 0.35) 55%, rgba(15, 23, 42, 0) 78%);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.game-start-overlay.is-visible {
+    opacity: 1;
+}
+
+.game-start-overlay.is-hiding {
+    opacity: 0;
+}
+
+.game-start-overlay__card {
+    pointer-events: none;
+    width: min(420px, 100%);
+    padding: 1.25rem 1.35rem;
+    border-radius: 16px;
+    border: 3px solid #ffc300;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.97) 0%, rgba(254, 249, 240, 0.97) 100%);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 195, 0, 0.2);
+    text-align: center;
+    transform: translateY(10px) scale(0.98);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.game-start-overlay.is-visible .game-start-overlay__card {
+    transform: translateY(0) scale(1);
+}
+
+.game-start-overlay__title {
+    font-size: 1.7rem;
+    font-weight: 900;
+    margin: 0;
+    background: linear-gradient(135deg, #f6c556 0%, #f39c12 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: none;
+}
+
+.game-start-overlay__hint {
+    margin-top: 0.55rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1b2e3c;
+    opacity: 0.92;
+}
+
+@media (max-width: 600px) {
+    .game-start-overlay__card {
+        padding: 1.05rem 1.1rem;
+        border-radius: 14px;
+    }
+
+    .game-start-overlay__title {
+        font-size: 1.45rem;
+    }
+
+    .game-start-overlay__hint {
+        font-size: 1rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-start-overlay,
+    .game-start-overlay__card {
+        transition: none !important;
+    }
+}
