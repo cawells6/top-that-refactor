@@ -12,7 +12,12 @@
     /* Table positioning */
     --table-margin-top: 0;
     --main-content-padding-top: 0;
-    
+
+    /* Table frame */
+    --table-border-width: 22px;
+    --table-border-radius: 150px;
+    --table-inner-radius: 130px;
+     
     /* Table spacing - vertical (between player areas) */
     --table-row-gap-min: 12px;
     --table-row-gap-preferred: 1.8vh;
@@ -43,7 +48,7 @@
         ". top ."
         "left center right"
         "bottom bottom bottom";
-    grid-template-columns: 260px auto 260px;
+    grid-template-columns: clamp(180px, 18vw, 260px) auto clamp(180px, 18vw, 260px);
     grid-template-rows: auto auto auto;
     justify-content: center;
     align-content: center;
@@ -55,10 +60,10 @@
     max-height: 100vh;
     margin: 0 auto;
     padding: clamp(var(--table-padding-vertical-min), var(--table-padding-vertical-preferred), var(--table-padding-vertical-max)) clamp(var(--table-padding-horizontal-min), var(--table-padding-horizontal-preferred), var(--table-padding-horizontal-max));
-    border: 22px solid var(--wood-color);
+    border: var(--table-border-width) solid var(--wood-color);
     border-top-color: #5d3016;
     border-bottom-color: #381c0d;
-    border-radius: 150px;
+    border-radius: var(--table-border-radius);
     background-color: var(--felt-color);
     background-image: url('../assets/felt-texture.svg');
     background-repeat: repeat;
@@ -70,26 +75,25 @@
         0 2px 2px rgba(255, 255, 255, 0.1);
     box-sizing: border-box;
     position: relative;
+    overflow: hidden;
+}
+
+.table[data-player-count="2"] {
+    grid-template-areas:
+        "top"
+        "center"
+        "bottom";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    column-gap: 0;
+}
+
+.table[data-player-count="2"] #opponent-area-left,
+.table[data-player-count="2"] #opponent-area-right {
+    display: none;
 }
 
 @media (min-width: 1025px) {
-    .table[data-player-count="2"] {
-        grid-template-areas:
-            "top top top"
-            "left center right"
-            "bottom bottom bottom";
-        grid-template-rows: auto auto auto;
-        align-content: center;
-    }
-
-    .table[data-player-count="2"] #opponent-area-left {
-        display: none;
-    }
-
-    .table[data-player-count="2"] #opponent-area-right {
-        display: none;
-    }
-
     .table[data-player-count="3"] {
         --table-row-gap-min: 12px;
         --table-row-gap-preferred: 2.2vh;
@@ -147,7 +151,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    border-radius: 130px;
+    border-radius: var(--table-inner-radius);
     background: radial-gradient(
         circle at 50% 50%,
         transparent 45%,
@@ -287,10 +291,15 @@
 }
 
 @media (max-width: 768px) {
+    :root {
+        --table-border-width: 8px;
+        --table-border-radius: 90px;
+        --table-inner-radius: 82px;
+    }
+
     .table {
         gap: 1rem;
         width: 100vw;
-        border-width: 8px;
     }
 
     .center-piles {
@@ -300,6 +309,46 @@
 
     #game-table .pile-name {
         font-size: 1.1rem;
+    }
+}
+
+@media (max-height: 900px) and (min-width: 769px) {
+    :root {
+        --table-border-width: 18px;
+
+        --table-row-gap-min: 8px;
+        --table-row-gap-preferred: 1.2vh;
+        --table-row-gap-max: 24px;
+
+        --table-column-gap-min: 56px;
+        --table-column-gap-preferred: 6vw;
+        --table-column-gap-max: 120px;
+
+        --table-padding-vertical-min: 2.25rem;
+        --table-padding-vertical-preferred: 3.2vh;
+        --table-padding-vertical-max: 3.25rem;
+
+        --table-padding-horizontal-min: 3.5rem;
+        --table-padding-horizontal-preferred: 6vw;
+        --table-padding-horizontal-max: 6rem;
+    }
+
+    .center-piles {
+        padding: 1rem 1.6rem;
+        gap: 2rem;
+    }
+
+    .player-area {
+        padding: 0.85rem;
+    }
+
+    .player-area > .player-zone,
+    .player-area > .player-actions {
+        padding: 0.25rem 0.45rem;
+    }
+
+    #game-table .player-actions {
+        margin-top: 6px;
     }
 }
 

@@ -550,16 +550,6 @@ function updateCenterArea(
 
         if (isStarterSpecial) {
           topEl.classList.add('card-container--special-inactive');
-
-          const note = document.createElement('div');
-          note.className = 'card-ability-note';
-          note.textContent = normalizedTopValue === 'five' ? 'NO COPY' : 'NO BURN';
-          topEl.appendChild(note);
-
-          topEl.title =
-            normalizedTopValue === 'five'
-              ? "No card beneath to copy. This 5 plays like a normal 5."
-              : "Starter 10s don't burn the pile. This 10 plays like a normal 10.";
         }
 
         playStack.classList.remove('pile-multiple');
@@ -952,10 +942,12 @@ function applyHandCompression(
   ) as HTMLDivElement | null;
   if (!firstCard) return;
 
-  const panelStyles = window.getComputedStyle(panel);
-  const paddingLeft = parseFloat(panelStyles.paddingLeft) || 0;
-  const paddingRight = parseFloat(panelStyles.paddingRight) || 0;
-  const availableWidth = panel.clientWidth - paddingLeft - paddingRight;
+  const widthHost = (handTray ?? handRow) as HTMLElement;
+  const hostStyles = window.getComputedStyle(widthHost);
+  const paddingLeft = parseFloat(hostStyles.paddingLeft) || 0;
+  const paddingRight = parseFloat(hostStyles.paddingRight) || 0;
+  const availableWidth = widthHost.clientWidth - paddingLeft - paddingRight;
+  if (availableWidth <= 0) return;
 
   const cardWidth = firstCard.getBoundingClientRect().width;
   if (cardWidth === 0) return; // Not rendered yet

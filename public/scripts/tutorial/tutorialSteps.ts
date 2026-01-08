@@ -131,7 +131,7 @@ export const tutorialSteps: StepConfig[] = [
     id: 'SPECIAL_FIVE',
     title: 'Special Card: The Copycat',
     instruction:
-      "The 5 is a shapeshifter. It copies whatever's on top of the pile! Right now there's a 2, so your 5 becomes a 2. A cunning tactic! <strong>Play your 5</strong> and watch it transform!",
+      "The 5 is a shapeshifter. It copies whatever's on top of the pile! Right now there's a 2, so your 5 becomes a 2. A cunning tactic! <strong>Play your 5</strong> and watch it transform!<br><br><strong>Note:</strong> If the pile is empty, the 5 has nothing to copy and plays like a normal 5.",
     scenario: {
       myHand: ['5H', '3D', '7C'],
       pile: ['2S'],
@@ -147,7 +147,7 @@ export const tutorialSteps: StepConfig[] = [
     id: 'SPECIAL_TEN',
     title: 'Special Card: Burn the Pile',
     instruction:
-      'The 10 is pure destruction. It burns the pile and those cards are removed from the game entirely! <strong>Unleash your 10</strong> and watch it all burn!',
+      "The 10 is pure destruction. It burns the pile and those cards are removed from the game entirely! <strong>Unleash your 10</strong> and watch it all burn!<br><br><strong>Note:</strong> If a 10 starts a fresh pile, it won't burn anything.",
     scenario: {
       myHand: ['10H', '3D', '4S'],
       pile: ['9S', '9H'],
