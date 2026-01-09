@@ -2,7 +2,6 @@
 import js from '@eslint/js';
 import parser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
-import prettierPlugin from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
 import originalGlobals from 'globals'; // Import original globals
 import importPlugin from 'eslint-plugin-import'; // Preserving import plugin
@@ -36,7 +35,10 @@ export default [
       '**/*.d.ts', // Ignore all TypeScript declaration files
       '.eslintrc.js', // Ignore old ESLint config file
       'vite.config.ts*.timestamp-*',
+      '.vite/',
       'public/scripts/**/*.js', // JS files in public/scripts handled by their own block
+      'src/game/GameManager.js', // Placeholder legacy file (not used in runtime)
+      'src/network/GameConnection.js', // Placeholder legacy file (not used in runtime)
       'shared/eslint.config.js', // Ignore this file as it uses CommonJS syntax
     ],
   },
@@ -61,11 +63,9 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      prettier: prettierPlugin,
     },
     rules: {
       // More lenient rules since we're not using typed linting for this file
-      'prettier/prettier': 'error',
       'no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
     },
@@ -96,12 +96,10 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      prettier: prettierPlugin,
       import: importPlugin, // Preserved import plugin
       promise: promisePlugin, // Preserved promise plugin
     },
     rules: {
-      'prettier/prettier': 'error',
       'no-unused-vars': 'off', // Use @typescript-eslint/no-unused-vars for TS
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -179,12 +177,10 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      prettier: prettierPlugin,
       import: importPlugin,
       promise: promisePlugin, // Added promise plugin
     },
     rules: {
-      'prettier/prettier': 'error',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
@@ -253,11 +249,7 @@ export default [
       sourceType: 'module', // Assuming client JS are modules
       ecmaVersion: 'latest',
     },
-    plugins: {
-      prettier: prettierPlugin,
-    },
     rules: {
-      'prettier/prettier': 'error',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // Updated
       'no-undef': 'error', // Browser globals should be exhaustive
     },
@@ -278,14 +270,28 @@ export default [
       sourceType: 'commonjs',
       ecmaVersion: 'latest',
     },
-    plugins: {
-      prettier: prettierPlugin,
-    },
     rules: {
-      'prettier/prettier': 'error',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // Updated
       'no-undef': 'error',
       'no-useless-escape': 'warn',
+    },
+  },
+
+  // 6a. Jest mocks (CommonJS)
+  {
+    files: ['__mocks__/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2021,
+        require: 'readonly',
+        module: 'readonly',
+      },
+      sourceType: 'commonjs',
+      ecmaVersion: 'latest',
+    },
+    rules: {
+      'no-undef': 'off',
     },
   },
 
@@ -301,11 +307,7 @@ export default [
       sourceType: 'module', // wait.js uses import/export
       ecmaVersion: 'latest',
     },
-    plugins: {
-      prettier: prettierPlugin,
-    },
     rules: {
-      'prettier/prettier': 'error',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }], // Updated
       'no-undef': 'error',
     },
@@ -326,11 +328,7 @@ export default [
       sourceType: 'module',
       ecmaVersion: 'latest',
     },
-    plugins: {
-      prettier: prettierPlugin,
-    },
     rules: {
-      'prettier/prettier': 'error',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-undef': 'error',
     },
@@ -355,7 +353,6 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      prettier: prettierPlugin,
     },
     rules: {
       // Specific Jest rules can go here

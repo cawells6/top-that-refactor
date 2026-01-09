@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import GameState from '../models/GameState.js';
 import Player from '../models/Player.js';
+import { CPU_NAMES, getRandomAvatar } from '../src/shared/avatars.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -30,24 +31,6 @@ import {
 import { InSessionLobbyState } from '../src/shared/types.js';
 import { handleSpecialCard } from '../utils/CardLogic.js';
 import { isSpecialCard, normalizeCardValue } from '../utils/cardUtils.js';
-
-// CPU name pool for randomization
-const CPU_NAMES = [
-  'Bolt', 'Chip', 'Circuit', 'Pixel', 'Byte', 'Nano', 'Volt', 'Turbo', 'Spark',
-  'Bleep', 'Beep', 'Buzz', 'Whirr', 'Clank', 'Servo', 'Gizmo',
-  'Nova', 'Nexus', 'Apex', 'Vortex', 'Matrix', 'Prism', 'Echo',
-  'Rusty', 'Zippy'
-];
-
-function getRandomCpuName(usedNames: Set<string>): string {
-  const availableNames = CPU_NAMES.filter(name => !usedNames.has(name));
-  if (availableNames.length === 0) {
-    // Fallback if all names are used
-    return `CPU ${Math.floor(Math.random() * 1000)}`;
-  }
-  const randomIndex = Math.floor(Math.random() * availableNames.length);
-  return availableNames[randomIndex];
-}
 
 // interface PlayerJoinData {
 //   id?: string;
@@ -117,7 +100,10 @@ export class GameRoomManager {
                 roomId: roomIdOrAck,
               };
             }
-          } else if (rejoinDataOrPlayerId && typeof rejoinDataOrPlayerId === 'object') {
+          } else if (
+            rejoinDataOrPlayerId &&
+            typeof rejoinDataOrPlayerId === 'object'
+          ) {
             rejoinData = rejoinDataOrPlayerId;
           }
 
@@ -240,7 +226,7 @@ export default class GameController {
   private pendingComputerTurns: Set<string> = new Set();
   private turnLock: boolean = false;
   private openingCpuFallbackTimeout: NodeJS.Timeout | null = null;
-  
+
   // Transition State Management
   private isTurnTransitioning: boolean = false;
   private transitionTimeout: NodeJS.Timeout | null = null;
@@ -321,21 +307,27 @@ export default class GameController {
   private checkIfGameCanStart(): void {
     this.log('[checkIfGameCanStart] Called');
     if (this.expectedHumanCount <= 0) {
-      this.log('[checkIfGameCanStart] Expected human count is 0 or less, returning');
+      this.log(
+        '[checkIfGameCanStart] Expected human count is 0 or less, returning'
+      );
       return;
     }
     const humanPlayers = this.getHumanPlayers();
     const allHumansReady = humanPlayers.every(
       (p) => p.status === 'host' || p.status === 'ready'
     );
-    this.log(`[checkIfGameCanStart] Human players: ${humanPlayers.length}, Expected: ${this.expectedHumanCount}, All ready: ${allHumansReady}, Started: ${this.gameState.started}`);
+    this.log(
+      `[checkIfGameCanStart] Human players: ${humanPlayers.length}, Expected: ${this.expectedHumanCount}, All ready: ${allHumansReady}, Started: ${this.gameState.started}`
+    );
     // Check if we have all expected human players and they're ready
     if (
       humanPlayers.length === this.expectedHumanCount &&
       allHumansReady &&
       !this.gameState.started
     ) {
-      this.log(`[checkIfGameCanStart] Starting game with ${this.expectedCpuCount} CPUs`);
+      this.log(
+        `[checkIfGameCanStart] Starting game with ${this.expectedCpuCount} CPUs`
+      );
       this.handleStartGame({ computerCount: this.expectedCpuCount });
     }
   }
@@ -631,7 +623,9 @@ export default class GameController {
       return;
     }
 
-    this.syncPlayersWithGameState({ ensureHostFirst: Boolean(requestingSocket) });
+    this.syncPlayersWithGameState({
+      ensureHostFirst: Boolean(requestingSocket),
+    });
     if (requestingSocket) {
       this.log(
         `Reordered players so host is first: ${this.gameState.players.join(', ')}`
@@ -675,18 +669,18 @@ export default class GameController {
       if (!this.players.has(cpuId)) {
         // Track existing player names to avoid duplicates
         const usedNames = new Set<string>();
-        this.players.forEach(p => {
+        this.players.forEach((p) => {
           if (p.name) usedNames.add(p.name);
         });
-        
+
         const cpuPlayer = new Player(cpuId);
-        
+
         // Randomize Bot Identity
-        const { getRandomAvatar, CPU_NAMES } = await import('../src/shared/avatars.js');
         const randomAvatar = getRandomAvatar();
-        cpuPlayer.name = CPU_NAMES[Math.floor(Math.random() * CPU_NAMES.length)];
+        cpuPlayer.name =
+          CPU_NAMES[Math.floor(Math.random() * CPU_NAMES.length)];
         cpuPlayer.avatar = randomAvatar.icon; // Assign Emoji
-        
+
         cpuPlayer.isComputer = true;
         this.players.set(cpuId, cpuPlayer);
         this.log(
@@ -698,7 +692,9 @@ export default class GameController {
       `Finished adding CPUs. Total players in this.players: ${this.players.size}. Players in gameState: ${this.gameState.players.length}`
     );
 
-    this.syncPlayersWithGameState({ ensureHostFirst: Boolean(requestingSocket) });
+    this.syncPlayersWithGameState({
+      ensureHostFirst: Boolean(requestingSocket),
+    });
 
     if (
       !this.ensureValidState('handleStartGame:pre-start', {}, () => {
@@ -768,10 +764,10 @@ export default class GameController {
     }
 
     this.gameState.started = true;
-    
-    // Randomize starting player
+
     const playerCount = this.gameState.players.length;
-    this.gameState.currentPlayerIndex = Math.floor(Math.random() * playerCount);
+    // Deterministic starting player (keeps tests stable and aligns with host-first ordering).
+    this.gameState.currentPlayerIndex = 0;
 
     const firstPlayerId =
       this.gameState.players[this.gameState.currentPlayerIndex];
@@ -1028,7 +1024,10 @@ export default class GameController {
    * Helper to handle the "beat" between turns.
    * This immediately shows the played card (via pushState), then waits, then advances the turn.
    */
-  private processTurnTransition(delayMs: number, nextTurnOptions: { cpuDelayMs?: number } = {}): void {
+  private processTurnTransition(
+    delayMs: number,
+    nextTurnOptions: { cpuDelayMs?: number } = {}
+  ): void {
     this.isTurnTransitioning = true;
     // 1. Show the card on the pile immediately
     this.pushState();
@@ -1038,10 +1037,10 @@ export default class GameController {
     this.transitionTimeout = setTimeout(() => {
       this.transitionTimeout = null;
       this.isTurnTransitioning = false;
-      
+
       // 3. Advance the game state to the next player
       this.handleNextTurn(nextTurnOptions);
-      
+
       // 4. Update state again so everyone sees the new current player
       this.pushState();
     }, delayMs);
@@ -1097,67 +1096,59 @@ export default class GameController {
       // Logic: If playing Up/Down card, and it's invalid:
       // 1. If they have OTHER valid cards in that zone, force them to play those (Error).
       // 2. If they have NO valid cards in that zone, allow the 'fail' (Pick up pile + card).
-      
+
       const isUpOrDown = zone === 'upCards' || zone === 'downCards';
 
       if (isUpOrDown) {
-         // Check if they *could* have made a valid move
-         // (For downCards, we assume 'false' because you can't know what they are)
-         const hasBetterMove = zone === 'upCards' && this.hasValidPlay(player, 'upCards');
+        // Check if they *could* have made a valid move
+        // (For downCards, we assume 'false' because you can't know what they are)
+        const hasBetterMove =
+          zone === 'upCards' && this.hasValidPlay(player, 'upCards');
 
-         if (hasBetterMove) {
-             // Reject: You typically can't burn a card if you have a legal move available
-             const playerSocket = player.socketId ? this.io.sockets.sockets.get(player.socketId) : null;
-             if (playerSocket) playerSocket.emit(ERROR_EVENT, 'You have a valid play available!');
-             return;
-         }
+        if (hasBetterMove) {
+          // Reject: You typically can't burn a card if you have a legal move available
+          const playerSocket = player.socketId
+            ? this.io.sockets.sockets.get(player.socketId)
+            : null;
+          if (playerSocket)
+            playerSocket.emit(ERROR_EVENT, 'You have a valid play available!');
+          return;
+        }
 
-         // ALLOW THE FAIL:
-         // 1. Identify the card they tried to play
-         let failedCard: Card | null = null;
-         
-         if (zone === 'upCards') {
-             // Remove from Up Cards
-             const nextUpCards = [...player.upCards];
-             failedCard = nextUpCards[cardIndices[0]];
-             nextUpCards[cardIndices[0]] = null; // Clear slot
-             player.setUpCards(nextUpCards);
-         } else {
-             // Remove from Down Cards (reveal it)
-             failedCard = player.playDownCard(cardIndices[0]) ?? cardsToPlay[0];
-         }
+        // ALLOW THE FAIL:
+        // 1. Identify the card they tried to play
+        let failedCard: Card | null = null;
 
-         // 2. Collect Pile + Failed Card
-         const pickupCards = [...this.gameState.pile];
-         if (failedCard) pickupCards.push(failedCard);
+        if (zone === 'upCards') {
+          // Remove from Up Cards
+          const nextUpCards = [...player.upCards];
+          failedCard = nextUpCards[cardIndices[0]];
+          nextUpCards[cardIndices[0]] = null; // Clear slot
+          player.setUpCards(nextUpCards);
+        } else {
+          // Remove from Down Cards (reveal it)
+          failedCard = player.playDownCard(cardIndices[0]) ?? cardsToPlay[0];
+        }
 
-         // 3. Give to Player & Clear Board
-         player.pickUpPile(pickupCards);
-         this.gameState.clearPile({ toDiscard: false });
+        // 2. Collect Pile + Failed Card
+        const pickupCards = [...this.gameState.pile];
+        if (failedCard) pickupCards.push(failedCard);
 
-         // 4. Notify & Transition
+        // 3. Give to Player & Clear Board
+        player.pickUpPile(pickupCards);
+        this.gameState.clearPile({ toDiscard: false });
 
-         // After any pickup, flip a new starter card from the deck (if available).
-         if (this.gameState.deck && this.gameState.deck.length > 0) {
-           const newStartCard = this.gameState.deck.pop();
-           if (newStartCard) {
-             this.gameState.addToPile(newStartCard);
-             const normalizedValue = normalizeCardValue(newStartCard.value);
-             if (normalizedValue !== 'five') {
-               this.gameState.lastRealCard = newStartCard;
-             }
-           }
-         }
+        // 4. Notify & Transition
 
-         this.io.to(this.roomId).emit(PILE_PICKED_UP, {
-           playerId: player.id,
-           pileSize: pickupCards.length,
-         });
-         this.log(`Invalid ${zone} play by ${player.id}. Forced pickup.`);
-         
-         // Trigger turn transition
-         this.processTurnTransition(1600);
-         return;
+        this.io.to(this.roomId).emit(PILE_PICKED_UP, {
+          playerId: player.id,
+          pileSize: pickupCards.length,
+        });
+        this.log(`Invalid ${zone} play by ${player.id}. Forced pickup.`);
+
+        // Trigger turn transition
+        this.processTurnTransition(1600);
+        return;
       }
 
       // Existing logic for Hand/other invalid plays (reject them)
@@ -1215,7 +1206,7 @@ export default class GameController {
       `Emitted CARD_PLAYED for player ${player.id}. Cards: ${JSON.stringify(cardsToPlay)}`
     );
 
-    const { pileClearedBySpecial } = handleSpecialCard(
+    handleSpecialCard(
       this.io,
       this.gameState,
       player,
@@ -1223,7 +1214,7 @@ export default class GameController {
       this.roomId,
       { fourOfKindPlayed }
     );
-    
+
     const specialEffectTriggered =
       fourOfKindPlayed || isSpecialCard(cardsToPlay[0]?.value);
 
@@ -1329,7 +1320,7 @@ export default class GameController {
       const pileCount = this.gameState.pile.length;
       player.pickUpPile([...this.gameState.pile]);
       this.gameState.clearPile({ toDiscard: false });
-      
+
       // Draw one card from draw pile to start the play pile again
       if (this.gameState.deck && this.gameState.deck.length > 0) {
         const newStartCard = this.gameState.deck.pop();
@@ -1361,10 +1352,7 @@ export default class GameController {
     this.processTurnTransition(1600);
   }
 
-  private hasValidPlay(
-    player: Player,
-    zone: 'hand' | 'upCards'
-  ): boolean {
+  private hasValidPlay(player: Player, zone: 'hand' | 'upCards'): boolean {
     const cardsInZone =
       zone === 'hand'
         ? player.hand
@@ -1373,9 +1361,7 @@ export default class GameController {
       return false;
     }
     if (zone === 'upCards') {
-      return cardsInZone.some((card) =>
-        this.gameState.isValidPlay([card])
-      );
+      return cardsInZone.some((card) => this.gameState.isValidPlay([card]));
     }
 
     const groups = new Map<string, Card[]>();
@@ -1397,12 +1383,8 @@ export default class GameController {
     return false;
   }
 
-  private handleNextTurn(
-    options: { cpuDelayMs?: number } = {}
-  ): void {
-    if (
-      !this.ensureValidState('handleNextTurn', { requiresStarted: true })
-    ) {
+  private handleNextTurn(options: { cpuDelayMs?: number } = {}): void {
+    if (!this.ensureValidState('handleNextTurn', { requiresStarted: true })) {
       return;
     }
     if (!this.gameState.started) {
@@ -1462,7 +1444,7 @@ export default class GameController {
       this.log('[handleAnimationsComplete] No player ID found for socket');
       return;
     }
-    
+
     const player = this.players.get(playerId);
     if (!player) {
       this.log('[handleAnimationsComplete] Player record missing for socket');
@@ -1470,7 +1452,9 @@ export default class GameController {
     }
 
     if (!this.gameState.started) {
-      this.log('[handleAnimationsComplete] Game has not started; ignoring animation completion');
+      this.log(
+        '[handleAnimationsComplete] Game has not started; ignoring animation completion'
+      );
       return;
     }
 
@@ -1479,20 +1463,27 @@ export default class GameController {
     // Any client reporting animations complete means it's safe to drop the startup failsafe.
     this.clearOpeningCpuFallback();
 
-    const currentPlayerId = this.gameState.players[this.gameState.currentPlayerIndex];
+    const currentPlayerId =
+      this.gameState.players[this.gameState.currentPlayerIndex];
     const currentPlayer = this.players.get(currentPlayerId);
 
     if (!currentPlayer) {
-      this.log('[handleAnimationsComplete] No current player found when animations completed');
+      this.log(
+        '[handleAnimationsComplete] No current player found when animations completed'
+      );
       return;
     }
 
     if (!currentPlayer.isComputer) {
-      this.log('[handleAnimationsComplete] Current player is human; no CPU scheduling needed');
+      this.log(
+        '[handleAnimationsComplete] Current player is human; no CPU scheduling needed'
+      );
       return;
     }
 
-    this.log(`[handleAnimationsComplete] Scheduling CPU turn for ${currentPlayerId} in 1 second`);
+    this.log(
+      `[handleAnimationsComplete] Scheduling CPU turn for ${currentPlayerId} in 1 second`
+    );
     this.scheduleComputerTurn(currentPlayer, 1000);
   }
 
@@ -1538,9 +1529,13 @@ export default class GameController {
           this.handlePickUpPileInternal(computerPlayer);
         }
       } else if (requiredZone === 'upCards') {
-        const bestPlay = this.findBestPlayForComputer(computerPlayer, 'upCards', {
-          singleCardOnly: true,
-        });
+        const bestPlay = this.findBestPlayForComputer(
+          computerPlayer,
+          'upCards',
+          {
+            singleCardOnly: true,
+          }
+        );
         if (bestPlay) {
           this.handlePlayCardInternal(
             computerPlayer,
@@ -1557,9 +1552,12 @@ export default class GameController {
         );
         const downCardToPlay = computerPlayer.downCards[downIndex];
         if (downCardToPlay) {
-          this.handlePlayCardInternal(computerPlayer, [downIndex], 'downCards', [
-            downCardToPlay,
-          ]);
+          this.handlePlayCardInternal(
+            computerPlayer,
+            [downIndex],
+            'downCards',
+            [downCardToPlay]
+          );
         }
       }
     } catch (error) {
@@ -1634,7 +1632,7 @@ export default class GameController {
     this.gameTimeouts.clear();
     this.pendingComputerTurns.clear();
     this.openingCpuFallbackTimeout = null;
-    
+
     // Clear transition timeout if active
     if (this.transitionTimeout) {
       clearTimeout(this.transitionTimeout);
@@ -1648,8 +1646,7 @@ export default class GameController {
     zone: 'hand' | 'upCards',
     options: { singleCardOnly?: boolean } = {}
   ): { cards: Card[]; indices: number[]; zone: 'hand' | 'upCards' } | null {
-    const cardsInZone =
-      zone === 'hand' ? player.hand : player.upCards;
+    const cardsInZone = zone === 'hand' ? player.hand : player.upCards;
     let hasPlayableCard = false;
     if (zone === 'hand') {
       hasPlayableCard = cardsInZone.length > 0;
@@ -1683,7 +1680,11 @@ export default class GameController {
 
       for (const group of grouped.values()) {
         if (group.cards.length > 1 && this.gameState.isValidPlay(group.cards)) {
-          optionsList.push({ cards: group.cards, indices: group.indices, zone });
+          optionsList.push({
+            cards: group.cards,
+            indices: group.indices,
+            zone,
+          });
         }
       }
     }

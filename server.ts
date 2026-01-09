@@ -12,7 +12,8 @@ const app: Express = express();
 
 // In production, serve the built client files from dist/client
 // In development, serve from public
-const clientPath = process.env.NODE_ENV === 'production' ? 'dist/client' : 'public';
+const clientPath =
+  process.env.NODE_ENV === 'production' ? 'dist/client' : 'public';
 console.log(`[SERVER] Serving client files from: ${clientPath}`);
 console.log(`[SERVER] NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
 
@@ -91,7 +92,7 @@ function startServer(port: number, retries = 0) {
       .flat()
       .filter((iface: any) => iface?.family === 'IPv4' && !iface?.internal)
       .map((iface: any) => iface?.address);
-    
+
     const successMsg = `🃏 Top That! server running at:
   - Local:   http://localhost:${port}
   - Network: ${localIps.map((ip: string) => `http://${ip}:${port}`).join(', ')}`;

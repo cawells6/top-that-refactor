@@ -1,9 +1,9 @@
 import { PLAY_CARD, PICK_UP_PILE } from '@shared/events.ts';
 
-import type { Card, ClientStatePlayer } from '../../src/types.js';
+import { animatePlayerPlay, isValidPlay } from './render.js';
 import * as state from './state.js';
 import { showToast } from './uiHelpers.js';
-import { animatePlayerPlay, isValidPlay } from './render.js';
+import type { Card, ClientStatePlayer } from '../../src/types.js';
 
 let initialized = false;
 
@@ -198,7 +198,7 @@ function handlePlayClick(): void {
         clearSelectedCards();
         return;
       }
-      
+
       // For Up/Down cards, we skip the local 'isValidPlay' check here
       // to allow the "play to pickup" mechanic.
     }
@@ -209,21 +209,21 @@ function handlePlayClick(): void {
   const selectedElements = document.querySelectorAll(
     '#my-area .card-img.selected'
   );
-  
+
   selectedElements.forEach((imgEl) => {
     if (imgEl instanceof HTMLElement) {
-       // Get the container (the actual card box)
-       const container = imgEl.closest('.card-container') as HTMLElement;
-       
-       // Trigger the "Ghost" animation from the current position
-       if (container) animatePlayerPlay(container);
-       
-       // 2. Optimistic Update: Hide the original immediately.
-       // It will be removed "for real" when the server sends the new state.
-       if (container) {
-         container.style.opacity = '0';
-         container.style.pointerEvents = 'none';
-       }
+      // Get the container (the actual card box)
+      const container = imgEl.closest('.card-container') as HTMLElement;
+
+      // Trigger the "Ghost" animation from the current position
+      if (container) animatePlayerPlay(container);
+
+      // 2. Optimistic Update: Hide the original immediately.
+      // It will be removed "for real" when the server sends the new state.
+      if (container) {
+        container.style.opacity = '0';
+        container.style.pointerEvents = 'none';
+      }
     }
   });
 
@@ -276,10 +276,14 @@ export function initializeGameControls(): void {
       handlePlayClick();
       return;
     }
-    
+
     // Check take button with direct ID first to avoid timing issues
     // FEATURE: Also allow clicking the pile to take it.
-    if (target.id === 'take-button' || target.closest('#take-button') || target.closest('#discard-pile')) {
+    if (
+      target.id === 'take-button' ||
+      target.closest('#take-button') ||
+      target.closest('#discard-pile')
+    ) {
       handleTakeClick();
       return;
     }

@@ -49,7 +49,9 @@ describe('Lobby joining', () => {
       name: 'Host',
       roomId: 'test-room',
     });
-    const lobbyCall = topLevelEmitMock.mock.calls.find((c) => c[0] === LOBBY_STATE_UPDATE);
+    const lobbyCall = topLevelEmitMock.mock.calls.find(
+      (c) => c[0] === LOBBY_STATE_UPDATE
+    );
     expect(lobbyCall).toBeDefined();
     if (lobbyCall) {
       expect(lobbyCall[1]).toEqual(

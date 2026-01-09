@@ -3,7 +3,7 @@
 ## What We Fixed Today
 
 1. **Validation Contract Mismatch**: Client validation required 2+ players even for joining existing games
-2. **Test Mocking Layer**: Tests expected `socket.emit` but code used `emitJoinGame`  
+2. **Test Mocking Layer**: Tests expected `socket.emit` but code used `emitJoinGame`
 3. **DOM Environment**: Tests missing required DOM elements and browser APIs
 4. **Domain Confusion**: Join vs Create operations mixed in same functions
 
@@ -37,13 +37,15 @@ The underlying issue was **lack of explicit architectural contracts** between la
 ## Measuring Success
 
 ### Leading Indicators (Things you can measure immediately)
+
 - Time spent in architecture planning phase (target: 30min per feature)
 - Number of failing architecture validation checks (target: 0)
 - Test environment setup complexity (target: <10 lines per test)
 
 ### Lagging Indicators (Things that improve over time)
+
 - Time spent debugging layer mismatches (target: 90% reduction)
-- Time for new developers to understand codebase (target: 50% reduction)  
+- Time for new developers to understand codebase (target: 50% reduction)
 - Number of bugs caused by architecture issues (target: 90% reduction)
 
 ## Key Insight
@@ -63,7 +65,7 @@ Today's debugging session took ~3 hours. Following this workflow would have prev
 ## Files Created
 
 - `docs/ARCHITECTURE_CONTRACTS.md` - Contract definition strategy
-- `docs/DOMAIN_DRIVEN_STRATEGY.md` - Domain separation guidelines  
+- `docs/DOMAIN_DRIVEN_STRATEGY.md` - Domain separation guidelines
 - `docs/LAYERED_ARCHITECTURE.md` - Layer responsibility documentation
 - `docs/TEST_FIRST_ARCHITECTURE.md` - Test-driven architecture approach
 - `docs/DEVELOPMENT_WORKFLOW.md` - Practical step-by-step checklist

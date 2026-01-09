@@ -22,7 +22,7 @@
 }
 
 /* Force-hide any dotted outlines */
-#rules-modal *[style*="border"]:not(.rule-card-img):not(table):not(th):not(td) {
+#rules-modal *[style*='border']:not(.rule-card-img):not(table):not(th):not(td) {
   border: none !important;
   outline: none !important;
 }

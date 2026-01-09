@@ -4,7 +4,8 @@
 
 /* Tutorial pulse animation for highlighting elements */
 @keyframes tutorial-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px 5px rgba(111, 180, 255, 0.6);
     transform: scale(1);
   }
@@ -31,28 +32,35 @@
 .tutorial-highlight {
   /* Use !important to ensure tutorial styles override game styles */
   border: 3px solid #ffeb3b !important; /* A bright, noticeable yellow */
-  
+
   /* A more intense glow than the standard 'active' player highlight */
-  box-shadow: 0 0 40px rgba(255, 235, 59, 0.9), 
-              inset 0 0 15px rgba(255, 235, 59, 0.5),
-              0 8px 32px 0 rgba(0, 0, 0, 0.3) !important; /* Re-apply base shadow if needed */
+  box-shadow:
+    0 0 40px rgba(255, 235, 59, 0.9),
+    inset 0 0 15px rgba(255, 235, 59, 0.5),
+    0 8px 32px 0 rgba(0, 0, 0, 0.3) !important; /* Re-apply base shadow if needed */
 
   /* A slightly faster, more intense pulse to draw the eye */
   animation: tutorialPulse 1.5s infinite !important;
-  
+
   /* Ensure the highlighted element is on top of its siblings */
   z-index: 150 !important;
 }
 
 @keyframes tutorialPulse {
   0% {
-    box-shadow: 0 0 30px rgba(255, 235, 59, 0.7), inset 0 0 10px rgba(255, 235, 59, 0.4);
+    box-shadow:
+      0 0 30px rgba(255, 235, 59, 0.7),
+      inset 0 0 10px rgba(255, 235, 59, 0.4);
   }
   50% {
-    box-shadow: 0 0 55px rgba(255, 235, 59, 1), inset 0 0 20px rgba(255, 235, 59, 0.7);
+    box-shadow:
+      0 0 55px rgba(255, 235, 59, 1),
+      inset 0 0 20px rgba(255, 235, 59, 0.7);
   }
   100% {
-    box-shadow: 0 0 30px rgba(255, 235, 59, 0.7), inset 0 0 10px rgba(255, 235, 59, 0.4);
+    box-shadow:
+      0 0 30px rgba(255, 235, 59, 0.7),
+      inset 0 0 10px rgba(255, 235, 59, 0.4);
   }
 }
 
@@ -89,7 +97,6 @@
   transform: translate(-50%, -50%);
 }
 
-
 /* Instruction card - positioned to the right of play area */
 .tutorial-card {
   position: fixed;
@@ -101,7 +108,9 @@
   background: linear-gradient(135deg, #ffffff 0%, #fef9f0 100%);
   border: 3px solid #ffc300;
   border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 195, 0, 0.2);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 195, 0, 0.2);
   z-index: 2002;
   pointer-events: auto;
   padding: 1.5rem;
@@ -195,7 +204,9 @@
 }
 
 .tutorial-nav-buttons {
-  display: flex;  flex-wrap: wrap;  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   justify-content: center;
   flex: 1;
   order: 2;
@@ -210,14 +221,14 @@
   font-size: 0.95rem;
   font-weight: 600;
   transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   min-width: 100px;
 }
 
 .tutorial-prev-btn:hover,
 .tutorial-next-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .tutorial-prev-btn:active,
@@ -257,8 +268,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.15); }
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
 }
 
 /* Exit confirmation modal */

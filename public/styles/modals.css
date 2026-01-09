@@ -229,11 +229,7 @@ html.rules-modal-open {
 
 /* Refined Rules Section Styling */
 .rules-container {
-  font-family:
-    'Source Serif 4',
-    'Source Sans 3',
-    'Times New Roman',
-    serif;
+  font-family: 'Source Serif 4', 'Source Sans 3', 'Times New Roman', serif;
   line-height: 1.65; /* Improved line spacing */
   padding: 0 0 20px 0; /* Reduced top padding since we removed the logo */
   color: #1f2937; /* Darker text for better contrast */
@@ -308,7 +304,11 @@ html.rules-modal-open {
   padding: 1.5rem 1.75rem; /* Increased padding for more space */
   font-weight: 700; /* Bold for better emphasis */
   cursor: pointer;
-  background: linear-gradient(135deg, #e3e6ea 0%, #d1d5db 100%); /* Gradient background */
+  background: linear-gradient(
+    135deg,
+    #e3e6ea 0%,
+    #d1d5db 100%
+  ); /* Gradient background */
   outline: none;
   display: flex;
   justify-content: space-between;
@@ -361,11 +361,7 @@ html.rules-modal-open {
   line-height: 1.7;
   color: #212529;
   background-color: #fdfdfd; /* Slightly off-white background for better contrast */
-  font-family:
-    'Source Serif 4',
-    'Source Sans 3',
-    'Times New Roman',
-    serif;
+  font-family: 'Source Serif 4', 'Source Sans 3', 'Times New Roman', serif;
   text-transform: none;
   letter-spacing: normal;
   text-align: left;
@@ -445,11 +441,7 @@ html.rules-modal-open {
 
 .rules-details-content .rules-lead {
   margin: 0 0 0.75rem 0;
-  font-family:
-    'Source Serif 4',
-    'Source Sans 3',
-    'Times New Roman',
-    serif;
+  font-family: 'Source Serif 4', 'Source Sans 3', 'Times New Roman', serif;
   font-size: 1.05rem;
   color: #1f2937;
 }
@@ -803,5 +795,7 @@ html.rules-modal-open {
 .modal__close-button:focus {
   outline: 2px solid #ffc300;
   outline-offset: 2px;
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #ffc300;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px #ffc300;
 }

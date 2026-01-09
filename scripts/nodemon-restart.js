@@ -21,7 +21,9 @@ function getCurrentServerPort() {
     if (fs.existsSync(portPath)) {
       const port = parseInt(fs.readFileSync(portPath, 'utf-8').trim(), 10);
       if (!isNaN(port) && port > 0) {
-        console.log(`📌 Found server running on port ${port} (from current-port.txt)`);
+        console.log(
+          `📌 Found server running on port ${port} (from current-port.txt)`
+        );
         return port;
       }
     }

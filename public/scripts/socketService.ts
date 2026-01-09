@@ -1,49 +1,44 @@
-import { 
-  renderGameState, 
-  showCardEvent, 
-  renderPlayedCards, 
-  resetHandTracking, 
-  animateCardFromPlayer, 
-  waitForFlyingCard,
-  blankDrawPileFor,
-  animateVictory,
+import { performOpeningDeal } from './dealing-animation.js';
+import { waitForTestContinue } from './manualMode.js';
+import {
+  animateCardFromPlayer,
   animateDeckToPlayPile,
+  animateVictory,
+  blankDrawPileFor,
   logCardPlayed,
+  logGameOver,
+  logGameStart,
   logPileTaken,
   logPlayToDraw,
   logSpecialEffect,
-  logTurnChange,
-  logGameStart,
-  logGameOver
+  renderGameState,
+  renderPlayedCards,
+  resetHandTracking,
+  showCardEvent,
+  waitForFlyingCard,
 } from './render.js';
-import { performOpeningDeal } from './dealing-animation.js';
 import * as state from './state.js';
-import { waitForTestContinue } from './manualMode.js';
-import {
-  showLobbyForm,
-  showGameTable,
-} from './uiManager.js';
 import { showToast } from './uiHelpers.js';
+import { showGameTable, showLobbyForm } from './uiManager.js';
 import {
-  JOINED,
-  GAME_STARTED,
-  GAME_OVER,
-  SPECIAL_CARD_EFFECT,
-  PILE_PICKED_UP,
-  STATE_UPDATE,
-  REJOIN,
-  ERROR,
-  SESSION_ERROR,
   CARD_PLAYED,
+  ERROR,
+  GAME_OVER,
+  GAME_STARTED,
+  JOINED,
+  PILE_PICKED_UP,
+  REJOIN,
+  SESSION_ERROR,
+  SPECIAL_CARD_EFFECT,
+  STATE_UPDATE,
 } from '../../src/shared/events.js';
-import { GameStateData, Card } from '../../src/shared/types.js';
+import type { Card, GameStateData } from '../../src/shared/types.js';
 import { isSpecialCard } from '../../utils/cardUtils.js';
 
 // --- VISUAL & QUEUE STATE ---
 let isAnimatingSpecialEffect = false;
 let lockedSpecialEffectState: GameStateData | null = null;
 let pendingStateUpdate: GameStateData | null = null;
-let cardsBeingAnimated: Card[] | null = null;
 let cardsBeingAnimatedPlayerId: string | null = null;
 // Track if we've dealt the opening hand to avoid re-triggering animation
 // Reset this when switching games (dev restart)
@@ -59,11 +54,9 @@ const playQueue: QueuedPlay[] = [];
 let isProcessingQueue = false;
 
 // 450ms = 25% faster than previous 600ms
-const BOT_THINKING_TIME = 450; 
+const BOT_THINKING_TIME = 450;
 
 // --- The Waiting Room for fast CPU cards (Legacy Buffer) ---
-let bufferedCardPlay: Card[] | null = null;
-
 let safetyUnlockTimer: ReturnType<typeof setTimeout> | null = null;
 let burnHoldTimer: ReturnType<typeof setTimeout> | null = null;
 const ANIMATION_DELAY_MS = 2000;
@@ -79,49 +72,48 @@ const POST_FLIP_RENDER_BUFFER_MS = 50;
 async function processPlayQueue() {
   // If we are already running the loop, or a special effect (explosion) is happening, do nothing.
   if (isProcessingQueue || isAnimatingSpecialEffect) return;
-  
+
   isProcessingQueue = true;
 
   while (playQueue.length > 0) {
     // Peek at the first item
-    const play = playQueue[0]; 
+    const play = playQueue[0];
 
     // 1. THINKING & ANIMATION STEP
     // Only animate if it's an opponent (Local player animates instantly on click)
     if (play.playerId && play.playerId !== state.myId) {
-       // "Thinking" pause (gives the human time to breathe)
-       await new Promise(resolve => setTimeout(resolve, BOT_THINKING_TIME));
-       
-       // Fly animation (Wait for completion)
-       await animateCardFromPlayer(play.playerId, play.cards);
-     } else {
-       // Local player animation is already in flight; wait before rendering
-       await waitForFlyingCard();
-     }
+      // "Thinking" pause (gives the human time to breathe)
+      await new Promise((resolve) => setTimeout(resolve, BOT_THINKING_TIME));
+
+      // Fly animation (Wait for completion)
+      await animateCardFromPlayer(play.playerId, play.cards);
+    } else {
+      // Local player animation is already in flight; wait before rendering
+      await waitForFlyingCard();
+    }
 
     // 2. RENDER STEP (Card hits the pile)
     renderPlayedCards(play.cards);
-    cardsBeingAnimated = play.cards;
     cardsBeingAnimatedPlayerId = play.playerId ?? state.myId ?? null;
 
     // 3. SPECIAL CARD CHECK
     const topCard = play.cards[play.cards.length - 1];
     if (isSpecialCard(topCard.value)) {
-       // Stop processing queue. The SPECIAL_CARD_EFFECT event will pick up from here.
-       console.log('[Queue] Special card landed. Pausing queue for effect.');
-       
-       isAnimatingSpecialEffect = true;
-       lockedSpecialEffectState = null; // capture the first post-effect STATE_UPDATE
-       playQueue.shift(); // Remove this item as we've "played" it
-       isProcessingQueue = false; // Release lock so Special Effect can take over
-       
-       // Safety unlock if server fails to send effect
-       if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
-       safetyUnlockTimer = setTimeout(() => {
-         forceUnlock();
-       }, 3000);
-       
-       return; // EXIT LOOP and wait for SPECIAL_CARD_EFFECT event
+      // Stop processing queue. The SPECIAL_CARD_EFFECT event will pick up from here.
+      console.log('[Queue] Special card landed. Pausing queue for effect.');
+
+      isAnimatingSpecialEffect = true;
+      lockedSpecialEffectState = null; // capture the first post-effect STATE_UPDATE
+      playQueue.shift(); // Remove this item as we've "played" it
+      isProcessingQueue = false; // Release lock so Special Effect can take over
+
+      // Safety unlock if server fails to send effect
+      if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
+      safetyUnlockTimer = setTimeout(() => {
+        forceUnlock();
+      }, 3000);
+
+      return; // EXIT LOOP and wait for SPECIAL_CARD_EFFECT event
     }
 
     // Move to next item
@@ -133,28 +125,26 @@ async function processPlayQueue() {
   // 4. SYNC STATE
   // Now that animations are done, apply the latest game state (Turn indicators, hand counts)
   if (pendingStateUpdate && !isAnimatingSpecialEffect) {
-      console.log('[Queue] Animations done. Applying buffered state.');
-      renderGameState(pendingStateUpdate, state.myId);
-      pendingStateUpdate = null;
+    console.log('[Queue] Animations done. Applying buffered state.');
+    renderGameState(pendingStateUpdate, state.myId);
+    pendingStateUpdate = null;
   }
 }
 
 function finishAnimationSequence() {
-  cardsBeingAnimated = null;
   cardsBeingAnimatedPlayerId = null;
-  bufferedCardPlay = null;
   isAnimatingSpecialEffect = false;
   lockedSpecialEffectState = null;
-  
+
   if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
   if (burnHoldTimer) {
-      clearTimeout(burnHoldTimer);
-      burnHoldTimer = null;
+    clearTimeout(burnHoldTimer);
+    burnHoldTimer = null;
   }
-  
+
   // Important: Kick the queue again.
   // If cards arrived while we were watching the explosion, they are waiting in the queue.
-  processPlayQueue(); 
+  processPlayQueue();
 }
 
 function forceUnlock() {
@@ -177,7 +167,7 @@ export async function initializeSocketHandlers(): Promise<void> {
       showLobbyForm();
     }
   });
-  
+
   // Reset animation flag when disconnecting (for dev restart)
   state.socket.on('disconnect', () => {
     hasDealtOpeningHand = false;
@@ -197,89 +187,102 @@ export async function initializeSocketHandlers(): Promise<void> {
     }
   );
 
-  state.socket.on(CARD_PLAYED, async (data: { cards: Card[]; playerId?: string }) => {
-    console.log('[CARD_PLAYED] Received:', data.cards, 'from player:', data.playerId);
+  state.socket.on(
+    CARD_PLAYED,
+    async (data: { cards: Card[]; playerId?: string }) => {
+      console.log(
+        '[CARD_PLAYED] Received:',
+        data.cards,
+        'from player:',
+        data.playerId
+      );
 
-    if (burnHoldTimer) {
-      console.log('[Socket] New card played during burn hold - cancelling hold');
-      clearTimeout(burnHoldTimer);
-      burnHoldTimer = null;
-      isAnimatingSpecialEffect = false;
-      lockedSpecialEffectState = null;
-    }
-
-    if (data.cards && data.cards.length > 0) {
-      // Log the card play
-      const currentState = state.getLastGameState();
-      if (currentState && data.playerId) {
-        logCardPlayed(data.playerId, data.cards, currentState.players);
+      if (burnHoldTimer) {
+        console.log(
+          '[Socket] New card played during burn hold - cancelling hold'
+        );
+        clearTimeout(burnHoldTimer);
+        burnHoldTimer = null;
+        isAnimatingSpecialEffect = false;
+        lockedSpecialEffectState = null;
       }
-      
-      // INSTEAD of processing immediately, we add to the Queue.
-      // This ensures order is preserved.
-      playQueue.push(data);
-      processPlayQueue();
+
+      if (data.cards && data.cards.length > 0) {
+        // Log the card play
+        const currentState = state.getLastGameState();
+        if (currentState && data.playerId) {
+          logCardPlayed(data.playerId, data.cards, currentState.players);
+        }
+
+        // INSTEAD of processing immediately, we add to the Queue.
+        // This ensures order is preserved.
+        playQueue.push(data);
+        processPlayQueue();
+      }
     }
-  });
+  );
 
   state.socket.on(STATE_UPDATE, async (s: GameStateData) => {
     state.setLastGameState(s);
     if (s.started === true) {
       showGameTable();
     }
-    
+
     // DETECT FRESH GAME START and trigger opening deal animation once
     // We rely on hasDealtOpeningHand flag to run this only once per session
     const players = s.players ?? [];
     if (s.started && !hasDealtOpeningHand && players.length > 0) {
       // Check if this looks like a fresh deal (all players have cards)
-      const looksLikeFreshDeal = players.every(p => 
-        (p.handCount || 0) > 0 && (p.downCount || 0) === 3 && (p.upCards?.length || 0) === 3
+      const looksLikeFreshDeal = players.every(
+        (p) =>
+          (p.handCount || 0) > 0 &&
+          (p.downCount || 0) === 3 &&
+          (p.upCards?.length || 0) === 3
       );
-      
+
       if (looksLikeFreshDeal) {
         hasDealtOpeningHand = true;
-        
+
         // 1. Clear any existing cards from the table
         const gameTable = document.getElementById('game-table');
         if (gameTable) {
           // Clear all player areas
           const playerAreas = gameTable.querySelectorAll('.player-area');
-          playerAreas.forEach(area => {
+          playerAreas.forEach((area) => {
             const handRow = area.querySelector('.hand-row');
             const stackRow = area.querySelector('.stack-row');
             if (handRow) handRow.innerHTML = '';
             if (stackRow) {
-              stackRow.querySelectorAll('.stack-col').forEach(col => {
+              stackRow.querySelectorAll('.stack-col').forEach((col) => {
                 col.innerHTML = '';
               });
             }
           });
-          
+
           // Note: Don't hide discard-pile container - it needs to show placeholder during skeleton mode
         }
-        
+
         // 2. Render skeleton (shows slots/names, hides cards and icons)
         renderGameState(s, state.myId, null, { skeletonMode: true });
-        
+
         // Hide special card icons in skeleton mode
-        document.querySelectorAll('.card-ability-icon').forEach(icon => {
+        document.querySelectorAll('.card-ability-icon').forEach((icon) => {
           (icon as HTMLElement).style.visibility = 'hidden';
         });
-        
+
         // 3. Play the dealing animation
         await performOpeningDeal(s, state.myId || '');
         hasPlayedOpeningDeal = true; // Mark that opening deal has been shown
-        
+
         // 4. Render normal (shows everything and restore icon visibility)
-        document.querySelectorAll('.card-ability-icon').forEach(icon => {
+        document.querySelectorAll('.card-ability-icon').forEach((icon) => {
           (icon as HTMLElement).style.visibility = 'visible';
         });
         renderGameState(s, state.myId);
         return;
       }
     }
-    
+
     // Buffer the update if we are busy animating (Queue or Special Effect)
     // This prevents the turn arrow from jumping to the next player while the card is still flying.
     if (isAnimatingSpecialEffect || isProcessingQueue || playQueue.length > 0) {
@@ -306,7 +309,7 @@ export async function initializeSocketHandlers(): Promise<void> {
     SPECIAL_CARD_EFFECT,
     async (payload: { type?: string; value?: number | string | null }) => {
       console.log('[SPECIAL_CARD_EFFECT]', payload?.type);
-      
+
       if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
 
       // Wait for any flying cards (just in case of race condition)
@@ -314,11 +317,11 @@ export async function initializeSocketHandlers(): Promise<void> {
 
       // Ensure the queue finishes rendering the special card before showing the icon
       while (isProcessingQueue) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
       }
 
       let effectType = payload?.type ?? 'regular';
-      
+
       if (effectType === 'five') {
         const lastState = state.getLastGameState();
         if (!lastState || !lastState.pile || lastState.pile.length === 0) {
@@ -327,10 +330,10 @@ export async function initializeSocketHandlers(): Promise<void> {
       }
 
       isAnimatingSpecialEffect = true;
-      
+
       // Log the special effect
       logSpecialEffect(effectType, payload?.value);
-      
+
       setTimeout(() => {
         showCardEvent(payload?.value ?? null, effectType);
       }, 50);
@@ -341,14 +344,14 @@ export async function initializeSocketHandlers(): Promise<void> {
         (async () => {
           const deadline = Date.now() + 500;
           while (!lockedSpecialEffectState && Date.now() < deadline) {
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise((resolve) => setTimeout(resolve, 50));
           }
           if (lockedSpecialEffectState) {
             renderGameState(lockedSpecialEffectState, state.myId);
           }
         })();
       }
-      
+
       setTimeout(async () => {
         console.log('[ANIMATION END] Releasing buffers.');
 
@@ -356,7 +359,11 @@ export async function initializeSocketHandlers(): Promise<void> {
           const latestState = pendingStateUpdate ?? state.getLastGameState();
           const holdPlayerId = cardsBeingAnimatedPlayerId;
 
-          if (latestState && holdPlayerId && (latestState.pile?.length ?? 0) === 0) {
+          if (
+            latestState &&
+            holdPlayerId &&
+            (latestState.pile?.length ?? 0) === 0
+          ) {
             // Show the burned pile (empty) immediately, but hold the turn highlight briefly
             // so the burn state reads clearly before the next player is highlighted.
             renderGameState(
@@ -377,77 +384,84 @@ export async function initializeSocketHandlers(): Promise<void> {
 
         finishAnimationSequence();
         await waitForTestContinue();
-
       }, ANIMATION_DELAY_MS);
     }
   );
 
-  state.socket.on(PILE_PICKED_UP, (data: { playerId: string; pileSize?: number }) => {
-    console.log('Pile picked up by:', data.playerId);
-    
-    // Log the pile pickup
-    const currentState = state.getLastGameState();
-    if (currentState) {
-      const pileSize =
-        typeof data.pileSize === 'number'
-          ? data.pileSize
-          : currentState.pile?.length ?? 0;
-      logPileTaken(data.playerId, pileSize, currentState.players);
-    }
-    
-    if (data.playerId === state.myId) {
-      resetHandTracking();
-    }
-    
-    showCardEvent(null, 'take', data.playerId);
-    
-    // Skip the deck-to-play animation if we just finished the opening deal
-    // (the opening deal already includes this animation in Phase D)
-    if (hasPlayedOpeningDeal) {
-      hasPlayedOpeningDeal = false; // Reset flag for future games
-      // Only log the flip if the pile actually has a new top card.
-      const latestState = state.getLastGameState();
-      if (latestState?.pile?.length) {
-        logPlayToDraw();
-      }
-      return;
-    }
-    
-    // Show the pile empty briefly before the deck flip animation.
-    blankDrawPileFor(
-      TAKE_PILE_BLANK_MS + DECK_TO_PILE_ANIMATION_MS + POST_FLIP_RENDER_BUFFER_MS
-    );
-    const blankState = state.getLastGameState();
-    if (blankState) {
-      renderGameState(blankState, state.myId);
-    }
+  state.socket.on(
+    PILE_PICKED_UP,
+    (data: { playerId: string; pileSize?: number }) => {
+      console.log('Pile picked up by:', data.playerId);
 
-    // Animate card from deck to play pile after a short "blank" beat.
-    setTimeout(() => {
-      // Guard: when the "Play" pile (deck) is empty, some late-game flows can
-      // still emit PILE_PICKED_UP. Only animate/log the flip if a new pile top
-      // actually exists in the latest state.
-      const latestState = state.getLastGameState();
-      if (!latestState?.pile?.length) {
+      // Log the pile pickup
+      const currentState = state.getLastGameState();
+      if (currentState) {
+        const pileSize =
+          typeof data.pileSize === 'number'
+            ? data.pileSize
+            : (currentState.pile?.length ?? 0);
+        logPileTaken(data.playerId, pileSize, currentState.players);
+      }
+
+      if (data.playerId === state.myId) {
+        resetHandTracking();
+      }
+
+      showCardEvent(null, 'take', data.playerId);
+
+      // Skip the deck-to-play animation if we just finished the opening deal
+      // (the opening deal already includes this animation in Phase D)
+      if (hasPlayedOpeningDeal) {
+        hasPlayedOpeningDeal = false; // Reset flag for future games
+        // Only log the flip if the pile actually has a new top card.
+        const latestState = state.getLastGameState();
+        if (latestState?.pile?.length) {
+          logPlayToDraw();
+        }
         return;
       }
 
-      animateDeckToPlayPile();
-      logPlayToDraw();
+      // Show the pile empty briefly before the deck flip animation.
+      blankDrawPileFor(
+        TAKE_PILE_BLANK_MS +
+          DECK_TO_PILE_ANIMATION_MS +
+          POST_FLIP_RENDER_BUFFER_MS
+      );
+      const blankState = state.getLastGameState();
+      if (blankState) {
+        renderGameState(blankState, state.myId);
+      }
 
-      // Ensure the drawn card becomes visible right after the flip animation ends.
+      // Animate card from deck to play pile after a short "blank" beat.
       setTimeout(() => {
-        const s = state.getLastGameState();
-        if (s) renderGameState(s, state.myId);
-      }, DECK_TO_PILE_ANIMATION_MS + POST_FLIP_RENDER_BUFFER_MS);
-    }, TAKE_PILE_BLANK_MS);
-  });
+        // Guard: when the "Play" pile (deck) is empty, some late-game flows can
+        // still emit PILE_PICKED_UP. Only animate/log the flip if a new pile top
+        // actually exists in the latest state.
+        const latestState = state.getLastGameState();
+        if (!latestState?.pile?.length) {
+          return;
+        }
 
-  state.socket.on(GAME_OVER, (data: { winnerId: string; winnerName: string }) => {
-    console.log('Game Over! Winner:', data.winnerName, 'ID:', data.winnerId);
-    logGameOver(data.winnerName);
-    animateVictory(data.winnerId);
-  });
+        animateDeckToPlayPile();
+        logPlayToDraw();
+
+        // Ensure the drawn card becomes visible right after the flip animation ends.
+        setTimeout(() => {
+          const s = state.getLastGameState();
+          if (s) renderGameState(s, state.myId);
+        }, DECK_TO_PILE_ANIMATION_MS + POST_FLIP_RENDER_BUFFER_MS);
+      }, TAKE_PILE_BLANK_MS);
+    }
+  );
+
+  state.socket.on(
+    GAME_OVER,
+    (data: { winnerId: string; winnerName: string }) => {
+      console.log('Game Over! Winner:', data.winnerName, 'ID:', data.winnerId);
+      logGameOver(data.winnerName);
+      animateVictory(data.winnerId);
+    }
+  );
 
   state.socket.on(ERROR, (msg: string) => {
     if (!document.body.classList.contains('showing-game')) {
@@ -455,7 +469,7 @@ export async function initializeSocketHandlers(): Promise<void> {
       showToast(msg, 'error');
     } else {
       showCardEvent(null, 'invalid');
-      
+
       // If error occurs, assume visual state is wrong and force a re-render
       const lastState = state.getLastGameState();
       if (lastState && state.myId) {

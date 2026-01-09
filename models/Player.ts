@@ -1,10 +1,10 @@
-import { Card } from '../src/shared/types.js';
-import { rank } from '../utils/cardUtils.js';
 import {
   PlayerSessionMetrics,
   PlayerConnectionState,
   PlayerStateSnapshot,
 } from '../src/shared/playerStateTypes.js';
+import { Card } from '../src/shared/types.js';
+import { rank } from '../utils/cardUtils.js';
 
 export default class Player {
   public id: string;

@@ -1,6 +1,7 @@
 # Layered Architecture Guidelines
 
 ## Problem: Abstraction Layer Confusion
+
 Tests expected `socket.emit` but code used `emitJoinGame` wrapper, causing test failures.
 
 ## Solution: Document and Enforce Abstraction Layers
@@ -10,7 +11,7 @@ Tests expected `socket.emit` but code used `emitJoinGame` wrapper, causing test 
 ```
 ┌─────────────────────────────────────┐
 │ UI Layer (events.ts)                │
-├─────────────────────────────────────┤ 
+├─────────────────────────────────────┤
 │ Application Layer (acknowledgments) │
 ├─────────────────────────────────────┤
 │ Transport Layer (socket.io)         │
@@ -22,17 +23,20 @@ Tests expected `socket.emit` but code used `emitJoinGame` wrapper, causing test 
 ### Layer Responsibilities
 
 #### UI Layer
+
 - Handles DOM events
 - Validates user input
 - Calls Application Layer methods
 
-#### Application Layer  
+#### Application Layer
+
 - Business logic
 - Retry logic, timeouts
 - User feedback
 - Calls Transport Layer
 
 #### Transport Layer
+
 - Raw socket communication
 - Event emission/reception
 
@@ -41,13 +45,13 @@ Tests expected `socket.emit` but code used `emitJoinGame` wrapper, causing test 
 ```typescript
 // UI Layer Tests: Mock Application Layer
 jest.mock('./acknowledgmentUtils', () => ({
-  emitJoinGame: jest.fn()
-}))
+  emitJoinGame: jest.fn(),
+}));
 
-// Application Layer Tests: Mock Transport Layer  
+// Application Layer Tests: Mock Transport Layer
 jest.mock('./socket', () => ({
-  emit: jest.fn()
-}))
+  emit: jest.fn(),
+}));
 
 // Transport Layer Tests: Mock Network
 // Use actual socket.io test utilities
@@ -65,12 +69,12 @@ jest.mock('./socket', () => ({
 ```typescript
 // Application Layer Interface
 interface GameCommunication {
-  joinExistingGame(payload: JoinPayload): Promise<JoinResult>
-  createNewGame(payload: CreatePayload): Promise<CreateResult>
+  joinExistingGame(payload: JoinPayload): Promise<JoinResult>;
+  createNewGame(payload: CreatePayload): Promise<CreateResult>;
 }
 
 // UI Layer uses this interface, never touches Transport directly
-const gameCommunication: GameCommunication = new SocketGameCommunication()
+const gameCommunication: GameCommunication = new SocketGameCommunication();
 ```
 
 ## Benefits

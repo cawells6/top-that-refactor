@@ -10,8 +10,6 @@
 
 const { execSync, spawn } = require('child_process');
 const os = require('os');
-const path = require('path');
-const fs = require('fs');
 
 const TARGET_PORTS = [3000, 5173];
 const isWindows = os.platform() === 'win32';
@@ -68,7 +66,9 @@ if (arePotentiallyBlocking()) {
   } catch (e) {
     // Just a small busy wait if the command fails
     const start = Date.now();
-    while (Date.now() - start < 2000) {}
+    while (Date.now() - start < 2000) {
+      // Busy wait
+    }
   }
 }
 
@@ -90,9 +90,7 @@ devProcess.on('close', (code) => {
     console.log('\n✅ Development environment exited successfully');
   } else {
     console.error(`\n⚠️ Development environment exited with code: ${code}`);
-    console.log(
-      'For more details, check the logs or run `npm run show:ports`'
-    );
+    console.log('For more details, check the logs or run `npm run show:ports`');
   }
 });
 

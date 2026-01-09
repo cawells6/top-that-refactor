@@ -1,6 +1,7 @@
 // scripts/smoke-socket-client.ts
 // Minimal smoke test: connects to the server, joins a game, and starts a game.
 import * as io from 'socket.io-client';
+
 import {
   JOIN_GAME,
   JOINED,

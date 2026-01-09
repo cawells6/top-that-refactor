@@ -4,8 +4,8 @@ import { JOIN_GAME } from '@shared/events.ts';
 import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializeLobby } from './events.js';
 import { initializeGameControls } from './gameControls.js';
-import { initializeSocketHandlers } from './socketService.js';
 import { initializeManualMode } from './manualMode.js';
+import { initializeSocketHandlers } from './socketService.js';
 import {
   socket,
   socketReady,
@@ -79,11 +79,11 @@ export async function initMain({
   const params = new URLSearchParams(
     (injectedWindow || window).location.search
   );
-  
+
   // 1. CHECK FOR TUTORIAL FLAG
   if (params.get('tutorial') === 'true') {
     console.log('🪖 Loading Tutorial Mode...');
-    
+
     // Hide Lobby, Show Game Table
     document.body.classList.remove('showing-lobby');
     document.body.classList.add('showing-game');
@@ -91,12 +91,13 @@ export async function initMain({
     document.getElementById('game-table')?.classList.remove('hidden');
 
     // Dynamically import and initialize the Tutorial Controller
-    const { TutorialController } = await import('./tutorial/TutorialController.js');
+    const { TutorialController } =
+      await import('./tutorial/TutorialController.js');
     new TutorialController();
 
     return; // STOP HERE. Do not connect to socket.
   }
-  
+
   // 2. NORMAL GAME LOAD (Existing Code)
   if (params.get('spectator') === '1' || params.get('spectator') === 'true') {
     setIsSpectator(true);
@@ -129,16 +130,22 @@ export async function initMain({
   } catch (error) {
     console.error('Error during initialization:', error);
   }
-  
-  // Show dev-only restart button in development mode
-  if (import.meta.env.DEV) {
+
+  // Show dev-only restart button in development mode.
+  // NOTE: Jest (CommonJS) can’t parse `import.meta`, so we use a Vite-injected global instead.
+  const isDev =
+    typeof __DEV__ !== 'undefined'
+      ? __DEV__
+      : (globalThis as any).process?.env?.NODE_ENV === 'development';
+
+  if (isDev) {
     const devRestartButton = document.getElementById('dev-restart-button');
     if (devRestartButton) {
       devRestartButton.style.display = 'block';
       console.log('🔧 [DEV] Restart button enabled');
     }
   }
-  
+
   document.body.classList.remove('body-loading');
   document.body.classList.add('showing-lobby');
   const lobbyContainer = document.getElementById('lobby-container');
@@ -158,4 +165,3 @@ export async function initMain({
 document.addEventListener('DOMContentLoaded', () => {
   void initMain();
 });
-

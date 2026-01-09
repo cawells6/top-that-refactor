@@ -1,17 +1,16 @@
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
+import type { AvatarItem } from '../../src/shared/avatars.js';
 import {
   JOIN_GAME,
   JOINED,
   LOBBY_STATE_UPDATE,
   START_GAME,
 } from '../../src/shared/events.js';
-import type { AvatarItem } from '../../src/shared/avatars.js';
 
 // --- Avatar State Management ---
 let royaltyAvatars: AvatarItem[] = [];
 let selectedAvatar: AvatarItem | null = null;
-let defaultAvatar: AvatarItem | null = null;
 let shuffledBotAvatars: AvatarItem[] = [];
 let botAvatarAssignments: AvatarItem[] = [];
 
@@ -130,7 +129,9 @@ function updateAvatarDropdownUI() {
 
   if (preview) preview.textContent = selectedAvatar ? selectedAvatar.icon : '?';
   if (text) {
-    text.textContent = selectedAvatar ? selectedAvatar.label : 'Select an avatar';
+    text.textContent = selectedAvatar
+      ? selectedAvatar.label
+      : 'Select an avatar';
   }
 }
 
@@ -257,8 +258,8 @@ function updatePlayerSilhouettes() {
   );
 
   // Make the local human slot clickable to open the avatar picker.
-  const localSlot = humanSilhouettesContainer
-    .firstElementChild as HTMLElement | null;
+  const localSlot =
+    humanSilhouettesContainer.firstElementChild as HTMLElement | null;
   if (localSlot) {
     localSlot.classList.add('is-avatar-picker');
     localSlot.title = 'Click to choose your avatar';
@@ -284,10 +285,6 @@ function updatePlayerSilhouettes() {
 }
 
 function syncCounterUI() {
-  const humansMinusBtn = document.getElementById('humans-minus');
-  const humansPlusBtn = document.getElementById('humans-plus');
-  const cpusMinusBtn = document.getElementById('cpus-minus');
-  const cpusPlusBtn = document.getElementById('cpus-plus');
   const totalPlayersInput = document.getElementById(
     'total-players-input'
   ) as HTMLInputElement | null;
@@ -300,7 +297,6 @@ function syncCounterUI() {
   const humans = parseInt(totalPlayersInput.value || '1', 10);
   const cpus = parseInt(cpuPlayersInput.value || '0', 10);
   const total = humans + cpus;
-  const minHumans = state.getIsSpectator() ? 0 : 1;
 
   if (totalCountSpan) {
     totalCountSpan.textContent = total.toString();
@@ -594,8 +590,6 @@ export async function initializeLobby() {
     royaltyAvatars = avatarModule.ROYALTY_AVATARS;
 
     // Default setup: No avatar selected for human initially
-    defaultAvatar =
-      royaltyAvatars.find((a) => a.id === 'king') || royaltyAvatars[0];
     selectedAvatar = null;
 
     // Create a shuffled pool for bots so they look random
@@ -783,13 +777,6 @@ export function initializePageEventListeners() {
         return;
       }
 
-      detailsList.forEach((d, i) => {
-        const summaryEl = d.querySelector('summary');
-        const summaryText = summaryEl
-          ? summaryEl.textContent?.trim()
-          : 'Summary N/A';
-      });
-
       const allOpen =
         detailsList.length > 0 && detailsList.every((d) => d.open);
       expandCollapseBtn.textContent = allOpen ? 'Collapse All' : 'Expand All';
@@ -806,7 +793,7 @@ export function initializePageEventListeners() {
       // Determine the desired state: if button says "Expand All", we want them open.
       const shouldBeOpen = expandCollapseBtn.textContent === 'Expand All';
 
-      detailsList.forEach((d, index) => {
+      detailsList.forEach((d) => {
         const summaryElement = d.querySelector('summary');
         if (!summaryElement) {
           return; // Skip this one

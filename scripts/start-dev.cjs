@@ -8,38 +8,10 @@
  * 3. Monitors for issues during startup
  */
 
-const { execSync, spawn } = require('child_process');
+const { spawn } = require('child_process');
 const os = require('os');
-const path = require('path');
-const fs = require('fs');
 
-const TARGET_PORTS = [3000, 5173];
 const isWindows = os.platform() === 'win32';
-
-// Check if ports are in use
-function arePotentiallyBlocking() {
-  try {
-    for (const port of TARGET_PORTS) {
-      let command = isWindows
-        ? `netstat -ano | findstr :${port} | findstr LISTENING`
-        : `lsof -i :${port} -sTCP:LISTEN -t`;
-        
-      try {
-        const output = execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
-        if (output.trim()) {
-          return true; // At least one port is in use
-        }
-      } catch (e) {
-        // If the command fails, it means the port is not in use
-      }
-    }
-    return false;
-  } catch (e) {
-    console.error('Error checking ports:', e.message);
-    // Assume issues if we can't check
-    return true;
-  }
-}
 
 // Simple startup banner
 console.log('🚀 Advanced Development Environment Starter');

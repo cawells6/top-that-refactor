@@ -3,10 +3,15 @@ import path from 'path'; // Node.js path module
 
 import { defineConfig } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   // Set the 'public' directory as the root for Vite's dev server
   // and the source for static assets like index.html.
   root: path.resolve(__dirname, 'public'),
+
+  // Use a Vite-injected global for dev-only UI toggles (keeps Jest happy).
+  define: {
+    __DEV__: JSON.stringify(mode !== 'production'),
+  },
 
   // Configure the development server
   server: {
@@ -64,4 +69,4 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, 'src/shared'),
     },
   },
-});
+}));

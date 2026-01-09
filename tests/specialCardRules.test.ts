@@ -1,8 +1,8 @@
 import { createMockIO } from './testUtils.js';
 import GameState from '../models/GameState.js';
 import Player from '../models/Player.js';
-import { handleSpecialCard } from '../utils/CardLogic.js';
 import { SPECIAL_CARD_EFFECT } from '../src/shared/events.ts';
+import { handleSpecialCard } from '../utils/CardLogic.js';
 
 const makeCard = (value: number | string, suit = 'hearts') => ({
   value,
@@ -39,9 +39,7 @@ describe('Special Card Rules', () => {
 
     expect(result.pileClearedBySpecial).toBe(false);
     expect(gameState.pile.length).toBe(1);
-    expect(effectCall?.[1]).toEqual(
-      expect.objectContaining({ type: 'two' })
-    );
+    expect(effectCall?.[1]).toEqual(expect.objectContaining({ type: 'two' }));
   });
 
   test('5 copies the last real card onto the pile', () => {
@@ -110,9 +108,7 @@ describe('Special Card Rules', () => {
     expect(result.pileClearedBySpecial).toBe(true);
     expect(gameState.pile.length).toBe(0);
     expect(gameState.discard.length).toBe(0);
-    expect(effectCall?.[1]).toEqual(
-      expect.objectContaining({ type: 'ten' })
-    );
+    expect(effectCall?.[1]).toEqual(expect.objectContaining({ type: 'ten' }));
   });
 
   test('four of a kind burns even when lower than the pile', () => {
@@ -140,8 +136,6 @@ describe('Special Card Rules', () => {
     expect(result.pileClearedBySpecial).toBe(true);
     expect(gameState.pile.length).toBe(0);
     expect(gameState.discard.length).toBe(0);
-    expect(effectCall?.[1]).toEqual(
-      expect.objectContaining({ type: 'four' })
-    );
+    expect(effectCall?.[1]).toEqual(expect.objectContaining({ type: 'four' }));
   });
 });

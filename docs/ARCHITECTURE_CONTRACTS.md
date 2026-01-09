@@ -13,21 +13,21 @@ Before implementing any feature, define the contracts between layers.
 interface JoinGameContract {
   // For joining existing games
   join: {
-    payload: { roomId: string; playerName: string }
-    response: { roomId: string; playerId: string } | { error: string }
-  }
-  
-  // For creating new games  
+    payload: { roomId: string; playerName: string };
+    response: { roomId: string; playerId: string } | { error: string };
+  };
+
+  // For creating new games
   create: {
-    payload: { playerName: string; numHumans: number; numCPUs: number }
-    response: { roomId: string; playerId: string } | { error: string }
-  }
+    payload: { playerName: string; numHumans: number; numCPUs: number };
+    response: { roomId: string; playerId: string } | { error: string };
+  };
 
   // Error semantics
   errors: {
-    fatalSession: 'session-error' // Clears client session + returns to lobby
-    nonFatal: 'err' // Shows message without resetting session
-  }
+    fatalSession: 'session-error'; // Clears client session + returns to lobby
+    nonFatal: 'err'; // Shows message without resetting session
+  };
 }
 ```
 
@@ -38,8 +38,8 @@ interface JoinGameContract {
 interface ValidationContract {
   joinGame: {
     // Skip player count validation when roomId is present
-    skipPlayerCountValidation: boolean // = !!payload.roomId
-  }
+    skipPlayerCountValidation: boolean; // = !!payload.roomId
+  };
 }
 ```
 
@@ -50,7 +50,7 @@ interface ValidationContract {
 interface TestContract {
   // If code uses emitJoinGame, test must mock emitJoinGame
   // If code uses socket.emit directly, test must mock socket.emit
-  mockingLayer: 'acknowledgmentUtils' | 'socket' | 'state'
+  mockingLayer: 'acknowledgmentUtils' | 'socket' | 'state';
 }
 ```
 
@@ -67,9 +67,9 @@ interface TestContract {
 // Example contract test
 describe('Join Game Contract', () => {
   it('should handle join existing game with correct payload structure', () => {
-    const payload = { roomId: 'ABC123', playerName: 'Test' }
+    const payload = { roomId: 'ABC123', playerName: 'Test' };
     // Test that both client validation and server validation agree
-    expect(clientValidation(payload)).toEqual(serverValidation(payload))
-  })
-})
+    expect(clientValidation(payload)).toEqual(serverValidation(payload));
+  });
+});
 ```

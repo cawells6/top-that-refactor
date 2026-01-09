@@ -5,6 +5,7 @@ This file contains all the tutorial text/verbiage in an easy-to-edit format. Aft
 ---
 
 ## Step 1: Welcome to Top That!
+
 **ID:** INTRO_WELCOME
 
 **Title:** Welcome to Top That!
@@ -15,6 +16,7 @@ Your only mission? One-up your opponent and become the king! This game is all ab
 ---
 
 ## Step 2: Playing from Your Hand
+
 **ID:** HAND_BASIC
 
 **Title:** Playing from Your Hand
@@ -25,6 +27,7 @@ First things first: get rid of all your cards to win. When the pile is empty, yo
 ---
 
 ## Step 3: Opponent's Turn
+
 **ID:** OPPONENT_PLAYS_1
 
 **Title:** Opponent's Turn
@@ -35,6 +38,7 @@ The King just played a 7. Notice you still have 3 cards? After you play from you
 ---
 
 ## Step 4: Playing a Higher Card
+
 **ID:** HAND_HIGHER
 
 **Title:** Playing a Higher Card
@@ -45,6 +49,7 @@ Here's the core rule: you must play higher than what's on the pile. The King pla
 ---
 
 ## Step 5: Playing Multiple Cards
+
 **ID:** HAND_MULTIPLE
 
 **Title:** Playing Multiple Cards
@@ -55,6 +60,7 @@ Got matching cards? Play them all at once for maximum impact! <strong>Click all 
 ---
 
 ## Step 6: Special Card - The Reset
+
 **ID:** SPECIAL_TWO
 
 **Title:** Special Card: The Reset
@@ -65,6 +71,7 @@ Stuck with low cards? The 2 is your royal pardon! It can be played on anything a
 ---
 
 ## Step 7: Special Card - The Copycat
+
 **ID:** SPECIAL_FIVE
 
 **Title:** Special Card: The Copycat
@@ -75,6 +82,7 @@ The 5 is a shapeshifter. It copies whatever's on top of the pile! Right now ther
 ---
 
 ## Step 8: Special Card - Burn the Pile
+
 **ID:** SPECIAL_TEN
 
 **Title:** Special Card: Burn the Pile
@@ -85,6 +93,7 @@ The 10 is pure destruction. It burns the pile and those cards are removed from t
 ---
 
 ## Step 9: No Valid Play
+
 **ID:** PICKUP_FAIL
 
 **Title:** No Valid Play
@@ -95,6 +104,7 @@ You're cornered! When you can't play anything, you must collect the pile. Even t
 ---
 
 ## Step 10: Up Cards - Phase 2
+
 **ID:** UPCARDS_INTRO
 
 **Title:** Up Cards: Phase 2
@@ -105,6 +115,7 @@ Hand empty? No problem! Now you play from your visible 'up cards'. Everyone can 
 ---
 
 ## Step 11: Down Cards - The Mystery Round
+
 **ID:** DOWNCARDS_INTRO
 
 **Title:** Down Cards: The Mystery Round
@@ -115,6 +126,7 @@ Final phase! When your up cards are gone, it's time to flip face-down cards. The
 ---
 
 ## Step 12: Card Too Low
+
 **ID:** FACEDOWN_FAIL
 
 **Title:** Ouch! Card Too Low
@@ -125,6 +137,7 @@ You flipped a 3, but the pile has an 8... unfortunate! When your flipped card is
 ---
 
 ## Step 13: Accept Your Fate
+
 **ID:** FACEDOWN_PICKUP
 
 **Title:** Accept Your Fate
@@ -135,6 +148,7 @@ Time to face the consequences. Click <strong>Take</strong> or click the pile to 
 ---
 
 ## Step 14: Four of a Kind
+
 **ID:** FOUR_OF_KIND
 
 **Title:** The Ultimate Combo: Four of a Kind
@@ -145,6 +159,7 @@ Here's the ultimate power move: play four matching cards at once and the entire 
 ---
 
 ## Step 15: Ready to Play
+
 **ID:** COMPLETE
 
 **Title:** Ready to Claim Your Throne!

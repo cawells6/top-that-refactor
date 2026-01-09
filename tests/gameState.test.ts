@@ -256,9 +256,9 @@ describe('GameState', () => {
   test('isValidPlay allows four of a kind to burn any pile', () => {
     const make = (v: any) => ({ value: v, suit: 'h' });
     gs.pile = [make('K')];
-    expect(
-      gs.isValidPlay([make('3'), make('3'), make('3'), make('3')])
-    ).toBe(true);
+    expect(gs.isValidPlay([make('3'), make('3'), make('3'), make('3')])).toBe(
+      true
+    );
   });
 
   test('isValidPlay rejects lower pairs against higher pile', () => {

@@ -2,7 +2,7 @@
   "extends": ["@typescript-eslint/recommended"],
   "rules": {
     "no-direct-layer-skip": "error",
-    "no-mixed-concerns": "error", 
+    "no-mixed-concerns": "error",
     "require-interface-first": "error"
   },
   "overrides": [

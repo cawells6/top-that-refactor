@@ -17,22 +17,26 @@
 
 /* Prevent flash of unstyled/misaligned content during load */
 .preload-hidden {
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transition: visibility 0s, opacity 0.5s ease;
-    position: fixed !important; /* Keep fixed even during load */
-    display: flex !important; /* Maintain flex layout during load */
-    justify-content: center !important; /* Keep centered even when hidden */
-    align-items: center !important; /* Keep centered even when hidden */
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition:
+    visibility 0s,
+    opacity 0.5s ease;
+  position: fixed !important; /* Keep fixed even during load */
+  display: flex !important; /* Maintain flex layout during load */
+  justify-content: center !important; /* Keep centered even when hidden */
+  align-items: center !important; /* Keep centered even when hidden */
 }
 
 /* Fade in transition when showing content */
 .fade-in {
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    transition: visibility 0s, opacity 0.5s ease;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transition:
+    visibility 0s,
+    opacity 0.5s ease;
 }
 
 :root {
@@ -53,8 +57,8 @@
   --game-display-font: 'Bebas Neue', 'Luckiest Guy', sans-serif;
 
   /* Logo style colors for section titles */
-  --logo-yellow: #ffc300;     /* match the site's main accent color */
-  --logo-stroke: #333333;     /* lighter gray outline for less prominent effect */
+  --logo-yellow: #ffc300; /* match the site's main accent color */
+  --logo-stroke: #333333; /* lighter gray outline for less prominent effect */
 
   /* Modal sizing variables - centralized control */
   --modal-container-width: 1200px;
@@ -62,18 +66,24 @@
   --modal-small-width: 960px; /* For smaller modals if needed */
 }
 
-html, body {
+html,
+body {
   overflow-x: hidden; /* Prevent horizontal scrolling */
   overflow-y: scroll !important; /* Always show vertical scrollbar */
   scrollbar-width: thin; /* For Firefox */
   -ms-overflow-style: scrollbar; /* For IE and Edge */
   /* Force the scrollbar to always be visible */
   scrollbar-gutter: stable; /* Modern browsers */
-  margin-right: calc(100vw - 100%); /* Fallback for browsers that don't support scrollbar-gutter */
+  margin-right: calc(
+    100vw - 100%
+  ); /* Fallback for browsers that don't support scrollbar-gutter */
 }
 
 body {
-  background: var(--bg, #137a4b); /* Ensuring green background for the whole page */
+  background: var(
+    --bg,
+    #137a4b
+  ); /* Ensuring green background for the whole page */
   min-height: 100vh;
   font-family: var(--game-font);
   margin: 0; /* Remove default margin */
@@ -122,7 +132,8 @@ body {
 }
 
 /* Initial hidden states - enhanced by layout-stabilizer.js */
-#lobby-container.hidden, #game-table.hidden {
+#lobby-container.hidden,
+#game-table.hidden {
   opacity: 0;
 }
 
@@ -299,11 +310,12 @@ body {
   background: linear-gradient(135deg, #1f7a6d 0%, #3aa18d 100%);
 }
 
-#lobby-form[data-lobby-tab="join"] #setup-deal-button {
+#lobby-form[data-lobby-tab='join'] #setup-deal-button {
   display: none;
 }
 
-#lobby-form[data-lobby-tab="join"] .lobby-buttons-row:not(.lobby-buttons-row--join) {
+#lobby-form[data-lobby-tab='join']
+  .lobby-buttons-row:not(.lobby-buttons-row--join) {
   display: none;
 }
 
@@ -361,10 +373,10 @@ body {
   letter-spacing: 0.04em;
   line-height: 1;
   color: var(--logo-yellow);
-  -webkit-text-stroke: 4px var(--logo-stroke);   /* reduced stroke width for subtler effect */
+  -webkit-text-stroke: 4px var(--logo-stroke); /* reduced stroke width for subtler effect */
   paint-order: stroke fill;
   /* subtle lift like the logo */
-  filter: drop-shadow(0 4px 0 rgba(0,0,0,.25));
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.25));
   border: none;
   border-radius: 0;
   padding: 0;
@@ -379,12 +391,18 @@ body {
 @supports not (-webkit-text-stroke: 1px black) {
   .section-title {
     text-shadow:
-      0 1px 0 var(--logo-stroke), 0 -1px 0 var(--logo-stroke),
-      1px 0 0 var(--logo-stroke), -1px 0 0 var(--logo-stroke),
-      2px 0 0 var(--logo-stroke), -2px 0 0 var(--logo-stroke),
-      0 2px 0 var(--logo-stroke), 0 -2px 0 var(--logo-stroke),
-      2px 2px 0 var(--logo-stroke), -2px 2px 0 var(--logo-stroke),
-      2px -2px 0 var(--logo-stroke), -2px -2px 0 var(--logo-stroke);
+      0 1px 0 var(--logo-stroke),
+      0 -1px 0 var(--logo-stroke),
+      1px 0 0 var(--logo-stroke),
+      -1px 0 0 var(--logo-stroke),
+      2px 0 0 var(--logo-stroke),
+      -2px 0 0 var(--logo-stroke),
+      0 2px 0 var(--logo-stroke),
+      0 -2px 0 var(--logo-stroke),
+      2px 2px 0 var(--logo-stroke),
+      -2px 2px 0 var(--logo-stroke),
+      2px -2px 0 var(--logo-stroke),
+      -2px -2px 0 var(--logo-stroke);
   }
 }
 
@@ -408,7 +426,11 @@ body {
   width: 40px;
   height: 40px;
   border: none;
-  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%); /* Match other buttons */
+  background: linear-gradient(
+    135deg,
+    #ffc300 0%,
+    #ffdb4d 100%
+  ); /* Match other buttons */
   color: #1b2e3c; /* Dark text for contrast on gold */
   border-radius: 8px;
   font-size: 1.6rem;
@@ -423,7 +445,11 @@ body {
 }
 
 .counter-btn:hover {
-  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%); /* Match other button hovers */
+  background: linear-gradient(
+    135deg,
+    #ffdb4d 0%,
+    #ffe066 100%
+  ); /* Match other button hovers */
   color: #1b2e3c;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
@@ -680,7 +706,9 @@ body {
   z-index: 1000;
   /* Animations for smooth appearance */
   animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  max-width: var(--modal-container-width); /* Using CSS variable for easy maintenance */
+  max-width: var(
+    --modal-container-width
+  ); /* Using CSS variable for easy maintenance */
   width: 100%;
   margin: 0 auto;
   position: relative;
@@ -717,7 +745,6 @@ body {
   padding-left: 1.5rem !important;
   padding-right: 1.5rem !important;
 }
-
 
 /* Legacy .game-setup-card styling - keeping for backwards compatibility
    but with modified properties since it's no longer the main container */
@@ -762,7 +789,7 @@ body {
   .player-selection {
     gap: 1.5rem;
   }
-  
+
   .player-section {
     min-height: 190px;
   }
@@ -861,7 +888,7 @@ body {
   /* Keep padding, border-radius, box-shadow from .player-section */
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   margin-bottom: 1.2rem;
 }
 
@@ -880,8 +907,10 @@ body {
   background: #f6f6f6;
   border-radius: 999px;
   padding: 0.25em 1em;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  text-shadow: 0 1px 2px #fff, 0 0.5px 0 #bbb;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  text-shadow:
+    0 1px 2px #fff,
+    0 0.5px 0 #bbb;
   margin-right: 0.5rem;
   display: inline-block;
 }
@@ -1137,7 +1166,6 @@ body {
   box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
 }
 
-
 /* Player count help text */
 .player-count-help {
   font-size: 0.75rem;
@@ -1168,7 +1196,9 @@ body {
   box-sizing: border-box;
   font-weight: 600; /* Consistent weight */
   letter-spacing: 0.02em;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 /* Player name input specific sizing */
@@ -1213,8 +1243,6 @@ body {
   border-color: #ffc300;
   box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.2);
 }
-
-
 
 /* Validation message styling to match design system */
 .validation-message-container {
@@ -1361,7 +1389,11 @@ body {
   min-width: 320px !important;
   margin-top: 0.5rem !important;
   padding: 0.35rem 0.6rem !important;
-  background: linear-gradient(180deg, rgba(19, 122, 75, 0.1), rgba(19, 122, 75, 0.04)) !important;
+  background: linear-gradient(
+    180deg,
+    rgba(19, 122, 75, 0.1),
+    rgba(19, 122, 75, 0.04)
+  ) !important;
   border-radius: 10px !important;
   border: 2px solid rgba(19, 122, 75, 0.35) !important;
   box-shadow:
@@ -1579,7 +1611,9 @@ body.spectator-mode .spectator-banner {
 
 /* Ensure emojis render as graphics */
 .emoji-avatar {
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  font-family:
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji', sans-serif;
   line-height: 1;
   display: flex;
   align-items: center;

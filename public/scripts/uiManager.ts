@@ -1,5 +1,3 @@
-import * as state from './state.js';
-
 export const getLobbyContainer = (): HTMLElement | null =>
   document.getElementById('lobby-container');
 

@@ -1,7 +1,6 @@
 // models/GameState.ts
 
 import { Card, CardValue, AddToPileOptions } from '../src/shared/types.js';
-
 import { rank, normalizeCardValue, isSpecialCard } from '../utils/cardUtils.js';
 
 export default class GameState {
@@ -147,10 +146,14 @@ export default class GameState {
       'A',
     ];
     this.deck = []; // Initialize deck
-    // Always use 1 deck for 1-4 players
-    for (const suit of suits) {
-      for (const value of values) {
-        this.deck.push({ value, suit });
+
+    // Use a 2-deck shoe for 5+ players.
+    const deckCount = this.players.length >= 5 ? 2 : 1;
+    for (let d = 0; d < deckCount; d++) {
+      for (const suit of suits) {
+        for (const value of values) {
+          this.deck.push({ value, suit });
+        }
       }
     }
 
@@ -203,7 +206,7 @@ export default class GameState {
     }
 
     const firstValue = normalizeCardValue(cards[0].value);
-    if (cards.some(card => normalizeCardValue(card.value) !== firstValue)) {
+    if (cards.some((card) => normalizeCardValue(card.value) !== firstValue)) {
       return false; // All cards must have the same value
     }
 

@@ -1,7 +1,7 @@
 /* fixed-cards-override.css - Override styles to ensure cards remain visible and clean-looking */
 
 /* Base card image styles */
-.rule-card-img[data-fixed-loader="true"],
+.rule-card-img[data-fixed-loader='true'],
 img.rule-card-img.fixed-card-permanent {
   display: inline-block !important;
   visibility: visible !important;
@@ -10,7 +10,7 @@ img.rule-card-img.fixed-card-permanent {
   width: auto !important;
   min-width: 40px !important;
   border-radius: 4px !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
   margin: 0 2px !important;
   border: 1px solid #eee !important;
   background-color: transparent !important;
@@ -21,10 +21,10 @@ img.rule-card-img.fixed-card-permanent {
 
 /* Explicitly override rule-card-img:hover */
 .rule-card-img:hover,
-.rule-card-img[data-fixed-loader="true"]:hover,
+.rule-card-img[data-fixed-loader='true']:hover,
 img.rule-card-img.fixed-card-permanent:hover {
   transform: none !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
   z-index: 1 !important;
 }
 
@@ -68,7 +68,7 @@ img.rule-card-img.fixed-card-permanent:hover {
 }
 
 /* Stronger overrides to prevent conflicts */
-div[data-fixed-loader-container="true"] {
+div[data-fixed-loader-container='true'] {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;

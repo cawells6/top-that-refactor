@@ -108,11 +108,15 @@ describe('socketService', () => {
       (state as any).currentRoom = value;
     });
 
-    (state.setLastGameState as jest.Mock).mockImplementation((value: unknown) => {
-      (state as any).lastGameState = value;
-    });
+    (state.setLastGameState as jest.Mock).mockImplementation(
+      (value: unknown) => {
+        (state as any).lastGameState = value;
+      }
+    );
 
-    (state.getLastGameState as jest.Mock).mockImplementation(() => (state as any).lastGameState);
+    (state.getLastGameState as jest.Mock).mockImplementation(
+      () => (state as any).lastGameState
+    );
   });
 
   it('registers socket event handlers and calls UI functions', async () => {
@@ -142,10 +146,7 @@ describe('socketService', () => {
       SESSION_ERROR,
       expect.any(Function)
     );
-    expect(state.socket.on).toHaveBeenCalledWith(
-      ERROR,
-      expect.any(Function)
-    );
+    expect(state.socket.on).toHaveBeenCalledWith(ERROR, expect.any(Function));
   });
 
   it('calls showLobbyForm if not rejoining on connect', async () => {
@@ -202,7 +203,9 @@ describe('socketService', () => {
     errHandler('fail!');
     expect(render.showCardEvent).toHaveBeenCalledWith(null, 'invalid');
     expect(state.getLastGameState).toHaveBeenCalled();
-    const lastCallResult = (state.getLastGameState as jest.Mock).mock.results.at(-1)?.value;
+    const lastCallResult = (
+      state.getLastGameState as jest.Mock
+    ).mock.results.at(-1)?.value;
     expect(lastCallResult).toBe(lastState);
     expect(showToast).not.toHaveBeenCalled();
     expect(uiManager.showLobbyForm).not.toHaveBeenCalled();

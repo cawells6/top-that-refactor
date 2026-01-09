@@ -826,8 +826,9 @@ describe('Game Flow - Invalid Card Play', () => {
       (p) => p.name === 'Bob'
     )!;
 
-    gameController['gameState'].currentPlayerIndex =
-      gameController['gameState'].players.indexOf(playerA.id);
+    gameController['gameState'].currentPlayerIndex = gameController[
+      'gameState'
+    ].players.indexOf(playerA.id);
     playerA.hand = [];
     playerA.upCards = [];
     playerA.downCards = [{ value: 4, suit: 'hearts' }];
@@ -881,8 +882,9 @@ describe('Game Flow - Invalid Card Play', () => {
     const playerA = Array.from(gameController['players'].values()).find(
       (p) => p.name === 'Alice'
     )!;
-    gameController['gameState'].currentPlayerIndex =
-      gameController['gameState'].players.indexOf(playerA.id);
+    gameController['gameState'].currentPlayerIndex = gameController[
+      'gameState'
+    ].players.indexOf(playerA.id);
     playerA.hand = [{ value: 'A', suit: 'spades' }];
     gameController['gameState'].pile = [{ value: '3', suit: 'clubs' }];
 
@@ -943,12 +945,9 @@ describe('Game Flow - Special Card Effects', () => {
 
     topLevelEmitMock.mockClear();
 
-    (gameController as any)['handlePlayCardInternal'](
-      cpuPlayer,
-      [0],
-      'hand',
-      [cpuPlayer.hand[0]]
-    );
+    (gameController as any)['handlePlayCardInternal'](cpuPlayer, [0], 'hand', [
+      cpuPlayer.hand[0],
+    ]);
 
     jest.runOnlyPendingTimers();
     await Promise.resolve();
@@ -1064,9 +1063,7 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
     winner.downCards = [];
     gameController['gameState'].started = false;
     topLevelEmitMock.mockClear();
-    gameController['io']
-      .to(gameController['roomId'])
-      .emit(GAME_OVER, winnerId);
+    gameController['io'].to(gameController['roomId']).emit(GAME_OVER, winnerId);
     const gameOverCall = topLevelEmitMock.mock.calls.find(
       (call) => call[0] === GAME_OVER
     );
@@ -1120,7 +1117,8 @@ describe('State Validation Guards', () => {
     });
 
     const errorCall = topLevelEmitMock.mock.calls.find(
-      (call) => call[0] === ERROR && String(call[1]).includes('Invalid game state')
+      (call) =>
+        call[0] === ERROR && String(call[1]).includes('Invalid game state')
     );
     expect(errorCall).toBeDefined();
   });

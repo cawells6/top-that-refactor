@@ -2,7 +2,7 @@
 
 The most important rule of this project is accuracy. I want whatever code is written by AI to be accurate and holistic. It can take as long as it needs to, but it must be accurate. If it is not accurate, it will be rejected. I want AI to be the expert and dig into issues as much as possible to help me cultivate ideas and build a top-tier game.
 
-This project hosts a refactored implementation of the **Top That!** card game.  The server is written in TypeScript using Express and Socket.IO while the client is served through Vite.
+This project hosts a refactored implementation of the **Top That!** card game. The server is written in TypeScript using Express and Socket.IO while the client is served through Vite.
 
 ## Getting Started
 
@@ -18,7 +18,7 @@ This project hosts a refactored implementation of the **Top That!** card game.  
    npm run dev:all
    ```
 
-   The server defaults to port `3000` but will automatically try the next available port if it is already in use.  Open `http://localhost:3000` (or whatever port is chosen) to load the client.
+   The server defaults to port `3000` but will automatically try the next available port if it is already in use. Open `http://localhost:3000` (or whatever port is chosen) to load the client.
 
 3. To run only the server in development you can use:
 
@@ -90,6 +90,7 @@ enter the room manually.
    - If you add new modals or containers, follow the same CSS patterns for centering and sizing.
 
 **Summary:**
+
 - All lobby layout and stabilization is now clean, modern, and CSS-driven.
 - See the top of each relevant CSS file for maintenance instructions.
 - No JS stabilization code remains or is needed.

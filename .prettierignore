@@ -2,6 +2,9 @@
 dist/
 dist-server
 
+# Ignore Vite cache/build artifacts
+.vite/
+
 # Ignore dependencies
 node_modules/
 
@@ -14,6 +17,8 @@ pnpm-lock.yaml
 coverage/
 
 # Other generated files or directories
+logs/
+test_output.*
 .DS_Store
 *.log
 *.archived

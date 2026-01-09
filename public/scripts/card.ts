@@ -26,7 +26,7 @@ export function createCardElement(
     // Create custom card back element
     const cardBack = document.createElement('div');
     cardBack.className = 'card-img card-back-custom';
-    
+
     // Add inner structure and logo
     const inner = document.createElement('div');
     inner.className = 'card-back-inner';
@@ -36,7 +36,7 @@ export function createCardElement(
     logo.alt = 'Top That';
     inner.appendChild(logo);
     cardBack.appendChild(inner);
-    
+
     container.appendChild(cardBack);
   } else {
     // Format card values for image src
@@ -49,20 +49,24 @@ export function createCardElement(
     if (card.copied) {
       img.classList.add('copied-card');
     }
-    
+
     container.appendChild(img);
   }
 
   // Make card selectable if needed
   if (selectable) {
-    const selectableElement = container.querySelector('.card-img, .card-back-custom');
+    const selectableElement = container.querySelector(
+      '.card-img, .card-back-custom'
+    );
     if (selectableElement) {
       selectableElement.classList.add('selectable');
       (selectableElement as HTMLElement).style.touchAction = 'manipulation';
     }
 
     container.addEventListener('click', () => {
-      const selectableEl = container.querySelector('.card-img, .card-back-custom');
+      const selectableEl = container.querySelector(
+        '.card-img, .card-back-custom'
+      );
       if (selectableEl) {
         selectableEl.classList.toggle('selected');
         container.classList.toggle(
@@ -70,7 +74,8 @@ export function createCardElement(
           selectableEl.classList.contains('selected')
         );
 
-        if (onSelect) onSelect(card, selectableEl.classList.contains('selected'));
+        if (onSelect)
+          onSelect(card, selectableEl.classList.contains('selected'));
       }
     });
   }

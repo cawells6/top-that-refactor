@@ -5,13 +5,6 @@
  * For tests that intentionally test missing DOM, mock InSessionLobbyModal to avoid constructor errors.
  */
 
-/**
- * Best Practice: Use setupModalDOM() or mockInSessionLobbyModal() from tests/utils/domSetup for modal-related tests.
- *   - setupModalDOM(): For tests that require the modal DOM structure.
- *   - mockInSessionLobbyModal(): For tests that intentionally omit DOM setup but import/require the modal.
- */
-import { setupModalDOM, mockInSessionLobbyModal } from './utils/domSetup.js';
-
 describe('Client Main Script (main.ts) - Join Link Only', () => {
   beforeEach(() => {
     jest.resetModules();
@@ -77,9 +70,6 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
       injectedWindow: window,
       injectedDocument: document,
     });
-    // Debug output for diagnosis
-    console.log('setCurrentRoom calls:', setCurrentRoom.mock.calls);
-    console.log('socket.emit calls:', emit.mock.calls);
     // Robust: Check that setCurrentRoom and socket.emit were called at least once with expected args
     expect(
       setCurrentRoom.mock.calls.some((call) => call[0] === 'ROOM123')

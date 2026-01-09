@@ -35,11 +35,15 @@ const ICON_PATHS = {
 
 // Set header logo if present (use imported logoUrl so Vite can hash it)
 if (typeof document !== 'undefined') {
-  const headerLogo = document.getElementById('site-logo') as HTMLImageElement | null;
+  const headerLogo = document.getElementById(
+    'site-logo'
+  ) as HTMLImageElement | null;
   if (headerLogo) {
     headerLogo.src = logoUrl;
-    headerLogo.onload = () => console.log('Logo loaded successfully:', headerLogo.src);
-    headerLogo.onerror = () => console.error('Logo failed to load:', headerLogo.src);
+    headerLogo.onload = () =>
+      console.log('Logo loaded successfully:', headerLogo.src);
+    headerLogo.onerror = () =>
+      console.error('Logo failed to load:', headerLogo.src);
   }
 }
 
@@ -104,6 +108,7 @@ const MAX_LOG_ENTRIES = 5;
 let logEntries: LogEntry[] = [];
 let nextLogId = 0;
 let gameLogMinimized = false;
+let tableMenuEscapeListenerAttached = false;
 
 function addLogEntry(message: string, type: LogEntry['type'] = 'game'): void {
   const entry: LogEntry = {
@@ -509,7 +514,8 @@ function updateCenterArea(
   const pile = gameState.pile ?? [];
   const forceBlank = !skeletonMode && shouldBlankDrawPile();
   const drawCountEl = playContainer.querySelector('.pile-count');
-  if (drawCountEl) drawCountEl.textContent = forceBlank ? '0' : String(pile.length);
+  if (drawCountEl)
+    drawCountEl.textContent = forceBlank ? '0' : String(pile.length);
 
   if (playStack) {
     // During initial deal, Draw pile must stay blank
@@ -524,7 +530,8 @@ function updateCenterArea(
     if (topCard) {
       playStack.innerHTML = '';
 
-      const shouldShowCopyShingle = Boolean((topCard as any).copied) && pile.length >= 2;
+      const shouldShowCopyShingle =
+        Boolean((topCard as any).copied) && pile.length >= 2;
       if (shouldShowCopyShingle) {
         const belowCard = pile[pile.length - 2];
 
@@ -664,7 +671,10 @@ function updateStacks(
           if (canPlayDown && !cardFace.classList.contains('selectable')) {
             cardFace.classList.add('selectable');
             existingDownContainer.classList.add('selectable-container');
-          } else if (!canPlayDown && cardFace.classList.contains('selectable')) {
+          } else if (
+            !canPlayDown &&
+            cardFace.classList.contains('selectable')
+          ) {
             cardFace.classList.remove('selectable');
             existingDownContainer.classList.remove('selectable-container');
           }
@@ -924,7 +934,9 @@ function applyHandCompression(
   handRow: HTMLDivElement,
   cardCount: number
 ): void {
-  const handTray = panel.querySelector('.hand-tray--local') as HTMLElement | null;
+  const handTray = panel.querySelector(
+    '.hand-tray--local'
+  ) as HTMLElement | null;
 
   if (cardCount <= 1) {
     if (handRow.classList.contains('hand-row--compressed')) {
@@ -963,6 +975,25 @@ function applyHandCompression(
 
   const requiredOverlap =
     (availableWidth - cardTotalWidth * cardCount) / (cardCount - 1);
+
+  const naturalGap =
+    parseFloat(rowStyles.getPropertyValue('--hand-natural-gap')) || 6;
+  const requiredNoOverlapWidth =
+    cardTotalWidth * cardCount + naturalGap * (cardCount - 1);
+
+  // If the hand fits with its natural spacing, ensure we return to the
+  // non-overlapped layout (this prevents the hand from "sticking" left after
+  // playing down to a smaller count).
+  if (requiredNoOverlapWidth <= availableWidth + 0.5) {
+    if (handRow.classList.contains('hand-row--compressed')) {
+      handRow.classList.remove('hand-row--compressed');
+      handRow.style.removeProperty('--hand-overlap');
+    }
+    handTray?.classList.remove('hand-tray--scroll');
+    lastHandCompressed = false;
+    lastHandOverlap = 0;
+    return;
+  }
 
   let overlap = Math.min(baseOverlap, requiredOverlap);
 
@@ -1703,6 +1734,13 @@ export function renderGameState(
 
   // Ensure Branding/Rules (One-time)
   if (table) {
+    const toggleGameLog = () => {
+      const logPanel = document.getElementById('game-log');
+      if (!logPanel) return;
+      logPanel.style.display =
+        logPanel.style.display === 'none' ? 'block' : 'none';
+    };
+
     if (!table.querySelector('#table-rules-button')) {
       const rulesButton = document.createElement('button');
       rulesButton.id = 'table-rules-button';
@@ -1718,17 +1756,101 @@ export function renderGameState(
       historyButton.id = 'table-history-button';
       historyButton.className = 'action-button action-button--history';
       historyButton.textContent = 'Move History';
-      historyButton.onclick = () => {
-        const logPanel = document.getElementById('game-log');
-        if (logPanel) {
-          if (logPanel.style.display === 'none') {
-            logPanel.style.display = 'block';
-          } else {
-            logPanel.style.display = 'none';
-          }
-        }
-      };
+      historyButton.onclick = toggleGameLog;
       table.appendChild(historyButton);
+    }
+
+    // Mobile: hamburger menu (Rules + Move History)
+    if (!table.querySelector('#table-menu-button')) {
+      const menuButton = document.createElement('button');
+      menuButton.id = 'table-menu-button';
+      menuButton.className = 'action-button action-button--menu';
+      menuButton.type = 'button';
+      menuButton.title = 'Menu';
+      menuButton.setAttribute('aria-label', 'Menu');
+      menuButton.setAttribute('aria-haspopup', 'menu');
+      menuButton.setAttribute('aria-expanded', 'false');
+      menuButton.textContent = '☰';
+      table.appendChild(menuButton);
+    }
+
+    if (!table.querySelector('#table-menu-panel')) {
+      const menuPanel = document.createElement('div');
+      menuPanel.id = 'table-menu-panel';
+      menuPanel.className = 'table-menu-panel';
+      menuPanel.innerHTML = `
+        <button type="button" class="table-menu-item" data-action="rules">Rules</button>
+        <button type="button" class="table-menu-item" data-action="history">Move History</button>
+      `;
+      table.appendChild(menuPanel);
+    }
+
+    if (!table.querySelector('#table-menu-backdrop')) {
+      const backdrop = document.createElement('div');
+      backdrop.id = 'table-menu-backdrop';
+      backdrop.className = 'table-menu-backdrop';
+      table.appendChild(backdrop);
+    }
+
+    const menuButton = table.querySelector(
+      '#table-menu-button'
+    ) as HTMLButtonElement | null;
+    const menuPanel = table.querySelector(
+      '#table-menu-panel'
+    ) as HTMLDivElement | null;
+    const menuBackdrop = table.querySelector(
+      '#table-menu-backdrop'
+    ) as HTMLDivElement | null;
+
+    const setMenuOpen = (open: boolean) => {
+      if (!menuButton || !menuPanel || !menuBackdrop) return;
+      menuPanel.classList.toggle('is-open', open);
+      menuBackdrop.classList.toggle('is-open', open);
+      menuButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+
+    if (menuButton && menuPanel && menuBackdrop && !menuPanel.dataset.bound) {
+      menuPanel.dataset.bound = 'true';
+
+      menuButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setMenuOpen(!menuPanel.classList.contains('is-open'));
+      });
+
+      menuBackdrop.addEventListener('click', () => setMenuOpen(false));
+
+      menuPanel.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement | null;
+        const action = target?.getAttribute('data-action');
+        if (!action) return;
+
+        if (action === 'rules') {
+          document.dispatchEvent(new CustomEvent('open-rules-modal'));
+          setMenuOpen(false);
+          return;
+        }
+
+        if (action === 'history') {
+          toggleGameLog();
+          setMenuOpen(false);
+        }
+      });
+    }
+
+    if (!tableMenuEscapeListenerAttached) {
+      tableMenuEscapeListenerAttached = true;
+      document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        const menuPanel = document.getElementById('table-menu-panel');
+        const menuBackdrop = document.getElementById('table-menu-backdrop');
+        const menuButton = document.getElementById('table-menu-button');
+        if (!menuPanel || !menuBackdrop) return;
+        if (!menuPanel.classList.contains('is-open')) return;
+        menuPanel.classList.remove('is-open');
+        menuBackdrop.classList.remove('is-open');
+        if (menuButton) menuButton.setAttribute('aria-expanded', 'false');
+      });
     }
 
     // Initialize game log panel (hidden by default)

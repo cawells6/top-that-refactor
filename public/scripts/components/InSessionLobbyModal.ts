@@ -2,7 +2,6 @@
 import { LOBBY_STATE_UPDATE, PLAYER_READY } from '@shared/events.ts';
 import { InSessionLobbyState } from '@shared/types.ts';
 
-import { renderGameState } from '../render.js';
 import * as state from '../state.js';
 import { showToast } from '../uiHelpers.js';
 import * as uiManager from '../uiManager.js';
@@ -61,7 +60,10 @@ export class InSessionLobbyModal {
     }
 
     state.socket.on(LOBBY_STATE_UPDATE, (lobbyState: InSessionLobbyState) => {
-      console.log('[InSessionLobbyModal] Received LOBBY_STATE_UPDATE:', lobbyState);
+      console.log(
+        '[InSessionLobbyModal] Received LOBBY_STATE_UPDATE:',
+        lobbyState
+      );
       this.render(lobbyState);
       const expectedHumans =
         typeof lobbyState.expectedHumanCount === 'number'
@@ -72,7 +74,9 @@ export class InSessionLobbyModal {
       const shouldShowModal = expectedHumans > 1;
 
       if (lobbyState.started) {
-        console.log('[InSessionLobbyModal] Game started, calling showGameTable()');
+        console.log(
+          '[InSessionLobbyModal] Game started, calling showGameTable()'
+        );
         uiManager.showGameTable();
         this.hideModal();
         // Rendering is now handled by the STATE_UPDATE event
@@ -182,7 +186,9 @@ export class InSessionLobbyModal {
         avatarEl.appendChild(emojiDiv);
       } else {
         const img = document.createElement('img');
-        img.src = player.isComputer ? '/assets/robot.svg' : '/assets/Player.svg';
+        img.src = player.isComputer
+          ? '/assets/robot.svg'
+          : '/assets/Player.svg';
         img.alt = 'avatar';
         avatarEl.appendChild(img);
       }
@@ -192,7 +198,8 @@ export class InSessionLobbyModal {
       labelWrap.className = 'player-meta';
       const nameEl = document.createElement('div');
       nameEl.className = 'player-name';
-      nameEl.textContent = player.name + (player.id === state.myId ? ' (You)' : '');
+      nameEl.textContent =
+        player.name + (player.id === state.myId ? ' (You)' : '');
       labelWrap.appendChild(nameEl);
 
       // Badges (spectator / host)

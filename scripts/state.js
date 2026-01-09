@@ -2,7 +2,7 @@
 
 // ...existing code...
 
-export function setCurrentRoom(roomId) {
+export function setCurrentRoom(_roomId) {
   // ...existing code or implementation...
 }
 

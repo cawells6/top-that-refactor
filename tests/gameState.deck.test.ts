@@ -3,10 +3,9 @@ import GameState from '../models/GameState.js';
 import { Card, DealtCards } from '../src/types.js'; // Import both Card and DealtCards
 
 const DECK_SIZE_SINGLE = 52;
-const DECK_SIZE_DOUBLE = 104;
 
 describe('GameState deck and dealCards', () => {
-  test('buildDeck creates 52 unique cards and shuffles for < 4 players', () => {
+  test('buildDeck creates 52 unique cards and shuffles for < 5 players', () => {
     const gs = new GameState();
     gs.players = ['p1', 'p2']; // Simulate less than 4 players
     gs.startGameInstance(); // Changed from gs.buildDeck()
@@ -52,9 +51,9 @@ describe('GameState deck and dealCards', () => {
     expect(actualDeckString).not.toBe(orderedDeckString);
   });
 
-  test('buildDeck creates 104 cards (2 decks) for 4 or more players', () => {
+  test('buildDeck creates 104 cards (2 decks) for 5 or more players', () => {
     const gs = new GameState();
-    gs.players = ['p1', 'p2', 'p3', 'p4']; // Simulate 4 players
+    gs.players = ['p1', 'p2', 'p3', 'p4', 'p5']; // Simulate 5 players
     gs.startGameInstance(); // Changed from gs.buildDeck()
     expect(gs.deck!.length).toBe(104); // Added !
 
@@ -87,7 +86,7 @@ describe('GameState deck and dealCards', () => {
 
   test.each([
     { numPlayers: 2, handSize: 3, expectedDeck: DECK_SIZE_SINGLE - 2 * 3 * 3 },
-    { numPlayers: 4, handSize: 3, expectedDeck: DECK_SIZE_DOUBLE - 4 * 3 * 3 },
+    { numPlayers: 4, handSize: 3, expectedDeck: DECK_SIZE_SINGLE - 4 * 3 * 3 },
     { numPlayers: 3, handSize: 2, expectedDeck: DECK_SIZE_SINGLE - 3 * 2 * 3 },
     { numPlayers: 1, handSize: 5, expectedDeck: DECK_SIZE_SINGLE - 1 * 5 * 3 },
   ])(
@@ -216,7 +215,7 @@ describe('GameState deck and dealCards', () => {
     expect(seen.size).toBe(52);
 
     const gs2 = new GameState();
-    gs2.players = ['p1', 'p2', 'p3', 'p4'];
+    gs2.players = ['p1', 'p2', 'p3', 'p4', 'p5'];
     gs2.startGameInstance();
     const counts: Record<string, number> = {};
     for (const card of gs2.deck!) {

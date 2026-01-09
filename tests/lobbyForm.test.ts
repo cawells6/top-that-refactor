@@ -106,10 +106,10 @@ jest.mock('../src/shared/events', () => {
   return { __esModule: true, ...actual };
 });
 
-import { JOIN_GAME } from '../src/shared/events.ts';
-// ... other imports
 import { initializePageEventListeners } from '../public/scripts/events.ts';
 import * as state from '../public/scripts/state.js'; // Stays .js for now
+import { JOIN_GAME } from '../src/shared/events.ts';
+// ... other imports
 
 // --- Test suites ---
 describe('Lobby Form Submission', () => {

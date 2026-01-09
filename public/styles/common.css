@@ -10,7 +10,10 @@
 }
 
 /* Force all buttons to use uppercase text */
-button, .header-btn, .modal__close-button, .btn {
+button,
+.header-btn,
+.modal__close-button,
+.btn {
   text-transform: uppercase !important;
 }
 

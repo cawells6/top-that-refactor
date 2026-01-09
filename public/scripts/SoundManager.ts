@@ -3,8 +3,8 @@
  * TODO: Implement actual sound system
  */
 export const SoundManager = {
-    play(soundName: string): void {
-        // Stub - will implement actual sound playing later
-        // console.log(`[SoundManager] Playing sound: ${soundName}`);
-    }
+  play(_soundName: string): void {
+    void _soundName;
+    // Stub - will implement actual sound playing later
+  },
 };

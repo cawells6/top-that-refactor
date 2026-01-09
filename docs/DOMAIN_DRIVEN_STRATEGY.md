@@ -1,6 +1,7 @@
 # Domain-Driven Design Strategy
 
 ## Problem: Feature Confusion
+
 Join vs Create game operations were mixed in the same functions, leading to validation confusion.
 
 ## Solution: Clear Domain Boundaries
@@ -13,14 +14,14 @@ Join vs Create game operations were mixed in the same functions, leading to vali
 // Clear separation:
 interface GameActions {
   CREATE_GAME: {
-    payload: CreateGamePayload
-    validation: RequiresPlayerCounts
-  }
-  
+    payload: CreateGamePayload;
+    validation: RequiresPlayerCounts;
+  };
+
   JOIN_EXISTING_GAME: {
-    payload: JoinExistingGamePayload  
-    validation: SkipsPlayerCounts
-  }
+    payload: JoinExistingGamePayload;
+    validation: SkipsPlayerCounts;
+  };
 }
 
 // This makes the difference explicit in the code
@@ -31,13 +32,13 @@ interface GameActions {
 ```typescript
 // Create domain-specific services
 class GameCreationService {
-  validateCreateRequest(payload: CreateGamePayload): ValidationResult
-  createNewGame(payload: CreateGamePayload): Promise<GameResult>
+  validateCreateRequest(payload: CreateGamePayload): ValidationResult;
+  createNewGame(payload: CreateGamePayload): Promise<GameResult>;
 }
 
 class GameJoinService {
-  validateJoinRequest(payload: JoinGamePayload): ValidationResult
-  joinExistingGame(payload: JoinGamePayload): Promise<JoinResult>
+  validateJoinRequest(payload: JoinGamePayload): ValidationResult;
+  joinExistingGame(payload: JoinGamePayload): Promise<JoinResult>;
 }
 ```
 

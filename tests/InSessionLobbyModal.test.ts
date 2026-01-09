@@ -9,11 +9,11 @@
 import '@testing-library/jest-dom';
 import { fireEvent, screen } from '@testing-library/dom';
 
+import { setupModalDOM } from './utils/domSetup.js';
 import { InSessionLobbyModal } from '../public/scripts/components/InSessionLobbyModal.ts';
 import * as state from '../public/scripts/state.js';
 import { PLAYER_READY } from '../src/shared/events.ts';
 import { InSessionLobbyState } from '../src/shared/types.js';
-import { setupModalDOM, mockInSessionLobbyModal } from './utils/domSetup.js';
 
 jest.mock('../public/scripts/state', () => ({
   socket: {

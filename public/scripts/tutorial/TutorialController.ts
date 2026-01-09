@@ -1,11 +1,11 @@
 // public/scripts/tutorial/TutorialController.ts
 
-import { logCardPlayed, logGameStart, renderGameState } from '../render.js';
-import { Card } from '../../../src/shared/types.js';
-import { showToast } from '../uiHelpers.js';
-import { initializeGameControls } from '../gameControls.js';
+import type { Card } from '../../../src/shared/types.js';
 import { normalizeCardValue } from '../../../utils/cardUtils.js';
-import { tutorialSteps, StepConfig } from './tutorialSteps.js';
+import { initializeGameControls } from '../gameControls.js';
+import { logCardPlayed, logGameStart, renderGameState } from '../render.js';
+import { showToast } from '../uiHelpers.js';
+import { tutorialSteps, type StepConfig } from './tutorialSteps.js';
 
 export class TutorialController {
   private currentStepIndex = 0;
@@ -34,8 +34,11 @@ export class TutorialController {
     this.interceptGameControls();
 
     // Start the first step with dealing animation (fire and forget with error handling)
-    this.startTutorialWithAnimation().catch(err => {
-      console.error('[Tutorial] Animation failed, falling back to direct load:', err);
+    this.startTutorialWithAnimation().catch((err) => {
+      console.error(
+        '[Tutorial] Animation failed, falling back to direct load:',
+        err
+      );
       // Fallback: just load step 0 directly if animation fails
       this.loadStep(0);
     });
@@ -51,7 +54,9 @@ export class TutorialController {
   private positionTutorialCard() {
     if (!this.cardEl) return;
 
-    const table = document.querySelector('#game-table .table') as HTMLElement | null;
+    const table = document.querySelector(
+      '#game-table .table'
+    ) as HTMLElement | null;
     if (!table) return;
 
     const tableRect = table.getBoundingClientRect();
@@ -101,10 +106,12 @@ export class TutorialController {
     // Render in skeleton mode (hide cards/icons)
     const skeletonState = this.buildGameState();
     const { renderGameState } = await import('../render.js');
-    renderGameState(skeletonState, 'tutorial-player', null, { skeletonMode: true });
+    renderGameState(skeletonState, 'tutorial-player', null, {
+      skeletonMode: true,
+    });
 
     // Wait a frame to ensure DOM is updated
-    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
     // Play simplified dealing animation
     await this.playTutorialDealAnimation();
@@ -114,7 +121,8 @@ export class TutorialController {
   }
 
   private async playTutorialDealAnimation(): Promise<void> {
-    const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
     const DEAL_INTERVAL = 100;
     const PHASE_PAUSE = 400;
 
@@ -125,7 +133,9 @@ export class TutorialController {
 
     // Phase A: Down cards (just show them)
     for (let i = 0; i < 3; i++) {
-      const target = document.querySelector(`#my-area .stack-row > div:nth-child(${i+1})`) as HTMLElement;
+      const target = document.querySelector(
+        `#my-area .stack-row > div:nth-child(${i + 1})`
+      ) as HTMLElement;
       if (target) {
         this.animateTutorialCard(playRect, target, null);
         await wait(DEAL_INTERVAL);
@@ -136,7 +146,9 @@ export class TutorialController {
     // Phase B: Up cards
     for (let i = 0; i < 3; i++) {
       const upCard = this.upCards[i];
-      const target = document.querySelector(`#my-area .stack-row > div:nth-child(${i+1})`) as HTMLElement;
+      const target = document.querySelector(
+        `#my-area .stack-row > div:nth-child(${i + 1})`
+      ) as HTMLElement;
       if (target && upCard) {
         this.animateTutorialCard(playRect, target, upCard);
         await wait(DEAL_INTERVAL);
@@ -146,7 +158,9 @@ export class TutorialController {
 
     // Phase C: Hand cards
     for (let i = 0; i < this.myHand.length; i++) {
-      const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
+      const handRow = document.querySelector(
+        '#my-area .hand-row'
+      ) as HTMLElement;
       if (handRow && handRow.children[i]) {
         const target = handRow.children[i] as HTMLElement;
         this.animateTutorialCard(playRect, target, this.myHand[i]);
@@ -161,7 +175,7 @@ export class TutorialController {
       if (playPile) {
         this.animateTutorialCard(playRect, playPile, this.pile[0]);
         await wait(600); // Match flight duration
-        
+
         // Render the card on the pile
         const { cardImg } = await import('../render.js');
         playPile.innerHTML = '';
@@ -172,7 +186,9 @@ export class TutorialController {
     await wait(PHASE_PAUSE);
 
     // Clear ALL skeleton mode styling from DOM (including card backs)
-    const allCards = document.querySelectorAll('.card-img, .card-ability-icon, .hand-count-badge, .card-back-logo');
+    const allCards = document.querySelectorAll(
+      '.card-img, .card-ability-icon, .hand-count-badge, .card-back-logo'
+    );
     allCards.forEach((el) => {
       const htmlEl = el as HTMLElement;
       htmlEl.style.visibility = 'visible';
@@ -182,27 +198,33 @@ export class TutorialController {
     // Force complete re-render without skeleton mode
     const finalState = this.buildGameState();
     const { renderGameState } = await import('../render.js');
-    renderGameState(finalState, 'tutorial-player', null, { skeletonMode: false });
+    renderGameState(finalState, 'tutorial-player', null, {
+      skeletonMode: false,
+    });
 
     await wait(500);
   }
 
-  private async animateTutorialCard(playRect: DOMRect, target: HTMLElement, cardData: Card | null): Promise<void> {
+  private async animateTutorialCard(
+    playRect: DOMRect,
+    target: HTMLElement,
+    cardData: Card | null
+  ): Promise<void> {
     const targetRect = target.getBoundingClientRect();
-    
+
     // Create a simple card-back flyer (just like the real game does)
     const flyer = document.createElement('div');
     flyer.className = 'tutorial-flying-card flying-card';
-    
+
     // Calculate centers for smooth transform-based animation
     const startCenterX = playRect.left + playRect.width / 2;
     const startCenterY = playRect.top + playRect.height / 2;
     const endCenterX = targetRect.left + targetRect.width / 2;
     const endCenterY = targetRect.top + targetRect.height / 2;
-    
+
     const deltaX = endCenterX - startCenterX;
     const deltaY = endCenterY - startCenterY;
-    
+
     // Position at source center, but sized to match destination (prevents resizing during flight)
     Object.assign(flyer.style, {
       position: 'fixed',
@@ -240,7 +262,9 @@ export class TutorialController {
   private buildGameState() {
     return {
       started: true,
-      currentPlayerId: this.currentStep.isAuto ? 'tutorial-opponent' : 'tutorial-player',
+      currentPlayerId: this.currentStep.isAuto
+        ? 'tutorial-opponent'
+        : 'tutorial-player',
       players: [
         {
           id: 'tutorial-player',
@@ -251,7 +275,7 @@ export class TutorialController {
           upCards: this.upCards,
           downCards: this.downCards.filter((c): c is Card => c !== null), // Filter out nulls
           downCount: this.downCards.length,
-          isComputer: false
+          isComputer: false,
         },
         {
           id: 'tutorial-opponent',
@@ -262,23 +286,27 @@ export class TutorialController {
           upCards: [
             { suit: 'hidden', value: 'BACK', back: true },
             { suit: 'hidden', value: 'BACK', back: true },
-            { suit: 'hidden', value: 'BACK', back: true }
+            { suit: 'hidden', value: 'BACK', back: true },
           ],
           downCards: [],
           downCount: 3,
-          isComputer: true
-        }
+          isComputer: true,
+        },
       ],
       pile: this.pile,
       deckSize: 20,
       discardCount: 0,
-      lastRealCard: this.pile.length > 0 ? this.pile[this.pile.length - 1] : null
+      lastRealCard:
+        this.pile.length > 0 ? this.pile[this.pile.length - 1] : null,
     };
   }
 
   // --- STEP MANAGEMENT ---
 
-  private loadStep(index: number, direction: 'forward' | 'backward' = 'forward') {
+  private loadStep(
+    index: number,
+    direction: 'forward' | 'backward' = 'forward'
+  ) {
     // Cleanup: intro uses a global "click anywhere" handler.
     document.removeEventListener('click', this.handleGlobalClick);
     this.isTransitionLocked = false;
@@ -288,7 +316,7 @@ export class TutorialController {
     if (direction === 'backward') {
       this.isAutoAdvancing = false;
     }
-    
+
     if (this.isAutoAdvancing && direction === 'forward') return;
 
     if (index >= tutorialSteps.length) {
@@ -300,8 +328,12 @@ export class TutorialController {
     this.currentStep = tutorialSteps[index];
 
     // CRITICAL: Clear all selected cards when loading any step
-    document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-    document.querySelectorAll('.selected-container').forEach(el => el.classList.remove('selected-container'));
+    document
+      .querySelectorAll('.selected')
+      .forEach((el) => el.classList.remove('selected'));
+    document
+      .querySelectorAll('.selected-container')
+      .forEach((el) => el.classList.remove('selected-container'));
 
     // 1. Parse Scenario from Config
     this.myHand = this.parseCards(this.currentStep.scenario.myHand);
@@ -324,7 +356,7 @@ export class TutorialController {
     if (this.currentStep.id === 'HELP_RULES_HISTORY') {
       this.seedMoveHistoryDemo();
     }
-    
+
     // Show tutorial card if it was hidden during animation
     if (this.cardEl) {
       this.cardEl.style.opacity = '1';
@@ -334,13 +366,16 @@ export class TutorialController {
     if (this.currentStep.isAuto && direction === 'forward') {
       this.isAutoAdvancing = true;
       this.clearHighlight();
-      
+
       // Animate opponent's card playing
-      this.animateOpponentPlay().then(() => {
-        setTimeout(() => {
-          this.isAutoAdvancing = false;
-          this.nextStep();
-        }, 2000); // Wait 2 seconds for the user to read the opponent's move
+      void (async () => {
+        await this.animateOpponentPlay();
+        await new Promise<void>((resolve) => setTimeout(resolve, 2000));
+        this.isAutoAdvancing = false;
+        this.nextStep();
+      })().catch((err) => {
+        console.error('[Tutorial] animateOpponentPlay failed:', err);
+        this.isAutoAdvancing = false;
       });
       return; // Stop further processing for this step
     }
@@ -406,8 +441,12 @@ export class TutorialController {
 
     // A. Find Target(s) based on Step Logic
     if (this.currentStep.id === 'HELP_RULES_HISTORY') {
-      const rulesBtn = document.getElementById('table-rules-button') as HTMLElement | null;
-      const historyBtn = document.getElementById('table-history-button') as HTMLElement | null;
+      const rulesBtn = document.getElementById(
+        'table-rules-button'
+      ) as HTMLElement | null;
+      const historyBtn = document.getElementById(
+        'table-history-button'
+      ) as HTMLElement | null;
       if (rulesBtn) targets.push(rulesBtn);
       if (historyBtn) targets.push(historyBtn);
     } else {
@@ -415,13 +454,18 @@ export class TutorialController {
 
       if (config.type === 'pickup_pile' || config.type === 'facedown_pickup') {
         target = document.getElementById('take-button');
-      } else if (config.type === 'play_card' || config.type === 'four_of_kind') {
+      } else if (
+        config.type === 'play_card' ||
+        config.type === 'four_of_kind'
+      ) {
         if (config.cardValue) {
           // Find a specific card in the hand
           const expectedValue = String(
             normalizeCardValue(config.cardValue) ?? config.cardValue
           );
-          const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
+          const handRow = document.querySelector(
+            '#my-area .hand-row'
+          ) as HTMLElement;
           if (handRow) {
             const cardImgs = handRow.querySelectorAll<HTMLElement>('.card-img');
             for (const img of Array.from(cardImgs)) {
@@ -449,10 +493,13 @@ export class TutorialController {
             const col = stackRow.children[expectedIdx] as HTMLElement;
             if (expectedZone === 'upCards') {
               target =
-                (col.querySelector('.card-container.up-card') as HTMLElement | null) ??
-                col;
+                (col.querySelector(
+                  '.card-container.up-card'
+                ) as HTMLElement | null) ?? col;
             } else if (expectedZone === 'downCards') {
-              target = (col.querySelector('.card-container') as HTMLElement | null) ?? col;
+              target =
+                (col.querySelector('.card-container') as HTMLElement | null) ??
+                col;
             } else {
               target = col;
             }
@@ -534,14 +581,24 @@ export class TutorialController {
     const config = this.currentStep.validation;
 
     if (this.currentStep.id === 'HELP_RULES_HISTORY') {
-      const rulesBtn = document.getElementById('table-rules-button') as HTMLElement | null;
-      const historyBtn = document.getElementById('table-history-button') as HTMLElement | null;
-      return [rulesBtn, historyBtn].filter((el): el is HTMLElement => Boolean(el));
+      const rulesBtn = document.getElementById(
+        'table-rules-button'
+      ) as HTMLElement | null;
+      const historyBtn = document.getElementById(
+        'table-history-button'
+      ) as HTMLElement | null;
+      return [rulesBtn, historyBtn].filter((el): el is HTMLElement =>
+        Boolean(el)
+      );
     }
 
     if (config.type === 'pickup_pile' || config.type === 'facedown_pickup') {
-      const takeBtn = document.getElementById('take-button') as HTMLElement | null;
-      const pile = document.getElementById('discard-pile') as HTMLElement | null;
+      const takeBtn = document.getElementById(
+        'take-button'
+      ) as HTMLElement | null;
+      const pile = document.getElementById(
+        'discard-pile'
+      ) as HTMLElement | null;
       const target = takeBtn ?? pile;
       return target ? [target] : [];
     }
@@ -550,7 +607,9 @@ export class TutorialController {
       if (config.expectedAction?.startsWith('click_index')) {
         const expectedIdxStr = config.expectedAction.split('_').pop() || '0';
         const expectedIdx = Number.parseInt(expectedIdxStr, 10);
-        const stackRow = document.querySelector('#my-area .stack-row') as HTMLElement | null;
+        const stackRow = document.querySelector(
+          '#my-area .stack-row'
+        ) as HTMLElement | null;
         const expectedZone = this.getExpectedIndexClickZone();
         if (!stackRow || !expectedZone || Number.isNaN(expectedIdx)) {
           return [];
@@ -560,10 +619,14 @@ export class TutorialController {
         if (!col) return [];
 
         if (expectedZone === 'upCards') {
-          const up = col.querySelector('.card-container.up-card') as HTMLElement | null;
+          const up = col.querySelector(
+            '.card-container.up-card'
+          ) as HTMLElement | null;
           return [up ?? col];
         }
-        const down = col.querySelector('.card-container.down-card') as HTMLElement | null;
+        const down = col.querySelector(
+          '.card-container.down-card'
+        ) as HTMLElement | null;
         return [down ?? col];
       }
 
@@ -572,7 +635,9 @@ export class TutorialController {
           normalizeCardValue(config.cardValue) ?? config.cardValue
         );
 
-        const handRow = document.querySelector('#my-area .hand-row') as HTMLElement | null;
+        const handRow = document.querySelector(
+          '#my-area .hand-row'
+        ) as HTMLElement | null;
         if (!handRow) return [];
 
         const matchingCards = Array.from(
@@ -586,7 +651,9 @@ export class TutorialController {
 
         const desiredCount = config.cardCount ?? 1;
         const pickedCards = matchingCards.slice(0, desiredCount);
-        const playBtn = document.getElementById('play-button') as HTMLElement | null;
+        const playBtn = document.getElementById(
+          'play-button'
+        ) as HTMLElement | null;
         return playBtn ? [...pickedCards, playBtn] : pickedCards;
       }
     }
@@ -661,8 +728,14 @@ export class TutorialController {
 
     // Keep the cue visible even near edges.
     const padding = 14;
-    const clampedX = Math.min(Math.max(x, padding), window.innerWidth - padding);
-    const clampedY = Math.min(Math.max(y, padding), window.innerHeight - padding);
+    const clampedX = Math.min(
+      Math.max(x, padding),
+      window.innerWidth - padding
+    );
+    const clampedY = Math.min(
+      Math.max(y, padding),
+      window.innerHeight - padding
+    );
 
     this.ghostHandEl.style.left = `${clampedX}px`;
     this.ghostHandEl.style.top = `${clampedY}px`;
@@ -712,7 +785,7 @@ export class TutorialController {
   }
 
   // --- CARD SELECTION HELPERS (Match Real Game) ---
-  
+
   private enforceSelectionRules(clickedCard: HTMLElement): void {
     if (!clickedCard.classList.contains('selected')) {
       return;
@@ -768,10 +841,13 @@ export class TutorialController {
       'dblclick',
       (e) => {
         const target = e.target as HTMLElement;
-        
+
         // Use the same getSelectableCard logic as the real game
         let selectableCard: HTMLElement | null = null;
-        if (target.classList.contains('card-img') && target.classList.contains('selectable')) {
+        if (
+          target.classList.contains('card-img') &&
+          target.classList.contains('selectable')
+        ) {
           selectableCard = target;
         } else {
           const cardContainer = target.closest('.card-container');
@@ -780,21 +856,21 @@ export class TutorialController {
             if (img) selectableCard = img as HTMLElement;
           }
         }
-        
+
         if (selectableCard) {
           e.stopImmediatePropagation();
           e.preventDefault();
-          
+
           // Match real game: forceSelectCard + enforceSelectionRules
           selectableCard.classList.add('selected');
           const container = selectableCard.closest('.card-container');
           if (container) {
             container.classList.add('selected-container');
           }
-          
+
           // Enforce selection rules (same as real game)
           this.enforceSelectionRules(selectableCard);
-          
+
           // Then validate and play
           this.validateAction('play_card', 'dblclick');
         }
@@ -807,7 +883,7 @@ export class TutorialController {
       'click',
       (e) => {
         const target = e.target as HTMLElement;
-         
+
         // Play button: delegated handler (the button is created dynamically by render.ts)
         if (target.closest('#play-button')) {
           // Always block the real game controls (no sockets in tutorial).
@@ -827,10 +903,13 @@ export class TutorialController {
         if (target.id === 'take-button' || target.closest('#take-button')) {
           return;
         }
-         
+
         // Check for selectable card click
         let selectableCard: HTMLElement | null = null;
-        if (target.classList.contains('card-img') && target.classList.contains('selectable')) {
+        if (
+          target.classList.contains('card-img') &&
+          target.classList.contains('selectable')
+        ) {
           selectableCard = target;
         } else {
           const cardContainer = target.closest('.card-container');
@@ -839,10 +918,10 @@ export class TutorialController {
             if (img) selectableCard = img as HTMLElement;
           }
         }
-        
+
         if (selectableCard) {
           e.stopImmediatePropagation();
-          
+
           const wasSelected = selectableCard.classList.contains('selected');
           if (wasSelected) {
             // Deselect
@@ -854,7 +933,7 @@ export class TutorialController {
             selectableCard.classList.add('selected');
             const container = selectableCard.closest('.card-container');
             if (container) container.classList.add('selected-container');
-            
+
             // Enforce selection rules
             this.enforceSelectionRules(selectableCard);
 
@@ -869,8 +948,10 @@ export class TutorialController {
               const container = selectableCard.closest(
                 '.card-container'
               ) as HTMLElement | null;
-              const idxStr = selectableCard.dataset.idx || container?.dataset.idx || '';
-              const zone = selectableCard.dataset.zone || container?.dataset.zone || '';
+              const idxStr =
+                selectableCard.dataset.idx || container?.dataset.idx || '';
+              const zone =
+                selectableCard.dataset.zone || container?.dataset.zone || '';
               const idx = Number.parseInt(idxStr, 10);
               const expectedZone = this.getExpectedIndexClickZone();
               if (expectedZone && zone === expectedZone && !Number.isNaN(idx)) {
@@ -909,7 +990,9 @@ export class TutorialController {
           // Check if it's a click on down-cards/up-cards for index-based validation
           if (
             this.currentStep.validation.type === 'play_card' &&
-            this.currentStep.validation.expectedAction?.startsWith('click_index')
+            this.currentStep.validation.expectedAction?.startsWith(
+              'click_index'
+            )
           ) {
             const idxStr = container.dataset.idx || '';
             const zone = container.dataset.zone || '';
@@ -930,7 +1013,11 @@ export class TutorialController {
     );
   }
 
-  private async validateAction(actionType: string, source?: string, index?: number) {
+  private async validateAction(
+    actionType: string,
+    source?: string,
+    index?: number
+  ) {
     if (this.isTransitionLocked) {
       return;
     }
@@ -958,7 +1045,10 @@ export class TutorialController {
     }
 
     // --- SCENARIO: FACE DOWN REVEAL FAIL ---
-    if (validConfig.type === 'facedown_fail' && actionType === 'facedown_fail') {
+    if (
+      validConfig.type === 'facedown_fail' &&
+      actionType === 'facedown_fail'
+    ) {
       // When they click the face-down card that fails, we advance to explain the pickup
       this.isTransitionLocked = true;
       this.stopGhostHandCue();
@@ -973,7 +1063,8 @@ export class TutorialController {
     ) {
       // A. Handle Up/Down Card Clicks (Single Click)
       if (validConfig.expectedAction?.startsWith('click_index')) {
-        const expectedIdxStr = validConfig.expectedAction.split('_').pop() || '0';
+        const expectedIdxStr =
+          validConfig.expectedAction.split('_').pop() || '0';
         const expectedIdx = Number.parseInt(expectedIdxStr, 10);
         if (index !== undefined && index === expectedIdx) {
           // Special demo: show the "too low from Up Cards" pickup flow.
@@ -1006,7 +1097,9 @@ export class TutorialController {
         return;
       }
 
-      const playedCards = selectedIndices.map((i) => this.myHand[i]).filter((c) => c);
+      const playedCards = selectedIndices
+        .map((i) => this.myHand[i])
+        .filter((c) => c);
 
       // Validation Checks
       if (validConfig.cardValue) {
@@ -1028,51 +1121,59 @@ export class TutorialController {
       showToast('Great!', 'success');
       this.isTransitionLocked = true;
       this.stopGhostHandCue();
-       
+
       // Animate each selected card to the pile
-      this.animateCardsToDrawPile(selectedIndices).then(async () => {
+      void (async () => {
+        const wait = (ms: number) =>
+          new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+        await this.animateCardsToDrawPile(selectedIndices);
+
         // Update game state after animation
-        playedCards.forEach(card => this.pile.push(card));
-        this.myHand = this.myHand.filter((_, i) => !selectedIndices.includes(i));
-        
+        playedCards.forEach((card) => this.pile.push(card));
+        this.myHand = this.myHand.filter(
+          (_, i) => !selectedIndices.includes(i)
+        );
+
         // Clear selections
-        document.querySelectorAll('.card-img.selected').forEach(el => {
+        document.querySelectorAll('.card-img.selected').forEach((el) => {
           el.classList.remove('selected');
           const container = el.closest('.card-container');
           if (container) container.classList.remove('selected-container');
         });
-        
+
         // Re-render to show the updated pile with the player's card
         this.updateRender();
-        
+
         // Show special card effect if applicable
         const topCard = playedCards[playedCards.length - 1];
-        const { isSpecialCard, isTwoCard, isFiveCard, isTenCard } = await import('../../../utils/cardUtils.js');
-        
+        const { isSpecialCard, isTwoCard, isFiveCard, isTenCard } =
+          await import('../../../utils/cardUtils.js');
+
         if (isSpecialCard(topCard.value)) {
           const { showCardEvent } = await import('../render.js');
           let effectType = 'regular';
-          
+
           if (isTwoCard(topCard.value)) effectType = 'two';
           else if (isFiveCard(topCard.value)) effectType = 'five';
           else if (isTenCard(topCard.value)) effectType = 'ten';
           else if (playedCards.length === 4) effectType = 'four';
-          
-          // Show effect after small delay
-          setTimeout(() => {
-            showCardEvent(topCard.value, effectType);
-          }, 200);
-          
-          // Wait longer for special card effect to display
-          setTimeout(() => {
-            this.nextStep();
-          }, 2500);
-        } else {
-          // Regular card - wait 1 second before advancing
-          setTimeout(() => {
-            this.nextStep();
-          }, 1000);
+
+          // Match the game UI timing: show effect shortly after the cards land,
+          // then wait long enough for the player to see it before advancing.
+          await wait(200);
+          showCardEvent(topCard.value, effectType);
+          await wait(2300);
+          this.nextStep();
+          return;
         }
+
+        await wait(1000);
+        this.nextStep();
+      })().catch((err) => {
+        console.error('[Tutorial] animateCardsToDrawPile failed:', err);
+        this.isTransitionLocked = false;
+        this.startGhostHandCue();
       });
     }
   }
@@ -1088,10 +1189,13 @@ export class TutorialController {
       new Promise<void>((resolve) => setTimeout(resolve, ms));
 
     // 1) Animate the Up Card as if it was played to the pile
-    const stackRow = document.querySelector('#my-area .stack-row') as HTMLElement | null;
+    const stackRow = document.querySelector(
+      '#my-area .stack-row'
+    ) as HTMLElement | null;
     const col = stackRow?.children[clickedIdx] as HTMLElement | undefined;
     const upContainer =
-      (col?.querySelector('.card-container.up-card') as HTMLElement | null) ?? null;
+      (col?.querySelector('.card-container.up-card') as HTMLElement | null) ??
+      null;
 
     if (upContainer) {
       const { animatePlayerPlay } = await import('../render.js');
@@ -1103,7 +1207,7 @@ export class TutorialController {
     this.pile = [...this.pile, clicked];
     this.updateRender();
 
-    showToast("Too low — you must pick up the pile!", 'info');
+    showToast('Too low — you must pick up the pile!', 'info');
     await wait(450);
 
     // 3) Animate the pickup and move the pile (+ the tried card) into the hand
@@ -1122,7 +1226,9 @@ export class TutorialController {
 
   // --- RENDERING & PARSING ---
 
-  private async animateCardsToDrawPile(selectedIndices: number[]): Promise<void> {
+  private async animateCardsToDrawPile(
+    selectedIndices: number[]
+  ): Promise<void> {
     const handRow = document.querySelector('#my-area .hand-row') as HTMLElement;
     if (!handRow) {
       console.warn('[Tutorial] Could not find hand row for animation');
@@ -1130,37 +1236,39 @@ export class TutorialController {
     }
 
     const { animatePlayerPlay } = await import('../render.js');
-    
+
     // Store references to card elements BEFORE any state changes
     const cardElements = selectedIndices
-      .map(idx => handRow.children[idx] as HTMLElement)
-      .filter(el => el);
-    
+      .map((idx) => handRow.children[idx] as HTMLElement)
+      .filter((el) => el);
+
     if (cardElements.length === 0) {
       console.warn('[Tutorial] No card elements found for animation');
       return;
     }
-    
+
     // Animate each selected card sequentially
     for (const cardElement of cardElements) {
       animatePlayerPlay(cardElement);
       // Small delay between animations for visual effect
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
     }
-    
+
     // Wait for last animation to complete
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 600));
   }
 
   private async animateOpponentPlay(): Promise<void> {
     // Animate CPU's card flying from their area to the pile
     const { animateCardFromPlayer } = await import('../render.js');
-    
+
     // Get the cards that were played (last cards in pile that aren't from previous step)
     const currentPile = this.pile;
     if (currentPile.length > 0) {
       // Animate from opponent area (tutorial-opponent)
-      await animateCardFromPlayer('tutorial-opponent', [currentPile[currentPile.length - 1]]);
+      await animateCardFromPlayer('tutorial-opponent', [
+        currentPile[currentPile.length - 1],
+      ]);
     }
   }
 
@@ -1183,13 +1291,15 @@ export class TutorialController {
       progEl.textContent = `${this.currentStepIndex + 1}/${tutorialSteps.length}`;
 
     // Always remove ALL existing buttons and hints first to ensure a clean state
-    footerEl?.querySelectorAll('button, .tutorial-nav-buttons, .tutorial-hint-text')?.forEach(el => el.remove());
-    
+    footerEl
+      ?.querySelectorAll('button, .tutorial-nav-buttons, .tutorial-hint-text')
+      ?.forEach((el) => el.remove());
+
     if (footerEl) {
       // Always show button container
       const btnContainer = document.createElement('div');
       btnContainer.className = 'tutorial-nav-buttons';
-      
+
       // Add Previous button only if not on first step and not on final step
       if (this.currentStepIndex > 0 && !this.currentStep.showNextButton) {
         const prevBtn = document.createElement('button');
@@ -1198,7 +1308,7 @@ export class TutorialController {
         prevBtn.addEventListener('click', () => this.previousStep());
         btnContainer.appendChild(prevBtn);
       }
-      
+
       // Add hint text on all pages except intro and final step
       if (this.currentStepIndex > 0 && !this.currentStep.showNextButton) {
         const hintText = document.createElement('div');
@@ -1206,7 +1316,7 @@ export class TutorialController {
         hintText.innerHTML = '<span>✨</span> Complete the action to continue';
         btnContainer.appendChild(hintText);
       }
-      
+
       // Add Next/Finish button ONLY on final step
       if (this.currentStep.showNextButton && !this.currentStep.isAuto) {
         const isFinalStep = this.currentStep.id === 'COMPLETE';
@@ -1224,9 +1334,9 @@ export class TutorialController {
 
         btnContainer.appendChild(nextBtn);
       }
-      
+
       footerEl.appendChild(btnContainer);
-      
+
       // Always add Exit button to bottom-right
       const exitBtn = document.createElement('button');
       exitBtn.className = 'tutorial-skip-btn';
@@ -1283,9 +1393,11 @@ export class TutorialController {
       </div>
     `;
 
-    this.cardEl.querySelector('.tutorial-skip-btn')?.addEventListener('click', () => {
-      this.showExitConfirmation();
-    });
+    this.cardEl
+      .querySelector('.tutorial-skip-btn')
+      ?.addEventListener('click', () => {
+        this.showExitConfirmation();
+      });
 
     document.body.appendChild(this.cardEl);
     this.positionTutorialCard();
@@ -1294,7 +1406,9 @@ export class TutorialController {
   // --- HELPERS ---
   // ... (rest of the file is unchanged)
   private parseCards(cardStrings: string[]): Card[] {
-    return cardStrings.map((s) => this.parseCard(s)).filter((c): c is Card => !!c);
+    return cardStrings
+      .map((s) => this.parseCard(s))
+      .filter((c): c is Card => !!c);
   }
 
   private parseCard(str: string): Card | null {

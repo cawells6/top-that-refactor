@@ -19,7 +19,7 @@
 
 /* Main content - stable layout container */
 .main-content {
-  position: fixed; 
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -107,7 +107,9 @@ body:not(.showing-game) #lobby-container {
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  transition: opacity 0.4s ease, visibility 0s 0.4s;
+  transition:
+    opacity 0.4s ease,
+    visibility 0s 0.4s;
 }
 
 #game-rules-button {
@@ -192,8 +194,6 @@ body.showing-game #game-rules-button {
   position: relative;
   overflow: visible;
 }
-
-
 
 .player-area > * {
   position: relative;
@@ -349,10 +349,11 @@ body.showing-game #game-rules-button {
 }
 
 .hand-row {
+  --hand-natural-gap: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--hand-natural-gap);
   width: 100%;
 }
 
@@ -493,7 +494,9 @@ body.showing-game #game-rules-button {
   text-transform: uppercase;
   cursor: pointer;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .action-button:disabled {
@@ -606,13 +609,13 @@ body.showing-game #game-rules-button {
   font-size: 0.9rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #FFDDC7;
+  color: #ffddc7;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .pile-badge {
   background: #4a2511;
-  color: #FFDDC7;
+  color: #ffddc7;
   border-radius: 999px;
   padding: 0.1rem 0.5rem;
   font-size: 0.7rem;

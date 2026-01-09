@@ -7,6 +7,6 @@
   "github.copilot.chat.agent.thinkingTool": true,
   "github.copilot.chat.codesearch.enabled": true,
   "geminicodeassist.verboseLogging": true,
-  "geminicodeassist.agentYoloMode": true
-"terminal.integrated.sendKeyBindingsToShell": false
+  "geminicodeassist.agentYoloMode": true,
+  "terminal.integrated.sendKeyBindingsToShell": false
 }

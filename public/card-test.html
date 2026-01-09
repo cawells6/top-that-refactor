@@ -58,7 +58,9 @@
   </head>
   <body>
     <h1>Card Image Test Page</h1>
-    <p>This page tests loading card images directly from the Deck of Cards API.</p>
+    <p>
+      This page tests loading card images directly from the Deck of Cards API.
+    </p>
 
     <div class="results">
       <h2>Direct URL Results</h2>
@@ -75,7 +77,10 @@
 
       // Convert card value and suit to card code
       function cardToCode(value, suit) {
-        const v = String(value).toUpperCase() === '10' ? '0' : String(value).toUpperCase();
+        const v =
+          String(value).toUpperCase() === '10'
+            ? '0'
+            : String(value).toUpperCase();
         const suitMap = {
           hearts: 'H',
           diamonds: 'D',

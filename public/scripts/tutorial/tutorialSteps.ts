@@ -243,7 +243,7 @@ export const tutorialSteps: StepConfig[] = [
     id: 'HELP_RULES_HISTORY',
     title: 'Need a refresher?',
     instruction:
-      "If you ever forget a rule or want to see what just happened, use the two buttons in the <strong>top-left</strong>: <strong>Rules</strong> and <strong>Move History</strong>. Rules is your quick cheat-sheet, and Move History shows the most recent moves.",
+      'If you ever forget a rule or want to see what just happened, use the two buttons in the <strong>top-left</strong>: <strong>Rules</strong> and <strong>Move History</strong>. Rules is your quick cheat-sheet, and Move History shows the most recent moves.',
     showNextButton: true,
     scenario: {
       myHand: [],

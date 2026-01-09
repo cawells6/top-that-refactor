@@ -39,7 +39,8 @@ html.preload {
 }
 
 /* Fix for exact positioning with no jumps */
-.lobby-modal-container.centered, #lobby-outer-card {
+.lobby-modal-container.centered,
+#lobby-outer-card {
   position: relative !important;
   margin: 0 auto !important;
 }
