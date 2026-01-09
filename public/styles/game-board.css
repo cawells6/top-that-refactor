@@ -362,12 +362,41 @@
     gap: 1.25rem;
   }
 
-  #game-table .pile-name {
-    font-size: 1.05rem;
+  /* --- 2. Convert Pile Counts to "Circle Badges" --- */
+  /* Hide the old text labels/counts */
+  #game-table .pile-name,
+  #game-table .pile-count {
+    display: none !important;
   }
 
-  #game-table .pile-count {
-    font-size: 0.95rem;
+  /* Ensure pile groups are tight */
+  #game-table .pile-group {
+    gap: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    min-width: auto;
+  }
+
+  /* Show the badge */
+  #game-table .pile-count-badge {
+    display: flex !important;
+    top: -8px;
+    right: -8px;
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+    background: #1f2937; /* Dark background */
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 10;
+  }
+
+  /* --- 3. Clean Up Pile Cards (CSS Only) --- */
+  /* Hide special icons inside center area on mobile */
+  #center-area .special-icon {
+    display: none !important;
   }
 
   /* Player headers */

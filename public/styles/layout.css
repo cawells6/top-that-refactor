@@ -17,6 +17,14 @@
   box-shadow: none !important;
 }
 
+/* 1. Full-Screen "Green Felt" (Fix the Header) */
+@media (max-width: 768px) {
+  #main-header,
+  .header {
+    display: none !important;
+  }
+}
+
 /* Main content - stable layout container */
 .main-content {
   position: fixed;
