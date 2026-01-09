@@ -26,7 +26,8 @@ async function initSocket(): Promise<Socket> {
     console.log(
       '🔌 [Client] Detected Vite dev server, connecting directly to game server on port 3000'
     );
-    return io('http://localhost:3000', socketOptions);
+    // IMPORTANT: use the current hostname so other devices on the LAN can connect.
+    return io(getSocketURL('3000'), socketOptions);
   }
 
   // For production or other cases, try to use current-port.txt for dynamic server detection
