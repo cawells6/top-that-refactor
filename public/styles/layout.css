@@ -381,7 +381,7 @@ body.showing-game #game-rules-button {
 }
 
 .hand-tray--local.hand-tray--scroll .hand-row--local {
-  justify-content: flex-start;
+  justify-content: safe center;
 }
 
 .hand-tray--local.hand-tray--scroll .card-container {
