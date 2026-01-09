@@ -321,7 +321,7 @@
   /* Mobile top controls */
   #table-rules-button,
   #table-history-button {
-    display: none;
+    display: none !important;
   }
 
   #game-table #table-menu-button {

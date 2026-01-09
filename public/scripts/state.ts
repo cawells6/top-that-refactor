@@ -21,12 +21,13 @@ async function initSocket(): Promise<Socket> {
   };
 
   // Special handling for Vite development server
-  // When running on port 5173 (Vite's default), connect directly to port 3000
+  // When running on port 5173 (Vite's default), connect directly to game server on port 3000
+  // Note: We use io() with no args to respect the current host (IP or localhost), relying on Vite proxy
   if (window.location.port === '5173') {
     console.log(
-      '🔌 [Client] Detected Vite dev server, connecting directly to game server on port 3000'
+      '🔌 [Client] Detected Vite dev server, relying on proxy for socket connection'
     );
-    return io('http://localhost:3000', socketOptions);
+    return io(socketOptions);
   }
 
   // For production or other cases, try to use current-port.txt for dynamic server detection
