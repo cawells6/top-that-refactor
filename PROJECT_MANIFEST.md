@@ -6,12 +6,20 @@ If you only read one file before making changes, read this.
 ## 0. HOW TO USE THIS MANIFEST
 
 - **New/modified code must follow this manifest.** If existing code violates it, fix the root cause when you are already in that area (don’t paper over it).
-- **Git Hygiene:** NEVER modify the main branch directly. Before starting any new task, you must issue the command to create a new branch using the format `git checkout -b feature/[task-name]` or `git checkout -b fix/[bug-name]`.
 - **When changing runtime data shapes**, update this manifest _and_ the shared types (`src/shared/types.ts` and re-export `src/types.ts`).
 - **Avoid “Frankenstein” accumulation:** prefer deleting obsolete patterns over adding parallel ones.
 - **Terminology:** be consistent. Use **Deck / Draw Pile** for the face-down pile you draw from, and **Play Pile / Discard Pile** for the center stack. If code uses legacy names (e.g., `pile`), prefer migrating toward these terms when touching that area.
 
 ---
+
+## 1. CORE PRINCIPLES
+
+- **Strict TypeScript:** All new code must be TypeScript. Existing legacy JavaScript files are deprecated and must be removed or converted when touched.
+- **No `any`:** Avoid using `any`. Prefer strict interfaces/types and `unknown` + narrowing when needed.
+- **Mobile-First Responsive:** All UI changes must work on mobile (vertical layout) and desktop (horizontal layout).
+- **Client-Server Separation:** Game logic lives exclusively on the Server (`GameController`, `GameState`). The Client (`public/`) is purely for presentation and user input.
+- **Single Source of Truth:** The Server (`GameState`) is the absolute authority. The UI must never invent state or predict outcomes locally.
+- **Consistency:** Prefer patterns that match the existing codebase (e.g., `GameController` patterns) over introducing new architectural styles.
 
 ## 2. TECH STACK
 
@@ -54,61 +62,61 @@ If you only read one file before making changes, read this.
 
 All _new_ code should converge toward these interfaces. Do not expand the runtime data model without updating this manifest.
 
-> Note: The repo currently contains legacy/shared types in `src/shared/types.ts`. This section describes the intended end-state model (and the naming we want across the codebase).
+> Note: The repo currently contains legacy/shared types in `src/shared/types.ts`. This section describes the actual current model (and the naming we want across the codebase).
 
 /_ --- Card & Deck --- _/
-type Suit = 'Hearts' | 'Diamonds' | 'Clubs' | 'Spades';
-type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K' | 'A';
+type CardValue = string | number;
 
 interface Card {
-id: string; // Unique ID (e.g., "H-10") for DOM tracking
-suit: Suit;
-rank: Rank;
-value: number; // 2=2, J=11, A=14, etc.
-isSpecial: boolean; // True for 2, 5, 10
-action?: 'RESET' | 'COPY' | 'BURN'; // Undefined for normal cards
+value: CardValue;
+suit: string;
+back?: boolean;
+copied?: boolean;
 }
 
-/_ --- Avatars (Royalty Theme) --- _/
-interface Avatar {
-id: string; // e.g., 'king', 'dragon'
-icon: string; // Emoji: '🤴'
-label: string; // Display name: 'The King'
-}
-
-/_ --- Player --- _/
-interface Player {
+/_ --- Player State (Client View) --- _/
+interface ClientStatePlayer {
 id: string;
 name: string;
-isBot: boolean;
-avatar: Avatar; // Strict Avatar object, not just a string
-isConnected: boolean;
-
-// Card Piles (3 layers of defense)
-hand: Card[];
-faceUpCards: Card[];
-faceDownCards: Card[];
-
-hasFinished: boolean; // True when all 3 piles are empty
+avatar?: string;
+handCount?: number;
+upCount?: number;
+downCount?: number;
+hand?: Card[];
+upCards?: Array<Card | null>;
+downCards?: Card[];
+downCardsHidden?: number;
+disconnected?: boolean;
+isComputer?: boolean;
+error?: string;
 }
 
 /_ --- Game State --- _/
-type GamePhase = 'LOBBY' | 'PLAYING' | 'GAME_OVER';
+interface GameStateData {
+players: ClientStatePlayer[];
+pile: Card[];
+discardCount: number;
+deckSize: number;
+currentPlayerId?: string;
+started: boolean;
+lastRealCard: Card | null;
+}
 
-interface GameState {
-gameId: string;
-phase: GamePhase;
-players: Player[];
+/_ --- Lobby --- _/
+interface LobbyPlayer {
+id: string;
+name: string;
+avatar?: string;
+status: 'host' | 'invited' | 'joined' | 'ready';
+isComputer?: boolean;
+isSpectator?: boolean;
+}
 
-// The Piles
-drawPile: Card[]; // Face-down pickup pile
-playPile: Card[]; // Active center pile
-
-// Turn Management
-currentPlayerIndex: number;
-direction: 1 | -1; // 1 = Clockwise, -1 = Counter-clockwise
-
-// State Flags
-lastCardPlayed: Card | null;
-pileValue: number; // Current value to beat (handles the '5' Copycat logic)
+interface InSessionLobbyState {
+roomId: string;
+hostId: string | null;
+players: LobbyPlayer[];
+started?: boolean;
+expectedHumanCount?: number;
+expectedCpuCount?: number;
 }
