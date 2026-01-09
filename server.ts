@@ -101,20 +101,22 @@ function startServer(port: number, retries = 0) {
     console.log(successMsg);
     console.log('==============================\n');
     fs.appendFileSync('server.log', successMsg + '\n', 'utf-8');
-    try {
-      // Write to both root (for internal tools) and clientPath (for client fetch)
-      fs.writeFileSync('current-port.txt', port.toString(), 'utf-8');
-      if (fs.existsSync(clientPath)) {
-        fs.writeFileSync(
-          `${clientPath}/current-port.txt`,
-          port.toString(),
-          'utf-8'
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        // Dev-only: help the Vite client discover which backend port we bound to.
+        fs.writeFileSync('current-port.txt', port.toString(), 'utf-8');
+        if (fs.existsSync(clientPath)) {
+          fs.writeFileSync(
+            `${clientPath}/current-port.txt`,
+            port.toString(),
+            'utf-8'
+          );
+        }
+      } catch (error) {
+        console.warn(
+          `Failed to write current-port.txt (${(error as Error).message}). Continuing without it.`
         );
       }
-    } catch (error) {
-      console.warn(
-        `Failed to write current-port.txt (${(error as Error).message}). Continuing without it.`
-      );
     }
   });
 }

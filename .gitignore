@@ -16,3 +16,7 @@ coverage/
 # Other generated files or directories
 .DS_Store
 *.log
+
+# Dev port discovery (written at runtime)
+current-port.txt
+public/current-port.txt

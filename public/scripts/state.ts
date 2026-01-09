@@ -20,41 +20,34 @@ async function initSocket(): Promise<Socket> {
     timeout: 20000, // Increase connection timeout
   };
 
-  // Dynamic Connection Strategy:
-  // 1. Try to fetch /current-port.txt (served by server/Vite) to get the REAL backend port.
-  // 2. If successful, connect directly to http://${hostname}:${port}. This works for IP/Mobile and Localhost.
-  // 3. If unsuccessful (fetch fails), fall back to io() which uses the window.location (relying on Proxy).
+  // Production / deployed environments (Render, etc) should always connect via same-origin.
+  // Note: The server's internal PORT is not externally reachable; the platform proxy terminates HTTPS.
+  const isViteDevServer = window.location.port === '5173';
+  if (!isViteDevServer) {
+    console.log('🔌 [Client] Using same-origin socket connection.');
+    return io(socketOptions);
+  }
 
   try {
     const resp = await fetch('/current-port.txt', { cache: 'no-store' });
     if (resp.ok) {
       const port = (await resp.text()).trim();
-      console.log(`🔌 [Client] Detected server port via file: ${port}`);
-
-      if (window.location.port === '5173') {
-        console.log(`🔌 [Client] Vite Dev Mode: Connecting directly to backend at :${port}`);
+      if (/^\\d+$/.test(port)) {
+        console.log(
+          `🔌 [Client] Vite Dev Mode: Connecting directly to backend at :${port}`
+        );
         return io(getSocketURL(port), socketOptions);
       }
-
-      // If we are serving from the backend (port matches), relative is fine.
-      if (window.location.port === port) {
-        return io(socketOptions);
-      }
-
-      return io(getSocketURL(port), socketOptions);
     }
   } catch (error) {
-    console.warn('📣 [Client] Could not fetch current-port.txt, falling back to default/proxy strategy.', error);
+    console.warn(
+      '📣 [Client] Could not fetch current-port.txt, using Vite proxy connection.',
+      error
+    );
   }
 
-  // Fallback / Default Strategy
-  // If we are on Vite (5173) and couldn't get the port, rely on the Proxy (ws://localhost:3000)
-  if (window.location.port === '5173') {
-     console.log('🔌 [Client] Vite detected (no port file), using Proxy connection.');
-     return io(socketOptions);
-  }
-
-  console.log('🔌 [Client] Using default same-origin connection.');
+  // Vite fallback: rely on the configured proxy.
+  console.log('🔌 [Client] Vite detected, using proxy socket connection.');
   return io(socketOptions);
 }
 
