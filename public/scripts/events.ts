@@ -565,6 +565,7 @@ function initializeAvatarPicker() {
 
       // 3. Re-render silhouettes (this puts the avatar in the user slot)
       updatePlayerSilhouettes();
+      updateJoinAvatar(); // Call new helper
     };
     grid.appendChild(el);
   });
@@ -579,29 +580,20 @@ function shuffleArray<T>(array: T[]): T[] {
   return newArr;
 }
 
-/**
- * Main entry point for initializing the lobby.
- * Pre-loads avatar data and then sets up all event listeners.
- */
+// --- REPLACES EXISTING initializeLobby ---
 export async function initializeLobby() {
   console.log('🚀 [events.ts] Initializing lobby...');
   try {
     const avatarModule = await import('../../src/shared/avatars.js');
     royaltyAvatars = avatarModule.ROYALTY_AVATARS;
 
-    // Default setup: No avatar selected for human initially
-    selectedAvatar = null;
-
-    // Create a shuffled pool for bots so they look random
+    // 1. Randomize Avatar on Load
+    selectedAvatar = royaltyAvatars[Math.floor(Math.random() * royaltyAvatars.length)];
     shuffledBotAvatars = shuffleArray(royaltyAvatars);
 
     initializePageEventListeners();
   } catch (err) {
-    console.error(
-      '🚨 Failed to load critical avatar data. Lobby may not function correctly.',
-      err
-    );
-    // Still attempt to initialize the page, but avatars will be broken.
+    console.error('🚨 Failed to load avatar data.', err);
     initializePageEventListeners();
   }
 }
@@ -611,8 +603,78 @@ export function initializePageEventListeners() {
 
   // Initialize avatar picker
   initializeAvatarPicker();
+
+  // Sync UI immediately with random choice
   updateAvatarDropdownUI();
-  syncCounterUI();
+  updatePlayerSilhouettes();
+  updateJoinAvatar(); // New helper
+
+  // --- FEEDBACK MODAL LOGIC ---
+  const feedbackModal = document.getElementById('feedback-modal');
+  const feedbackClose = document.getElementById('close-feedback-btn');
+  const feedbackForm = document.getElementById('feedback-form') as HTMLFormElement;
+
+  // Open buttons (Lobby Footer + Game Menu)
+  const openFeedback = () => {
+      if(feedbackModal) {
+          feedbackModal.classList.remove('modal--hidden');
+          document.getElementById('modal-overlay')?.classList.remove('modal__overlay--hidden');
+          // Close menu if open
+          document.getElementById('game-menu-dropdown')?.classList.add('hidden');
+      }
+  };
+
+  document.getElementById('lobby-feedback-btn')?.addEventListener('click', openFeedback);
+  document.getElementById('game-feedback-btn')?.addEventListener('click', openFeedback);
+
+  if(feedbackClose && feedbackModal && feedbackForm) {
+    feedbackClose.onclick = () => {
+        feedbackModal.classList.add('modal--hidden');
+        document.getElementById('modal-overlay')?.classList.add('modal__overlay--hidden');
+    };
+    feedbackForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const type = (document.getElementById('feedback-type') as HTMLSelectElement).value;
+        const msg = (document.getElementById('feedback-msg') as HTMLTextAreaElement).value;
+
+        try {
+            await fetch('/api/feedback', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ type, message: msg })
+            });
+            alert('Thanks for the feedback!');
+            feedbackClose.click();
+            feedbackForm.reset();
+        } catch(err) {
+            console.error(err);
+            alert('Error sending feedback.');
+        }
+    };
+  }
+
+  // --- GAME MENU LOGIC ---
+  const menuBtn = document.getElementById('table-menu-button');
+  const menuDropdown = document.getElementById('game-menu-dropdown');
+  if(menuBtn && menuDropdown) {
+      menuBtn.onclick = (e) => {
+          e.stopPropagation();
+          menuDropdown.classList.toggle('hidden');
+      };
+      // Close menu when clicking elsewhere
+      document.addEventListener('click', (e) => {
+          if(e.target !== menuBtn && !menuDropdown.contains(e.target as Node)) {
+              menuDropdown.classList.add('hidden');
+          }
+      });
+  }
+
+  // Update Join Avatar Click
+  const joinAvatar = document.getElementById('join-player-avatar');
+  if(joinAvatar) {
+      joinAvatar.onclick = () => openAvatarDropdown();
+  }
+
   // Ensure silhouettes render after DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
     updatePlayerSilhouettes();
@@ -900,6 +962,7 @@ export function initializePageEventListeners() {
       // Errors will only be shown when "Let's Play" button is clicked
     });
   }
+  syncCounterUI();
 }
 
 // —– UI helper functions —–
