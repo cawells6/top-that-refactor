@@ -382,3 +382,150 @@
 #lobby-container .player-silhouette .emoji-avatar {
   font-size: 32px;
 }
+
+/* --- MOBILE LAYOUT OPTIMIZATIONS (Append to bottom of lobby.css) --- */
+
+@media (max-width: 600px) {
+  /* 1. Maximize Screen Real Estate */
+  .lobby-modal-container {
+    padding: 8px;
+    margin: 2px auto;
+    width: 98%;
+    max-height: 99vh;
+    border-radius: 8px;
+  }
+
+  .game-setup-content {
+    padding: 0.5rem;
+    overflow-y: auto; /* Allow scrolling if absolutely needed, but aim to avoid */
+  }
+
+  /* 2. Compact Header & Logo */
+  .setup-header {
+    margin-bottom: 4px; /* Massive whitespace reduction */
+    min-height: auto;
+  }
+
+  .header-logo img {
+    max-height: 45px; /* Significantly smaller logo */
+  }
+
+  /* 3. Compact Name & Tabs */
+  .name-input-section {
+    margin-bottom: 6px;
+  }
+
+  .section-title {
+    font-size: 1.1rem !important; /* Smaller text */
+    margin-bottom: 2px !important;
+  }
+
+  input#player-name-input {
+    padding: 6px;
+    font-size: 1rem;
+    height: 36px;
+  }
+
+  .lobby-tabs {
+    margin-bottom: 8px;
+  }
+
+  .lobby-tab-button {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+
+  /* 4. SIDE-BY-SIDE SECTIONS (The Key Fix) */
+  .player-selection--host {
+    display: flex;
+    flex-direction: row !important; /* Force Horizontal Layout */
+    gap: 6px;
+    align-items: stretch;
+    margin-bottom: 5px;
+  }
+
+  .player-section {
+    width: 50%; /* Force 50/50 split */
+    flex: 1;
+    padding: 4px;
+    background: rgba(0,0,0,0.03); /* Subtle bg to distinguish areas */
+    border-radius: 6px;
+    margin-bottom: 0;
+  }
+
+  /* 5. Shrink Counters & Silhouettes */
+  .player-counter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2px 0;
+  }
+
+  .counter-btn {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 1rem;
+  }
+
+  .player-counter input {
+    width: 30px;
+    height: 24px;
+    font-size: 1rem;
+  }
+
+  .player-silhouettes {
+    min-height: 30px;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .player-silhouette,
+  #join-player-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    border-radius: 6px !important;
+  }
+
+  .emoji-avatar {
+    font-size: 20px !important;
+    line-height: 32px !important;
+  }
+
+  .avatar-hint {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+  }
+
+  /* 6. Single Row Buttons (No Stacking) */
+  .lobby-buttons-row {
+    display: flex;
+    flex-direction: row !important; /* Force Row */
+    flex-wrap: nowrap; /* No wrapping */
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .lobby-buttons-row .header-btn {
+    flex: 1; /* Even width */
+    padding: 0;
+    height: 40px; /* Fixed height */
+    font-size: 0.85rem; /* Smaller text */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  /* Footer Link */
+  .footer-actions {
+    margin-top: 5px !important;
+  }
+  .text-link {
+    font-size: 0.8rem;
+    padding: 5px;
+  }
+}
