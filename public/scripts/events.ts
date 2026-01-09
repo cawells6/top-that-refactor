@@ -1273,3 +1273,12 @@ function hideRulesModalAndOverlay() {
 }
 
 export { handleRulesClick, hideRulesModalAndOverlay };
+
+// Helper to update the join tab silhouette
+function updateJoinAvatar() {
+    const joinEl = document.getElementById('join-player-avatar');
+    if(joinEl && selectedAvatar) {
+        const emojiEl = joinEl.querySelector('.emoji-avatar');
+        if(emojiEl) emojiEl.textContent = selectedAvatar.icon;
+    }
+}

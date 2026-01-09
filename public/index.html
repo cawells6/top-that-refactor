@@ -3,36 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <title>Top That! Card Game</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
 
-    <!-- Immediate fix for lobby modal position - must be first -->
     <link rel="stylesheet" href="/styles/immediate-fix.css" />
-    <!--
-      LOBBY LAYOUT MAINTENANCE:
-      - All lobby centering, sizing, and stabilization is now handled by CSS.
-      - If you need to update lobby/modal centering or appearance, edit:
-        * /styles/immediate-fix.css (initial centering, no jumps)
-        * /style.css (main modal and content sizing)
-        * /styles/modals.css (modal container flex centering)
-      - The .preload and .loaded classes on <html> control initial hiding/reveal.
-      - No JS stabilization scripts are needed anymore.
-      - See README or AGENTS.md for more details.
-    -->
 
-    <!-- Direct position fix script - runs immediately -->
-    <!-- <script src="/scripts/position-fix.js"></script> -->
-
-    <!-- Initial layout stabilization - must load early for execution -->
-    <!-- <script src="/scripts/initial-layout-stabilizer.js"></script> -->
-
-    <!-- Google Fonts for logo-style section titles and rules typography -->
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Luckiest+Guy&family=Outfit:wght@600;700&family=Source+Sans+3:wght@500;600;700&family=Source+Serif+4:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Preload tags removed; assets are imported and set via JS for proper Vite hashing -->
 
-    <!-- Your CSS -->
     <link rel="stylesheet" href="/style.css" />
     <link rel="stylesheet" href="/styles/modals.css" />
     <link rel="stylesheet" href="/styles/lobby.css" />
@@ -40,303 +19,139 @@
     <link rel="stylesheet" href="/styles/common.css" />
     <link rel="stylesheet" href="/styles/manual-mode.css" />
     <link rel="stylesheet" href="/styles/tutorial.css" />
-    <!-- Rules card styling overrides disabled until icon layout returns -->
-    <!-- Header button styles are now in style.css -->
 
-    <!-- Entry‑point for your client modules -->
     <script type="module" src="/scripts/main.js"></script>
 
-    <!-- Fixed card loader for improved card rendering -->
-
-    <!-- DISABLED SCRIPTS -->
-    <!-- <script type="module" src="/scripts/rules-cards.ts"></script> -->
-    <!-- <script src="/scripts/trigger-cards-update.js"></script> -->
-
-    <!-- Icon viewer for fullsize icon display -->
-    <!-- <script src="/scripts/icon-viewer.js"></script> -->
-
-    <!-- Diagnostic and troubleshooting tools -->
-
-    <!-- Style and layout enhancer -->
-
-    <!-- Previous layout stabilizers - disabled in favor of initial-layout-stabilizer.js -->
-    <!-- <script src="/scripts/simple-layout-stabilizer.js"></script> -->
-
-    <!-- Inline script for removing preload state after all resources load -->
     <script>
-      // Ensure everything is fully loaded before showing content
       window.addEventListener('load', function () {
-        // Force a small delay to ensure all styles are applied
         setTimeout(function () {
           document.documentElement.classList.remove('preload');
           document.documentElement.classList.add('loaded');
-          console.log('[POSITION-FIX] Page fully loaded and revealed');
         }, 50);
       });
     </script>
   </head>
   <body class="body-loading">
-    <!-- Header removed per user request -->
-
-    <!-- <div class="notice notice--hidden" id="notice-banner"></div> -->
-    <!-- <div class="notice notice--hidden" id="error-banner"></div> -->
     <div class="modal__overlay modal__overlay--hidden" id="modal-overlay"></div>
     <div class="spectator-banner">Spectator Mode</div>
 
     <div class="game-viewport">
       <main class="main-content" id="main-content">
-        <!-- Lobby Screen -->
         <div class="lobby lobby--hidden" id="lobby-container">
           <div id="lobby-outer-card" class="lobby-modal-container">
             <div id="lobby-inner-content" class="game-setup-content">
               <div class="setup-header">
-                <!-- Logo using noslogan.svg -->
                 <div class="header-logo">
                   <img id="site-logo" src="" alt="Top That! Logo" />
                 </div>
               </div>
 
               <form id="lobby-form" autocomplete="off">
-                <!-- Player Name Input -->
                 <div class="name-input-section">
-                  <label
-                    class="section-title section-title--input"
-                    for="player-name-input"
-                  >
+                  <label class="section-title section-title--input" for="player-name-input">
                     WHO'S PLAYING TODAY?
                   </label>
                   <input
                     type="text"
                     id="player-name-input"
-                    placeholder=""
+                    placeholder="ENTER YOUR NAME"
                     maxlength="20"
                     required
                   />
                 </div>
 
-                <!-- Avatar Selection -->
-                <div
-                  class="avatar-selection-section"
-                  aria-label="Avatar selection"
-                >
-                  <label class="section-title section-title--input"
-                    >CHOOSE YOUR AVATAR</label
-                  >
-                  <details class="avatar-dropdown" id="avatar-dropdown">
-                    <summary class="avatar-dropdown__summary">
-                      <span
-                        class="avatar-dropdown__preview emoji-avatar"
-                        id="selected-avatar-preview"
-                        aria-hidden="true"
-                        >?</span
-                      >
-                      <span
-                        class="avatar-dropdown__text"
-                        id="selected-avatar-text"
-                        >Select an avatar</span
-                      >
-                      <span class="avatar-dropdown__chevron" aria-hidden="true"
-                        >▾</span
-                      >
-                    </summary>
+                <div class="lobby-tabs" role="tablist" aria-label="Lobby mode">
+                  <button type="button" class="lobby-tab-button is-active" data-tab="host" role="tab">
+                    <span class="lobby-tab-icon">👑</span> HOST GAME
+                  </button>
+                  <button type="button" class="lobby-tab-button" data-tab="join" role="tab">
+                    <span class="lobby-tab-icon">🤝</span> JOIN FRIEND
+                  </button>
+                </div>
+
+                <div class="lobby-tab-panel lobby-tab-panel--host is-active" data-tab-panel="host">
+
+                  <details class="avatar-dropdown hidden" id="avatar-dropdown">
+                    <summary class="avatar-dropdown__summary" style="display:none"></summary>
                     <div class="avatar-dropdown__panel">
-                      <div class="avatar-grid" id="avatar-grid">
-                        <!-- Avatars will be dynamically added here -->
-                      </div>
+                      <div class="avatar-grid" id="avatar-grid"></div>
                     </div>
                   </details>
-                </div>
 
-                <div class="player-selection player-selection--host">
-                  <!-- Human Players Section -->
-                  <div class="player-section player-section--users">
-                    <h3 class="section-title">HUMANS</h3>
-                    <div class="player-counter">
-                      <button
-                        type="button"
-                        class="counter-btn"
-                        id="humans-minus"
-                        data-target="total-players-input"
-                      >
-                        -
-                      </button>
-                      <input
-                        type="number"
-                        id="total-players-input"
-                        min="1"
-                        max="4"
-                        value="1"
-                        readonly
-                      />
-                      <button
-                        type="button"
-                        class="counter-btn"
-                        id="humans-plus"
-                        data-target="total-players-input"
-                      >
-                        +
-                      </button>
-                    </div>
-                    <!-- Dynamic Human Player Silhouettes -->
-                    <div class="player-silhouettes" id="human-silhouettes">
-                      <!-- Silhouettes will be dynamically added/removed here -->
-                    </div>
-                  </div>
-
-                  <!-- Bots Players Section -->
-                  <div class="player-section player-section--bots">
-                    <h3 class="section-title">AUTOMANS</h3>
-                    <div class="player-counter">
-                      <button
-                        type="button"
-                        class="counter-btn"
-                        id="cpus-minus"
-                        data-target="cpu-players-input"
-                      >
-                        -
-                      </button>
-                      <input
-                        type="number"
-                        id="cpu-players-input"
-                        min="0"
-                        value="1"
-                        readonly
-                      />
-                      <button
-                        type="button"
-                        class="counter-btn"
-                        id="cpus-plus"
-                        data-target="cpu-players-input"
-                      >
-                        +
-                      </button>
-                    </div>
-                    <!-- Dynamic Bots Player Silhouettes -->
-                    <div class="player-silhouettes" id="cpu-silhouettes">
-                      <!-- Silhouettes will be dynamically added/removed here -->
-                    </div>
-                  </div>
-                </div>
-
-                <div class="lobby-tabs" role="tablist" aria-label="Lobby mode">
-                  <button
-                    type="button"
-                    class="lobby-tab-button is-active"
-                    data-tab="host"
-                    role="tab"
-                    aria-selected="true"
-                  >
-                    <span class="lobby-tab-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" focusable="false">
-                        <path
-                          d="M6 3h12v3h3v3a5 5 0 0 1-5 5h-2a4 4 0 0 1-2 1.5V19h4v2H8v-2h4v-2.5A4 4 0 0 1 10 14H8a5 5 0 0 1-5-5V6h3V3zm0 5H5a3 3 0 0 0 3 3h1V8H6zm12 0h-3v3h1a3 3 0 0 0 3-3h-1z"
-                        />
-                      </svg>
-                    </span>
-                    HOST GAME
-                  </button>
-                  <button
-                    type="button"
-                    class="lobby-tab-button"
-                    data-tab="join"
-                    role="tab"
-                    aria-selected="false"
-                  >
-                    <span class="lobby-tab-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" focusable="false">
-                        <path
-                          d="M12 2a5 5 0 0 1 5 5c0 2.6-2 4.7-4.6 5h-.9C9 12 7 9.6 7 7a5 5 0 0 1 5-5zm0 12c4.4 0 8 2 8 4.5V22H4v-3.5C4 16 7.6 14 12 14z"
-                        />
-                      </svg>
-                    </span>
-                    JOIN FRIEND
-                  </button>
-                </div>
-
-                <div
-                  class="lobby-tab-panel lobby-tab-panel--host is-active"
-                  data-tab-panel="host"
-                >
                   <div class="player-selection player-selection--host">
-                    <!-- Merged player controls (humans/bots) will be handled in JS -->
+                    <div class="player-section player-section--users">
+                      <h3 class="section-title">HUMANS</h3>
+                      <div class="player-counter">
+                        <button type="button" class="counter-btn" id="humans-minus">-</button>
+                        <input type="number" id="total-players-input" min="1" max="4" value="1" readonly />
+                        <button type="button" class="counter-btn" id="humans-plus">+</button>
+                      </div>
+                      <p class="avatar-hint">Tap avatar to change</p>
+                      <div class="player-silhouettes" id="human-silhouettes"></div>
+                    </div>
+
+                    <div class="player-section player-section--bots">
+                      <h3 class="section-title">AUTOMANS</h3>
+                      <div class="player-counter">
+                        <button type="button" class="counter-btn" id="cpus-minus">-</button>
+                        <input type="number" id="cpu-players-input" min="0" value="1" readonly />
+                        <button type="button" class="counter-btn" id="cpus-plus">+</button>
+                      </div>
+                      <div class="player-silhouettes" id="cpu-silhouettes"></div>
+                    </div>
                   </div>
+
                   <div class="lobby-buttons-row">
-                    <button
-                      id="setup-tutorial-button"
-                      class="header-btn"
-                      type="button"
-                      style="background-color: #6fb4ff"
-                    >
-                      TUTORIAL
-                    </button>
-                    <button
-                      id="setup-rules-button"
-                      class="header-btn"
-                      type="button"
-                    >
-                      RULES
-                    </button>
-                    <button
-                      id="setup-deal-button"
-                      class="header-btn"
-                      type="button"
-                    >
-                      LET'S PLAY
-                    </button>
+                    <button id="setup-tutorial-button" class="header-btn" type="button" style="background-color: #6fb4ff">TUTORIAL</button>
+                    <button id="setup-rules-button" class="header-btn" type="button">RULES</button>
+                    <button id="setup-deal-button" class="header-btn" type="button">LET'S PLAY</button>
                   </div>
                 </div>
 
-                <div
-                  class="lobby-tab-panel lobby-tab-panel--join"
-                  data-tab-panel="join"
-                >
+                <div class="lobby-tab-panel lobby-tab-panel--join" data-tab-panel="join">
                   <div class="player-section join-code-section">
+
+                    <div class="join-avatar-container" style="display:flex; justify-content:center; margin-bottom:15px;">
+                       <div id="join-player-avatar" class="player-silhouette human is-avatar-picker" title="Tap to change avatar">
+                         <div class="emoji-avatar">?</div>
+                       </div>
+                    </div>
+                    <p class="avatar-hint">Tap avatar to change</p>
+
                     <div class="join-code-inputs">
-                      <input
-                        type="text"
-                        id="join-code-input"
-                        placeholder="ENTER GAME CODE"
-                        maxlength="6"
-                        style="text-transform: uppercase"
-                      />
+                      <input type="text" id="join-code-input" placeholder="ENTER GAME CODE" maxlength="6" style="text-transform: uppercase" />
                     </div>
                     <div class="lobby-buttons-row lobby-buttons-row--join">
-                      <button
-                        id="join-rules-button"
-                        class="header-btn"
-                        type="button"
-                      >
-                        RULES
-                      </button>
-                      <button
-                        id="join-game-button"
-                        class="header-btn"
-                        type="button"
-                      >
-                        JOIN GAME
-                      </button>
+                      <button id="join-rules-button" class="header-btn" type="button">RULES</button>
+                      <button id="join-game-button" class="header-btn" type="button">JOIN GAME</button>
                     </div>
                   </div>
                 </div>
 
-                <!-- Single lobby validation message area - always reserves space -->
-                <div
-                  id="lobby-validation-message"
-                  class="validation-message-container"
-                >
-                  <div class="message-box-content">
-                    <p class="validation-text"></p>
-                  </div>
+                <div id="lobby-validation-message" class="validation-message-container">
+                  <div class="message-box-content"><p class="validation-text"></p></div>
                 </div>
               </form>
+
+              <div class="footer-actions" style="margin-top: 20px; text-align: center;">
+                <button type="button" id="lobby-feedback-btn" class="text-link">Report Bug / Feedback</button>
+              </div>
+
             </div>
           </div>
         </div>
 
-        <!-- Game Table -->
         <div id="game-table" class="hidden table--hidden">
           <div class="table">
-            <button id="table-menu-button" aria-label="Menu">☰</button>
+            <div class="game-menu-container">
+                <button id="table-menu-button" aria-label="Menu">☰</button>
+                <div id="game-menu-dropdown" class="game-menu-dropdown hidden">
+                    <button id="game-rules-button" class="menu-item">📜 Rules</button>
+                    <button id="game-history-button" class="menu-item">⏱ Move History</button>
+                    <button id="game-feedback-btn" class="menu-item">🐞 Report Bug / Feedback</button>
+                </div>
+            </div>
+
             <div class="table-slot-top" id="opponent-area-top"></div>
             <div class="table-slot-left" id="opponent-area-left"></div>
             <div class="table-center" id="center-area"></div>
@@ -344,331 +159,78 @@
             <div class="table-slot-bottom" id="player-area-bottom"></div>
           </div>
         </div>
-
-        <!-- Dev-only restart button (hidden by default, shown in main.ts if dev mode) -->
-        <button
-          id="dev-restart-button"
-          class="dev-restart-button"
-          style="display: none"
-        >
-          🔄 Restart Animation
-        </button>
       </main>
     </div>
 
-    <div id="toast-container" class="toast-container"></div>
-
-    <div id="game-over-modal" class="modal modal--hidden">
-      <div class="modal-content">
-        <h2 id="game-over-title"></h2>
-        <p id="game-over-message"></p>
-        <button id="play-again-button">Play Again</button>
-      </div>
-    </div>
-
-    <div
-      class="modal modal--hidden"
-      id="rules-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="rules-modal-title"
-    >
-      <div class="lobby-modal-container">
-        <div class="game-setup-content rules-modal-content">
-          <button class="modal__close-button" aria-label="Close">
-            &times;
-          </button>
-          <div class="rules-container">
-            <h2 class="rules-title" id="rules-modal-title">
-              THE OFFICIAL RULES
-            </h2>
-            <div class="button-container">
-              <button id="expand-collapse-all-btn" class="btn expand-btn">
-                Expand All
-              </button>
+    <div class="modal modal--hidden" id="rules-modal" role="dialog" aria-modal="true">
+        <div class="lobby-modal-container">
+            <div class="game-setup-content rules-modal-content">
+                <button class="modal__close-button" aria-label="Close">&times;</button>
+                <div class="rules-container">
+                    <h2 class="rules-title">THE OFFICIAL RULES</h2>
+                    <div class="button-container">
+                        <button id="expand-collapse-all-btn" class="btn expand-btn">Expand All</button>
+                    </div>
+                    <details class="rules-section">
+                        <summary class="rules-summary"><h3>The Goal</h3></summary>
+                        <div class="rules-details-content">
+                            <ul><li>The first player to play all of their cards wins the game!</li></ul>
+                        </div>
+                    </details>
+                    <details class="rules-section">
+                        <summary class="rules-summary"><h3>Setup</h3></summary>
+                        <div class="rules-details-content">
+                            <ul>
+                                <li><strong>Deal 9 cards to each player:</strong><ul><li>3 Face-Down Cards.</li><li>3 Face-Up Cards.</li><li>3 Hand Cards.</li></ul></li>
+                            </ul>
+                        </div>
+                    </details>
+                    <button class="btn rules-gotit-btn" id="rules-gotit-btn">Got it!</button>
+                </div>
             </div>
-            <details class="rules-section">
-              <summary class="rules-summary"><h3>The Goal</h3></summary>
-              <div class="rules-details-content">
-                <ul>
-                  <li>
-                    The first player to play all of their cards wins the game!
-                  </li>
-                </ul>
-              </div>
-            </details>
-            <details class="rules-section">
-              <summary class="rules-summary"><h3>Setup</h3></summary>
-              <div class="rules-details-content">
-                <ul>
-                  <li>
-                    <strong>Deal 9 cards to each player:</strong>
-                    <ul>
-                      <li>3 Face-Down Cards: Place in a row. (No looking!)</li>
-                      <li>
-                        3 Face-Up Cards: Place on top of the Face-Down Cards.
-                      </li>
-                      <li>3 Hand Cards: Deal into the player's hand.</li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>Start the Game:</strong>
-                    <ul>
-                      <li>
-                        Place the remaining deck in the center to create the
-                        Draw Pile.
-                      </li>
-                      <li>Flip the top card to start the Play Pile.</li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-            </details>
-            <details class="rules-section">
-              <summary class="rules-summary">
-                <h3>How to Play Your Turn</h3>
-              </summary>
-              <div class="rules-details-content">
-                <ul>
-                  <li>
-                    <strong>Step A: Try to Play a Card</strong>
-                    <ul>
-                      <li>
-                        You must play a card from your hand that is strictly
-                        higher in value than the top card on the Play Pile.
-                      </li>
-                      <li>
-                        No Ties: You cannot play a card of equal value (e.g., a
-                        6 cannot go on a 6).
-                      </li>
-                      <li>
-                        Multiples: You may play multiple copies of the same rank
-                        (e.g., three Jacks), if they beat the top card.
-                      </li>
-                      <li>
-                        Refill: If the Draw Pile has cards, you must keep at
-                        least 3 cards in your hand. Draw any time you drop below
-                        3.
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>Step B: Can't Play? (The "Stuck" Rule)</strong>
-                    <ul>
-                      <li>
-                        Pick Up: You must pick up the entire Play Pile and add
-                        it to your hand.
-                      </li>
-                      <li>
-                        End Turn: Your turn is over. The next player goes.
-                      </li>
-                      <li>
-                        Backtracking: If you pick up while playing Face-Up or
-                        Face-Down Cards, you must clear your hand again before
-                        returning to the table cards.
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-            </details>
-            <details class="rules-section">
-              <summary class="rules-summary">
-                <h3>Special Cards (Power Plays)</h3>
-              </summary>
-              <div class="rules-details-content">
-                <p class="rules-lead">
-                  These cards break the standard rules and can be played on any
-                  card.
-                </p>
-                <ul>
-                  <li>
-                    <strong>2 (Reset):</strong>
-                    <ul>
-                      <li>
-                        Resets the Play Pile value to 2. It is the lowest card,
-                        making it easy for the next player to beat.
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>5 (Copycat):</strong>
-                    <ul>
-                      <li>
-                        Copies the previous card on top of the pile. If it
-                        copies a 2 or 10, it triggers that effect.
-                      </li>
-                      <li>
-                        If a 5 is the starter card (no card beneath), it plays
-                        as a normal 5.
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>10 (Burn):</strong>
-                    <ul>
-                      <li>
-                        Burns the Play Pile! The pile is completely removed from
-                        the game.
-                      </li>
-                      <li>Play passes to the next person.</li>
-                      <li>
-                        If a 10 is the starter card (no card beneath), it plays
-                        like a normal 10.
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>4-of-a-Kind:</strong>
-                    <ul>
-                      <li>
-                        If you play four of the same rank at once (e.g., four
-                        6's), it burns the Play Pile like a 10.
-                      </li>
-                      <li>Only counts when played in the same turn.</li>
-                      <li>The next player takes their turn (no extra turn).</li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-            </details>
-            <details class="rules-section">
-              <summary class="rules-summary"><h3>Card Progression</h3></summary>
-              <div class="rules-details-content">
-                <p class="rules-lead">
-                  You must clear your cards in this specific order. You cannot
-                  skip ahead!
-                </p>
-                <ul>
-                  <li>
-                    <strong>Hand Cards:</strong>
-                    <ul>
-                      <li>
-                        Play these until the Draw Pile is gone and your hand is
-                        empty.
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>Face-Up Cards:</strong>
-                    <ul>
-                      <li>
-                        Unlocked only when your hand is empty. Play one face-up
-                        card at a time. If you are unable to play; add the card
-                        and the discard pile to your hand.
-                      </li>
-                    </ul>
-                  </li>
-                  <li>
-                    <strong>Face-Down Cards:</strong>
-                    <ul>
-                      <li>
-                        Unlocked only when your Face-Up Cards are gone and your
-                        hand is empty. Play one face-down card at a time. You
-                        play these cards blind. If you are unable to play; add
-                        the card and the discard pile to your hand.
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-            </details>
-            <button class="btn rules-gotit-btn" id="rules-gotit-btn">
-              Got it!
-            </button>
-          </div>
+        </div>
+    </div>
+
+    <div class="modal modal--hidden" id="feedback-modal" role="dialog">
+      <div class="lobby-modal-container">
+        <div class="game-setup-content">
+          <button class="modal__close-button" id="close-feedback-btn">&times;</button>
+          <h2 class="section-title">TELL THE DEV</h2>
+          <form id="feedback-form" style="display:flex; flex-direction:column; gap:15px; margin-top:10px;">
+            <select id="feedback-type" style="padding:12px; font-size:1.1rem; border-radius:8px; border:2px solid #ccc;">
+              <option value="bug">🐛 Bug Report</option>
+              <option value="feature">💡 Feature Idea</option>
+              <option value="other">❤️ General Feedback</option>
+            </select>
+            <textarea id="feedback-msg" rows="5" placeholder="What's on your mind?" style="padding:12px; border-radius:8px; border:2px solid #ccc; font-size:1rem;"></textarea>
+            <button type="submit" class="header-btn" style="background:linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%); color:#1b2e3c; border:none;">SEND FEEDBACK</button>
+          </form>
         </div>
       </div>
     </div>
 
-    <div class="toast-container" id="toast-container"></div>
-
-    <!-- Full-size icon modal -->
-    <div
-      class="fullsize-icon-modal"
-      id="fullsize-icon-modal"
-      onclick="closeFullSizeIcon()"
-    >
-      <div class="fullsize-icon-container">
-        <img
-          src=""
-          alt="Full-size icon"
-          class="fullsize-icon"
-          id="fullsize-icon"
-        />
-        <div class="fullsize-icon-close" onclick="closeFullSizeIcon(event)">
-          &times;
-        </div>
-      </div>
-    </div>
-
-    <!-- In-session lobby modal shows players mid-game -->
-    <div
-      class="modal modal--hidden in-session-lobby-modal"
-      id="in-session-lobby-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="in-session-lobby-title"
-    >
+    <div class="modal modal--hidden in-session-lobby-modal" id="in-session-lobby-modal">
       <div class="game-setup-content">
-        <h3 id="in-session-lobby-title" class="section-title">
-          WAITING FOR PLAYERS...
-        </h3>
-
-        <div class="game-id-section">
-          <input
-            id="game-id-input"
-            class="game-id-input"
-            type="text"
-            readonly
-            aria-label="Game code"
-          />
-        </div>
+        <h3 id="in-session-lobby-title" class="section-title">WAITING FOR PLAYERS...</h3>
 
         <div class="name-input-section" id="guest-name-section">
-          <input
-            type="text"
-            id="guest-player-name-input"
-            placeholder="ENTER YOUR NAME"
-            maxlength="20"
-            required
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-            form="non-existent-form"
-            value="chris"
-          />
+          <input type="text" id="guest-player-name-input" placeholder="ENTER YOUR NAME" maxlength="20" required autocomplete="off" />
+        </div>
+
+        <div class="game-id-section" style="background:transparent; padding:0; justify-content:center; display:flex; align-items:center; margin-bottom:15px;">
+          <span style="color:#666; font-size:0.9rem; margin-right:8px; font-weight:bold;">ROOM CODE:</span>
+          <input id="game-id-input" class="game-id-input" type="text" readonly style="width:100px; font-size:1.1rem; padding:4px 8px; border-radius:12px; background:#e9ecef; border:1px solid #ced4da; text-align:center; color:#495057; font-weight:bold;" />
         </div>
 
         <div id="players-container" class="players-container"></div>
 
         <div class="lobby-buttons-row">
-          <button id="copy-link-button" class="header-btn" type="button">
-            COPY LINK
-          </button>
-          <button id="ready-up-button" class="header-btn" type="button">
-            LET'S PLAY
-          </button>
+          <button id="copy-link-button" class="header-btn" type="button">COPY LINK</button>
+          <button id="ready-up-button" class="header-btn" type="button">LET'S PLAY</button>
         </div>
       </div>
     </div>
-    <script>
-      function showFullSizeIcon(iconElement) {
-        const modal = document.getElementById('fullsize-icon-modal');
-        const fullsizeIcon = document.getElementById('fullsize-icon');
-        fullsizeIcon.src = iconElement.getAttribute('data-fullsize');
-        fullsizeIcon.alt = iconElement.alt;
-        modal.style.display = 'flex';
-        event.stopPropagation(); // Prevent event from bubbling to the details element
-      }
 
-      function closeFullSizeIcon(event) {
-        const modal = document.getElementById('fullsize-icon-modal');
-        modal.style.display = 'none';
-        if (event) {
-          event.stopPropagation();
-        }
-      }
-    </script>
+    <div id="toast-container" class="toast-container"></div>
   </body>
 </html>
