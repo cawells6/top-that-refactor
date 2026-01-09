@@ -17,6 +17,14 @@
   box-shadow: none !important;
 }
 
+/* 1. Full-Screen "Green Felt" (Fix the Header) */
+@media (max-width: 768px) {
+  #main-header,
+  .header {
+    display: none !important;
+  }
+}
+
 /* Main content - stable layout container */
 .main-content {
   position: fixed;
@@ -381,7 +389,7 @@ body.showing-game #game-rules-button {
 }
 
 .hand-tray--local.hand-tray--scroll .hand-row--local {
-  justify-content: flex-start;
+  justify-content: safe center;
 }
 
 .hand-tray--local.hand-tray--scroll .card-container {

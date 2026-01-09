@@ -20,35 +20,41 @@ async function initSocket(): Promise<Socket> {
     timeout: 20000, // Increase connection timeout
   };
 
-  // Special handling for Vite development server
-  // When running on port 5173 (Vite's default), connect directly to port 3000
-  if (window.location.port === '5173') {
-    console.log(
-      '🔌 [Client] Detected Vite dev server, connecting directly to game server on port 3000'
-    );
-    // IMPORTANT: use the current hostname so other devices on the LAN can connect.
-    return io(getSocketURL('3000'), socketOptions);
-  }
+  // Dynamic Connection Strategy:
+  // 1. Try to fetch /current-port.txt (served by server/Vite) to get the REAL backend port.
+  // 2. If successful, connect directly to http://${hostname}:${port}. This works for IP/Mobile and Localhost.
+  // 3. If unsuccessful (fetch fails), fall back to io() which uses the window.location (relying on Proxy).
 
-  // For production or other cases, try to use current-port.txt for dynamic server detection
   try {
     const resp = await fetch('/current-port.txt', { cache: 'no-store' });
     if (resp.ok) {
       const port = (await resp.text()).trim();
-      console.log(`🔌 [Client] Using detected server port: ${port}`);
+      console.log(`🔌 [Client] Detected server port via file: ${port}`);
 
-      // If the port matches the current location, use default (relative) connection
+      if (window.location.port === '5173') {
+        console.log(`🔌 [Client] Vite Dev Mode: Connecting directly to backend at :${port}`);
+        return io(getSocketURL(port), socketOptions);
+      }
+
+      // If we are serving from the backend (port matches), relative is fine.
       if (window.location.port === port) {
         return io(socketOptions);
       }
+
       return io(getSocketURL(port), socketOptions);
     }
   } catch (error) {
-    console.warn('📣 [Client] Failed to fetch current-port.txt:', error);
+    console.warn('📣 [Client] Could not fetch current-port.txt, falling back to default/proxy strategy.', error);
   }
 
-  // Fallback: connect to same origin
-  console.log('🔌 [Client] Using fallback connection to same origin');
+  // Fallback / Default Strategy
+  // If we are on Vite (5173) and couldn't get the port, rely on the Proxy (ws://localhost:3000)
+  if (window.location.port === '5173') {
+     console.log('🔌 [Client] Vite detected (no port file), using Proxy connection.');
+     return io(socketOptions);
+  }
+
+  console.log('🔌 [Client] Using default same-origin connection.');
   return io(socketOptions);
 }
 

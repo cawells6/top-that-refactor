@@ -20,12 +20,14 @@
 
 .card-ability-icon {
   position: absolute;
-  left: 6px !important;
-  bottom: 6px !important;
+  left: 3px !important;
+  bottom: 3px !important;
   top: auto !important;
   right: auto !important;
-  width: clamp(20px, calc(var(--card-w, 90px) * 0.34), 36px);
-  height: clamp(20px, calc(var(--card-w, 90px) * 0.34), 36px);
+  width: clamp(30px, calc(var(--card-w, 90px) * 0.5), 54px);
+  height: clamp(30px, calc(var(--card-w, 90px) * 0.5), 54px);
+  display: block;
+  object-fit: contain;
   pointer-events: none;
   z-index: 3;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));

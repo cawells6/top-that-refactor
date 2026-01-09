@@ -472,12 +472,17 @@ function updateCenterArea(
     deckContainer.className = 'pile-group pile-group--deck';
     deckContainer.innerHTML = `
       <div class="pile-nameplate"><span class="pile-name">Play</span><span class="pile-count">0</span></div>
-      <div class="pile-cards deck-stack" id="deck-pile"></div>
+      <div class="pile-cards deck-stack" id="deck-pile">
+         <div class="pile-count-badge" style="display: none;">0</div>
+      </div>
     `;
     centerWrap.appendChild(deckContainer);
   }
   const deckCountEl = deckContainer.querySelector('.pile-count');
   if (deckCountEl) deckCountEl.textContent = String(gameState.deckSize ?? 0);
+  // Update badge
+  const deckBadgeEl = deckContainer.querySelector('.pile-count-badge');
+  if (deckBadgeEl) deckBadgeEl.textContent = String(gameState.deckSize ?? 0);
 
   // 2. TARGET PILE (Right - "Draw")
   let playContainer = centerWrap.querySelector(
@@ -489,7 +494,9 @@ function updateCenterArea(
     playContainer.id = 'discard-pile';
     playContainer.innerHTML = `
       <div class="pile-nameplate"><span class="pile-name">Draw</span><span class="pile-count">0</span></div>
-      <div class="pile-cards play-stack" id="play-pile"></div>
+      <div class="pile-cards play-stack" id="play-pile">
+        <div class="pile-count-badge" style="display: none;">0</div>
+      </div>
     `;
     centerWrap.appendChild(playContainer);
   }

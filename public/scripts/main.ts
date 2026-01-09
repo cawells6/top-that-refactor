@@ -80,6 +80,13 @@ export async function initMain({
     (injectedWindow || window).location.search
   );
 
+  // Dev-only restart button should only appear in tutorial mode.
+  // NOTE: Jest (CommonJS) can't parse `import.meta`, so we use a Vite-injected global instead.
+  const isDev =
+    typeof __DEV__ !== 'undefined'
+      ? __DEV__
+      : (globalThis as any).process?.env?.NODE_ENV === 'development';
+
   // 1. CHECK FOR TUTORIAL FLAG
   if (params.get('tutorial') === 'true') {
     console.log('🪖 Loading Tutorial Mode...');
@@ -90,6 +97,14 @@ export async function initMain({
     document.getElementById('lobby-container')?.classList.add('hidden');
     document.getElementById('game-table')?.classList.remove('hidden');
 
+    if (isDev) {
+      const devRestartButton = document.getElementById('dev-restart-button');
+      if (devRestartButton) {
+        devRestartButton.style.display = 'block';
+        console.log('dY" [DEV] Restart button enabled (tutorial only)');
+      }
+    }
+
     // Dynamically import and initialize the Tutorial Controller
     const { TutorialController } =
       await import('./tutorial/TutorialController.js');
@@ -97,6 +112,10 @@ export async function initMain({
 
     return; // STOP HERE. Do not connect to socket.
   }
+
+  // Keep the restart button hidden outside tutorial mode.
+  const devRestartButton = document.getElementById('dev-restart-button');
+  if (devRestartButton) devRestartButton.style.display = 'none';
 
   // 2. NORMAL GAME LOAD (Existing Code)
   if (params.get('spectator') === '1' || params.get('spectator') === 'true') {
@@ -129,21 +148,6 @@ export async function initMain({
     initializeManualMode();
   } catch (error) {
     console.error('Error during initialization:', error);
-  }
-
-  // Show dev-only restart button in development mode.
-  // NOTE: Jest (CommonJS) can’t parse `import.meta`, so we use a Vite-injected global instead.
-  const isDev =
-    typeof __DEV__ !== 'undefined'
-      ? __DEV__
-      : (globalThis as any).process?.env?.NODE_ENV === 'development';
-
-  if (isDev) {
-    const devRestartButton = document.getElementById('dev-restart-button');
-    if (devRestartButton) {
-      devRestartButton.style.display = 'block';
-      console.log('🔧 [DEV] Restart button enabled');
-    }
   }
 
   document.body.classList.remove('body-loading');
