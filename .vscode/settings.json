@@ -8,5 +8,11 @@
   "github.copilot.chat.codesearch.enabled": true,
   "geminicodeassist.verboseLogging": true,
   "geminicodeassist.agentYoloMode": true,
-  "terminal.integrated.sendKeyBindingsToShell": false
+  "terminal.integrated.sendKeyBindingsToShell": false,
+  "chat.tools.terminal.autoApprove": {
+    "/^git fetch --all --prune && git checkout fix/mobile-lobby-layout-6648357281991816887 \\|\\| git checkout -b fix/mobile-lobby-layout-6648357281991816887 origin/fix/mobile-lobby-layout-6648357281991816887$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
 }
