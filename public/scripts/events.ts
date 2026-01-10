@@ -1,7 +1,6 @@
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 import type { AvatarItem } from '../../src/shared/avatars.js';
-import { ROYALTY_AVATARS } from '../../src/shared/avatars.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -220,6 +219,13 @@ function createPlayerSilhouette(
     silhouette.className = `player-silhouette ${type} placeholder`;
     silhouette.textContent = '?';
   }
+
+  // Add a hidden hover helper element so the hint appears when hovering
+  // the local avatar picker. CSS will show it only for .is-avatar-picker.
+  const help = document.createElement('div');
+  help.className = 'avatar-hover-help';
+  help.textContent = 'Tap avatar to change';
+  silhouette.appendChild(help);
 
   return silhouette;
 }

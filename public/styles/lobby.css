@@ -219,9 +219,10 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 2px solid #eee;
   background: #fffdf5;
   font-size: 26px;
+  /* Removed extraneous border for a cleaner look */
+  border: none;
 }
 
 .avatar-dropdown__text {
@@ -263,23 +264,23 @@
   cursor: pointer;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid #ccc;
+  /* Removed border for a sleeker avatar presentation */
+  border: none;
   transition:
     transform 0.2s,
-    border-color 0.2s,
     background-color 0.2s;
   user-select: none;
 }
 
 .avatar-option:hover {
   transform: scale(1.1);
-  border-color: #ffd700;
+  /* Subtle glow on hover without changing border */
+  box-shadow: 0 4px 10px rgba(255, 195, 0, 0.15);
 }
 
 .avatar-option.selected {
   background-color: #fff8e1;
-  border-color: #ffc300;
-  box-shadow: 0 0 0 2px #ffc300;
+  box-shadow: 0 6px 18px rgba(255, 195, 0, 0.18);
   transform: scale(1.15);
 }
 
@@ -343,13 +344,14 @@
   width: 52px;
   height: 52px;
   background: #fff;
-  border: 2px solid #ddd;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   user-select: none;
+  /* Border removed for cleaner look; color accents will be via background */
+  border: none;
 }
 
 #lobby-container .player-silhouette.human {
@@ -375,8 +377,27 @@
 }
 
 #lobby-container .player-silhouette.is-avatar-picker:hover {
-  border-color: #ffc300;
-  box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.25);
+  /* Hover effect for avatar picker: subtle yellow glow */
+  box-shadow: 0 6px 18px rgba(255, 195, 0, 0.15);
+}
+
+/* Hover helper: show contextual help when hovering avatar picker */
+.player-silhouette.is-avatar-picker .avatar-hover-help {
+  display: none;
+}
+.player-silhouette.is-avatar-picker:hover .avatar-hover-help {
+  display: block;
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(27, 46, 60, 0.92);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1100;
 }
 
 #lobby-container .player-silhouette .emoji-avatar {
