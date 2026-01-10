@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && vite build",
     "prestart": "npx kill-port 3000 5173",
-    "start": "node dist/server.js",
+    "start": "node --loader ts-node/esm ./server.ts",
     "gpush": "bash scripts/gpush.sh",
     "dev": "vite --host --open",
     "force": "node --loader ts-node/esm ./scripts/force-dev-start.ts",
@@ -70,7 +70,7 @@
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "babel-jest": "^29.7.0",
-    "concurrently": "^9.1.2",
+    "concurrently": "^9.2.1",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.5",
