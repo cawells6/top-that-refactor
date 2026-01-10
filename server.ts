@@ -27,6 +27,16 @@ app.use(express.static(clientPath));
 // Also serve the src directory for shared modules
 app.use('/src', express.static('src'));
 console.log(`[SERVER] Static routes configured`);
+
+app.use(express.json()); // Ensure JSON parsing is enabled
+
+app.post('/api/feedback', (req, res) => {
+  const { type, message } = req.body;
+  console.log(`[FEEDBACK] Type: ${type}, Message: ${message}`);
+  // TODO: Add Discord Webhook call here in future
+  res.json({ success: true });
+});
+
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).send('OK');
