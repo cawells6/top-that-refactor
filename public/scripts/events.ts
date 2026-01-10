@@ -1,6 +1,7 @@
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 import type { AvatarItem } from '../../src/shared/avatars.js';
+import { ROYALTY_AVATARS } from '../../src/shared/avatars.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -588,13 +589,36 @@ export async function initializeLobby() {
     royaltyAvatars = avatarModule.ROYALTY_AVATARS;
 
     // 1. Randomize Avatar on Load
-    selectedAvatar = royaltyAvatars[Math.floor(Math.random() * royaltyAvatars.length)];
+    const randomIndex = Math.floor(Math.random() * royaltyAvatars.length);
+    selectedAvatar = royaltyAvatars[randomIndex];
     shuffledBotAvatars = shuffleArray(royaltyAvatars);
-
+    
+    reconcileBotAvatarAssignments(0); // Pass a default value
+    
     initializePageEventListeners();
+    
+    updatePlayerSilhouettes();
   } catch (err) {
     console.error('🚨 Failed to load avatar data.', err);
     initializePageEventListeners();
+  }
+}
+
+function bindAvatarPicker(): void {
+  const humanSilhouettesContainer = document.getElementById('human-silhouettes');
+  if (humanSilhouettesContainer) {
+    // delegate click to any human silhouette
+    humanSilhouettesContainer.addEventListener('click', (event: Event) => {
+      const target = event.target as HTMLElement;
+      // open avatar dropdown when any human silhouette is clicked
+      const dropdown = document.getElementById('avatar-dropdown') as HTMLDetailsElement;
+      if (dropdown && dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+      }
+      if (dropdown) {
+        dropdown.open = true; // open the details element
+      }
+    });
   }
 }
 
@@ -603,6 +627,7 @@ export function initializePageEventListeners() {
 
   // Initialize avatar picker
   initializeAvatarPicker();
+  bindAvatarPicker();
 
   // Sync UI immediately with random choice
   updateAvatarDropdownUI();

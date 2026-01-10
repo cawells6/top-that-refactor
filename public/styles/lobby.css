@@ -386,101 +386,71 @@
 /* --- MOBILE LAYOUT OPTIMIZATIONS (Append to bottom of lobby.css) --- */
 
 @media (max-width: 600px) {
-  /* 1. Maximize Screen Real Estate */
+  /* Fill the viewport and remove unused margins */
   .lobby-modal-container {
-    padding: 8px;
-    margin: 2px auto;
-    width: 98%;
-    max-height: 99vh;
-    border-radius: 8px;
+    /* Existing styles… */
+    margin: 0 !important;              /* remove extra top/bottom margin */
+    width: 100vw !important;           /* full width on mobile */
+    height: 100vh !important;          /* full height on mobile */
+    max-height: 100vh !important;      /* prevent cropping */
+    padding: 8px !important;           /* keep minimal padding */
   }
 
-  .game-setup-content {
-    padding: 0.5rem;
-    overflow-y: auto; /* Allow scrolling if absolutely needed, but aim to avoid */
-  }
-
-  /* 2. Compact Header & Logo */
-  .setup-header {
-    margin-bottom: 4px; /* Massive whitespace reduction */
-    min-height: auto;
-  }
-
+  /* Make the Top That! logo about 3× taller on mobile */
   .header-logo img {
-    max-height: 45px; /* Significantly smaller logo */
+    max-height: 130px !important;      /* increase from 45px to 130px */
+    width: auto !important;            /* maintain aspect ratio */
+    margin-bottom: 4px !important;
   }
 
-  /* 3. Compact Name & Tabs */
-  .name-input-section {
-    margin-bottom: 6px;
+  /* Increase the size of the “Who’s Playing Today?” label to improve legibility */
+  .section-title--input {
+    font-size: 1.3rem !important;      /* bump from ~1.1rem to 1.3rem */
+    line-height: 1.4 !important;
   }
 
-  .section-title {
-    font-size: 1.1rem !important; /* Smaller text */
-    margin-bottom: 2px !important;
-  }
-
-  input#player-name-input {
-    padding: 6px;
-    font-size: 1rem;
-    height: 36px;
-  }
-
-  .lobby-tabs {
-    margin-bottom: 8px;
-  }
-
-  .lobby-tab-button {
-    padding: 6px 10px;
-    font-size: 0.9rem;
-  }
-
-  /* 4. SIDE-BY-SIDE SECTIONS (The Key Fix) */
+  /* Place Humans and Automans side‑by‑side and remove excess padding */
   .player-selection--host {
-    display: flex;
-    flex-direction: row !important; /* Force Horizontal Layout */
-    gap: 6px;
-    align-items: stretch;
-    margin-bottom: 5px;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    align-items: stretch !important;
+    margin-bottom: 5px !important;
   }
 
   .player-section {
-    width: 50%; /* Force 50/50 split */
-    flex: 1;
-    padding: 4px;
-    background: rgba(0,0,0,0.03); /* Subtle bg to distinguish areas */
-    border-radius: 6px;
-    margin-bottom: 0;
+    flex: 1 1 50% !important;          /* each takes half the width */
+    padding: 4px !important;           /* reduce interior padding */
+    background: rgba(0,0,0,0.03) !important;
+    border-radius: 6px !important;
+    min-height: auto !important;       /* remove fixed height */
   }
 
-  /* 5. Shrink Counters & Silhouettes */
+  /* Shrink the +/– counter controls to roughly 1/3 their current size */
   .player-counter {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 2px 0;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 2px 0 !important;
   }
 
   .counter-btn {
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
-    font-size: 1rem;
+    width: 16px !important;            /* reduce from 24px to 16px */
+    height: 16px !important;
+    line-height: 16px !important;
+    font-size: 0.7rem !important;      /* smaller glyphs */
+    padding: 0 !important;
   }
 
   .player-counter input {
-    width: 30px;
-    height: 24px;
-    font-size: 1rem;
+    width: 24px !important;            /* reduce width */
+    height: 16px !important;           /* reduce height */
+    font-size: 0.8rem !important;
+    text-align: center !important;
+    margin: 0 2px !important;
   }
 
-  .player-silhouettes {
-    min-height: 30px;
-    gap: 4px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
+  /* Reduce avatar box size and remove unnecessary whitespace */
   .player-silhouette,
   #join-player-avatar {
     width: 32px !important;
@@ -490,42 +460,49 @@
     border-radius: 6px !important;
   }
 
+  /* Reduce line height for emoji avatars to fit the smaller box */
   .emoji-avatar {
     font-size: 20px !important;
     line-height: 32px !important;
   }
 
+  /* Shrink the hint text */
   .avatar-hint {
-    font-size: 0.7rem;
-    margin-bottom: 2px;
+    font-size: 0.7rem !important;
+    margin-bottom: 2px !important;
   }
 
-  /* 6. Single Row Buttons (No Stacking) */
+  /* Make all three action buttons a single compact row */
   .lobby-buttons-row {
-    display: flex;
-    flex-direction: row !important; /* Force Row */
-    flex-wrap: nowrap; /* No wrapping */
-    gap: 6px;
-    margin-top: 8px;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    margin-top: 8px !important;
   }
 
   .lobby-buttons-row .header-btn {
-    flex: 1; /* Even width */
-    padding: 0;
-    height: 40px; /* Fixed height */
-    font-size: 0.85rem; /* Smaller text */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
+    flex: 1 1 auto !important;
+    height: 32px !important;          /* down from 40px */
+    font-size: 0.8rem !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
   }
+}
 
-  /* Footer Link */
-  .footer-actions {
-    margin-top: 5px !important;
-  }
-  .text-link {
-    font-size: 0.8rem;
-    padding: 5px;
-  }
+
+/* Match the Join Friend tab�s colour for better affordance */
+#setup-rules-button {
+  background-color: #6fb4ff !important;   /* same colour as Join Friend; adjust if needed */
+  color: #1b2e3c !important;              /* preserve existing text colour */
+  border: none !important;
+}
+
+/* Use the same for the join-tab�s rules button */
+#join-rules-button {
+  background-color: #6fb4ff !important;
+  color: #1b2e3c !important;
+  border: none !important;
 }
