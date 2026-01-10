@@ -589,8 +589,8 @@ export async function initializeLobby() {
     const avatarModule = await import('../../src/shared/avatars.js');
     royaltyAvatars = avatarModule.ROYALTY_AVATARS;
 
-    // Default setup: No avatar selected for human initially
-    selectedAvatar = null;
+    // Randomize avatar immediately on load
+    selectedAvatar = royaltyAvatars[Math.floor(Math.random() * royaltyAvatars.length)];
 
     // Create a shuffled pool for bots so they look random
     shuffledBotAvatars = shuffleArray(royaltyAvatars);
