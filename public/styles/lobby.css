@@ -16,6 +16,122 @@
   position: relative;
 }
 
+/* --- LOGO STYLES --- */
+.header-logo img {
+  width: 100%;
+  max-width: 380px; /* Increased from 220px to fill white space */
+  height: auto;
+  display: block;
+  margin: 0 auto 10px auto;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+}
+
+
+/* --- PARCHMENT NAME INPUT --- */
+.name-input-scroll-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.parchment-scroll {
+  background: #fdf6e3; /* Parchment color */
+  /* Noisy texture */
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' opacity='0.5'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+  padding: 15px 30px;
+  border-radius: 2px;
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid #d4c5a0;
+  box-shadow: inset 0 0 30px rgba(160, 130, 80, 0.15);
+  transform: rotate(-1deg); /* Slight organic tilt */
+}
+
+/* Scroll Ends Effect */
+.parchment-scroll::before,
+.parchment-scroll::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  bottom: -10px;
+  width: 24px;
+  background: linear-gradient(90deg, #e6d2aa, #fdf6e3 20%, #e6d2aa 40%, #cbb585 100%);
+  border: 1px solid #bba575;
+  border-radius: 4px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+}
+
+.parchment-scroll::before {
+  left: -12px;
+  border-right: none;
+  transform: perspective(100px) rotateY(-5deg);
+}
+
+.parchment-scroll::after {
+  right: -12px;
+  border-left: none;
+  transform: perspective(100px) rotateY(5deg);
+}
+
+.parchment-label {
+  display: block;
+  font-family: 'Source Serif 4', serif;
+  font-weight: 700;
+  color: #5c4033; /* Dark brown ink */
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+
+.parchment-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px dashed #a08865;
+  text-align: center;
+  font-family: 'Source Serif 4', serif; /* Handwritten feel */
+  font-size: 1.5rem;
+  color: #2c1e12;
+  font-weight: 600;
+  padding: 5px;
+  outline: none;
+}
+
+.parchment-input::placeholder {
+  color: #a08865;
+  font-style: italic;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.parchment-input:focus {
+  border-bottom-style: solid;
+  border-bottom-color: #5c4033;
+}
+
+/* --- TABS --- */
+.lobby-tab-button {
+  background: rgba(0, 0, 0, 0.2);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 8px 16px; /* Smaller padding */
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem; /* Smaller font */
+  cursor: pointer;
+  flex: 1;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.05em;
+}
+
 .in-session-lobby-container {
   display: flex;
   flex-direction: column;
@@ -437,6 +553,102 @@
   font-size: 20px;
 }
 
+/* --- UPDATED PLAYER SECTION (Fixing Overlap) --- */
+.player-section {
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 12px;
+  padding: 0.5rem 1rem 1.5rem 1rem; /* Less top padding, more bottom */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 110px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+/* Text Position Adjustment */
+.player-section .section-title {
+    margin-top: 25px; /* Push text down */
+    margin-bottom: 5px;
+    font-size: 1.6rem; /* Slightly smaller to fit */
+    z-index: 1;
+}
+
+/* Avatar Position Adjustment */
+.player-silhouettes {
+    margin-top: -10px !important; /* Pull avatars up */
+    position: relative;
+    z-index: 2;
+}
+
+/* --- ACTION BUTTONS (Tutorial, Rules, Let's Play) --- */
+.lobby-buttons-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.header-btn {
+  border-radius: 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.05em;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  border: none;
+  outline: none;
+}
+
+.header-btn:active {
+  transform: translateY(2px);
+}
+
+/* Secondary Buttons (Rules, Tutorial) */
+.secondary-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: var(--text);
+  padding: 8px 16px;
+}
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Primary "Let's Play" Button */
+.primary-action-btn {
+  background: linear-gradient(to bottom, #4cd137, #44bd32);
+  color: white;
+  padding: 10px 24px;
+  font-size: 1.4rem;
+  box-shadow: 0 4px 0 #2e8c24, 0 5px 10px rgba(0,0,0,0.2);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  margin-left: 10px;
+}
+
+.primary-action-btn:hover {
+  background: linear-gradient(to bottom, #5ce246, #4cd137);
+  box-shadow: 0 4px 0 #2e8c24, 0 8px 15px rgba(0,0,0,0.3);
+  transform: translateY(-1px);
+}
+
+.primary-action-btn:active {
+  box-shadow: 0 0 0 #2e8c24, inset 0 2px 5px rgba(0,0,0,0.2);
+  transform: translateY(4px);
+}
+
+/* Mobile Adjustments for Buttons */
+@media (max-width: 600px) {
+  .primary-action-btn {
+      padding: 8px 16px;
+      font-size: 1.2rem;
+  }
+}
+
 /* --- MOBILE LAYOUT OPTIMIZATIONS (Append to bottom of lobby.css) --- */
 
 @media (max-width: 600px) {
@@ -540,28 +752,4 @@
     align-items: center !important;
     gap: 12px !important;
   }
-
-  .lobby-buttons-row .header-btn {
-    flex: 0 0 auto !important; /* don't grow, size to content */
-    height: 32px !important;          /* down from 40px */
-    font-size: 0.8rem !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    white-space: nowrap !important;
-  }
-}
-
-
-/* Ensure tutorial and rules buttons match gold theme; LET'S PLAY uses green (style overrides in public/style.css) */
-#setup-rules-button,
-#join-rules-button,
-#setup-tutorial-button {
-  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%) !important;
-  color: #1b2e3c !important;
-  border: none !important;
-  padding: 0.25rem 0.6rem !important;
-  font-size: 0.95rem !important;
-  border-radius: 6px !important;
 }
