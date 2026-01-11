@@ -222,7 +222,7 @@
   background: #fffdf5;
   font-size: 26px;
   /* Removed extraneous border for a cleaner look */
-  border: none;
+  border: none !important;
 }
 
 .avatar-dropdown__text {
@@ -265,7 +265,7 @@
   border-radius: 50%;
   background: #fff;
   /* Removed border for a sleeker avatar presentation */
-  border: none;
+  border: none !important;
   transition:
     transform 0.2s,
     background-color 0.2s;
@@ -351,7 +351,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   user-select: none;
   /* Border removed for cleaner look; color accents will be via background */
-  border: none;
+  border: none !important;
 }
 
 #lobby-container .player-silhouette.human {
@@ -499,6 +499,13 @@
     flex-direction: row !important;
     gap: 6px !important;
     margin-top: 8px !important;
+  }
+  
+  /* Force center alignment for the main lobby buttons row */
+  .lobby-buttons-row {
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px !important;
   }
 
   .lobby-buttons-row .header-btn {

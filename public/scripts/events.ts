@@ -220,12 +220,13 @@ function createPlayerSilhouette(
     silhouette.textContent = '?';
   }
 
-  // Add a hidden hover helper element so the hint appears when hovering
-  // the local avatar picker. CSS will show it only for .is-avatar-picker.
-  const help = document.createElement('div');
-  help.className = 'avatar-hover-help';
-  help.textContent = 'Tap avatar to change';
-  silhouette.appendChild(help);
+  // Add a hidden hover helper element only for human avatar pickers
+  if (type === 'human') {
+    const help = document.createElement('div');
+    help.className = 'avatar-hover-help';
+    help.textContent = 'Tap avatar to change';
+    silhouette.appendChild(help);
+  }
 
   return silhouette;
 }
