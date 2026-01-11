@@ -36,9 +36,12 @@ export const ROYALTY_AVATARS: AvatarItem[] = [
   // Mythical (still fits the "royal" vibe)
   { id: 'dragon', icon: '🐉', label: 'Dragon' },
   { id: 'unicorn', icon: '🦄', label: 'Unicorn' },
-  // replacements for removed regalia/beasts
-  { id: 'eagle', icon: '🦅', label: 'Royal Eagle' },
-  { id: 'coin', icon: '🪙', label: 'Gold Coin' },
+  // candidate replacements for removed regalia/beasts
+  { id: 'shield', icon: '🛡️', label: 'Shield' },
+  { id: 'helmet', icon: '🪖', label: 'Helmet' },
+  { id: 'rose', icon: '🌹', label: 'Rose' },
+  { id: 'amphora', icon: '🏺', label: 'Amphora' },
+  { id: 'rosette', icon: '🏵️', label: 'Rosette' },
   { id: 'banner', icon: '🎌', label: 'Royal Banner' },
 ];
 
