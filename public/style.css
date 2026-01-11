@@ -981,9 +981,9 @@ body {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c !important;
   border: none;
-  padding: 1rem 2rem;
+  padding: 0.35rem 0.6rem; /* reduced padding to fit label */
   border-radius: 8px;
-  font-size: 1.4rem;
+  font-size: 1rem; /* smaller font for compact buttons */
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -994,7 +994,7 @@ body {
   pointer-events: auto !important;
   z-index: 9999 !important;
   position: relative !important;
-  min-width: 160px;
+  min-width: unset; /* allow button to size to content */
   text-align: center;
 }
 
@@ -1014,25 +1014,22 @@ body {
 /* Default Deal button styling (golden gradient) */
 /* .header-btn { } */ /* This was a duplicate comment, removing one */
 
-/* Unified button styling - all buttons use gold theme for consistency */
+/* Compact lobby buttons: tutorial, rules, and let's play */
 #setup-rules-button,
 #join-game-button,
 #join-rules-button {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
-  color: #1b2e3c !important; /* Dark text for gold background */
+  color: #1b2e3c !important;
   border: none;
-  padding: 1rem 2rem;
-  font-size: 1.4rem;
-  min-width: 160px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  font-weight: bold;
+  padding: 0.25rem 0.6rem; /* compact padding */
+  font-size: 0.95rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-weight: 700;
   text-transform: none;
   letter-spacing: normal;
-  transition:
-    background 0.2s ease-in-out,
-    box-shadow 0.2s ease-in-out,
-    transform 0.1s ease-in-out;
+  transition: background 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  min-width: unset;
 }
 
 #setup-rules-button,
@@ -1093,17 +1090,21 @@ body {
 }
 
 /* Deal button (Let's Play) - goldish color scheme styling */
+/* Deal button (Let's Play) - felt green center action */
 #setup-deal-button {
-  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
-  color: #1b2e3c !important; /* Dark text for gold background */
+  background: linear-gradient(180deg, #2f8f4a 0%, #4bbf6a 100%); /* felt green */
+  color: #ffffff !important; /* white text for green button */
   border: none;
+  padding: 0.35rem 0.8rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 #setup-deal-button:hover {
-  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
-  color: #1b2e3c !important;
+  background: linear-gradient(180deg, #36a04f 0%, #57c76f 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
 
 #setup-deal-button:active {
@@ -1397,8 +1398,8 @@ body {
   border-radius: 10px !important;
   border: none !important;
   background: transparent !important;
-  box-shadow: none !important;
-    0 2px 6px rgba(27, 46, 60, 0.08) !important;
+  /* combine shadow into a single valid property instead of stray text */
+  box-shadow: 0 2px 6px rgba(27, 46, 60, 0.08) !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
 }

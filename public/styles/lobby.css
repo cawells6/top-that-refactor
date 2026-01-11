@@ -352,8 +352,8 @@
 }
 
 .player-silhouettes {
-    display: flex !important;
-    justify-content: flex-start !important;
+  display: flex !important;
+  justify-content: center !important; /* center silhouettes to avoid stray background between avatars */
     flex-wrap: nowrap !important;
     overflow-x: hidden !important;
     gap: 1.2px !important;
@@ -376,28 +376,25 @@
 #lobby-container .player-silhouette {
   width: 36px;
   height: 36px;
-  background: #fff;
+  background: transparent; /* remove solid white background */
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  box-shadow: none; /* remove base shadow so no visible rectangles appear */
   user-select: none;
   position: relative;
-  /* Border removed for cleaner look; color accents will be via background */
   border: none !important;
 }
 
 #lobby-container .player-silhouette.human {
-  background: #fffdf5;
-  /* gold outline ring */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05), 0 0 0 2px rgba(255,195,0,0.95);
+  /* subtle gold outline ring for humans */
+  box-shadow: 0 0 0 2px rgba(255,195,0,0.55);
 }
 
 #lobby-container .player-silhouette.cpu {
-  background: #eceff1;
-  /* gold outline ring for consistency */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05), 0 0 0 2px rgba(255,195,0,0.95);
+  /* neutral outline for CPUs (very subtle) */
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
 }
 
 #lobby-container .player-silhouette.placeholder {
@@ -545,7 +542,7 @@
   }
 
   .lobby-buttons-row .header-btn {
-    flex: 1 1 auto !important;
+    flex: 0 0 auto !important; /* don't grow, size to content */
     height: 32px !important;          /* down from 40px */
     font-size: 0.8rem !important;
     padding: 0 !important;
@@ -557,16 +554,14 @@
 }
 
 
-/* Match the Join Friend tab�s colour for better affordance */
-#setup-rules-button {
-  background-color: #6fb4ff !important;   /* same colour as Join Friend; adjust if needed */
-  color: #1b2e3c !important;              /* preserve existing text colour */
-  border: none !important;
-}
-
-/* Use the same for the join-tab�s rules button */
-#join-rules-button {
-  background-color: #6fb4ff !important;
+/* Ensure tutorial and rules buttons match gold theme; LET'S PLAY uses green (style overrides in public/style.css) */
+#setup-rules-button,
+#join-rules-button,
+#setup-tutorial-button {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%) !important;
   color: #1b2e3c !important;
   border: none !important;
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.95rem !important;
+  border-radius: 6px !important;
 }
