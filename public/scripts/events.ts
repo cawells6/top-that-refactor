@@ -204,7 +204,8 @@ function reconcileBotAvatarAssignments(desiredCpuCount: number) {
 // Create a player silhouette element
 function createPlayerSilhouette(
   type: 'human' | 'cpu',
-  avatarIcon: string | null
+  avatarIcon: string | null,
+  isPicker = false
 ): HTMLElement {
   const silhouette = document.createElement('div');
 
@@ -220,8 +221,8 @@ function createPlayerSilhouette(
     silhouette.textContent = '?';
   }
 
-  // Add a hidden hover helper element only for human avatar pickers
-  if (type === 'human') {
+  // Only add the hover helper for the actual local picker slot
+  if (type === 'human' && isPicker) {
     const help = document.createElement('div');
     help.className = 'avatar-hover-help';
     help.textContent = 'Tap avatar to change';
@@ -258,6 +259,7 @@ function updatePlayerSilhouettes() {
   reconcileBotAvatarAssignments(cpuCount);
 
   // 1. Render Human (Use selected avatar or null)
+  // Render humans; pass isPicker=true for the local slot (index 0)
   updateSilhouettesInContainer(
     humanSilhouettesContainer,
     'human',
@@ -684,6 +686,23 @@ export function initializePageEventListeners() {
             alert('Error sending feedback.');
         }
     };
+    // Close feedback modal when clicking overlay or pressing Escape
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', (ev) => {
+        if (!feedbackModal) return;
+        if (!feedbackModal.classList.contains('modal--hidden')) {
+          feedbackModal.classList.add('modal--hidden');
+          overlay.classList.add('modal__overlay--hidden');
+        }
+      });
+    }
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && feedbackModal && !feedbackModal.classList.contains('modal--hidden')) {
+        feedbackModal.classList.add('modal--hidden');
+        document.getElementById('modal-overlay')?.classList.add('modal__overlay--hidden');
+      }
+    });
   }
 
   // --- GAME MENU LOGIC ---

@@ -423,8 +423,8 @@ body {
 
 /* Style for the Plus/Minus Buttons - unified with brand colors */
 .counter-btn {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border: none;
   background: linear-gradient(
     135deg,
@@ -484,8 +484,8 @@ body {
   font-size: 1.6rem; /* Slightly larger for better visibility */
   font-weight: 700;
   text-align: center;
-  width: 50px; /* Adjust width as needed */
-  height: 40px; /* Match button height for alignment */
+  width: 40px; /* Adjust width as needed */
+  height: 32px; /* Match button height for alignment */
   border-radius: 8px; /* Rounded corners */
   pointer-events: none;
   appearance: textfield;
@@ -1365,12 +1365,12 @@ body {
 .player-silhouette .user-icon,
 .player-silhouettes img,
 .player-silhouettes svg {
-  width: 75px !important;
-  height: 75px !important;
-  min-width: 75px !important;
-  min-height: 75px !important;
-  max-width: 75px !important;
-  max-height: 75px !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
   object-fit: contain !important;
   display: block !important;
   box-sizing: content-box !important;
@@ -1395,9 +1395,9 @@ body {
     rgba(19, 122, 75, 0.04)
   ) !important;
   border-radius: 10px !important;
-  border: 2px solid rgba(19, 122, 75, 0.35) !important;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
     0 2px 6px rgba(27, 46, 60, 0.08) !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
