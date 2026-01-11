@@ -9,14 +9,14 @@ export const ROYALTY_AVATARS: AvatarItem[] = [
   { id: 'king', icon: '🤴', label: 'King' },
   { id: 'queen', icon: '👸', label: 'Queen' },
   { id: 'prince', icon: '🫅', label: 'Prince' },
-  { id: 'princess', icon: '💎', label: 'Gem' },
+  // removed: princess (gem)
 
   // Court roles (no fairy/genie)
-  { id: 'jester', icon: '🃏', label: 'Jester' },
+  // removed: jester
   { id: 'herald', icon: '🎺', label: 'Herald' },
   { id: 'scribe', icon: '📜', label: 'Scribe' },
   { id: 'treasurer', icon: '💰', label: 'Treasurer' },
-  { id: 'advisor', icon: '🦉', label: 'Advisor' },
+  // removed: advisor (owl)
 
   // Guards & arms
   { id: 'guard', icon: '💂', label: 'Guard' },
@@ -26,18 +26,20 @@ export const ROYALTY_AVATARS: AvatarItem[] = [
 
   // Symbols & regalia
   { id: 'crown', icon: '👑', label: 'Crown' },
-  { id: 'fleur', icon: '⚜️', label: 'Fleur-de-lis' },
-  { id: 'ring', icon: '💍', label: 'Signet Ring' },
-  { id: 'goblet', icon: '🏆', label: 'Trophy' },
+  // removed: fleur, ring, goblet (fleur-de-lis, signet ring, trophy)
   { id: 'key', icon: '🗝️', label: 'Old Key' },
 
   // Lands & beasts
   { id: 'castle', icon: '🏰', label: 'Castle' },
-  { id: 'lion', icon: '🦁', label: 'Royal Beast' },
+  // removed: lion
 
   // Mythical (still fits the "royal" vibe)
   { id: 'dragon', icon: '🐉', label: 'Dragon' },
   { id: 'unicorn', icon: '🦄', label: 'Unicorn' },
+  // replacements for removed regalia/beasts
+  { id: 'eagle', icon: '🦅', label: 'Royal Eagle' },
+  { id: 'coin', icon: '🪙', label: 'Gold Coin' },
+  { id: 'banner', icon: '🎌', label: 'Royal Banner' },
 ];
 
 export const CPU_NAMES = [
