@@ -1,7 +1,6 @@
 import * as state from './state.js';
 import * as uiManager from './uiManager.js';
 import type { AvatarItem } from '../../src/shared/avatars.js';
-import { ROYALTY_AVATARS } from '../../src/shared/avatars.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -205,7 +204,8 @@ function reconcileBotAvatarAssignments(desiredCpuCount: number) {
 // Create a player silhouette element
 function createPlayerSilhouette(
   type: 'human' | 'cpu',
-  avatarIcon: string | null
+  avatarIcon: string | null,
+  isPicker = false
 ): HTMLElement {
   const silhouette = document.createElement('div');
 
@@ -219,6 +219,14 @@ function createPlayerSilhouette(
     // Empty state / Placeholder
     silhouette.className = `player-silhouette ${type} placeholder`;
     silhouette.textContent = '?';
+  }
+
+  // Only add the hover helper for the actual local picker slot
+  if (type === 'human' && isPicker) {
+    const help = document.createElement('div');
+    help.className = 'avatar-hover-help';
+    help.textContent = 'Tap avatar to change';
+    silhouette.appendChild(help);
   }
 
   return silhouette;
@@ -251,6 +259,7 @@ function updatePlayerSilhouettes() {
   reconcileBotAvatarAssignments(cpuCount);
 
   // 1. Render Human (Use selected avatar or null)
+  // Render humans; pass isPicker=true for the local slot (index 0)
   updateSilhouettesInContainer(
     humanSilhouettesContainer,
     'human',
@@ -263,7 +272,8 @@ function updatePlayerSilhouettes() {
     humanSilhouettesContainer.firstElementChild as HTMLElement | null;
   if (localSlot) {
     localSlot.classList.add('is-avatar-picker');
-    localSlot.title = 'Click to choose your avatar';
+    // Tooltip removed — hover helper displays contextual help
+    localSlot.removeAttribute('title');
     localSlot.tabIndex = 0;
     localSlot.setAttribute('role', 'button');
     localSlot.onclick = () => openAvatarDropdown();
@@ -676,6 +686,23 @@ export function initializePageEventListeners() {
             alert('Error sending feedback.');
         }
     };
+    // Close feedback modal when clicking overlay or pressing Escape
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', (ev) => {
+        if (!feedbackModal) return;
+        if (!feedbackModal.classList.contains('modal--hidden')) {
+          feedbackModal.classList.add('modal--hidden');
+          overlay.classList.add('modal__overlay--hidden');
+        }
+      });
+    }
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && feedbackModal && !feedbackModal.classList.contains('modal--hidden')) {
+        feedbackModal.classList.add('modal--hidden');
+        document.getElementById('modal-overlay')?.classList.add('modal__overlay--hidden');
+      }
+    });
   }
 
   // --- GAME MENU LOGIC ---

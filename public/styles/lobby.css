@@ -219,9 +219,10 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 2px solid #eee;
   background: #fffdf5;
   font-size: 26px;
+  /* Removed extraneous border for a cleaner look */
+  border: none !important;
 }
 
 .avatar-dropdown__text {
@@ -263,25 +264,36 @@
   cursor: pointer;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid #ccc;
+  /* Removed border for a sleeker avatar presentation */
+  border: none !important;
   transition:
     transform 0.2s,
-    border-color 0.2s,
     background-color 0.2s;
   user-select: none;
 }
 
 .avatar-option:hover {
   transform: scale(1.1);
-  border-color: #ffd700;
+  /* Subtle glow on hover without changing border */
+  box-shadow: 0 4px 10px rgba(255, 195, 0, 0.15);
 }
 
 .avatar-option.selected {
   background-color: #fff8e1;
-  border-color: #ffc300;
-  box-shadow: 0 0 0 2px #ffc300;
+  box-shadow: 0 6px 18px rgba(255, 195, 0, 0.18);
   transform: scale(1.15);
 }
+
+/* Reduce counter/button sizes by ~15% */
+.counter-btn {
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 0.85rem !important;
+}
+
+/* Hide hover-help by default; it is added only to the picker slot */
+.avatar-hover-help { display: none; }
+
 
 .players-section {
   margin: 1.5rem 0;
@@ -324,42 +336,65 @@
 
 /* Lobby USERS/BOTS silhouettes (pre-game) */
 #lobby-container .player-silhouettes {
-  display: flex !important;
-  align-items: center;
-  justify-content: center !important;
-  flex-wrap: wrap !important;
-  gap: 10px !important;
-  height: auto !important;
-  min-height: 60px !important;
-  min-width: 0 !important;
-  overflow: visible !important;
-  padding: 0.5rem 0.6rem !important;
-  background: rgba(0, 0, 0, 0.03) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  border-radius: 12px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    height: auto !important;
+    min-height: 60px !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    padding: 0.5rem 0.6rem !important;
+    /* background: rgba(0, 0, 0, 0.03) !important; */
+    /* border: 1px solid rgba(0, 0, 0, 0.08) !important; */
+    /* border-radius: 12px !important; */
 }
 
+.player-silhouettes {
+  display: flex !important;
+  justify-content: center !important; /* center silhouettes to avoid stray background between avatars */
+    flex-wrap: nowrap !important;
+    overflow-x: hidden !important;
+    gap: 1.2px !important;
+    height: 85px !important;
+    min-height: 85px !important;
+    max-height: 85px !important;
+    min-width: 320px !important;
+    margin-top: 0.5rem !important;
+    padding: 0.35rem 0.6rem !important;
+    /* background: linear-gradient( 180deg, rgba(19, 122, 75, 0.1), rgba(19, 122, 75, 0.04) ) !important; */
+    /* border-radius: 10px !important; */
+    border: none !important;
+    background: transparent !important;
+    /* box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), 0 2px 6px rgba(27, 46, 60, 0.08) !important; */
+    /* transition: all 0.3s ease !important; */
+    /* box-sizing: border-box !important; */
+}
+
+/* Reduce silhouette size by ~30% */
 #lobby-container .player-silhouette {
-  width: 52px;
-  height: 52px;
-  background: #fff;
-  border: 2px solid #ddd;
+  width: 36px;
+  height: 36px;
+  background: transparent; /* remove solid white background */
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  box-shadow: none; /* remove base shadow so no visible rectangles appear */
   user-select: none;
+  position: relative;
+  border: none !important;
 }
 
 #lobby-container .player-silhouette.human {
-  border-color: #ffc300;
-  background: #fffdf5;
+  /* subtle gold outline ring for humans */
+  box-shadow: 0 0 0 2px rgba(255,195,0,0.55);
 }
 
 #lobby-container .player-silhouette.cpu {
-  border-color: #b0bec5;
-  background: #eceff1;
+  /* neutral outline for CPUs (very subtle) */
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
 }
 
 #lobby-container .player-silhouette.placeholder {
@@ -375,12 +410,31 @@
 }
 
 #lobby-container .player-silhouette.is-avatar-picker:hover {
-  border-color: #ffc300;
-  box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.25);
+  /* Hover effect for avatar picker: subtle yellow glow */
+  box-shadow: 0 6px 18px rgba(255, 195, 0, 0.15);
+}
+
+/* Hover helper: show contextual help when hovering avatar picker */
+.player-silhouette.is-avatar-picker .avatar-hover-help {
+  display: none;
+}
+.player-silhouette.is-avatar-picker:hover .avatar-hover-help {
+  display: block;
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(27, 46, 60, 0.92);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1100;
 }
 
 #lobby-container .player-silhouette .emoji-avatar {
-  font-size: 32px;
+  font-size: 20px;
 }
 
 /* --- MOBILE LAYOUT OPTIMIZATIONS (Append to bottom of lobby.css) --- */
@@ -479,9 +533,16 @@
     gap: 6px !important;
     margin-top: 8px !important;
   }
+  
+  /* Force center alignment for the main lobby buttons row */
+  .lobby-buttons-row {
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
 
   .lobby-buttons-row .header-btn {
-    flex: 1 1 auto !important;
+    flex: 0 0 auto !important; /* don't grow, size to content */
     height: 32px !important;          /* down from 40px */
     font-size: 0.8rem !important;
     padding: 0 !important;
@@ -493,16 +554,14 @@
 }
 
 
-/* Match the Join Friend tab�s colour for better affordance */
-#setup-rules-button {
-  background-color: #6fb4ff !important;   /* same colour as Join Friend; adjust if needed */
-  color: #1b2e3c !important;              /* preserve existing text colour */
-  border: none !important;
-}
-
-/* Use the same for the join-tab�s rules button */
-#join-rules-button {
-  background-color: #6fb4ff !important;
+/* Ensure tutorial and rules buttons match gold theme; LET'S PLAY uses green (style overrides in public/style.css) */
+#setup-rules-button,
+#join-rules-button,
+#setup-tutorial-button {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%) !important;
   color: #1b2e3c !important;
   border: none !important;
+  padding: 0.25rem 0.6rem !important;
+  font-size: 0.95rem !important;
+  border-radius: 6px !important;
 }
