@@ -284,6 +284,17 @@
   transform: scale(1.15);
 }
 
+/* Reduce counter/button sizes by ~15% */
+.counter-btn {
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 0.85rem !important;
+}
+
+/* Hide hover-help by default; it is added only to the picker slot */
+.avatar-hover-help { display: none; }
+
+
 .players-section {
   margin: 1.5rem 0;
 }
@@ -361,9 +372,10 @@
     /* box-sizing: border-box !important; */
 }
 
+/* Reduce silhouette size by ~30% */
 #lobby-container .player-silhouette {
-  width: 52px;
-  height: 52px;
+  width: 36px;
+  height: 36px;
   background: #fff;
   border-radius: 14px;
   display: flex;
@@ -425,7 +437,7 @@
 }
 
 #lobby-container .player-silhouette .emoji-avatar {
-  font-size: 32px;
+  font-size: 20px;
 }
 
 /* --- MOBILE LAYOUT OPTIMIZATIONS (Append to bottom of lobby.css) --- */
