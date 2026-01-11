@@ -270,7 +270,8 @@ function updatePlayerSilhouettes() {
     humanSilhouettesContainer.firstElementChild as HTMLElement | null;
   if (localSlot) {
     localSlot.classList.add('is-avatar-picker');
-    localSlot.title = 'Click to choose your avatar';
+    // Tooltip removed — hover helper displays contextual help
+    localSlot.removeAttribute('title');
     localSlot.tabIndex = 0;
     localSlot.setAttribute('role', 'button');
     localSlot.onclick = () => openAvatarDropdown();

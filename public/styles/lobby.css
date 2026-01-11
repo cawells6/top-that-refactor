@@ -350,6 +350,7 @@
   justify-content: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   user-select: none;
+  position: relative;
   /* Border removed for cleaner look; color accents will be via background */
   border: none !important;
 }
@@ -388,7 +389,7 @@
 .player-silhouette.is-avatar-picker:hover .avatar-hover-help {
   display: block;
   position: absolute;
-  bottom: -28px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(27, 46, 60, 0.92);
