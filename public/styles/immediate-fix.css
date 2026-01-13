@@ -22,9 +22,6 @@
   left: 0 !important;
   right: 0 !important;
   transform: none !important;
-  max-width: 800px !important; /* Restore max-width for modal appearance */
-  width: 100% !important; /* Keep width 100% for flexibility */
-  min-width: 320px !important; /* Ensure a reasonable minimum width */
   box-sizing: border-box !important;
 }
 
