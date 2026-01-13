@@ -690,6 +690,20 @@
     line-height: 1.4 !important;
   }
 
+  /* Compact name input for mobile */
+  .name-input-scroll-container {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .parchment-scroll {
+    padding: 8px 15px !important; /* Reduced padding */
+  }
+
+  .parchment-label {
+    margin-bottom: 2px !important;
+    font-size: 1rem !important;
+  }
+
   /* Place Humans and Automans side‑by‑side and remove excess padding */
   .player-selection--host {
     display: flex !important;
@@ -705,6 +719,18 @@
     background: rgba(0,0,0,0.03) !important;
     border-radius: 6px !important;
     min-height: auto !important;       /* remove fixed height */
+  }
+
+  /* Reduce top margin for section titles on mobile */
+  .player-section .section-title {
+    margin-top: 5px !important; /* Reduced from 25px */
+    margin-bottom: 2px !important;
+    font-size: 1.3rem !important;
+  }
+
+  /* Reset negative margin for silhouettes if text is moved up */
+  .player-silhouettes {
+    margin-top: 0 !important;
   }
 
   /* Shrink the +/– counter controls to roughly 1/3 their current size */
