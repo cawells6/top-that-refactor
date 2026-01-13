@@ -1095,21 +1095,30 @@ body {
   background: linear-gradient(180deg, #2f8f4a 0%, #4bbf6a 100%); /* felt green */
   color: #ffffff !important; /* white text for green button */
   border: none;
-  padding: 0.35rem 0.8rem;
-  font-size: 1rem;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  padding: 0 !important;
+  width: 100px;
+  height: 100px;
+  font-size: 1.4rem;
+  border-radius: 50% !important;
+  box-shadow: 0 6px 0 #1e6b36, 0 8px 15px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.1;
+  white-space: normal;
+  margin: 0 10px;
 }
 
 #setup-deal-button:hover {
   background: linear-gradient(180deg, #36a04f 0%, #57c76f 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #1e6b36, 0 12px 20px rgba(0,0,0,0.25);
 }
 
 #setup-deal-button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
+  transform: translateY(6px);
+  box-shadow: 0 0 0 #1e6b36, inset 0 2px 5px rgba(0,0,0,0.2);
 }
 
 #start-game-button {
