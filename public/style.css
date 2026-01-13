@@ -240,12 +240,29 @@ body {
   gap: 0.45rem;
 }
 
+.lobby-tab-button[data-tab="join"] {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.4);
+  color: #1565c0;
+}
+
 .lobby-tab-button.is-active {
   position: relative;
   color: #1b2e3c;
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   box-shadow: 0 4px 10px rgba(255, 195, 0, 0.35);
   transform: translateY(-1px);
+}
+
+.lobby-tab-button[data-tab="join"].is-active {
+  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(33, 150, 243, 0.35);
+  border-color: transparent;
+}
+
+.lobby-tab-button[data-tab="join"]:hover:not(.is-active) {
+  background: rgba(33, 150, 243, 0.2);
 }
 
 .lobby-tab-button.is-active:hover {
@@ -1012,7 +1029,6 @@ body {
 
 /* Compact lobby buttons: tutorial, rules, and let's play */
 #setup-rules-button,
-#join-game-button,
 #join-rules-button {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c !important;
@@ -1038,6 +1054,14 @@ body {
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: none !important;
+}
+
+#setup-rules-button:hover,
+#join-rules-button:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  color: #1b2e3c !important;
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 #setup-rules-button:hover,

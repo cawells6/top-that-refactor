@@ -132,6 +132,12 @@
   letter-spacing: 0.05em;
 }
 
+/* Force override for active join tab */
+.lobby-tab-button[data-tab="join"].is-active {
+  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%) !important;
+  color: white !important;
+}
+
 .in-session-lobby-container {
   display: flex;
   flex-direction: column;
