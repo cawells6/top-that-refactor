@@ -210,8 +210,11 @@ body {
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  /* Reduced bottom margin to pull next section closer */
+  margin-bottom: 1rem;
   padding-bottom: 0.4rem;
+  /* Added top margin to separate from name input */
+  margin-top: 0.75rem;
   max-width: 520px;
   margin-left: auto;
   margin-right: auto;
@@ -238,6 +241,10 @@ body {
     box-shadow 0.2s ease,
     transform 0.2s ease;
   gap: 0.45rem;
+  /* Ensure width is based on content, not flex */
+  flex: 0 1 auto;
+  min-width: 0;
+  width: auto;
 }
 
 .lobby-tab-button[data-tab="join"] {
@@ -255,10 +262,10 @@ body {
 }
 
 .lobby-tab-button[data-tab="join"].is-active {
-  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
-  color: white;
-  box-shadow: 0 4px 10px rgba(33, 150, 243, 0.35);
-  border-color: transparent;
+  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 10px rgba(33, 150, 243, 0.35) !important;
+  border-color: transparent !important;
 }
 
 .lobby-tab-button[data-tab="join"]:hover:not(.is-active) {
@@ -1028,6 +1035,7 @@ body {
 /* .header-btn { } */ /* This was a duplicate comment, removing one */
 
 /* Compact lobby buttons: tutorial, rules, and let's play */
+#setup-tutorial-button,
 #setup-rules-button,
 #join-rules-button {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
@@ -1035,13 +1043,14 @@ body {
   border: none;
   padding: 0.25rem 0.6rem; /* compact padding */
   font-size: 0.95rem;
-  border-radius: 6px;
+  border-radius: 999px; /* pill shape */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   font-weight: 700;
   text-transform: none;
   letter-spacing: normal;
   transition: background 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   min-width: unset;
+  width: auto;
 }
 
 #setup-rules-button,

@@ -121,10 +121,13 @@
   border: none;
   color: rgba(255, 255, 255, 0.6);
   padding: 8px 16px; /* Smaller padding */
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif !important; /* Match Tutorial/Rules font */
+  font-weight: 700 !important;
   font-size: 1.1rem; /* Smaller font */
   cursor: pointer;
-  flex: 1;
+  flex: 0 1 auto !important; /* Override flex:1 */
+  min-width: 0 !important;
+  width: auto !important;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -710,7 +713,8 @@
     flex-direction: row !important;
     gap: 6px !important;
     align-items: stretch !important;
-    margin-bottom: 5px !important;
+    margin-bottom: 0px !important; /* Reduced margin to pull up buttons */
+    margin-top: 0px !important; /* Ensure tight spacing with tabs */
   }
 
   .player-section {
