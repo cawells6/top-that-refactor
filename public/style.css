@@ -297,17 +297,13 @@ body {
   padding: 2rem 2.25rem;
   box-shadow: 0 6px 14px rgba(27, 46, 60, 0.12);
   position: relative;
+  background-color: #e3f2fd; /* Light blue background */
+  border: 2px solid #90caf9; /* Slightly darker blue border */
+  border-radius: 12px;
 }
 
 .lobby-tab-panel--join .join-code-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 6px;
-  border-radius: 10px 10px 0 0;
-  background: linear-gradient(135deg, #1f7a6d 0%, #3aa18d 100%);
+  display: none; /* Remove the green top bar for the blue card style */
 }
 
 #lobby-form[data-lobby-tab='join'] #setup-deal-button {
@@ -1375,15 +1371,32 @@ body {
 .player-silhouette .user-icon,
 .player-silhouettes img,
 .player-silhouettes svg {
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
-  min-height: 36px !important;
-  max-width: 36px !important;
-  max-height: 36px !important;
+  width: 60px !important;
+  height: 60px !important;
+  min-width: 60px !important;
+  min-height: 60px !important;
+  max-width: 60px !important;
+  max-height: 60px !important;
   object-fit: contain !important;
   display: block !important;
   box-sizing: content-box !important;
+}
+
+/* Mobile override for icons inside style.css to match lobby.css mobile rules */
+@media (max-width: 600px) {
+  .player-silhouette img,
+  .player-silhouette svg,
+  .player-silhouette .robot-icon,
+  .player-silhouette .user-icon,
+  .player-silhouettes img,
+  .player-silhouettes svg {
+      width: 48px !important;
+      height: 48px !important;
+      min-width: 48px !important;
+      min-height: 48px !important;
+      max-width: 48px !important;
+      max-height: 48px !important;
+  }
 }
 
 /* Strongest possible override for container */

@@ -490,8 +490,8 @@
 
 /* Reduce silhouette size by ~30% */
 #lobby-container .player-silhouette {
-  width: 36px;
-  height: 36px;
+  width: 60px; /* Increased from 36px */
+  height: 60px; /* Increased from 36px */
   background: transparent; /* remove solid white background */
   border-radius: 14px;
   display: flex;
@@ -643,9 +643,18 @@
 
 /* Mobile Adjustments for Buttons */
 @media (max-width: 600px) {
-  .primary-action-btn {
-      padding: 8px 16px;
-      font-size: 1.2rem;
+  /* Prevent oval/stretched button on mobile */
+  #setup-deal-button.primary-action-btn {
+      width: 80px !important;
+      height: 80px !important;
+      min-width: 80px !important;
+      min-height: 80px !important;
+      font-size: 1.1rem !important;
+      padding: 0 !important;
+      border-radius: 50% !important;
+      flex-shrink: 0 !important;
+      margin: 0 5px !important;
+      box-shadow: 0 4px 0 #1e6b36, 0 5px 10px rgba(0,0,0,0.2) !important;
   }
 }
 
@@ -719,17 +728,17 @@
   /* Reduce avatar box size and remove unnecessary whitespace */
   .player-silhouette,
   #join-player-avatar {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
-    border-radius: 6px !important;
+    width: 48px !important; /* Increased from 32px */
+    height: 48px !important; /* Increased from 32px */
+    min-width: 48px !important;
+    min-height: 48px !important;
+    border-radius: 10px !important;
   }
 
   /* Reduce line height for emoji avatars to fit the smaller box */
   .emoji-avatar {
-    font-size: 20px !important;
-    line-height: 32px !important;
+    font-size: 28px !important; /* Increased from 20px */
+    line-height: 48px !important;
   }
 
   /* Shrink the hint text */
