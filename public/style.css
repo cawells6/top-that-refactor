@@ -250,7 +250,7 @@ body {
 .lobby-tab-button[data-tab="join"] {
   background: rgba(33, 150, 243, 0.1);
   border-color: rgba(33, 150, 243, 0.4);
-  color: #1565c0;
+  color: #1b2e3c; /* Black text */
 }
 
 .lobby-tab-button.is-active {
@@ -1035,16 +1035,31 @@ body {
 /* .header-btn { } */ /* This was a duplicate comment, removing one */
 
 /* Compact lobby buttons: tutorial, rules, and let's play */
-#setup-tutorial-button,
-#setup-rules-button,
-#join-rules-button {
+#setup-tutorial-button {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c !important;
   border: none;
-  padding: 0.25rem 0.6rem; /* compact padding */
-  font-size: 0.95rem;
-  border-radius: 999px; /* pill shape */
+  padding: 0.25rem 0.6rem;
+  font-size: 1.1rem !important; /* Match top tab font size (1.1rem) and override generic 1.4rem */
+  border-radius: 999px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+  transition: background 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  min-width: unset;
+  width: auto;
+}
+
+#setup-rules-button,
+#join-rules-button {
+  background: rgba(33, 150, 243, 0.1);
+  color: #1565c0 !important;
+  border: 1px solid rgba(33, 150, 243, 0.4);
+  padding: 0.25rem 0.6rem;
+  font-size: 1.1rem !important; /* Match top tab font size (1.1rem) and override generic 1.4rem */
+  border-radius: 999px;
+  box-shadow: none;
   font-weight: 700;
   text-transform: none;
   letter-spacing: normal;
@@ -1090,27 +1105,6 @@ body {
   box-shadow: 0 1px 3px rgba(255, 195, 0, 0.2);
 }
 
-#setup-rules-button,
-#join-rules-button {
-  background: #c7c7c7;
-  color: #1b2e3c !important;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-#setup-rules-button:hover,
-#join-rules-button:hover {
-  background: #d6d6d6;
-  color: #1b2e3c !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
-}
-
-#setup-rules-button:active,
-#join-rules-button:active {
-  background: #bdbdbd;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
-  transform: translateY(0);
-}
 
 #setup-rules-button:focus-visible,
 #join-rules-button:focus-visible {
