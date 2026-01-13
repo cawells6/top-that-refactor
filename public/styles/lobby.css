@@ -499,8 +499,8 @@
 
 /* Reduce silhouette size by ~30% */
 #lobby-container .player-silhouette {
-  width: 60px; /* Increased from 36px */
-  height: 60px; /* Increased from 36px */
+  width: 80px; /* Increased from 60px for desktop */
+  height: 80px;
   background: transparent; /* remove solid white background */
   border-radius: 14px;
   display: flex;
@@ -559,7 +559,7 @@
 }
 
 #lobby-container .player-silhouette .emoji-avatar {
-  font-size: 20px;
+  font-size: 40px; /* Increased for desktop */
 }
 
 /* --- UPDATED PLAYER SECTION (Fixing Overlap) --- */
