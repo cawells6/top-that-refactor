@@ -723,14 +723,14 @@
 
   /* Reduce top margin for section titles on mobile */
   .player-section .section-title {
-    margin-top: 5px !important; /* Reduced from 25px */
+    margin-top: 10px !important; /* Increased to 10px to add a sliver of white space */
     margin-bottom: 2px !important;
     font-size: 1.3rem !important;
   }
 
-  /* Reset negative margin for silhouettes if text is moved up */
+  /* Reset negative margin for silhouettes if text is moved up, and add spacing below counter */
   .player-silhouettes {
-    margin-top: 0 !important;
+    margin-top: 8px !important; /* Pushed down to avoid overtaking buttons */
   }
 
   /* Shrink the +/– counter controls to roughly 1/3 their current size */
@@ -757,20 +757,21 @@
     margin: 0 2px !important;
   }
 
-  /* Reduce avatar box size and remove unnecessary whitespace */
+  /* Increase avatar box size significantly for mobile */
   .player-silhouette,
   #join-player-avatar {
-    width: 48px !important; /* Increased from 32px */
-    height: 48px !important; /* Increased from 32px */
-    min-width: 48px !important;
-    min-height: 48px !important;
-    border-radius: 10px !important;
+    width: 60px !important; /* Increased from 48px to 60px (matching desktop) */
+    height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    border-radius: 12px !important;
   }
 
-  /* Reduce line height for emoji avatars to fit the smaller box */
+  /* Adjust line height for emoji avatars */
   .emoji-avatar {
-    font-size: 28px !important; /* Increased from 20px */
-    line-height: 48px !important;
+    font-size: 32px !important; /* Increased from 28px */
+    line-height: 60px !important;
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Android Emoji', sans-serif !important;
   }
 
   /* Shrink the hint text */
