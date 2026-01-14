@@ -210,8 +210,11 @@ body {
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  /* Reduced bottom margin to pull next section closer */
+  margin-bottom: 1rem;
   padding-bottom: 0.4rem;
+  /* Added top margin to separate from name input */
+  margin-top: 0.75rem;
   max-width: 520px;
   margin-left: auto;
   margin-right: auto;
@@ -238,6 +241,16 @@ body {
     box-shadow 0.2s ease,
     transform 0.2s ease;
   gap: 0.45rem;
+  /* Ensure width is based on content, not flex */
+  flex: 0 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.lobby-tab-button[data-tab="join"] {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.4);
+  color: #1b2e3c; /* Black text */
 }
 
 .lobby-tab-button.is-active {
@@ -246,6 +259,17 @@ body {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   box-shadow: 0 4px 10px rgba(255, 195, 0, 0.35);
   transform: translateY(-1px);
+}
+
+.lobby-tab-button[data-tab="join"].is-active {
+  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 10px rgba(33, 150, 243, 0.35) !important;
+  border-color: transparent !important;
+}
+
+.lobby-tab-button[data-tab="join"]:hover:not(.is-active) {
+  background: rgba(33, 150, 243, 0.2);
 }
 
 .lobby-tab-button.is-active:hover {
@@ -297,17 +321,13 @@ body {
   padding: 2rem 2.25rem;
   box-shadow: 0 6px 14px rgba(27, 46, 60, 0.12);
   position: relative;
+  background-color: #e3f2fd; /* Light blue background */
+  border: 2px solid #90caf9; /* Slightly darker blue border */
+  border-radius: 12px;
 }
 
 .lobby-tab-panel--join .join-code-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 6px;
-  border-radius: 10px 10px 0 0;
-  background: linear-gradient(135deg, #1f7a6d 0%, #3aa18d 100%);
+  display: none; /* Remove the green top bar for the blue card style */
 }
 
 #lobby-form[data-lobby-tab='join'] #setup-deal-button {
@@ -1015,21 +1035,37 @@ body {
 /* .header-btn { } */ /* This was a duplicate comment, removing one */
 
 /* Compact lobby buttons: tutorial, rules, and let's play */
-#setup-rules-button,
-#join-game-button,
-#join-rules-button {
+#setup-tutorial-button {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c !important;
   border: none;
-  padding: 0.25rem 0.6rem; /* compact padding */
-  font-size: 0.95rem;
-  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  font-size: 1.1rem !important; /* Match top tab font size (1.1rem) and override generic 1.4rem */
+  border-radius: 999px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   font-weight: 700;
   text-transform: none;
   letter-spacing: normal;
   transition: background 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   min-width: unset;
+  width: auto;
+}
+
+#setup-rules-button,
+#join-rules-button {
+  background: rgba(33, 150, 243, 0.1);
+  color: #1b2e3c !important; /* Black text */
+  border: 1px solid rgba(33, 150, 243, 0.4);
+  padding: 0.25rem 0.6rem;
+  font-size: 1.1rem !important; /* Match top tab font size (1.1rem) and override generic 1.4rem */
+  border-radius: 999px;
+  box-shadow: none;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+  transition: background 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  min-width: unset;
+  width: auto;
 }
 
 #setup-rules-button,
@@ -1042,6 +1078,14 @@ body {
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: none !important;
+}
+
+#setup-rules-button:hover,
+#join-rules-button:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  color: #1b2e3c !important;
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+  transform: translateY(-1px);
 }
 
 #setup-rules-button:hover,
@@ -1061,27 +1105,6 @@ body {
   box-shadow: 0 1px 3px rgba(255, 195, 0, 0.2);
 }
 
-#setup-rules-button,
-#join-rules-button {
-  background: #c7c7c7;
-  color: #1b2e3c !important;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-#setup-rules-button:hover,
-#join-rules-button:hover {
-  background: #d6d6d6;
-  color: #1b2e3c !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
-}
-
-#setup-rules-button:active,
-#join-rules-button:active {
-  background: #bdbdbd;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
-  transform: translateY(0);
-}
 
 #setup-rules-button:focus-visible,
 #join-rules-button:focus-visible {
@@ -1095,21 +1118,30 @@ body {
   background: linear-gradient(180deg, #2f8f4a 0%, #4bbf6a 100%); /* felt green */
   color: #ffffff !important; /* white text for green button */
   border: none;
-  padding: 0.35rem 0.8rem;
-  font-size: 1rem;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  padding: 0 !important;
+  width: 100px;
+  height: 100px;
+  font-size: 1.4rem;
+  border-radius: 50% !important;
+  box-shadow: 0 6px 0 #1e6b36, 0 8px 15px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.1;
+  white-space: normal;
+  margin: 0 10px;
 }
 
 #setup-deal-button:hover {
   background: linear-gradient(180deg, #36a04f 0%, #57c76f 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #1e6b36, 0 12px 20px rgba(0,0,0,0.25);
 }
 
 #setup-deal-button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
+  transform: translateY(6px);
+  box-shadow: 0 0 0 #1e6b36, inset 0 2px 5px rgba(0,0,0,0.2);
 }
 
 #start-game-button {
@@ -1366,15 +1398,32 @@ body {
 .player-silhouette .user-icon,
 .player-silhouettes img,
 .player-silhouettes svg {
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
-  min-height: 36px !important;
-  max-width: 36px !important;
-  max-height: 36px !important;
+  width: 80px !important; /* Increased from 60px */
+  height: 80px !important;
+  min-width: 80px !important;
+  min-height: 80px !important;
+  max-width: 80px !important;
+  max-height: 80px !important;
   object-fit: contain !important;
   display: block !important;
   box-sizing: content-box !important;
+}
+
+/* Mobile override for icons inside style.css to match lobby.css mobile rules */
+@media (max-width: 600px) {
+  .player-silhouette img,
+  .player-silhouette svg,
+  .player-silhouette .robot-icon,
+  .player-silhouette .user-icon,
+  .player-silhouettes img,
+  .player-silhouettes svg {
+      width: 48px !important;
+      height: 48px !important;
+      min-width: 48px !important;
+      min-height: 48px !important;
+      max-width: 48px !important;
+      max-height: 48px !important;
+  }
 }
 
 /* Strongest possible override for container */

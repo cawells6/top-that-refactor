@@ -108,6 +108,9 @@ export async function performOpeningDeal(
     // FINAL COMMIT: This makes all cards "stick" and restores normal UI behavior
     renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
 
+    // Wait an extra second so player sees final card land
+    await wait(1000);
+
     await showStartOverlay();
   } catch (err) {
     console.error('[DealingAnimation] Opening deal animation failed:', err);
