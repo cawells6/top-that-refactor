@@ -20,3 +20,7 @@ coverage/
 # Dev port discovery (written at runtime)
 current-port.txt
 public/current-port.txt
+
+# Playwright artifacts
+playwright-report/
+test-results/

@@ -1,7 +1,8 @@
 // models/GameState.ts
 
 import { Card, CardValue, AddToPileOptions } from '../src/shared/types.js';
-import { rank, normalizeCardValue, isSpecialCard } from '../utils/cardUtils.js';
+import { isValidPlay } from '../utils/cardUtils.js';
+import { getRandom } from '../utils/rng.js';
 
 export default class GameState {
   public players: string[];
@@ -159,7 +160,7 @@ export default class GameState {
 
     // Fisher–Yates shuffle
     for (let i = this.deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(getRandom() * (i + 1));
       [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
     }
   }
@@ -201,31 +202,6 @@ export default class GameState {
   }
 
   public isValidPlay(cards: Card[]): boolean {
-    if (!cards || cards.length === 0) {
-      return false;
-    }
-
-    const firstValue = normalizeCardValue(cards[0].value);
-    if (cards.some((card) => normalizeCardValue(card.value) !== firstValue)) {
-      return false; // All cards must have the same value
-    }
-
-    if (cards.length >= 4) {
-      return true; // 4+ of a kind is always a valid burn
-    }
-
-    if (this.pile.length === 0) {
-      return true; // Any card can be played on an empty pile
-    }
-
-    if (isSpecialCard(firstValue)) {
-      return true; // Special cards can be played on any card
-    }
-
-    const playedRank = rank(cards[0]);
-    const topPileCard = this.pile[this.pile.length - 1];
-    const topPileRank = rank(topPileCard);
-
-    return playedRank > topPileRank;
+    return isValidPlay(cards, this.pile);
   }
 }

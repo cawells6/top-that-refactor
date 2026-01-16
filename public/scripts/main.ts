@@ -12,6 +12,12 @@ import {
   setCurrentRoom,
   setIsSpectator,
 } from './state.js';
+import * as StateModule from './state.js';
+
+// Expose state for testing
+if (import.meta.env.MODE !== 'production' || (globalThis as any).process?.env?.NODE_ENV !== 'production') {
+  (window as any).state = StateModule;
+}
 
 console.log('🚀 [Client] main.ts loaded successfully via Vite!');
 

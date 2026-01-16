@@ -159,4 +159,34 @@ const cardUtils = {
   isSpecialCard,
   isFourOfAKind,
 };
+
+export function isValidPlay(cards: Card[], pile: Card[]): boolean {
+  if (!cards || cards.length === 0) {
+    return false;
+  }
+
+  const firstValue = normalizeCardValue(cards[0].value);
+  if (cards.some((card) => normalizeCardValue(card.value) !== firstValue)) {
+    return false; // All cards must have the same value
+  }
+
+  if (cards.length >= 4) {
+    return true; // 4+ of a kind is always a valid burn
+  }
+
+  if (!pile || pile.length === 0) {
+    return true; // Any card can be played on an empty pile
+  }
+
+  if (isSpecialCard(firstValue)) {
+    return true; // Special cards can be played on any card
+  }
+
+  const playedRank = rank(cards[0]);
+  const topPileCard = pile[pile.length - 1];
+  const topPileRank = rank(topPileCard);
+
+  return playedRank > topPileRank;
+}
+
 export default cardUtils;

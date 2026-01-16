@@ -7,6 +7,7 @@ import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 
 import { GameRoomManager } from './controllers/GameController.js';
+import { setSeed } from './utils/rng.js';
 
 const app: Express = express();
 
@@ -44,6 +45,10 @@ app.get('/health', (req: Request, res: Response) => {
 
 const DEFAULT_PORT: number = 3000;
 const MAX_RETRIES = 30; // Increased from 10 for more robust port selection
+
+if (process.env.SEED) {
+  setSeed(process.env.SEED);
+}
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : DEFAULT_PORT;
 const sockets = new Set<Socket>();

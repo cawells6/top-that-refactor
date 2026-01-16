@@ -1,5 +1,5 @@
 // Test mode for debugging special cards
-export let isTestMode = true;
+export let isTestMode = false;
 let continueResolve: (() => void) | null = null;
 
 export function initializeManualMode(): void {
