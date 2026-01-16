@@ -1,4 +1,5 @@
-ng="en" class="loading preload">
+<!doctype html>
+<html lang="en" class="loading preload">
   <head>
     <meta charset="UTF-8" />
     <title>Top That! Card Game</title>
@@ -166,33 +167,161 @@ ng="en" class="loading preload">
       </main>
     </div>
 
-    <div class="modal modal--hidden" id="rules-modal" role="dialog" aria-modal="true">
-        <div class="lobby-modal-container">
-            <div class="game-setup-content rules-modal-content">
-                <button class="modal__close-button" aria-label="Close">&times;</button>
-                <div class="rules-container">
-                    <h2 class="rules-title">THE OFFICIAL RULES</h2>
-                    <div class="button-container">
-                        <button id="expand-collapse-all-btn" class="btn expand-btn">Expand All</button>
-                    </div>
-                    <details class="rules-section">
-                        <summary class="rules-summary"><h3>The Goal</h3></summary>
-                        <div class="rules-details-content">
-                            <ul><li>The first player to play all of their cards wins the game!</li></ul>
-                        </div>
-                    </details>
-                    <details class="rules-section">
-                        <summary class="rules-summary"><h3>Setup</h3></summary>
-                        <div class="rules-details-content">
-                            <ul>
-                                <li><strong>Deal 9 cards to each player:</strong><ul><li>3 Face-Down Cards.</li><li>3 Face-Up Cards.</li><li>3 Hand Cards.</li></ul></li>
-                            </ul>
-                        </div>
-                    </details>
-                    <button class="btn rules-gotit-btn" id="rules-gotit-btn">Got it!</button>
-                </div>
+    <div
+      class="modal modal--hidden"
+      id="rules-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="rules-modal-title"
+    >
+      <div class="lobby-modal-container">
+        <div class="game-setup-content rules-modal-content">
+          <button class="modal__close-button" aria-label="Close">&times;</button>
+          <div class="rules-container">
+            <h2 class="rules-title">THE OFFICIAL RULES</h2>
+            <div class="button-container">
+              <button id="expand-collapse-all-btn" class="btn expand-btn">Expand All</button>
             </div>
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>Getting Started</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>
+                    <strong>Setup:</strong>
+                    <span>Deal 9 cards per player:</span>
+                    <ul>
+                      <li>3 Face-Down: Place in a row. (Do not look at these).</li>
+                      <li>3 Face-Up: Place on top of the face-down cards.</li>
+                      <li>3 Hand Cards: Deal to your hand.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Start the game:</strong>
+                    <ul>
+                      <li>Place the remaining deck in the center (draw pile).</li>
+                      <li>Flip the top card to start the play pile.</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>Playing Your Turn</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>
+                    <strong>Basic Actions:</strong>
+                    <ul>
+                      <li>Play a card from your hand that is higher than the current top card on the pile.</li>
+                      <li>Multiples: You may play multiple copies of the same rank (e.g., three Jacks).</li>
+                      <li>Refill Hand: If the draw pile has cards, you must have 3 cards in your hand. If you have fewer than 3, draw until you are back to 3.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Card Progression:</strong>
+                    <span>You must clear your cards in this specific order:</span>
+                    <ul>
+                      <li>Hand Cards: Play these until the draw pile is gone and your hand is empty.</li>
+                      <li>Face-Up Cards: Unlocked only when your hand is empty.</li>
+                      <li>Face-Down Cards: Unlocked only when all your face-up cards are gone.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Stuck?:</strong>
+                    <ul>
+                      <li>If you cannot play a card (or beat the top card), you must pick up the play pile.</li>
+                      <li>If you pick up the pile while playing Face-Up or Face-Down cards, you must clear your hand again before you can go back to the table cards.</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>Special Cards</h3></summary>
+              <div class="rules-details-content">
+                <p class="rules-lead">These cards break the standard rules.</p>
+                <ul>
+                  <li>
+                    <strong>2 (Reset):</strong>
+                    <ul>
+                      <li>Play on anything. It resets the pile's value to 2.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>5 (Copycat):</strong>
+                    <ul>
+                      <li>Becomes the value of the card below it.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>10 (Burn):</strong>
+                    <ul>
+                      <li>Explodes the pile. Remove the pile from the game. The next player can play any card.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>4-of-a-Kind:</strong>
+                    <ul>
+                      <li>If four of the same rank are played at a time (e.g., four 6s), the pile explodes just like a 10. The next player can play any card.</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <details class="rules-section">
+              <summary class="rules-summary"><h3>How to Win</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>
+                    <strong>Winning:</strong>
+                    <ul>
+                      <li>The first player to play all of their cards wins the game!</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <details class="rules-section" id="quick-tips-section">
+              <summary class="rules-summary"><h3>Quick Tips & Strategy</h3></summary>
+              <div class="rules-details-content">
+                <ul>
+                  <li>
+                    <strong>Save Special Cards:</strong>
+                    <ul>
+                      <li>Hold onto 2s and 10s for when you're stuck with low cards.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Multiple Plays:</strong>
+                    <ul>
+                      <li>When possible, play multiple cards of the same value to reduce your hand size.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Watch Opponents:</strong>
+                    <ul>
+                      <li>Pay attention to which Face-Up cards others struggle to play.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Face-Down Risk:</strong>
+                    <ul>
+                      <li>Face-Down cards are pure luck - get to them as quickly as possible.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Forced Pickup:</strong>
+                    <ul>
+                      <li>Sometimes forcing an opponent to pick up a large pile is the best strategy.</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </details>
+            <button class="btn rules-gotit-btn" id="rules-gotit-btn">Got it!</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <div class="modal modal--hidden" id="feedback-modal" role="dialog">
