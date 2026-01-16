@@ -49,122 +49,144 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : DEFAULT_PORT;
 const sockets = new Set<Socket>();
 
 let server: http.Server | null = null; // Define server variable here
+let io: SocketIOServer | null = null;
+let gameRoomManager: GameRoomManager | null = null;
 
-function startServer(port: number, retries = 0) {
-  // Create a single HTTP server and assign to the outer server variable
-  server = http.createServer(app);
-  server.on('connection', (socket: Socket) => {
-    sockets.add(socket);
-    socket.on('close', () => sockets.delete(socket));
-  });
-  // Attach Socket.IO to the same HTTP server
-  const io: SocketIOServer = new SocketIOServer(server, {
-    cors: { origin: '*' },
-  });
-
-  // Attach GameRoomManager to handle game events
-  new GameRoomManager(io);
-
-  io.on('connection', (socket) => {
-    console.log(`[SERVER] New socket connection: ${socket.id}`);
-
-    // Log all registered event listeners for debugging
-    // Filter out the word 'error' so logs stay clean
-    const events = socket.eventNames().filter((e) => e !== 'error');
-    console.log(`[SERVER] Socket ${socket.id} events:`, events);
-
-    socket.on('disconnect', (reason) => {
-      console.log(`[SERVER] Socket ${socket.id} disconnected: ${reason}`);
+export function startServer(port: number, retries = 0): Promise<http.Server> {
+  return new Promise((resolve, reject) => {
+    // Create a single HTTP server and assign to the outer server variable
+    server = http.createServer(app);
+    server.on('connection', (socket: Socket) => {
+      sockets.add(socket);
+      socket.on('close', () => sockets.delete(socket));
     });
-  });
+    // Attach Socket.IO to the same HTTP server
+    io = new SocketIOServer(server, {
+      cors: { origin: '*' },
+    });
 
-  server.on('error', (err: NodeJS.ErrnoException) => {
-    if (err.code === 'EADDRINUSE' && retries < MAX_RETRIES) {
-      const nextPort = port + 1;
-      console.log(`Port ${port} in use, trying next port: ${nextPort}`);
-      setTimeout(() => startServer(nextPort, retries + 1), 100);
-    } else {
-      console.error('Server failed to start:', err);
-      process.exit(1);
-    }
-  });
+    // Attach GameRoomManager to handle game events
+    gameRoomManager = new GameRoomManager(io);
 
-  // Log every port attempt
-  const logMsg = `Attempting to start server on port ${port}...`;
-  // Print a clear separator for visibility
-  console.log('\n==============================');
-  console.log(logMsg);
-  console.log('==============================\n');
-  fs.appendFileSync('server.log', logMsg + '\n', 'utf-8');
-  server.listen(port, '0.0.0.0', () => {
-    const networkInterfaces = os.networkInterfaces();
-    const localIps = Object.values(networkInterfaces)
-      .flat()
-      .filter((iface: any) => iface?.family === 'IPv4' && !iface?.internal)
-      .map((iface: any) => iface?.address);
+    io.on('connection', (socket) => {
+      console.log(`[SERVER] New socket connection: ${socket.id}`);
 
-    const successMsg = `🃏 Top That! server running at:
-  - Local:   http://localhost:${port}
-  - Network: ${localIps.map((ip: string) => `http://${ip}:${port}`).join(', ')}`;
+      // Log all registered event listeners for debugging
+      // Filter out the word 'error' so logs stay clean
+      const events = socket.eventNames().filter((e) => e !== 'error');
+      console.log(`[SERVER] Socket ${socket.id} events:`, events);
+
+      socket.on('disconnect', (reason) => {
+        console.log(`[SERVER] Socket ${socket.id} disconnected: ${reason}`);
+      });
+    });
+
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE' && retries < MAX_RETRIES) {
+        const nextPort = port + 1;
+        console.log(`Port ${port} in use, trying next port: ${nextPort}`);
+        setTimeout(() => {
+          startServer(nextPort, retries + 1)
+            .then(resolve)
+            .catch(reject);
+        }, 100);
+      } else {
+        console.error('Server failed to start:', err);
+        // Only exit process if not running in test mode (or allow rejection)
+        // For CLI usage, we want to exit. For test usage, maybe just reject.
+        // We can detect if we are resolving a promise or just running.
+        // But here we are in the promise.
+        reject(err);
+      }
+    });
+
+    // Log every port attempt
+    const logMsg = `Attempting to start server on port ${port}...`;
     // Print a clear separator for visibility
     console.log('\n==============================');
-    console.log(successMsg);
+    console.log(logMsg);
     console.log('==============================\n');
-    fs.appendFileSync('server.log', successMsg + '\n', 'utf-8');
-    if (process.env.NODE_ENV !== 'production') {
+    try {
+      fs.appendFileSync('server.log', logMsg + '\n', 'utf-8');
+    } catch (e) {
+      // ignore
+    }
+
+    server.listen(port, '0.0.0.0', () => {
+      const networkInterfaces = os.networkInterfaces();
+      const localIps = Object.values(networkInterfaces)
+        .flat()
+        .filter((iface: any) => iface?.family === 'IPv4' && !iface?.internal)
+        .map((iface: any) => iface?.address);
+
+      const successMsg = `🃏 Top That! server running at:
+  - Local:   http://localhost:${port}
+  - Network: ${localIps.map((ip: string) => `http://${ip}:${port}`).join(', ')}`;
+      // Print a clear separator for visibility
+      console.log('\n==============================');
+      console.log(successMsg);
+      console.log('==============================\n');
       try {
-        // Dev-only: help the Vite client discover which backend port we bound to.
-        fs.writeFileSync('current-port.txt', port.toString(), 'utf-8');
-        if (fs.existsSync(clientPath)) {
-          fs.writeFileSync(
-            `${clientPath}/current-port.txt`,
-            port.toString(),
-            'utf-8'
+        fs.appendFileSync('server.log', successMsg + '\n', 'utf-8');
+      } catch (e) {
+        // ignore
+      }
+
+      if (process.env.NODE_ENV !== 'production') {
+        try {
+          // Dev-only: help the Vite client discover which backend port we bound to.
+          fs.writeFileSync('current-port.txt', port.toString(), 'utf-8');
+          if (fs.existsSync(clientPath)) {
+            fs.writeFileSync(
+              `${clientPath}/current-port.txt`,
+              port.toString(),
+              'utf-8'
+            );
+          }
+        } catch (error) {
+          console.warn(
+            `Failed to write current-port.txt (${(error as Error).message}). Continuing without it.`
           );
         }
-      } catch (error) {
-        console.warn(
-          `Failed to write current-port.txt (${(error as Error).message}). Continuing without it.`
-        );
       }
-    }
+      resolve(server as http.Server);
+    });
   });
 }
 
-startServer(PORT);
-
-// Graceful shutdown logic
-const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGQUIT', 'SIGUSR2'];
-signals.forEach((signal) => {
-  process.on(signal, () => {
-    console.log(`\n${signal} signal received: closing HTTP server...`);
+export function closeServer(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    console.log('\nClosing server...');
+    // Destroy all active sockets
     for (const socket of sockets) {
       socket.destroy();
-      sockets.delete(socket);
     }
+    sockets.clear();
+
+    if (gameRoomManager) {
+      gameRoomManager.destroy();
+      gameRoomManager = null;
+    }
+
+    if (io) {
+      io.close();
+      io = null;
+    }
+
     if (server) {
       server.close((err) => {
         if (err) {
           console.error('Error closing server:', err);
-          process.exit(1); // Exit with error
+          return reject(err);
         }
         console.log('HTTP server closed.');
-        if (signal === 'SIGUSR2') {
-          // Nodemon expects the process to exit and will restart it
-          process.kill(process.pid, 'SIGUSR2');
-        } else {
-          process.exit(0); // Exit gracefully
-        }
+        server = null;
+        resolve();
       });
     } else {
-      console.log('HTTP server not initialized or already closed.');
-      if (signal === 'SIGUSR2') {
-        process.kill(process.pid, 'SIGUSR2');
-      } else {
-        process.exit(0);
-      }
+      resolve();
     }
   });
-});
+}
 
-// Test: innocuous change to trigger Nodemon restart (updated)
+

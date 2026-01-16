@@ -57,6 +57,7 @@ interface RejoinData {
 export class GameRoomManager {
   private io: Server;
   private rooms: Map<string, GameController>;
+  private cleanupInterval: NodeJS.Timeout;
 
   constructor(io: Server) {
     this.io = io;
@@ -134,7 +135,7 @@ export class GameRoomManager {
       );
     });
 
-    setInterval(() => {
+    this.cleanupInterval = setInterval(() => {
       for (const [roomId, controller] of this.rooms.entries()) {
         const hasActivePlayers = Array.from(
           controller['players'].values()
@@ -144,6 +145,12 @@ export class GameRoomManager {
         }
       }
     }, 60000);
+  }
+
+  public destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
   }
 
   private handleClientJoinGame(

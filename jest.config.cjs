@@ -12,6 +12,7 @@ module.exports = {
     '**/tests/**/*.test.ts', // Server-side tests
     '**/public/scripts/**/*.test.ts', // Client-side tests
   ],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/integration/'], // Exclude integration tests from default run
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'], // Ensure 'ts', 'tsx' are before 'js', 'jsx'
   moduleDirectories: ['node_modules', '<rootDir>/public/scripts'], // Keep this
   modulePaths: ['<rootDir>'], // Keep this
