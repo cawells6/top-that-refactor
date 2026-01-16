@@ -95,6 +95,11 @@ html.rules-modal-open {
   align-items: center;
 }
 
+/* Light background for lobby/modal container per design request */
+.lobby-modal-container {
+  background-color: #F3F7F4;
+}
+
 /* Style for the rules title */
 .rules-title {
   text-align: center;
