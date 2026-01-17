@@ -766,12 +766,6 @@ body {
   padding-right: 1.5rem !important;
 }
 
-/* Specific lobby inner content background color requested by user */
-#lobby-inner-content.game-setup-content,
-#lobby-inner-content {
-  background: #F3F7F4 !important;
-}
-
 /* Legacy .game-setup-card styling - keeping for backwards compatibility
    but with modified properties since it's no longer the main container */
 .game-setup-card {
