@@ -49,7 +49,8 @@
     "dev:safe": "npx kill-port 3000 5173 && node wait-enhanced.js && npm run dev:all",
     "start:dev": "node scripts/start-dev.js",
     "run": "./run",
-    "run:quiet": "bash scripts/run-quiet.sh npm run dev:all:clean"
+    "run:quiet": "bash scripts/run-quiet.sh npm run dev:all:clean",
+    "watch:runbat": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/watch-runbat.ps1"
   },
   "dependencies": {
     "chokidar-cli": "^3.0.0",
