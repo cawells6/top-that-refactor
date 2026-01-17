@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <title>Top That! Card Game</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
 
     <link rel="stylesheet" href="/styles/immediate-fix.css" />
 
@@ -42,38 +45,58 @@
             <div id="lobby-inner-content" class="game-setup-content">
               <div class="setup-header">
                 <div class="header-logo">
-                    <img id="site-logo" src="/src/shared/logov2.svg" alt="Top That! Logo" />
+                  <img
+                    id="site-logo"
+                    src="/src/shared/logov2.svg"
+                    alt="Top That! Logo"
+                  />
                 </div>
               </div>
 
               <form id="lobby-form" autocomplete="off">
                 <div class="name-input-scroll-container">
-                    <div class="parchment-scroll">
-                      <label class="parchment-label" for="player-name-input">Who is playing today?</label>
-                      <input
-                        type="text"
-                        id="player-name-input"
-                        class="parchment-input"
-                        placeholder="Sign your name here..."
-                        maxlength="20"
-                        required
-                      />
-                    </div>
+                  <div class="parchment-scroll">
+                    <label class="parchment-label" for="player-name-input"
+                      >Who is playing today?</label
+                    >
+                    <input
+                      type="text"
+                      id="player-name-input"
+                      class="parchment-input"
+                      maxlength="20"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div class="lobby-tabs" role="tablist" aria-label="Lobby mode">
-                  <button type="button" class="lobby-tab-button is-active" data-tab="host" role="tab">
+                  <button
+                    type="button"
+                    class="lobby-tab-button is-active"
+                    data-tab="host"
+                    role="tab"
+                  >
                     HOST GAME
                   </button>
-                  <button type="button" class="lobby-tab-button" data-tab="join" role="tab">
+                  <button
+                    type="button"
+                    class="lobby-tab-button"
+                    data-tab="join"
+                    role="tab"
+                  >
                     JOIN FRIEND
                   </button>
                 </div>
 
-                <div class="lobby-tab-panel lobby-tab-panel--host is-active" data-tab-panel="host">
-
+                <div
+                  class="lobby-tab-panel lobby-tab-panel--host is-active"
+                  data-tab-panel="host"
+                >
                   <details class="avatar-dropdown hidden" id="avatar-dropdown">
-                    <summary class="avatar-dropdown__summary" style="display:none"></summary>
+                    <summary
+                      class="avatar-dropdown__summary"
+                      style="display: none"
+                    ></summary>
                     <div class="avatar-dropdown__panel">
                       <div class="avatar-grid" id="avatar-grid"></div>
                     </div>
@@ -83,65 +106,188 @@
                     <div class="player-section player-section--users">
                       <h3 class="section-title">HUMANS</h3>
                       <div class="player-counter">
-                        <button type="button" class="counter-btn" id="humans-minus">-</button>
-                        <input type="number" id="total-players-input" min="1" max="4" value="1" readonly />
-                        <button type="button" class="counter-btn" id="humans-plus">+</button>
+                        <button
+                          type="button"
+                          class="counter-btn"
+                          id="humans-minus"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          id="total-players-input"
+                          min="1"
+                          max="4"
+                          value="1"
+                          readonly
+                        />
+                        <button
+                          type="button"
+                          class="counter-btn"
+                          id="humans-plus"
+                        >
+                          +
+                        </button>
                       </div>
-                      <div class="player-silhouettes" id="human-silhouettes"></div>
+                      <div
+                        class="player-silhouettes"
+                        id="human-silhouettes"
+                      ></div>
                     </div>
 
                     <div class="player-section player-section--bots">
                       <h3 class="section-title">AUTOMANS</h3>
                       <div class="player-counter">
-                        <button type="button" class="counter-btn" id="cpus-minus">-</button>
-                        <input type="number" id="cpu-players-input" min="0" value="1" readonly />
-                        <button type="button" class="counter-btn" id="cpus-plus">+</button>
+                        <button
+                          type="button"
+                          class="counter-btn"
+                          id="cpus-minus"
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          id="cpu-players-input"
+                          min="0"
+                          value="1"
+                          readonly
+                        />
+                        <button
+                          type="button"
+                          class="counter-btn"
+                          id="cpus-plus"
+                        >
+                          +
+                        </button>
                       </div>
-                      <div class="player-silhouettes" id="cpu-silhouettes"></div>
+                      <div
+                        class="player-silhouettes"
+                        id="cpu-silhouettes"
+                      ></div>
                     </div>
                   </div>
 
-                    <div class="lobby-buttons-row">
-                      <button id="setup-tutorial-button" class="header-btn secondary-btn lobby-tab-button" type="button">TUTORIAL</button>
-                      <button id="setup-deal-button" class="header-btn primary-action-btn lobby-tab-button" type="button">LET'S PLAY</button>
-                      <button id="setup-rules-button" class="header-btn secondary-btn lobby-tab-button" type="button">RULES</button>
-                    </div>
+                  <div class="lobby-buttons-row">
+                    <button
+                      id="setup-tutorial-button"
+                      class="header-btn secondary-btn lobby-tab-button"
+                      type="button"
+                    >
+                      TUTORIAL
+                    </button>
+                    <button
+                      id="setup-deal-button"
+                      class="header-btn primary-action-btn lobby-tab-button"
+                      type="button"
+                    >
+                      LET'S PLAY
+                    </button>
+                    <button
+                      id="setup-rules-button"
+                      class="header-btn secondary-btn lobby-tab-button"
+                      type="button"
+                    >
+                      RULES
+                    </button>
+                  </div>
                 </div>
 
-                <div class="lobby-tab-panel lobby-tab-panel--join" data-tab-panel="join">
+                <div
+                  class="lobby-tab-panel lobby-tab-panel--join"
+                  data-tab-panel="join"
+                >
                   <div class="player-section join-code-section">
-
-                    <div class="join-avatar-container" style="display:flex; justify-content:center; margin-bottom:15px;">
-                       <div id="join-player-avatar" class="player-silhouette human is-avatar-picker">
-                         <div class="emoji-avatar">?</div>
-                       </div>
+                    <div
+                      class="join-avatar-container"
+                      style="
+                        display: flex;
+                        justify-content: center;
+                        margin-bottom: 15px;
+                      "
+                    >
+                      <div
+                        id="join-player-avatar"
+                        class="player-silhouette human is-avatar-picker"
+                      >
+                        <div class="emoji-avatar">?</div>
+                      </div>
                     </div>
-                    
 
                     <div class="join-code-inputs">
-                      <input type="text" id="join-code-input" placeholder="ENTER GAME CODE" maxlength="6" style="text-transform: uppercase" />
+                      <input
+                        type="text"
+                        id="join-code-input"
+                        placeholder="ENTER GAME CODE"
+                        maxlength="6"
+                        style="text-transform: uppercase"
+                      />
                     </div>
                     <div class="lobby-buttons-row lobby-buttons-row--join">
-                      <button id="join-rules-button" class="header-btn secondary-btn" type="button">RULES</button>
-                      <button id="join-game-button" class="header-btn primary-action-btn" type="button">JOIN GAME</button>
+                      <button
+                        id="join-rules-button"
+                        class="header-btn secondary-btn"
+                        type="button"
+                      >
+                        RULES
+                      </button>
+                      <button
+                        id="join-game-button"
+                        class="header-btn primary-action-btn"
+                        type="button"
+                      >
+                        JOIN GAME
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                <div id="lobby-validation-message" class="validation-message-container">
-                  <div class="message-box-content"><p class="validation-text"></p></div>
+                <div
+                  id="lobby-validation-message"
+                  class="validation-message-container"
+                >
+                  <div class="message-box-content">
+                    <p class="validation-text"></p>
+                  </div>
                 </div>
               </form>
 
-              <div class="footer-actions" style="margin-top: 20px; text-align: center;">
-                 <button type="button" id="lobby-feedback-btn" class="header-btn" style="background:#5865F2; color:white; border:none; padding:10px 16px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; font-family:'Segoe UI', sans-serif; font-weight:700; box-shadow:0 4px 0 #404EED; transition:transform 0.1s;">
-                  <svg width="24" height="24" viewBox="0 0 127.14 96.36" fill="white" aria-hidden="true">
-                    <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.09,105.09,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.11,77.11,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22c.63-23.28-3.1-47.5-18.9-72.15ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+              <div
+                class="footer-actions"
+                style="margin-top: 20px; text-align: center"
+              >
+                <button
+                  type="button"
+                  id="lobby-feedback-btn"
+                  class="header-btn"
+                  style="
+                    background: #5865f2;
+                    color: white;
+                    border: none;
+                    padding: 10px 16px;
+                    border-radius: 999px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-family: 'Segoe UI', sans-serif;
+                    font-weight: 700;
+                    box-shadow: 0 4px 0 #404eed;
+                    transition: transform 0.1s;
+                  "
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 127.14 96.36"
+                    fill="white"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.09,105.09,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.11,77.11,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22c.63-23.28-3.1-47.5-18.9-72.15ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"
+                    />
                   </svg>
                   Feedback
                 </button>
               </div>
-
             </div>
           </div>
         </div>
@@ -149,12 +295,18 @@
         <div id="game-table" class="hidden table--hidden">
           <div class="table">
             <div class="game-menu-container">
-                <button id="table-menu-button" aria-label="Menu">☰</button>
-                <div id="game-menu-dropdown" class="game-menu-dropdown hidden">
-                    <button id="game-rules-button" class="menu-item">📜 Rules</button>
-                    <button id="game-history-button" class="menu-item">⏱ Move History</button>
-                    <button id="game-feedback-btn" class="menu-item">🐞 Feedback</button>
-                </div>
+              <button id="table-menu-button" aria-label="Menu">☰</button>
+              <div id="game-menu-dropdown" class="game-menu-dropdown hidden">
+                <button id="game-rules-button" class="menu-item">
+                  📜 Rules
+                </button>
+                <button id="game-history-button" class="menu-item">
+                  ⏱ Move History
+                </button>
+                <button id="game-feedback-btn" class="menu-item">
+                  🐞 Feedback
+                </button>
+              </div>
             </div>
 
             <div class="table-slot-top" id="opponent-area-top"></div>
@@ -176,11 +328,15 @@
     >
       <div class="lobby-modal-container">
         <div class="game-setup-content rules-modal-content">
-          <button class="modal__close-button" aria-label="Close">&times;</button>
+          <button class="modal__close-button" aria-label="Close">
+            &times;
+          </button>
           <div class="rules-container">
             <h2 class="rules-title">THE OFFICIAL RULES</h2>
             <div class="button-container">
-              <button id="expand-collapse-all-btn" class="btn expand-btn">Expand All</button>
+              <button id="expand-collapse-all-btn" class="btn expand-btn">
+                Expand All
+              </button>
             </div>
             <details class="rules-section">
               <summary class="rules-summary"><h3>Getting Started</h3></summary>
@@ -190,7 +346,9 @@
                     <strong>Setup:</strong>
                     <span>Deal 9 cards per player:</span>
                     <ul>
-                      <li>3 Face-Down: Place in a row. (Do not look at these).</li>
+                      <li>
+                        3 Face-Down: Place in a row. (Do not look at these).
+                      </li>
                       <li>3 Face-Up: Place on top of the face-down cards.</li>
                       <li>3 Hand Cards: Deal to your hand.</li>
                     </ul>
@@ -198,7 +356,9 @@
                   <li>
                     <strong>Start the game:</strong>
                     <ul>
-                      <li>Place the remaining deck in the center (draw pile).</li>
+                      <li>
+                        Place the remaining deck in the center (draw pile).
+                      </li>
                       <li>Flip the top card to start the play pile.</li>
                     </ul>
                   </li>
@@ -206,31 +366,60 @@
               </div>
             </details>
             <details class="rules-section">
-              <summary class="rules-summary"><h3>Playing Your Turn</h3></summary>
+              <summary class="rules-summary">
+                <h3>Playing Your Turn</h3>
+              </summary>
               <div class="rules-details-content">
                 <ul>
                   <li>
                     <strong>Basic Actions:</strong>
                     <ul>
-                      <li>Play a card from your hand that is higher than the current top card on the pile.</li>
-                      <li>Multiples: You may play multiple copies of the same rank (e.g., three Jacks).</li>
-                      <li>Refill Hand: If the draw pile has cards, you must have 3 cards in your hand. If you have fewer than 3, draw until you are back to 3.</li>
+                      <li>
+                        Play a card from your hand that is higher than the
+                        current top card on the pile.
+                      </li>
+                      <li>
+                        Multiples: You may play multiple copies of the same rank
+                        (e.g., three Jacks).
+                      </li>
+                      <li>
+                        Refill Hand: If the draw pile has cards, you must have 3
+                        cards in your hand. If you have fewer than 3, draw until
+                        you are back to 3.
+                      </li>
                     </ul>
                   </li>
                   <li>
                     <strong>Card Progression:</strong>
-                    <span>You must clear your cards in this specific order:</span>
+                    <span
+                      >You must clear your cards in this specific order:</span
+                    >
                     <ul>
-                      <li>Hand Cards: Play these until the draw pile is gone and your hand is empty.</li>
-                      <li>Face-Up Cards: Unlocked only when your hand is empty.</li>
-                      <li>Face-Down Cards: Unlocked only when all your face-up cards are gone.</li>
+                      <li>
+                        Hand Cards: Play these until the draw pile is gone and
+                        your hand is empty.
+                      </li>
+                      <li>
+                        Face-Up Cards: Unlocked only when your hand is empty.
+                      </li>
+                      <li>
+                        Face-Down Cards: Unlocked only when all your face-up
+                        cards are gone.
+                      </li>
                     </ul>
                   </li>
                   <li>
                     <strong>Stuck?:</strong>
                     <ul>
-                      <li>If you cannot play a card (or beat the top card), you must pick up the play pile.</li>
-                      <li>If you pick up the pile while playing Face-Up or Face-Down cards, you must clear your hand again before you can go back to the table cards.</li>
+                      <li>
+                        If you cannot play a card (or beat the top card), you
+                        must pick up the play pile.
+                      </li>
+                      <li>
+                        If you pick up the pile while playing Face-Up or
+                        Face-Down cards, you must clear your hand again before
+                        you can go back to the table cards.
+                      </li>
                     </ul>
                   </li>
                 </ul>
@@ -244,7 +433,9 @@
                   <li>
                     <strong>2 (Reset):</strong>
                     <ul>
-                      <li>Play on anything. It resets the pile's value to 2.</li>
+                      <li>
+                        Play on anything. It resets the pile's value to 2.
+                      </li>
                     </ul>
                   </li>
                   <li>
@@ -256,13 +447,20 @@
                   <li>
                     <strong>10 (Burn):</strong>
                     <ul>
-                      <li>Explodes the pile. Remove the pile from the game. The next player can play any card.</li>
+                      <li>
+                        Explodes the pile. Remove the pile from the game. The
+                        next player can play any card.
+                      </li>
                     </ul>
                   </li>
                   <li>
                     <strong>4-of-a-Kind:</strong>
                     <ul>
-                      <li>If four of the same rank are played at a time (e.g., four 6s), the pile explodes just like a 10. The next player can play any card.</li>
+                      <li>
+                        If four of the same rank are played at a time (e.g.,
+                        four 6s), the pile explodes just like a 10. The next
+                        player can play any card.
+                      </li>
                     </ul>
                   </li>
                 </ul>
@@ -275,50 +473,72 @@
                   <li>
                     <strong>Winning:</strong>
                     <ul>
-                      <li>The first player to play all of their cards wins the game!</li>
+                      <li>
+                        The first player to play all of their cards wins the
+                        game!
+                      </li>
                     </ul>
                   </li>
                 </ul>
               </div>
             </details>
             <details class="rules-section" id="quick-tips-section">
-              <summary class="rules-summary"><h3>Quick Tips & Strategy</h3></summary>
+              <summary class="rules-summary">
+                <h3>Quick Tips & Strategy</h3>
+              </summary>
               <div class="rules-details-content">
                 <ul>
                   <li>
                     <strong>Save Special Cards:</strong>
                     <ul>
-                      <li>Hold onto 2s and 10s for when you're stuck with low cards.</li>
+                      <li>
+                        Hold onto 2s and 10s for when you're stuck with low
+                        cards.
+                      </li>
                     </ul>
                   </li>
                   <li>
                     <strong>Multiple Plays:</strong>
                     <ul>
-                      <li>When possible, play multiple cards of the same value to reduce your hand size.</li>
+                      <li>
+                        When possible, play multiple cards of the same value to
+                        reduce your hand size.
+                      </li>
                     </ul>
                   </li>
                   <li>
                     <strong>Watch Opponents:</strong>
                     <ul>
-                      <li>Pay attention to which Face-Up cards others struggle to play.</li>
+                      <li>
+                        Pay attention to which Face-Up cards others struggle to
+                        play.
+                      </li>
                     </ul>
                   </li>
                   <li>
                     <strong>Face-Down Risk:</strong>
                     <ul>
-                      <li>Face-Down cards are pure luck - get to them as quickly as possible.</li>
+                      <li>
+                        Face-Down cards are pure luck - get to them as quickly
+                        as possible.
+                      </li>
                     </ul>
                   </li>
                   <li>
                     <strong>Forced Pickup:</strong>
                     <ul>
-                      <li>Sometimes forcing an opponent to pick up a large pile is the best strategy.</li>
+                      <li>
+                        Sometimes forcing an opponent to pick up a large pile is
+                        the best strategy.
+                      </li>
                     </ul>
                   </li>
                 </ul>
               </div>
             </details>
-            <button class="btn rules-gotit-btn" id="rules-gotit-btn">Got it!</button>
+            <button class="btn rules-gotit-btn" id="rules-gotit-btn">
+              Got it!
+            </button>
           </div>
         </div>
       </div>
@@ -327,39 +547,135 @@
     <div class="modal modal--hidden" id="feedback-modal" role="dialog">
       <div class="lobby-modal-container">
         <div class="game-setup-content">
-          <button class="modal__close-button" id="close-feedback-btn">&times;</button>
+          <button class="modal__close-button" id="close-feedback-btn">
+            &times;
+          </button>
           <h2 class="section-title">TELL THE DEV</h2>
-          <form id="feedback-form" style="display:flex; flex-direction:column; gap:15px; margin-top:10px;">
-            <select id="feedback-type" style="padding:12px; font-size:1.1rem; border-radius:8px; border:2px solid #ccc;">
+          <form
+            id="feedback-form"
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 15px;
+              margin-top: 10px;
+            "
+          >
+            <select
+              id="feedback-type"
+              style="
+                padding: 12px;
+                font-size: 1.1rem;
+                border-radius: 8px;
+                border: 2px solid #ccc;
+              "
+            >
               <option value="bug">🐛 Bug Report</option>
               <option value="feature">💡 Feature Idea</option>
               <option value="other">❤️ General Feedback</option>
             </select>
-            <textarea id="feedback-msg" rows="5" placeholder="What's on your mind?" style="padding:12px; border-radius:8px; border:2px solid #ccc; font-size:1rem;"></textarea>
-            <button type="submit" class="header-btn" style="background:linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%); color:#1b2e3c; border:none;">SEND FEEDBACK</button>
+            <textarea
+              id="feedback-msg"
+              rows="5"
+              placeholder="What's on your mind?"
+              style="
+                padding: 12px;
+                border-radius: 8px;
+                border: 2px solid #ccc;
+                font-size: 1rem;
+              "
+            ></textarea>
+            <button
+              type="submit"
+              class="header-btn"
+              style="
+                background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+                color: #1b2e3c;
+                border: none;
+              "
+            >
+              SEND FEEDBACK
+            </button>
           </form>
         </div>
       </div>
     </div>
 
-    <div class="modal modal--hidden in-session-lobby-modal" id="in-session-lobby-modal">
+    <div
+      class="modal modal--hidden in-session-lobby-modal"
+      id="in-session-lobby-modal"
+    >
       <div class="game-setup-content">
-        <h3 id="in-session-lobby-title" class="section-title">WAITING FOR PLAYERS...</h3>
+        <h3 id="in-session-lobby-title" class="section-title">
+          WAITING FOR PLAYERS...
+        </h3>
 
         <div class="name-input-section" id="guest-name-section">
-          <input type="text" id="guest-player-name-input" placeholder="ENTER YOUR NAME" maxlength="20" required autocomplete="off" />
+          <input
+            type="text"
+            id="guest-player-name-input"
+            placeholder="ENTER YOUR NAME"
+            maxlength="20"
+            required
+            autocomplete="off"
+          />
         </div>
 
-        <div class="game-id-section" style="background:transparent; padding:0; justify-content:center; display:flex; align-items:center; margin-bottom:15px;">
-          <span style="color:#666; font-size:0.9rem; margin-right:8px; font-weight:bold;">ROOM CODE:</span>
-          <input id="game-id-input" class="game-id-input" type="text" readonly style="width:100px; font-size:1.1rem; padding:4px 8px; border-radius:12px; background:#e9ecef; border:1px solid #ced4da; text-align:center; color:#495057; font-weight:bold;" />
+        <div
+          class="game-id-section"
+          style="
+            background: transparent;
+            padding: 0;
+            justify-content: center;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+          "
+        >
+          <span
+            style="
+              color: #666;
+              font-size: 0.9rem;
+              margin-right: 8px;
+              font-weight: bold;
+            "
+            >ROOM CODE:</span
+          >
+          <input
+            id="game-id-input"
+            class="game-id-input"
+            type="text"
+            readonly
+            style="
+              width: 100px;
+              font-size: 1.1rem;
+              padding: 4px 8px;
+              border-radius: 12px;
+              background: #e9ecef;
+              border: 1px solid #ced4da;
+              text-align: center;
+              color: #495057;
+              font-weight: bold;
+            "
+          />
         </div>
 
         <div id="players-container" class="players-container"></div>
 
         <div class="lobby-buttons-row">
-          <button id="copy-link-button" class="header-btn secondary-btn" type="button">COPY LINK</button>
-          <button id="ready-up-button" class="header-btn primary-action-btn" type="button">LET'S PLAY</button>
+          <button
+            id="copy-link-button"
+            class="header-btn secondary-btn"
+            type="button"
+          >
+            COPY LINK
+          </button>
+          <button
+            id="ready-up-button"
+            class="header-btn primary-action-btn"
+            type="button"
+          >
+            LET'S PLAY
+          </button>
         </div>
       </div>
     </div>
