@@ -3,6 +3,8 @@ param(
   [string] $Command = '.\\run.bat',
   [int] $DebounceMs = 800,
   [int] $ExitAfterSeconds = 0,
+  [switch] $RunOnStart,
+  [switch] $UseWindowsTerminalTab,
   [switch] $DryRun
 )
 
@@ -27,6 +29,8 @@ Write-Host "Watching for changes..."
 Write-Host "  Paths:   $($Paths -join ', ')"
 Write-Host "  Command: $resolvedCommand"
 Write-Host "  Debounce: ${DebounceMs}ms"
+if ($RunOnStart) { Write-Host '  RunOnStart: yes' }
+if ($UseWindowsTerminalTab) { Write-Host '  Launcher: Windows Terminal tab (wt.exe)' }
 if ($DryRun) { Write-Host '  Mode:    DRY RUN (no process launch)' }
 if ($ExitAfterSeconds -gt 0) { Write-Host "  Auto-exit after: ${ExitAfterSeconds}s" }
 Write-Host ''
@@ -50,7 +54,7 @@ $timer.AutoReset = $false
 $pendingEvent = $null
 $lockObj = New-Object object
 
-function Launch-RunBat {
+function Launch-RunBat([string] $Reason = $null) {
   $evt = $null
   [System.Threading.Monitor]::Enter($lockObj)
   try {
@@ -63,20 +67,36 @@ function Launch-RunBat {
   if ($null -ne $evt -and (Should-Ignore $evt.FullPath)) { return }
 
   $stamp = Get-Date -Format 'HH:mm:ss'
-  $changed = if ($null -ne $evt) { $evt.FullPath } else { '<unknown>' }
-  Write-Host "[$stamp] change detected: $changed"
+  $changed = if ($null -ne $evt) { $evt.FullPath } else { '<none>' }
+  $why = if ($Reason) { $Reason } else { 'change detected' }
+  Write-Host "[$stamp] ${why}: $changed"
 
   if ($DryRun) { return }
 
+  if ($UseWindowsTerminalTab) {
+    $wt = $null
+    $wtCmd = Get-Command wt.exe -ErrorAction SilentlyContinue
+    if ($wtCmd) { $wt = $wtCmd.Source }
+    if (-not $wt) {
+      $wtCmd = Get-Command wt -ErrorAction SilentlyContinue
+      if ($wtCmd) { $wt = $wtCmd.Source }
+    }
+    if (-not $wt) { throw 'Windows Terminal (wt.exe) not found. Remove -UseWindowsTerminalTab to use cmd.exe windows.' }
+
+    # Open a new Windows Terminal tab and keep it open with cmd /k.
+    $wtArgs = @(
+      '-d', $repoRoot,
+      'new-tab',
+      '--title', 'Top That! (auto-run)',
+      'cmd', '/k', $resolvedCommand
+    )
+    Start-Process -FilePath $wt -ArgumentList $wtArgs | Out-Null
+    return
+  }
+
   # Use cmd's "start" to ensure a new window is created.
   # Title is provided to avoid path-with-spaces being interpreted as the title.
-  $args = @(
-    '/c',
-    'start',
-    '"Top That! (auto-run)"',
-    '"' + $resolvedCommand + '"'
-  )
-
+  $args = @('/c', 'start', '"Top That! (auto-run)"', '"' + $resolvedCommand + '"')
   Start-Process -FilePath 'cmd.exe' -ArgumentList $args -WorkingDirectory $repoRoot | Out-Null
 }
 
@@ -136,6 +156,7 @@ if ($watchers.Count -eq 0) {
 }
 
 Write-Host 'Ready. Edit a file to trigger a new `run.bat` window. Press Ctrl+C to stop.'
+if ($RunOnStart) { Launch-RunBat 'startup' }
 
 if ($ExitAfterSeconds -gt 0) {
   $deadline = (Get-Date).AddSeconds($ExitAfterSeconds)

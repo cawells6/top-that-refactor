@@ -28,7 +28,7 @@
 
 /* --- LOBBY INNER CONTENT BACKGROUND --- */
 #lobby-inner-content.game-setup-content {
-  background: linear-gradient(135deg, #f6f4ff 0%, #efedff 100%);
+  background: #fffbf0;
   color: #1b2e3c;
 }
 
@@ -723,7 +723,7 @@
   margin-left: 10px;
 }
 
-.primary-action-btn:hover {
+.primary-action-btn:hover:not(.lets-play-btn) {
   background: linear-gradient(to bottom, #5ce246, #4cd137);
   box-shadow:
     0 4px 0 #2e8c24,
@@ -731,7 +731,7 @@
   transform: translateY(-1px);
 }
 
-.primary-action-btn:active {
+.primary-action-btn:active:not(.lets-play-btn) {
   box-shadow:
     0 0 0 #2e8c24,
     inset 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -741,7 +741,7 @@
 /* Mobile Adjustments for Buttons */
 @media (max-width: 600px) {
   /* Prevent oval/stretched button on mobile */
-  #setup-deal-button.primary-action-btn {
+  #setup-deal-button.primary-action-btn:not(.lets-play-btn) {
     width: 80px !important;
     height: 80px !important;
     min-width: 80px !important;
@@ -755,6 +755,107 @@
       0 4px 0 #1e6b36,
       0 5px 10px rgba(0, 0, 0, 0.2) !important;
   }
+}
+
+/* Placed at the bottom of lobby.css to ensure it loads last */
+
+.lets-play-btn {
+  /* 1. Geometry & Layout */
+  width: 104px !important;
+  height: 104px !important;
+  padding: 0 !important;
+  min-width: 104px !important;
+  border-radius: 50% !important;
+
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+
+  /* 2. The Look */
+  background: #137a4b;
+
+  /* --- FELT BORDER COLOR --- */
+  border: 4px solid #137a4b !important;
+
+  /* The 3D button shadows */
+  box-shadow:
+    0px 2px 0px #1b7a4d,
+    0px 4px 0px #176a43,
+    0px 6px 0px #135a39,
+    0px 8px 0px #0f4b30,
+    0px 15px 20px rgba(0, 0, 0, 0.2),
+    inset 0px 6px 10px rgba(255, 255, 255, 0.45),
+    inset 0px -6px 8px rgba(0, 0, 0, 0.12);
+
+  /* 3. Text Styling */
+  color: #fff !important;
+  text-shadow: 0px 2px 0px rgba(0, 0, 0, 0.2);
+  font-size: 1.6rem !important;
+  font-weight: 800; /* Extra bold looks better on arcade buttons */
+  line-height: 1.05 !important; /* Tighter line height for stacked text */
+  text-align: center;
+  cursor: pointer;
+
+  /* 4. REMOVE ALL CLICK HIGHLIGHTS */
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent; /* Removes mobile blue flash */
+  user-select: none;
+}
+
+.lets-play-btn:hover {
+  background: #137a4b !important;
+  box-shadow:
+    0px 2px 0px #1b7a4d,
+    0px 4px 0px #176a43,
+    0px 6px 0px #135a39,
+    0px 8px 0px #0f4b30,
+    0px 15px 20px rgba(0, 0, 0, 0.2),
+    inset 0px 6px 10px rgba(255, 255, 255, 0.45),
+    inset 0px -6px 8px rgba(0, 0, 0, 0.12) !important;
+}
+
+.lobby-buttons-row .lets-play-btn {
+  font-size: 1.7rem !important;
+}
+
+/* Tutorial should "light up" on hover like the active HOST GAME tab */
+#setup-tutorial-button:hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%) !important;
+  color: #1b2e3c !important;
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3) !important;
+  transform: translateY(-1px);
+}
+
+/* Rules should mimic JOIN FRIEND (blue) hover, not gold */
+#setup-rules-button:hover,
+#join-rules-button:hover {
+  background: rgba(33, 150, 243, 0.2) !important;
+  border-color: rgba(33, 150, 243, 0.65) !important;
+  color: #1b2e3c !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Pressed State */
+.lets-play-btn:active {
+  transform: translateY(8px);
+  background: #137a4b !important;
+  box-shadow:
+    0px 0px 0px #1b7a4d,
+    0px 0px 0px #176a43,
+    0px 0px 0px #135a39,
+    0px 0px 0px #0f4b30,
+    0px 5px 10px rgba(0, 0, 0, 0.18),
+    inset 0px 6px 10px rgba(255, 255, 255, 0.45),
+    inset 0px -6px 8px rgba(0, 0, 0, 0.12);
+  outline: none !important; /* Ensure no outline on click */
+}
+
+/* Keyboard Focus State */
+.lets-play-btn:focus {
+  background: #137a4b !important;
+  outline: none !important; /* Remove blue ring */
 }
 
 /* --- MOBILE LAYOUT OPTIMIZATIONS (Append to bottom of lobby.css) --- */
