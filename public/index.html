@@ -149,79 +149,81 @@
                     </div>
                   </details>
 
-                  <div class="player-selection player-selection--host">
-                    <div class="player-section player-section--users">
-                      <h3 class="section-title">HUMANS</h3>
-                      <div class="player-counter">
-                        <button
-                          type="button"
-                          class="counter-btn"
-                          id="humans-minus"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          id="total-players-input"
-                          min="1"
-                          max="4"
-                          value="1"
-                          readonly
-                        />
-                        <button
-                          type="button"
-                          class="counter-btn"
-                          id="humans-plus"
-                        >
-                          +
-                        </button>
+                  <div class="host-selection-rectangle">
+                    <div class="player-selection player-selection--host">
+                      <div class="player-section player-section--users">
+                        <h3 class="section-title">HUMANS</h3>
+                        <div class="player-counter">
+                          <button
+                            type="button"
+                            class="counter-btn"
+                            id="humans-minus"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            id="total-players-input"
+                            min="1"
+                            max="4"
+                            value="1"
+                            readonly
+                          />
+                          <button
+                            type="button"
+                            class="counter-btn"
+                            id="humans-plus"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div
+                          class="player-silhouettes"
+                          id="human-silhouettes"
+                        ></div>
                       </div>
-                      <div
-                        class="player-silhouettes"
-                        id="human-silhouettes"
-                      ></div>
+
+                      <div class="player-section player-section--bots">
+                        <h3 class="section-title">AUTOMANS</h3>
+                        <div class="player-counter">
+                          <button
+                            type="button"
+                            class="counter-btn"
+                            id="cpus-minus"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            id="cpu-players-input"
+                            min="0"
+                            value="1"
+                            readonly
+                          />
+                          <button
+                            type="button"
+                            class="counter-btn"
+                            id="cpus-plus"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div
+                          class="player-silhouettes"
+                          id="cpu-silhouettes"
+                        ></div>
+                      </div>
                     </div>
 
-                    <div class="player-section player-section--bots">
-                      <h3 class="section-title">AUTOMANS</h3>
-                      <div class="player-counter">
-                        <button
-                          type="button"
-                          class="counter-btn"
-                          id="cpus-minus"
-                        >
-                          -
-                        </button>
-                        <input
-                          type="number"
-                          id="cpu-players-input"
-                          min="0"
-                          value="1"
-                          readonly
-                        />
-                        <button
-                          type="button"
-                          class="counter-btn"
-                          id="cpus-plus"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <div
-                        class="player-silhouettes"
-                        id="cpu-silhouettes"
-                      ></div>
+                    <div class="lobby-actions">
+                      <button
+                        id="setup-deal-button"
+                        class="lets-play-btn"
+                        type="button"
+                      >
+                        PLAY
+                      </button>
                     </div>
-                  </div>
-
-                  <div class="lobby-actions">
-                    <button
-                      id="setup-deal-button"
-                      class="lets-play-btn"
-                      type="button"
-                    >
-                      PLAY
-                    </button>
                   </div>
                 </div>
 
@@ -276,7 +278,6 @@
                   </div>
                 </div>
               </form>
-
             </div>
           </div>
         </div>

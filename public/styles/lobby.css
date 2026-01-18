@@ -17,6 +17,14 @@
 }
 
 /* --- LOGO STYLES --- */
+.header-logo {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .header-logo img {
   width: 100%;
   max-width: 380px; /* Increased from 220px to fill white space */
@@ -28,9 +36,17 @@
 
 /* --- LOBBY INNER CONTENT BACKGROUND --- */
 #lobby-inner-content.game-setup-content {
-  background: #fffbf0;
+  /* Gradient from bright white-cream center to darker parchment edges */
+  background: radial-gradient(
+    ellipse at top center,
+    #fffdf5 0%,
+    #fdf6e3 60%,
+    #f4e4bc 100%
+  );
   color: #1b2e3c;
   position: relative;
+  /* Ensure the starburst doesn't bleed outside the card corners */
+  overflow: hidden;
 }
 
 #lobby-inner-content .setup-header {
@@ -552,33 +568,38 @@
   /* box-sizing: border-box !important; */
 }
 
-/* Reduce silhouette size by ~30% */
+/* Gold picture-frame styling for avatars */
 #lobby-container .player-silhouette {
   width: 80px; /* Increased from 60px for desktop */
   height: 80px;
-  background: rgba(33, 150, 243, 0.1);
-  border-radius: 14px;
+  background: #fff;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 0 0 2px rgba(33, 150, 243, 0.35);
+  border: 6px solid #c8a548;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.06),
+    0 4px 10px rgba(0, 0, 0, 0.12);
+  box-sizing: border-box;
   user-select: none;
   position: relative;
-  border: none !important;
+  overflow: hidden;
 }
 
 #lobby-container .player-silhouette.human {
-  box-shadow: inset 0 0 0 2px rgba(33, 150, 243, 0.35);
+  box-shadow: inherit;
 }
 
 #lobby-container .player-silhouette.cpu {
-  box-shadow: inset 0 0 0 2px rgba(33, 150, 243, 0.35);
+  box-shadow: inherit;
 }
 
 #lobby-container .player-silhouette.placeholder {
   border-style: dashed;
-  border-color: #ccc;
-  background: transparent;
+  border-color: rgba(200, 165, 72, 0.7);
+  background: #fff;
   color: #aaa;
   font-size: 20px;
 }
@@ -589,8 +610,9 @@
 
 #lobby-container .player-silhouette.is-avatar-picker:hover {
   box-shadow:
-    inset 0 0 0 2px rgba(33, 150, 243, 0.55),
-    0 8px 22px rgba(33, 150, 243, 0.22);
+    inset 0 2px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.06),
+    0 6px 14px rgba(200, 165, 72, 0.35);
 }
 
 /* Hover helper: show contextual help when hovering avatar picker */
@@ -620,7 +642,7 @@
   align-items: center;
   justify-content: center;
   border-radius: inherit;
-  background: rgba(33, 150, 243, 0.06);
+  background: transparent;
 }
 
 /* --- UPDATED PLAYER SECTION (Fixing Overlap) --- */
@@ -640,9 +662,56 @@
 }
 
 /* Host lobby: keep Humans/Automans panels at a stable width (sized for max avatars) */
+#lobby-container .host-selection-rectangle {
+  position: relative;
+  overflow: hidden;
+
+  /* Felt: highlight at top, subtle vignette, and texture */
+  background-color: #0f5f3b;
+  background-image:
+    radial-gradient(
+      1100px 420px at 50% 0%,
+      rgba(255, 255, 255, 0.16),
+      rgba(255, 255, 255, 0) 60%
+    ),
+    radial-gradient(
+      900px 520px at 50% 120%,
+      rgba(0, 0, 0, 0.45),
+      rgba(0, 0, 0, 0) 70%
+    ),
+    linear-gradient(180deg, #137a4b 0%, #0f5f3b 45%, #0b4f33 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+  background-blend-mode: screen, multiply, normal, overlay;
+
+  border: 3px solid rgba(200, 165, 72, 0.95);
+  border-radius: 22px;
+  padding: 1.25rem 1.5rem;
+  width: min(100%, 900px);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.28),
+    0 0 14px rgba(200, 165, 72, 0.22),
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -18px 30px rgba(0, 0, 0, 0.26);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
 #lobby-container .player-selection--host {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  gap: 1.25rem;
   grid-template-columns: repeat(2, minmax(0, 420px));
   justify-content: center;
+  width: 100%;
+}
+
+#lobby-container .player-selection--host .player-section {
+  margin-bottom: 0;
 }
 
 #lobby-container .player-selection--host .player-section--users,
@@ -650,9 +719,20 @@
   width: min(420px, 100%);
 }
 
-/* Match Humans top bar to Automans (dark) */
-#lobby-container .player-section--users::before {
-  background: linear-gradient(135deg, #1b2e3c 0%, #2b4557 100%) !important;
+/* Remove the colored top bars; use a clean gold border instead */
+#lobby-container .player-section--users::before,
+#lobby-container .player-section--bots::before {
+  content: none !important;
+}
+
+#lobby-container .player-section--users,
+#lobby-container .player-section--bots {
+  border: 2px solid #c8a548;
+}
+
+#lobby-container .host-selection-rectangle .lobby-actions {
+  margin: 0;
+  width: 100%;
 }
 
 /* Prevent wrapping: keep 4 avatars on one line */
@@ -1003,6 +1083,77 @@
 
 #setup-deal-button.lets-play-btn:hover {
   background: #137a4b;
+}
+
+/* Host panel: match mock "pill" PLAY button */
+#lobby-container .host-selection-rectangle #setup-deal-button.lets-play-btn {
+  width: min(260px, 85%);
+  height: 68px;
+  min-width: 0;
+  padding: 0 20px;
+  border-radius: 999px;
+
+  background-image: linear-gradient(
+    180deg,
+    #1c9256 0%,
+    #137a4b 45%,
+    #0b4f33 100%
+  );
+  background-color: #137a4b;
+
+  border: 4px solid #c8a548;
+  box-shadow:
+    0 14px 0 #0a3d27,
+    0 26px 34px rgba(0, 0, 0, 0.42),
+    0 0 10px rgba(200, 165, 72, 0.22),
+    inset 0 10px 16px rgba(255, 255, 255, 0.1),
+    inset 0 2px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -20px 30px rgba(0, 0, 0, 0.34);
+
+  font-size: 1.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+
+  position: relative;
+  isolation: isolate;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 0 #0a3d27,
+    0 28px 36px rgba(0, 0, 0, 0.46),
+    0 0 14px rgba(200, 165, 72, 0.28),
+    inset 0 2px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -20px 30px rgba(0, 0, 0, 0.36);
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn:active {
+  transform: translateY(12px);
+  box-shadow:
+    0 2px 0 #0a3d27,
+    0 10px 16px rgba(0, 0, 0, 0.32),
+    0 0 8px rgba(200, 165, 72, 0.16),
+    inset 0 2px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.36);
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 14px 0 #0a3d27,
+    0 26px 34px rgba(0, 0, 0, 0.42),
+    0 0 0 4px rgba(255, 195, 0, 0.35),
+    0 0 16px rgba(200, 165, 72, 0.28),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -20px 30px rgba(0, 0, 0, 0.34);
 }
 
 /* Match PLAY button font (inherit) without changing size */
