@@ -662,6 +662,28 @@ export function initializePageEventListeners() {
   document.getElementById('lobby-feedback-btn')?.addEventListener('click', openFeedback);
   document.getElementById('game-feedback-btn')?.addEventListener('click', openFeedback);
 
+  // --- LOBBY MENU (TOP-LEFT DROPDOWN) ---
+  const lobbyMenu = document.getElementById('lobby-menu') as HTMLDetailsElement | null;
+  if (lobbyMenu) {
+    // Close after choosing an action
+    lobbyMenu.addEventListener('click', (ev) => {
+      const target = ev.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest('button')) {
+        lobbyMenu.open = false;
+      }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (ev) => {
+      if (!lobbyMenu.open) return;
+      if (!(ev.target instanceof Node)) return;
+      if (!lobbyMenu.contains(ev.target)) {
+        lobbyMenu.open = false;
+      }
+    });
+  }
+
   if(feedbackClose && feedbackModal && feedbackForm) {
     feedbackClose.onclick = () => {
         feedbackModal.classList.add('modal--hidden');

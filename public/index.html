@@ -43,6 +43,53 @@
         <div class="lobby lobby--hidden" id="lobby-container">
           <div id="lobby-outer-card" class="lobby-modal-container">
             <div id="lobby-inner-content" class="game-setup-content">
+              <details id="lobby-menu" class="lobby-menu">
+                <summary class="lobby-menu__summary" aria-label="Lobby menu">
+                  <span class="lobby-menu__icon" aria-hidden="true">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M4 6H20M4 12H20M4 18H20"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                  </span>
+                  <span class="lobby-menu__label">MENU</span>
+                </summary>
+                <div class="lobby-menu__panel" role="menu">
+                  <button
+                    type="button"
+                    id="lobby-feedback-btn"
+                    class="lobby-menu__item"
+                    role="menuitem"
+                  >
+                    <span class="lobby-menu__item-label">Feedback</span>
+                  </button>
+                  <button
+                    id="setup-tutorial-button"
+                    class="lobby-menu__item"
+                    type="button"
+                    role="menuitem"
+                  >
+                    <span class="lobby-menu__item-label">Tutorial</span>
+                  </button>
+                  <button
+                    id="setup-rules-button"
+                    class="lobby-menu__item"
+                    type="button"
+                    role="menuitem"
+                  >
+                    <span class="lobby-menu__item-label">Rules</span>
+                  </button>
+                </div>
+              </details>
               <div class="setup-header">
                 <div class="header-logo">
                   <img
@@ -167,27 +214,13 @@
                     </div>
                   </div>
 
-                  <div class="lobby-buttons-row">
-                    <button
-                      id="setup-tutorial-button"
-                      class="header-btn secondary-btn lobby-tab-button"
-                      type="button"
-                    >
-                      TUTORIAL
-                    </button>
+                  <div class="lobby-actions">
                     <button
                       id="setup-deal-button"
-                      class="header-btn primary-action-btn lobby-tab-button lets-play-btn"
+                      class="lets-play-btn"
                       type="button"
                     >
                       PLAY
-                    </button>
-                    <button
-                      id="setup-rules-button"
-                      class="header-btn secondary-btn lobby-tab-button"
-                      type="button"
-                    >
-                      RULES
                     </button>
                   </div>
                 </div>
@@ -224,13 +257,6 @@
                     </div>
                     <div class="lobby-buttons-row lobby-buttons-row--join">
                       <button
-                        id="join-rules-button"
-                        class="header-btn secondary-btn"
-                        type="button"
-                      >
-                        RULES
-                      </button>
-                      <button
                         id="join-game-button"
                         class="header-btn primary-action-btn"
                         type="button"
@@ -251,45 +277,6 @@
                 </div>
               </form>
 
-              <div
-                class="footer-actions"
-                style="margin-top: 20px; text-align: center"
-              >
-                <button
-                  type="button"
-                  id="lobby-feedback-btn"
-                  class="header-btn"
-                  style="
-                    background: #5865f2;
-                    color: #000;
-                    border: none;
-                    padding: 6px 12px;
-                    border-radius: 999px;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                    font-family: 'Segoe UI', sans-serif;
-                    font-weight: 700;
-                    font-size: 14px;
-                    line-height: 1;
-                    box-shadow: 0 3px 0 #404eed;
-                    transition: transform 0.1s;
-                  "
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 127.14 96.36"
-                    fill="black"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.09,105.09,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.11,77.11,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22c.63-23.28-3.1-47.5-18.9-72.15ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"
-                    />
-                  </svg>
-                  Feedback
-                </button>
-              </div>
             </div>
           </div>
         </div>

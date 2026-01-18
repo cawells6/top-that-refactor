@@ -30,6 +30,7 @@
 #lobby-inner-content.game-setup-content {
   background: #fffbf0;
   color: #1b2e3c;
+  position: relative;
 }
 
 #lobby-inner-content .setup-header {
@@ -649,6 +650,11 @@
   width: min(420px, 100%);
 }
 
+/* Match Humans top bar to Automans (dark) */
+#lobby-container .player-section--users::before {
+  background: linear-gradient(135deg, #1b2e3c 0%, #2b4557 100%) !important;
+}
+
 /* Prevent wrapping: keep 4 avatars on one line */
 #lobby-container .player-silhouettes {
   width: 100% !important;
@@ -660,7 +666,7 @@
 
 /* Text Position Adjustment */
 .player-section .section-title {
-  margin-top: 25px; /* Push text down */
+  margin-top: 22px; /* Push text down */
   margin-bottom: 5px;
   font-size: 1.6rem; /* Slightly smaller to fit */
   z-index: 1;
@@ -668,7 +674,7 @@
 
 /* Avatar Position Adjustment */
 .player-silhouettes {
-  margin-top: -10px !important; /* Pull avatars up */
+  margin-top: -1px !important; /* Leave a touch more space from counters */
   position: relative;
   z-index: 2;
 }
@@ -680,6 +686,27 @@
   justify-content: center;
   align-items: center;
   margin-top: 15px;
+}
+
+.lobby-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(520px, 100%);
+  margin: 22px auto 10px;
+}
+
+.lobby-actions-secondary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem; /* Match .lobby-tabs */
+  max-width: 520px; /* Match .lobby-tabs */
+  width: 100%;
+  margin-top: 6px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .header-btn {
@@ -759,76 +786,253 @@
 
 /* Placed at the bottom of lobby.css to ensure it loads last */
 
-.lets-play-btn {
-  /* 1. Geometry & Layout */
-  width: 104px !important;
-  height: 104px !important;
-  padding: 0 !important;
-  min-width: 104px !important;
-  border-radius: 50% !important;
+/* Host panel: center the whole column */
+.lobby-tab-panel--host.is-active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  display: flex !important;
+/* Top-left lobby menu */
+.lobby-menu {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1200;
+}
+
+.lobby-menu__summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #e3e6ea 0%, #d1d5db 100%);
+  border: 1px solid rgba(27, 46, 60, 0.18);
+  border-left: 4px solid #ffc300;
+  color: #1b2e3c;
+  font-family: inherit;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 2px 0 rgba(27, 46, 60, 0.18);
+}
+
+.lobby-menu__summary::-webkit-details-marker {
+  display: none;
+}
+
+.lobby-menu[open] .lobby-menu__summary {
+  border-color: rgba(27, 46, 60, 0.25);
+  box-shadow:
+    0 2px 0 rgba(27, 46, 60, 0.18),
+    0 0 0 3px rgba(255, 195, 0, 0.22);
+}
+
+.lobby-menu__panel {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(27, 46, 60, 0.18);
+  border-left: 4px solid #ffc300;
+  background: linear-gradient(135deg, #f8f9fa 0%, #eef1f4 100%);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: inherit;
+}
+
+.lobby-menu__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #1b2e3c;
+}
+
+.lobby-menu__icon::before {
+  content: '☰';
+  font-size: 0;
+  line-height: 0;
+}
+
+/* Prefer the SVG hamburger; hide any legacy glyphs */
+.lobby-menu__icon::before {
+  content: none !important;
+}
+
+.lobby-menu__icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.lobby-menu__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 10px 12px 10px 22px;
+  margin: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #e3e6ea 0%, #d1d5db 100%);
+  border: 1px solid #d1d5db;
+  color: #1b2e3c;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.lobby-menu__item-label {
+  display: inline-block;
+}
+
+.lobby-menu__item::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  border-radius: 999px;
+  background: #ffc300;
+}
+
+.lobby-menu .lobby-menu__item:hover {
+  background: linear-gradient(135deg, #d9dde2 0%, #c6cbd1 100%);
+  box-shadow: none;
+  transform: none;
+}
+
+.lobby-menu .lobby-menu__item:active {
+  background: #c6cbd1;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Ensure style.css ID rules can't recolor these menu items */
+.lobby-menu .lobby-menu__item#lobby-feedback-btn,
+.lobby-menu .lobby-menu__item#setup-tutorial-button,
+.lobby-menu .lobby-menu__item#setup-rules-button {
+  background: linear-gradient(135deg, #e3e6ea 0%, #d1d5db 100%) !important;
+  background-image: none !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+  color: #1b2e3c !important;
+  padding: 10px 12px 10px 22px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  font: inherit !important;
+  font-family: inherit !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  transform: none !important;
+}
+
+.lobby-menu .lobby-menu__item#lobby-feedback-btn:hover,
+.lobby-menu .lobby-menu__item#setup-tutorial-button:hover,
+.lobby-menu .lobby-menu__item#setup-rules-button:hover {
+  background: linear-gradient(135deg, #d9dde2 0%, #c6cbd1 100%) !important;
+}
+
+.lobby-menu .lobby-menu__item#lobby-feedback-btn:active,
+.lobby-menu .lobby-menu__item#setup-tutorial-button:active,
+.lobby-menu .lobby-menu__item#setup-rules-button:active {
+  background: #c6cbd1 !important;
+}
+
+/* Higher specificity than `public/style.css`'s `#setup-deal-button` */
+#setup-deal-button.lets-play-btn {
+  /* 1. Geometry & Layout */
+  width: 88px;
+  height: 88px;
+  padding: 0;
+  min-width: 88px;
+  border-radius: 50%;
+
+  display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
 
+  /* Allow the 3D stack + floor shadow to render */
+  overflow: visible;
+  isolation: auto;
+
   /* 2. The Look */
   background: #137a4b;
-
-  /* --- FELT BORDER COLOR --- */
-  border: 4px solid #137a4b !important;
+  border: none;
 
   /* The 3D button shadows */
   box-shadow:
-    0px 2px 0px #1b7a4d,
-    0px 4px 0px #176a43,
-    0px 6px 0px #135a39,
-    0px 8px 0px #0f4b30,
-    0px 15px 20px rgba(0, 0, 0, 0.2),
-    inset 0px 6px 10px rgba(255, 255, 255, 0.45),
-    inset 0px -6px 8px rgba(0, 0, 0, 0.12);
+    0 0 0 4px #137a4b,
+    0px 9px 0px #0f4b30,
+    0px 15px 20px rgba(0, 0, 0, 0.18),
+    inset 0 10px 12px -10px rgba(255, 255, 255, 0.34),
+    inset 0 -10px 12px -10px rgba(0, 0, 0, 0.22);
 
   /* 3. Text Styling */
-  color: #fff !important;
+  color: #fff;
   text-shadow: 0px 2px 0px rgba(0, 0, 0, 0.2);
-  font-size: 1.6rem !important;
-  font-weight: 800; /* Extra bold looks better on arcade buttons */
-  line-height: 1.05 !important; /* Tighter line height for stacked text */
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.05;
   text-align: center;
   cursor: pointer;
 
   /* 4. REMOVE ALL CLICK HIGHLIGHTS */
-  outline: none !important;
-  -webkit-tap-highlight-color: transparent; /* Removes mobile blue flash */
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
-.lets-play-btn:hover {
-  background: #137a4b !important;
-  box-shadow:
-    0px 2px 0px #1b7a4d,
-    0px 4px 0px #176a43,
-    0px 6px 0px #135a39,
-    0px 8px 0px #0f4b30,
-    0px 15px 20px rgba(0, 0, 0, 0.2),
-    inset 0px 6px 10px rgba(255, 255, 255, 0.45),
-    inset 0px -6px 8px rgba(0, 0, 0, 0.12) !important;
+#setup-deal-button.lets-play-btn:hover {
+  background: #137a4b;
 }
 
-.lobby-buttons-row .lets-play-btn {
-  font-size: 1.7rem !important;
+/* Match PLAY button font (inherit) without changing size */
+.lobby-buttons-row button,
+.lobby-actions button {
+  font-family: inherit !important;
 }
 
-/* Tutorial should "light up" on hover like the active HOST GAME tab */
-#setup-tutorial-button:hover {
-  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%) !important;
-  color: #1b2e3c !important;
-  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3) !important;
-  transform: translateY(-1px);
+/* Match PLAY button font for the HOST/JOIN tab buttons too */
+.lobby-tabs .lobby-tab-button {
+  font-family: inherit !important;
+}
+
+.lobby-tab-button[data-tab='host'] {
+  border: 1px solid rgba(27, 46, 60, 0.75) !important;
+}
+
+.lobby-tab-button[data-tab='join'] {
+  border: 1px solid rgba(33, 150, 243, 0.4) !important;
+}
+
+.lobby-tab-button[data-tab='host'].is-active {
+  border-color: rgba(27, 46, 60, 0.75) !important;
+}
+
+.lobby-tab-button[data-tab='join'].is-active {
+  border-color: rgba(33, 150, 243, 0.65) !important;
 }
 
 /* Rules should mimic JOIN FRIEND (blue) hover, not gold */
-#setup-rules-button:hover,
 #join-rules-button:hover {
   background: rgba(33, 150, 243, 0.2) !important;
   border-color: rgba(33, 150, 243, 0.65) !important;
@@ -837,25 +1041,50 @@
   transform: none !important;
 }
 
+#join-rules-button:active {
+  background: rgba(33, 150, 243, 0.24) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* JOIN FRIEND button: match the thin blue border look from RULES */
+#join-game-button {
+  background: rgba(33, 150, 243, 0.1) !important;
+  border: 1px solid rgba(33, 150, 243, 0.4) !important;
+  color: #1b2e3c !important;
+  margin-left: 0 !important;
+}
+
+#join-game-button:hover {
+  background: rgba(33, 150, 243, 0.2) !important;
+  border-color: rgba(33, 150, 243, 0.65) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+#join-game-button:active {
+  background: rgba(33, 150, 243, 0.24) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 /* Pressed State */
-.lets-play-btn:active {
-  transform: translateY(8px);
-  background: #137a4b !important;
+#setup-deal-button.lets-play-btn:active {
+  transform: translateY(9px);
+  background: #137a4b;
   box-shadow:
-    0px 0px 0px #1b7a4d,
-    0px 0px 0px #176a43,
-    0px 0px 0px #135a39,
+    0 0 0 4px #137a4b,
     0px 0px 0px #0f4b30,
-    0px 5px 10px rgba(0, 0, 0, 0.18),
-    inset 0px 6px 10px rgba(255, 255, 255, 0.45),
-    inset 0px -6px 8px rgba(0, 0, 0, 0.12);
-  outline: none !important; /* Ensure no outline on click */
+    0px 5px 10px rgba(0, 0, 0, 0.16),
+    inset 0 10px 12px -10px rgba(255, 255, 255, 0.34),
+    inset 0 -10px 12px -10px rgba(0, 0, 0, 0.22);
+  outline: none; /* Ensure no outline on click */
 }
 
 /* Keyboard Focus State */
-.lets-play-btn:focus {
-  background: #137a4b !important;
-  outline: none !important; /* Remove blue ring */
+#setup-deal-button.lets-play-btn:focus {
+  background: #137a4b;
+  outline: none; /* Remove blue ring */
 }
 
 /* --- MOBILE LAYOUT OPTIMIZATIONS (Append to bottom of lobby.css) --- */
