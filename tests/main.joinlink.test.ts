@@ -21,7 +21,10 @@ describe('Client Main Script (main.ts) - Join Link Only', () => {
       <div id="in-session-lobby-modal" class="modal modal--hidden">
         <div id="in-session-lobby-title"></div>
         <div id="players-container"></div>
-        <button id="copy-link-button"></button>
+        <div class="game-id-section">
+          <input id="game-id-input" class="game-id-input" type="text" readonly aria-hidden="true" />
+          <button id="copy-link-button"></button>
+        </div>
         <button id="ready-up-button"></button>
         <input id="guest-player-name-input" />
       </div>

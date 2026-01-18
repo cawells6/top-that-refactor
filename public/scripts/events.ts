@@ -143,6 +143,8 @@ function openAvatarDropdown() {
   dropdown.classList.remove('hidden');
   dropdown.open = true;
   dropdown.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  // Start progressive loading of avatar images when the picker opens
+  loadAvatarGridImages();
 }
 
 function closeAvatarDropdown() {
@@ -574,11 +576,20 @@ function initializeAvatarPicker() {
   if (!grid) return;
   grid.innerHTML = '';
 
+  // Create options with placeholder images; actual image src is stored in data-src
   royaltyAvatars.forEach((av) => {
     const el = document.createElement('div');
     el.className = 'avatar-option';
-    el.appendChild(renderAvatarVisual(av.icon));
     el.title = av.label;
+
+    // Create placeholder image; we'll set `data-src` and load later
+    const img = document.createElement('img');
+    img.className = 'image-avatar avatar-thumb-placeholder';
+    img.setAttribute('data-src', av.icon);
+    img.alt = av.label;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    el.appendChild(img);
 
     if (selectedAvatar && selectedAvatar.id === av.id) {
       el.classList.add('selected');
@@ -601,8 +612,58 @@ function initializeAvatarPicker() {
       updatePlayerSilhouettes();
       updateJoinAvatar(); // Call new helper
     };
+
     grid.appendChild(el);
   });
+}
+
+// Load avatar images in the picker sequentially to avoid saturating the network
+async function loadAvatarGridImages(): Promise<void> {
+  const imgs = Array.from(
+    document.querySelectorAll<HTMLImageElement>('#avatar-grid img[data-src]')
+  );
+  if (!imgs.length) return;
+
+  for (let i = 0; i < imgs.length; i++) {
+    const img = imgs[i];
+    // If it's already loaded (src set), skip
+    if (img.src) continue;
+
+    const src = img.getAttribute('data-src');
+    if (!src) continue;
+
+    // Load image and wait for it (with timeout)
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const onDone = () => {
+        if (settled) return;
+        settled = true;
+        img.classList.remove('avatar-thumb-placeholder');
+        resolve();
+      };
+
+      const onError = () => {
+        if (settled) return;
+        settled = true;
+        img.classList.remove('avatar-thumb-placeholder');
+        resolve();
+      };
+
+      img.onload = onDone;
+      img.onerror = onError;
+
+      // Kick off the load
+      // small delay for progressive feel on slower connections
+      setTimeout(() => {
+        img.src = src;
+      }, i === 0 ? 0 : 80);
+
+      // Safety timeout: resolve after 4s even if image doesn't load
+      setTimeout(() => {
+        if (!settled) onDone();
+      }, 4000);
+    });
+  }
 }
 
 function shuffleArray<T>(array: T[]): T[] {

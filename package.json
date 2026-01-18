@@ -96,6 +96,9 @@
     "vite": "^6.3.5",
     "wait-on": "8.0.3"
   },
+  "optionalDependencies": {
+    "sharp": "^0.32.1"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"

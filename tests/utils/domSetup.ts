@@ -13,9 +13,16 @@ export function setupModalDOM() {
         <div class="name-input-section" id="guest-name-section">
           <input id="guest-player-name-input" type="text" />
         </div>
+        <div class="game-id-section">
+          <label for="game-id-input">ROOM CODE:</label>
+          <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+            <input id="game-id-input" class="game-id-input" type="text" readonly aria-hidden="true" />
+            <button id="copy-link-button" class="header-btn" type="button">COPY</button>
+          </div>
+          <div class="game-id-hint">Guests paste this code into the Join form to enter the game</div>
+        </div>
         <div id="players-container" class="players-container"></div>
         <div class="lobby-buttons-row">
-          <button id="copy-link-button" class="header-btn" type="button">Copy Link</button>
           <button id="ready-up-button" class="header-btn" type="button">Let's Play</button>
         </div>
       </div>

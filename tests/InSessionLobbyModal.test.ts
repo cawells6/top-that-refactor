@@ -151,7 +151,7 @@ describe('InSessionLobbyModal', () => {
     (navigator.clipboard.writeText as jest.Mock).mockRejectedValueOnce(
       new Error('fail')
     );
-    const copyButton = screen.getByRole('button', { name: /Copy Link/i });
+    const copyButton = screen.getByRole('button', { name: /Copy/i });
     await fireEvent.click(copyButton);
     // No throw, test passes if no error is thrown
     expect(navigator.clipboard.writeText).toHaveBeenCalled();

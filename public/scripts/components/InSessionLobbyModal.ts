@@ -108,11 +108,12 @@ export class InSessionLobbyModal {
       showToast('Room code not available yet.', 'error');
       return;
     }
-    const link = `${window.location.origin}?room=${roomId}`;
+    // Copy only the room code (short form) to match join flow expectations
+    const code = roomId.toUpperCase();
     navigator.clipboard
-      .writeText(link)
-      .then(() => showToast('Invite Link Copied!', 'success'))
-      .catch(() => showToast('Failed to copy link.', 'error'));
+      .writeText(code)
+      .then(() => showToast(`Room Code Copied: ${code}`, 'success'))
+      .catch(() => showToast('Failed to copy code.', 'error'));
   }
 
   private readyUp(): void {
@@ -234,9 +235,14 @@ export class InSessionLobbyModal {
         labelWrap.appendChild(hostBadge);
       }
 
-      // Build player element: left side avatar + name, right side badges (kept in labelWrap)
-      playerEl.appendChild(avatarEl);
-      playerEl.appendChild(labelWrap);
+      // Build player element: left side avatar + name, right side badges
+      const ident = document.createElement('div');
+      ident.className = 'player-ident';
+      ident.appendChild(avatarEl);
+      ident.appendChild(labelWrap);
+
+      // Keep player element layout consistent with other lists
+      playerEl.appendChild(ident);
 
       this.playersContainer.appendChild(playerEl);
     });
