@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as http from 'http';
 import { Socket } from 'net';
 import * as os from 'os';
+import { pathToFileURL } from 'url';
 
 import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
@@ -194,4 +195,31 @@ export function closeServer(): Promise<void> {
   });
 }
 
+// If Render (or other runtimes) execute `server.ts` directly, start the server.
+// (The usual local entrypoint is `start-server.ts`, but Render currently runs `server.ts`.)
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  startServer(PORT).catch((err) => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  });
+
+  const signals: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGQUIT', 'SIGUSR2'];
+  signals.forEach((signal) => {
+    process.on(signal, () => {
+      console.log(`\n${signal} signal received...`);
+      closeServer()
+        .then(() => {
+          if (signal === 'SIGUSR2') {
+            process.kill(process.pid, 'SIGUSR2');
+          } else {
+            process.exit(0);
+          }
+        })
+        .catch((closeErr) => {
+          console.error('Error during shutdown:', closeErr);
+          process.exit(1);
+        });
+    });
+  });
+}
 
