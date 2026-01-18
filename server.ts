@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as http from 'http';
 import { Socket } from 'net';
 import * as os from 'os';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 import express, { Express, Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
@@ -196,8 +196,29 @@ export function closeServer(): Promise<void> {
 }
 
 // If Render (or other runtimes) execute `server.ts` directly, start the server.
-// (The usual local entrypoint is `start-server.ts`, but Render currently runs `server.ts`.)
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+// (The usual local entrypoint is `start-server.ts`, but Render may run `server.ts`.)
+const serverModulePath = fileURLToPath(import.meta.url).replace(/\\/g, '/');
+const argv = process.argv.map((v) => (v ?? '').replace(/\\/g, '/'));
+
+const isExecutedDirectly =
+  (process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href) ||
+  argv.some((arg) => arg === serverModulePath || arg.endsWith('/server.ts') || arg.endsWith('/server.js'));
+
+const isRenderRuntime =
+  Boolean(process.env.RENDER) ||
+  Boolean(process.env.RENDER_SERVICE_ID) ||
+  Boolean(process.env.RENDER_EXTERNAL_URL);
+
+const isProductionRuntime = process.env.NODE_ENV === 'production';
+const autoStartDisabled = Boolean(process.env.DISABLE_AUTOSTART);
+
+// On Render, `NODE_ENV=production` is set and the server is expected to start immediately.
+// We keep an escape hatch for tests/tools via `DISABLE_AUTOSTART=1`.
+if ((isExecutedDirectly || isRenderRuntime || isProductionRuntime) && !autoStartDisabled) {
+  console.log(
+    `[SERVER] Auto-start enabled (direct=${isExecutedDirectly}, render=${isRenderRuntime}, prod=${isProductionRuntime})`
+  );
   startServer(PORT).catch((err) => {
     console.error('Failed to start server:', err);
     process.exit(1);
@@ -222,4 +243,3 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     });
   });
 }
-
