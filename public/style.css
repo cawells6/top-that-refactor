@@ -247,33 +247,12 @@ body {
   width: auto;
 }
 
-.lobby-tab-button[data-tab='join'] {
-  background: rgba(33, 150, 243, 0.1);
-  border-color: rgba(33, 150, 243, 0.4);
-  color: #1b2e3c; /* Black text */
-}
-
 .lobby-tab-button.is-active {
   position: relative;
   color: #1b2e3c;
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   box-shadow: 0 4px 10px rgba(255, 195, 0, 0.35);
   transform: translateY(-1px);
-}
-
-.lobby-tab-button[data-tab='join'].is-active {
-  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%) !important;
-  color: white !important;
-  box-shadow: 0 4px 10px rgba(33, 150, 243, 0.35) !important;
-  border-color: transparent !important;
-}
-
-.lobby-tab-button[data-tab='join']:hover:not(.is-active) {
-  background: rgba(33, 150, 243, 0.2);
-}
-
-.lobby-tab-button.is-active:hover {
-  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
 }
 
 .lobby-tab-button::after {
@@ -437,82 +416,68 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem; /* Increased gap slightly for a less cramped look with new styles */
+  gap: 12px;
   margin-bottom: 0.75rem;
 }
 
-/* Style for the Plus/Minus Buttons - unified with brand colors */
+/* Style for the Plus/Minus Buttons */
 .counter-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
-  background: linear-gradient(
-    135deg,
-    #ffc300 0%,
-    #ffdb4d 100%
-  ); /* Match other buttons */
-  color: #1b2e3c; /* Dark text for contrast on gold */
+  background: linear-gradient(to bottom, #ffd84d, #ffc70c, #cc9f09);
+  color: #1f2937;
   border-radius: 8px;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 900;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   line-height: 1;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Match other button shadows */
+  cursor: pointer;
+  position: relative;
+  box-shadow:
+    0 4px 0 0 #8a6b06,
+    0 6px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.1s ease;
+  border: 2px solid #8a6b06;
 }
 
 .counter-btn:hover {
-  background: linear-gradient(
-    135deg,
-    #ffdb4d 0%,
-    #ffe066 100%
-  ); /* Match other button hovers */
-  color: #1b2e3c;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+  background: linear-gradient(to bottom, #ffe066, #ffd84d, #e6b008);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 0 #8a6b06,
+    0 8px 12px rgba(0, 0, 0, 0.4);
 }
 
 .counter-btn:active {
-  transform: translateY(0);
-  background: linear-gradient(135deg, #e6bb0d 0%, #f4d03f 100%);
-  box-shadow: 0 1px 3px rgba(255, 195, 0, 0.2);
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 0 #8a6b06,
+    0 3px 4px rgba(0, 0, 0, 0.3);
 }
 
 .counter-btn:disabled {
-  background: #a0a0a0; /* Grey out when disabled */
-  color: #666666;
+  opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-  opacity: 0.7;
-}
-
-.counter-btn:disabled:hover {
-  background: #a0a0a0; /* Keep disabled style on hover */
-  color: #666666;
+  transform: none !important;
 }
 
 /* Style for the Number Display Input */
 .player-counter input[type='number'] {
-  background: var(--header-bg); /* Darker, thematic background */
-  border: 2px solid #2a4a5a !important; /* Subtle blue-gray complementing the background */
-  outline: none !important; /* Remove outline too */
-  color: var(--text); /* White text for contrast */
-  font-size: 1.6rem; /* Slightly larger for better visibility */
-  font-weight: 700;
+  width: 50px;
+  height: 40px;
   text-align: center;
-  width: 40px; /* Adjust width as needed */
-  height: 32px; /* Match button height for alignment */
-  border-radius: 8px; /* Rounded corners */
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(to bottom, #374151, #1f2937, #111827);
+  border: 3px solid #ffc70c;
+  border-radius: 10px;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(255, 199, 12, 0.4);
+  -moz-appearance: textfield;
   pointer-events: none;
   appearance: textfield;
-  -moz-appearance: textfield;
-  box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.4),
-    0 1px 1px rgba(255, 255, 255, 0.1); /* Adjust shadow for definition */
 }
 
 /* Hide spinner arrows in webkit browsers (already present, but good to keep) */

@@ -116,39 +116,33 @@
                   </div>
                 </div>
 
-                <div class="lobby-tabs" role="tablist" aria-label="Lobby mode">
-                  <button
-                    type="button"
-                    class="lobby-tab-button is-active"
-                    data-tab="host"
-                    role="tab"
-                  >
-                    HOST GAME
-                  </button>
-                  <button
-                    type="button"
-                    class="lobby-tab-button"
-                    data-tab="join"
-                    role="tab"
-                  >
-                    JOIN FRIEND
-                  </button>
-                </div>
+                <details class="avatar-dropdown hidden" id="avatar-dropdown">
+                  <summary
+                    class="avatar-dropdown__summary"
+                    style="display: none"
+                  ></summary>
+                  <div
+                    class="avatar-dropdown__backdrop"
+                    data-avatar-dropdown-close
+                    aria-hidden="true"
+                  ></div>
+                  <div class="avatar-dropdown__panel">
+                    <button
+                      type="button"
+                      class="avatar-dropdown__close"
+                      aria-label="Close avatar picker"
+                      data-avatar-dropdown-close
+                    >
+                      ×
+                    </button>
+                    <div class="avatar-grid" id="avatar-grid"></div>
+                  </div>
+                </details>
 
                 <div
                   class="lobby-tab-panel lobby-tab-panel--host is-active"
                   data-tab-panel="host"
                 >
-                  <details class="avatar-dropdown hidden" id="avatar-dropdown">
-                    <summary
-                      class="avatar-dropdown__summary"
-                      style="display: none"
-                    ></summary>
-                    <div class="avatar-dropdown__panel">
-                      <div class="avatar-grid" id="avatar-grid"></div>
-                    </div>
-                  </details>
-
                   <div class="host-selection-rectangle">
                     <div class="player-selection player-selection--host">
                       <div class="player-section player-section--users">
@@ -234,7 +228,15 @@
                             </div>
                             <div class="bottom-shadow"></div>
                           </div>
-                        </div>
+                          </div>
+                        </button>
+                      <button
+                        id="go-to-join-button"
+                        class="lobby-tab-button lobby-nav-button"
+                        type="button"
+                        data-tab="join"
+                      >
+                        JOIN FRIEND
                       </button>
                     </div>
                   </div>
@@ -244,39 +246,56 @@
                   class="lobby-tab-panel lobby-tab-panel--join"
                   data-tab-panel="join"
                 >
-                  <div class="player-section join-code-section">
-                    <div
-                      class="join-avatar-container"
-                      style="
-                        display: flex;
-                        justify-content: center;
-                        margin-bottom: 15px;
-                      "
-                    >
-                      <div
-                        id="join-player-avatar"
-                        class="player-silhouette human is-avatar-picker"
-                      >
-                        <div class="emoji-avatar">?</div>
+                  <div class="host-selection-rectangle host-selection-rectangle--join">
+                    <div class="player-section join-code-section">
+                      <div class="join-avatar-container">
+                        <div
+                          id="join-player-avatar"
+                          class="player-silhouette human is-avatar-picker"
+                        >
+                          <div class="emoji-avatar">?</div>
+                        </div>
+                      </div>
+
+                      <div class="join-code-inputs">
+                        <input
+                          type="text"
+                          id="join-code-input"
+                          placeholder="ENTER GAME CODE"
+                          maxlength="6"
+                        />
                       </div>
                     </div>
 
-                    <div class="join-code-inputs">
-                      <input
-                        type="text"
-                        id="join-code-input"
-                        placeholder="ENTER GAME CODE"
-                        maxlength="6"
-                        style="text-transform: uppercase"
-                      />
-                    </div>
-                    <div class="lobby-buttons-row lobby-buttons-row--join">
+                    <div class="lobby-actions lobby-actions--join">
                       <button
                         id="join-game-button"
-                        class="header-btn primary-action-btn"
                         type="button"
+                        class="lets-play-btn play-button-container"
+                        aria-label="Join game"
                       >
-                        JOIN GAME
+                        <div class="deep-shadow" aria-hidden="true"></div>
+                        <div class="pulsing-glow" aria-hidden="true"></div>
+                        <div class="outer-gold-ring" aria-hidden="true">
+                          <div class="button-base">
+                            <div class="gloss-sweep"></div>
+                            <div class="top-highlight"></div>
+                            <div class="text-container">
+                              <span class="text-shadow">JOIN</span>
+                              <span class="text-main">JOIN</span>
+                            </div>
+                            <div class="bottom-shadow"></div>
+                          </div>
+                        </div>
+                      </button>
+
+                      <button
+                        id="go-to-host-button"
+                        class="lobby-tab-button lobby-nav-button"
+                        type="button"
+                        data-tab="host"
+                      >
+                        HOST GAME
                       </button>
                     </div>
                   </div>
