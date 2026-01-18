@@ -180,10 +180,24 @@ export class InSessionLobbyModal {
       avatarEl.className = 'player-avatar';
 
       if (player.avatar) {
-        const emojiDiv = document.createElement('div');
-        emojiDiv.className = 'emoji-avatar';
-        emojiDiv.textContent = player.avatar;
-        avatarEl.appendChild(emojiDiv);
+        const isImageAvatar =
+          /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(player.avatar) ||
+          player.avatar.startsWith('/assets/');
+
+        if (isImageAvatar) {
+          const img = document.createElement('img');
+          img.className = 'image-avatar';
+          img.src = player.avatar;
+          img.alt = 'avatar';
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          avatarEl.appendChild(img);
+        } else {
+          const emojiDiv = document.createElement('div');
+          emojiDiv.className = 'emoji-avatar';
+          emojiDiv.textContent = player.avatar;
+          avatarEl.appendChild(emojiDiv);
+        }
       } else {
         const img = document.createElement('img');
         img.src = player.isComputer

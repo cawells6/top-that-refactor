@@ -1627,3 +1627,10 @@ body.spectator-mode .spectator-banner {
   width: 100%;
   height: 100%;
 }
+
+.image-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

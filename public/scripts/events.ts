@@ -158,8 +158,32 @@ function getFallbackBotAvatar(slotIndex: number): AvatarItem {
   return {
     id: `robot_${slotIndex + 1}`,
     icon: '🤖',
-    label: 'Robot',
+    label: 'Automan',
   };
+}
+
+function isImageAvatar(value: string): boolean {
+  return (
+    /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(value) ||
+    value.startsWith('/assets/')
+  );
+}
+
+function renderAvatarVisual(avatarValue: string): HTMLElement {
+  if (isImageAvatar(avatarValue)) {
+    const img = document.createElement('img');
+    img.className = 'image-avatar';
+    img.src = avatarValue;
+    img.alt = '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    return img;
+  }
+
+  const emoji = document.createElement('div');
+  emoji.className = 'emoji-avatar';
+  emoji.textContent = avatarValue;
+  return emoji;
 }
 
 function reconcileBotAvatarAssignments(desiredCpuCount: number) {
@@ -213,10 +237,7 @@ function createPlayerSilhouette(
 
   if (avatarIcon) {
     silhouette.className = `player-silhouette ${type}`;
-    const emoji = document.createElement('div');
-    emoji.className = 'emoji-avatar';
-    emoji.textContent = avatarIcon;
-    silhouette.appendChild(emoji);
+    silhouette.appendChild(renderAvatarVisual(avatarIcon));
   } else {
     // Empty state / Placeholder
     silhouette.className = `player-silhouette ${type} placeholder`;
@@ -556,7 +577,7 @@ function initializeAvatarPicker() {
   royaltyAvatars.forEach((av) => {
     const el = document.createElement('div');
     el.className = 'avatar-option';
-    el.textContent = av.icon;
+    el.appendChild(renderAvatarVisual(av.icon));
     el.title = av.label;
 
     if (selectedAvatar && selectedAvatar.id === av.id) {
@@ -1436,7 +1457,7 @@ export { handleRulesClick, hideRulesModalAndOverlay };
 function updateJoinAvatar() {
     const joinEl = document.getElementById('join-player-avatar');
     if(joinEl && selectedAvatar) {
-        const emojiEl = joinEl.querySelector('.emoji-avatar');
-        if(emojiEl) emojiEl.textContent = selectedAvatar.icon;
+        joinEl.innerHTML = '';
+        joinEl.appendChild(renderAvatarVisual(selectedAvatar.icon));
     }
 }

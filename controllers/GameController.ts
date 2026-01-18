@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import GameState from '../models/GameState.js';
 import Player from '../models/Player.js';
-import { CPU_NAMES, getRandomAvatar } from '../src/shared/avatars.js';
+import { getRandomAvatar } from '../src/shared/avatars.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -544,7 +544,7 @@ export default class GameController {
     }
     const player = new Player(id);
     player.name = name;
-    player.avatar = playerData.avatar || '🤴'; // Save the avatar!
+    player.avatar = playerData.avatar || getRandomAvatar().icon;
     player.socketId = socket.id;
     player.isSpectator = isSpectator;
     if (this.players.size === 0) {
@@ -682,11 +682,17 @@ export default class GameController {
 
         const cpuPlayer = new Player(cpuId);
 
-        // Randomize Bot Identity
-        const randomAvatar = getRandomAvatar();
-        cpuPlayer.name =
-          CPU_NAMES[Math.floor(Math.random() * CPU_NAMES.length)];
-        cpuPlayer.avatar = randomAvatar.icon; // Assign Emoji
+        // Randomize Bot Identity (name comes from filename-based label)
+        const usedAvatarIds = new Set<string>();
+        this.players.forEach((p) => {
+          if (!p.avatar) return;
+          const match = /\/([^/]+)\.png$/i.exec(p.avatar);
+          if (match?.[1]) usedAvatarIds.add(match[1]);
+        });
+
+        const randomAvatar = getRandomAvatar(usedAvatarIds);
+        cpuPlayer.name = randomAvatar.label;
+        cpuPlayer.avatar = randomAvatar.icon;
 
         cpuPlayer.isComputer = true;
         this.players.set(cpuId, cpuPlayer);

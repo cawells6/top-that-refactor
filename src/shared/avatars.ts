@@ -1,66 +1,57 @@
 export interface AvatarItem {
   id: string;
+  /**
+   * Public URL for the avatar image.
+   * Example: `/assets/new%20avatars/king_aldric.png`
+   */
   icon: string;
+  /**
+   * Display name derived from filename.
+   * Example: `King Aldric`
+   */
   label: string;
 }
 
-export const ROYALTY_AVATARS: AvatarItem[] = [
-  // Royalty
-  { id: 'king', icon: '🤴', label: 'King' },
-  { id: 'queen', icon: '👸', label: 'Queen' },
-  { id: 'prince', icon: '🫅', label: 'Prince' },
-  // removed: princess (gem)
+function toTitleCase(value: string): string {
+  return value
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
-  // Court roles (no fairy/genie)
-  // removed: jester
-  { id: 'herald', icon: '🎺', label: 'Herald' },
-  { id: 'scribe', icon: '📜', label: 'Scribe' },
-  { id: 'treasurer', icon: '💰', label: 'Treasurer' },
-  // removed: advisor (owl)
+function labelFromFilename(fileName: string): string {
+  const base = fileName.replace(/\.[^.]+$/, '');
+  return toTitleCase(base.replace(/[_-]+/g, ' '));
+}
 
-  // Guards & arms
-  { id: 'guard', icon: '💂', label: 'Guard' },
-  { id: 'knight', icon: '🛡️', label: 'Knight' },
-  { id: 'duelist', icon: '⚔️', label: 'Duelist' },
-  { id: 'archer', icon: '🏹', label: 'Archer' },
+function assetUrl(fileName: string): string {
+  // Folder name contains a space; use an encoded URL for consistency.
+  return `/assets/new%20avatars/${fileName}`;
+}
 
-  // Symbols & regalia
-  { id: 'crown', icon: '👑', label: 'Crown' },
-  // removed: fleur, ring, goblet (fleur-de-lis, signet ring, trophy)
-  { id: 'key', icon: '🗝️', label: 'Old Key' },
-
-  // Lands & beasts
-  { id: 'castle', icon: '🏰', label: 'Castle' },
-  // removed: lion
-
-  // Mythical (still fits the "royal" vibe)
-  { id: 'dragon', icon: '🐉', label: 'Dragon' },
-  { id: 'unicorn', icon: '🦄', label: 'Unicorn' },
-  // candidate replacements for removed regalia/beasts
-  { id: 'shield', icon: '🛡️', label: 'Shield' },
-  { id: 'helmet', icon: '🪖', label: 'Helmet' },
-  { id: 'rose', icon: '🌹', label: 'Rose' },
-  { id: 'amphora', icon: '🏺', label: 'Amphora' },
-  { id: 'rosette', icon: '🏵️', label: 'Rosette' },
-  { id: 'banner', icon: '🎌', label: 'Royal Banner' },
+const AVATAR_FILES = [
+  'king_aldric.png',
+  'king_hiroto.png',
+  'king_malik.png',
+  'prince_edmund.png',
+  'prince_kofi.png',
+  'prince_rai.png',
+  'queen_amara.png',
+  'queen_linh.png',
+  'queen_seraphine.png',
 ];
 
-export const CPU_NAMES = [
-  'King Henry',
-  'Queen Anne',
-  'Prince John',
-  'Princess Clara',
-  'Sir Lancelot',
-  'Duke William',
-  'Count Olaf',
-  'Jester Tom',
-  'Herald Hugh',
-  'Scribe Simon',
-  'Treasurer Tessa',
-  'Guard Bob',
-  'Advisor Ada',
-];
+export const ROYALTY_AVATARS: AvatarItem[] = AVATAR_FILES.map((fileName) => ({
+  id: fileName.replace(/\.[^.]+$/, ''),
+  icon: assetUrl(fileName),
+  label: labelFromFilename(fileName),
+}));
 
-export function getRandomAvatar(): AvatarItem {
-  return ROYALTY_AVATARS[Math.floor(Math.random() * ROYALTY_AVATARS.length)];
+export function getRandomAvatar(
+  excludedIds: Set<string> = new Set()
+): AvatarItem {
+  const pool = ROYALTY_AVATARS.filter((a) => !excludedIds.has(a.id));
+  const source = pool.length > 0 ? pool : ROYALTY_AVATARS;
+  return source[Math.floor(Math.random() * source.length)];
 }

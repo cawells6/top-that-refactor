@@ -1610,11 +1610,24 @@ export function renderGameState(
       avatar.innerHTML = '';
 
       if (player.avatar) {
-        // RENDER EMOJI AVATAR
-        const emojiDiv = document.createElement('div');
-        emojiDiv.className = 'emoji-avatar';
-        emojiDiv.textContent = player.avatar;
-        avatar.appendChild(emojiDiv);
+        const isImageAvatar =
+          /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(player.avatar) ||
+          player.avatar.startsWith('/assets/');
+
+        if (isImageAvatar) {
+          const img = document.createElement('img');
+          img.className = 'image-avatar';
+          img.src = player.avatar;
+          img.alt = 'avatar';
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          avatar.appendChild(img);
+        } else {
+          const emojiDiv = document.createElement('div');
+          emojiDiv.className = 'emoji-avatar';
+          emojiDiv.textContent = player.avatar;
+          avatar.appendChild(emojiDiv);
+        }
       } else {
         // FALLBACK TO LEGACY IMAGES
         const img = document.createElement('img');

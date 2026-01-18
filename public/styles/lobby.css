@@ -693,6 +693,14 @@
   background: transparent;
 }
 
+#lobby-container .player-silhouette .image-avatar {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
 /* --- UPDATED PLAYER SECTION (Fixing Overlap) --- */
 .player-section {
   background: rgba(255, 255, 255, 0.95);
