@@ -577,7 +577,9 @@ function initializeAvatarPicker() {
   grid.innerHTML = '';
 
   // Create options with placeholder images; actual image src is stored in data-src
-  royaltyAvatars.forEach((av) => {
+  // Shuffle the avatars to avoid showing the same order every time
+  const avatarsToShow = shuffleArray(royaltyAvatars);
+  avatarsToShow.forEach((av) => {
     const el = document.createElement('div');
     el.className = 'avatar-option';
     el.title = av.label;
