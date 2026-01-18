@@ -677,6 +677,17 @@
   display: block;
 }
 
+/* Smooth avatar loading */
+.player-avatar .image-avatar {
+  opacity: 0;
+  transition: opacity 220ms ease-in-out, transform 220ms ease-in-out;
+  transform: scale(1.02);
+}
+.player-avatar .image-avatar.loaded {
+  opacity: 1;
+  transform: scale(1);
+}
+
 /* Adjust player avatar to handle emojis */
 #game-table .player-avatar .emoji-avatar {
   font-size: 3rem; /* Larger emoji for game board */

@@ -1615,13 +1615,25 @@ export function renderGameState(
           player.avatar.startsWith('/assets/');
 
         if (isImageAvatar) {
-          const img = document.createElement('img');
-          img.className = 'image-avatar';
-          img.src = player.avatar;
-          img.alt = 'avatar';
-          img.loading = 'lazy';
-          img.decoding = 'async';
-          avatar.appendChild(img);
+          // Preload image and append after it loads to avoid flashes
+          const tmp = new Image();
+          tmp.decoding = 'async';
+          tmp.loading = 'eager';
+          tmp.src = player.avatar;
+          tmp.onload = () => {
+            const img = document.createElement('img');
+            img.className = 'image-avatar loaded';
+            img.src = player.avatar;
+            img.alt = 'avatar';
+            avatar.appendChild(img);
+          };
+          tmp.onerror = () => {
+            // Fallback to emoji if image fails
+            const emojiDiv = document.createElement('div');
+            emojiDiv.className = 'emoji-avatar';
+            emojiDiv.textContent = '👤';
+            avatar.appendChild(emojiDiv);
+          };
         } else {
           const emojiDiv = document.createElement('div');
           emojiDiv.className = 'emoji-avatar';
@@ -1630,10 +1642,23 @@ export function renderGameState(
         }
       } else {
         // FALLBACK TO LEGACY IMAGES
-        const img = document.createElement('img');
-        img.src = player.isComputer ? robotAvatarUrl : playerAvatarUrl;
-        img.alt = 'avatar';
-        avatar.appendChild(img);
+        const tmp = new Image();
+        tmp.decoding = 'async';
+        tmp.loading = 'eager';
+        tmp.src = player.isComputer ? robotAvatarUrl : playerAvatarUrl;
+        tmp.onload = () => {
+          const img = document.createElement('img');
+          img.className = 'image-avatar loaded';
+          img.src = tmp.src;
+          img.alt = 'avatar';
+          avatar.appendChild(img);
+        };
+        tmp.onerror = () => {
+          const emojiDiv = document.createElement('div');
+          emojiDiv.className = 'emoji-avatar';
+          emojiDiv.textContent = '👤';
+          avatar.appendChild(emojiDiv);
+        };
       }
     }
 
