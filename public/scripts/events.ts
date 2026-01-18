@@ -13,6 +13,8 @@ let royaltyAvatars: AvatarItem[] = [];
 let selectedAvatar: AvatarItem | null = null;
 let shuffledBotAvatars: AvatarItem[] = [];
 let botAvatarAssignments: AvatarItem[] = [];
+// A single randomized order chosen at lobby init to avoid reshuffling on every open
+let initialAvatarOrder: AvatarItem[] = [];
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -677,6 +679,62 @@ function shuffleArray<T>(array: T[]): T[] {
   return newArr;
 }
 
+function getCategoryFromId(id: string): string {
+  // id is filename without extension, e.g. 'king_aldric' or 'Prince_Max'
+  if (!id) return 'misc';
+  // Normalize underscores and hyphens to spaces, then take first word
+  const cleaned = id.replace(/[_-]+/g, ' ').trim();
+  const first = cleaned.split(' ')[0];
+  return first.toLowerCase();
+}
+
+function interleaveByCategory(items: AvatarItem[]): AvatarItem[] {
+  if (!items || items.length <= 1) return items.slice();
+  const buckets = new Map<string, AvatarItem[]>();
+  for (const it of items) {
+    const cat = getCategoryFromId(it.id || 'misc');
+    if (!buckets.has(cat)) buckets.set(cat, []);
+    buckets.get(cat)!.push(it);
+  }
+
+  const result: AvatarItem[] = [];
+  let prevCat: string | null = null;
+
+  const total = items.length;
+  while (result.length < total) {
+    // pick bucket with largest remaining count that isn't prevCat
+    let chosenCat: string | null = null;
+    let maxCount = -1;
+    for (const [cat, list] of buckets.entries()) {
+      const cnt = list.length;
+      if (cnt === 0) continue;
+      if (cat === prevCat) continue;
+      if (cnt > maxCount) {
+        maxCount = cnt;
+        chosenCat = cat;
+      }
+    }
+
+    if (!chosenCat) {
+      // no candidate other than prevCat; pick any non-empty bucket
+      for (const [cat, list] of buckets.entries()) {
+        if (list.length > 0) {
+          chosenCat = cat;
+          break;
+        }
+      }
+    }
+
+    if (!chosenCat) break; // nothing left
+
+    const item = buckets.get(chosenCat)!.shift()!;
+    result.push(item);
+    prevCat = chosenCat;
+  }
+
+  return result;
+}
+
 // --- REPLACES EXISTING initializeLobby ---
 export async function initializeLobby() {
   console.log('🚀 [events.ts] Initializing lobby...');
@@ -687,7 +745,10 @@ export async function initializeLobby() {
     // 1. Randomize Avatar on Load
     const randomIndex = Math.floor(Math.random() * royaltyAvatars.length);
     selectedAvatar = royaltyAvatars[randomIndex];
-    shuffledBotAvatars = shuffleArray(royaltyAvatars);
+    // Choose a single shuffled order for this session, then interleave by category
+    const randomized = shuffleArray(royaltyAvatars);
+    initialAvatarOrder = interleaveByCategory(randomized);
+    shuffledBotAvatars = [...initialAvatarOrder];
     
     reconcileBotAvatarAssignments(0); // Pass a default value
     
