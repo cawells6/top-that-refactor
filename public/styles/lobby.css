@@ -730,6 +730,21 @@
   border: 2px solid #c8a548;
 }
 
+#lobby-container .host-selection-rectangle .player-section--users,
+#lobby-container .host-selection-rectangle .player-section--bots {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(247, 252, 250, 0.95) 100%
+  );
+  border-color: rgba(200, 165, 72, 0.95);
+  box-shadow:
+    0 18px 28px rgba(0, 0, 0, 0.22),
+    0 6px 0 rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -14px 22px rgba(15, 95, 59, 0.08);
+}
+
 #lobby-container .host-selection-rectangle .lobby-actions {
   margin: 0;
   width: 100%;
@@ -888,7 +903,7 @@
   gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #e3e6ea 0%, #d1d5db 100%);
+  background: #ffffff;
   border: 1px solid rgba(27, 46, 60, 0.18);
   border-left: 4px solid #ffc300;
   color: #1b2e3c;
@@ -1086,7 +1101,7 @@
 }
 
 /* Host panel: match mock "pill" PLAY button */
-#lobby-container .host-selection-rectangle #setup-deal-button.lets-play-btn {
+#lobby-container .host-selection-rectangle #setup-deal-button.lets-play-btn:not(.play-button-container) {
   width: min(260px, 85%);
   height: 68px;
   min-width: 0;
@@ -1121,7 +1136,7 @@
 
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn:hover {
+  #setup-deal-button.lets-play-btn:not(.play-button-container):hover {
   transform: translateY(-2px);
   box-shadow:
     0 16px 0 #0a3d27,
@@ -1133,7 +1148,7 @@
 
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn:active {
+  #setup-deal-button.lets-play-btn:not(.play-button-container):active {
   transform: translateY(12px);
   box-shadow:
     0 2px 0 #0a3d27,
@@ -1145,7 +1160,7 @@
 
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn:focus-visible {
+  #setup-deal-button.lets-play-btn:not(.play-button-container):focus-visible {
   outline: none;
   box-shadow:
     0 14px 0 #0a3d27,
@@ -1154,6 +1169,223 @@
     0 0 16px rgba(200, 165, 72, 0.28),
     inset 0 2px 0 rgba(255, 255, 255, 0.2),
     inset 0 -20px 30px rgba(0, 0, 0, 0.34);
+}
+
+/* Lobby PLAY button (Figma v1) */
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container {
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  box-shadow: none;
+  cursor: pointer;
+  display: inline-block;
+  height: auto;
+  min-width: 0;
+  padding: 0;
+  position: relative;
+  transition: transform 0.3s ease;
+  transform: scale(0.7);
+  transform-origin: center;
+  width: auto;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container:hover:not(:disabled) {
+  transform: scale(0.735);
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container:active:not(:disabled) {
+  transform: scale(0.665) translateY(2px);
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .deep-shadow {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 9999px;
+  filter: blur(30px);
+  transform: translateY(8px);
+  z-index: 0;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .pulsing-glow {
+  position: absolute;
+  inset: 0;
+  background: rgba(45, 212, 191, 0.2);
+  border-radius: 9999px;
+  filter: blur(20px);
+  z-index: 1;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container:disabled
+  .pulsing-glow {
+  animation: none;
+  opacity: 0.2;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .outer-gold-ring {
+  position: relative;
+  background: linear-gradient(to bottom, #ffc70c, #e6b30b);
+  border-radius: 9999px;
+  padding: 3px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .button-base {
+  position: relative;
+  background: linear-gradient(to bottom, #0d9488, #0f766e, #115e59);
+  border-radius: 9999px;
+  padding: 16px 64px;
+  box-shadow:
+    inset 0 -2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .gloss-sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: all 0.6s ease;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container:hover:not(:disabled)
+  .gloss-sweep {
+  opacity: 1;
+  transform: translateX(100%);
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .top-highlight {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 4px;
+  height: 24px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
+  border-radius: 9999px;
+  filter: blur(4px);
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .text-container {
+  position: relative;
+  display: inline-block;
+  z-index: 1;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .text-shadow {
+  position: absolute;
+  inset: 0;
+  font-size: 36px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: rgba(0, 0, 0, 0.3);
+  transform: translateY(4px);
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .text-main {
+  position: relative;
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 0.05em;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  z-index: 1;
+}
+
+#lobby-container
+  .host-selection-rectangle
+  #setup-deal-button.lets-play-btn.play-button-container
+  .bottom-shadow {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 4px;
+  height: 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
+  border-radius: 9999px;
+  filter: blur(4px);
+}
+
+@media (max-width: 520px) {
+  #lobby-container
+    .host-selection-rectangle
+    #setup-deal-button.lets-play-btn.play-button-container
+    .button-base {
+    padding: 12px 44px;
+  }
+
+  #lobby-container
+    .host-selection-rectangle
+    #setup-deal-button.lets-play-btn.play-button-container
+    .text-main,
+  #lobby-container
+    .host-selection-rectangle
+    #setup-deal-button.lets-play-btn.play-button-container
+    .text-shadow {
+    font-size: 28px;
+  }
 }
 
 /* Match PLAY button font (inherit) without changing size */
