@@ -15,7 +15,19 @@ import {
 import * as StateModule from './state.js';
 
 // Expose state for testing
-if (import.meta.env.MODE !== 'production' || (globalThis as any).process?.env?.NODE_ENV !== 'production') {
+const _getViteMode = () => {
+  try {
+    // Avoid the literal `import.meta` token in source so Jest (CJS) doesn't fail parsing.
+    // eslint-disable-next-line no-eval
+    const meta = eval("typeof import.meta !== 'undefined' ? import.meta : undefined");
+    return meta?.env?.MODE;
+  } catch (e) {
+    return undefined;
+  }
+};
+
+const _viteMode = _getViteMode();
+if (_viteMode !== 'production' || (globalThis as any).process?.env?.NODE_ENV !== 'production') {
   (window as any).state = StateModule;
 }
 

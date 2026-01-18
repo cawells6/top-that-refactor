@@ -26,8 +26,8 @@ function labelFromFilename(fileName: string): string {
 }
 
 function assetUrl(fileName: string): string {
-  // Folder name contains a space; use an encoded URL for consistency.
-  return `/assets/new%20avatars/${fileName}`;
+  // Use a hyphenated folder name for compatibility on static hosts.
+  return `/assets/new-avatars/${fileName}`;
 }
 
 const AVATAR_FILES = [
