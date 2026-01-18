@@ -140,6 +140,7 @@ function openAvatarDropdown() {
     'avatar-dropdown'
   ) as HTMLDetailsElement | null;
   if (!dropdown) return;
+  dropdown.classList.remove('hidden');
   dropdown.open = true;
   dropdown.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
@@ -150,6 +151,7 @@ function closeAvatarDropdown() {
   ) as HTMLDetailsElement | null;
   if (!dropdown) return;
   dropdown.open = false;
+  dropdown.classList.add('hidden');
 }
 
 function getFallbackBotAvatar(slotIndex: number): AvatarItem {
@@ -639,6 +641,32 @@ export function initializePageEventListeners() {
   initializeAvatarPicker();
   bindAvatarPicker();
 
+  // Close avatar dropdown when clicking outside (or on the X)
+  const avatarDropdown = document.getElementById('avatar-dropdown') as HTMLDetailsElement | null;
+  if (avatarDropdown) {
+    avatarDropdown.addEventListener('click', (ev) => {
+      const target = ev.target as HTMLElement | null;
+      if (!target) return;
+
+      if (target.closest('[data-avatar-dropdown-close]')) {
+        ev.preventDefault();
+        closeAvatarDropdown();
+        return;
+      }
+
+      // If the click is not inside the panel, treat it as an outside click.
+      if (!target.closest('.avatar-dropdown__panel')) {
+        closeAvatarDropdown();
+      }
+    });
+
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Escape') return;
+      if (!avatarDropdown.open) return;
+      closeAvatarDropdown();
+    });
+  }
+
   // Sync UI immediately with random choice
   updateAvatarDropdownUI();
   updatePlayerSilhouettes();
@@ -785,9 +813,6 @@ export function initializePageEventListeners() {
   }
 
   const lobbyForm = document.getElementById('lobby-form');
-  const lobbyTabButtons = document.querySelectorAll(
-    '.lobby-tab-button'
-  ) as NodeListOf<HTMLButtonElement>;
   const lobbyTabPanels = document.querySelectorAll(
     '.lobby-tab-panel'
   ) as NodeListOf<HTMLElement>;
@@ -798,12 +823,6 @@ export function initializePageEventListeners() {
     if (lobbyForm) {
       lobbyForm.setAttribute('data-lobby-tab', tab);
     }
-
-    lobbyTabButtons.forEach((button) => {
-      const isActive = button.dataset.tab === tab;
-      button.classList.toggle('is-active', isActive);
-      button.setAttribute('aria-selected', isActive ? 'true' : 'false');
-    });
 
     lobbyTabPanels.forEach((panel) => {
       const isActive = panel.dataset.tabPanel === tab;
@@ -829,14 +848,16 @@ export function initializePageEventListeners() {
     }
   }
 
-  if (lobbyTabButtons.length > 0) {
-    setLobbyTab('host');
-    lobbyTabButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const tab = button.dataset.tab === 'join' ? 'join' : 'host';
-        setLobbyTab(tab);
-      });
-    });
+  setLobbyTab('host');
+
+  const goToJoinButton = document.getElementById('go-to-join-button');
+  if (goToJoinButton) {
+    goToJoinButton.addEventListener('click', () => setLobbyTab('join'));
+  }
+
+  const goToHostButton = document.getElementById('go-to-host-button');
+  if (goToHostButton) {
+    goToHostButton.addEventListener('click', () => setLobbyTab('host'));
   }
 
   try {

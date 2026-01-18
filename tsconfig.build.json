@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "server.ts",
+    "controllers/**/*.ts",
+    "models/**/*.ts",
+    "utils/**/*.ts",
+    "src/**/*.ts",
+    "scripts/**/*.ts",
+    "public/scripts/**/*.ts",
+    "public/vite-env.d.ts",
+    "jest-globals.d.ts",
+    "src",
+    "public/scripts",
+    "*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "public/scripts/tsconfig.json",
+    "tests",
+    "tests/**",
+    "playwright-report",
+    "test-results"
+  ]
+}

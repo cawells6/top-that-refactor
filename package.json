@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json && vite build",
+    "build": "tsc -p tsconfig.build.json && vite build",
     "prestart": "npx kill-port 3000 5173",
     "start": "node dist/start-server.js",
     "gpush": "bash scripts/gpush.sh",
@@ -22,7 +22,7 @@
     "format": "prettier --write \"**/*.{ts,js,json,md,html,css}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,md,html,css}\"",
     "download:cards": "node --loader ts-node/esm ./scripts/download_cards.ts",
-    "postbuild": "find dist -name '*.js' -exec sed -i 's/\\.ts/\\.js/g' {} +",
+    "postbuild": "node scripts/postbuild-fix-extensions.cjs",
     "start:multi": "concurrently \"PORT=3000 node --loader ts-node/esm ./start-server.ts\" \"PORT=8080 node --loader ts-node/esm ./start-server.ts\"",
     "dev:multi": "concurrently \"cross-env PORT=3000 node --loader ts-node/esm ./start-server.ts\" \"cross-env PORT=8080 node --loader ts-node/esm ./start-server.ts\"",
     "dev:server": "node scripts/clean-start.cjs && nodemon --config nodemon.json --exec \"node --loader ts-node/esm ./start-server.ts\"",
