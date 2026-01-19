@@ -2,45 +2,32 @@
 
 Canonical standards live in `PROJECT_MANIFEST.md`. Follow it for all new/modified code.
 
-## Non‑Negotiables
+## 🚨 NON-NEGOTIABLES (READ FIRST)
 
-- **TypeScript only.** Do not suggest switching to JS or disabling type checking.
-- **No `any` in new/modified code.** Use proper types or `unknown` + narrowing.
-- **Respect layering.** UI must not call `socket.emit` directly; use the client application/wrapper utilities.
-- **Event names are constants.** Import from `src/shared/events.ts` (never hardcode event strings).
-- **ESM imports.** Repo is ESM; keep `.js` import extensions even from `.ts` sources (match existing patterns).
-- **Vite asset hashing.** Import assets in TS; don’t hardcode `/assets/...` unless that exact asset already does so.
-- **Mobile-first UI.** Any UI change must work on mobile and desktop.
+1.  **ALWAYS OPEN A NEW BRANCH.** Do not modify code on `main` or mix features.
+    - Format: `feat/description` or `fix/description`.
+2.  **TypeScript only.** Do not suggest switching to JS or disabling type checking.
+3.  **Mobile-First.** Verify every UI change against a vertical mobile viewport.
+4.  **No `any`.** Use `unknown` + narrowing if necessary.
+5.  **Event names are constants.** Import from `src/shared/events.ts`.
+
+## 🛑 SCOPE & SAFETY RULES
+
+1.  **File Integrity:** Do not "rebuild" files like `main.ts`, `game-board.css`, or `GameController.ts` from scratch. Edit them surgically.
+2.  **Scope Control:** One prompt = One goal. If a task affects both *Game Logic* and *UI Layout*, stop and ask to split the task.
+3.  **Iteration Limit:** If a fix fails **3 times**, stop. Do not try a 4th "guess." Ask the user to revert to the last working commit.
+4.  **Visual Lock:** The visual theme (Green felt, Gold accents) is **FROZEN**.
+    * **Protocol:** If asked to change this, **ASK FIRST**: *"This changes the established theme. Are you sure?"* If yes, proceed.
 
 ## Architecture Map (Quick)
 
 - **UI:** `public/scripts/*` (DOM events, validation, rendering). Entry: `public/scripts/main.ts`.
-- **Client application layer:** wrapper/ack helpers in `public/scripts/*` (use these to send events).
-- **Transport:** Socket.IO configured in `server.ts` and proxied by Vite in dev (`/socket.io`).
+- **Client Wrapper:** Use `public/scripts/socketService.ts` or wrappers. **DO NOT** call `socket.emit` directly in UI code.
 - **Server:** `controllers/GameController.ts` (game flow), `controllers/PlayerStateManager.ts` (sync/metrics).
-- **Shared types/events:** `src/shared/*`.
+- **Events:** Import from `src/shared/events.ts`.
 
-## Debugging Workflow (Avoid “Frankenstein” Fixes)
+## Debugging Workflow
 
-- Expand search radius beyond the file you touched (CSS, config, state, import paths).
-- Search repo for related patterns before coding (prefer `rg`).
-- Prefer one clean fix over multiple layered workarounds.
-
-## Tests & Validation
-
-- Tests use **Jest + jsdom**. Mock the abstraction layer the code uses (e.g. mock ack utilities, not socket internals).
-- Run `npm test` when behavior changes, and `npm run build` before larger refactors.
-
-## Common Commands
-
-- Dev (server+client): `npm run dev:all`
-- Server only: `npm run dev:server`
-- Tests: `npm test`
-- Build: `npm run build`
-- Prod run: `npm start`
-
-## Reference Docs
-
-- `docs/DEVELOPMENT_WORKFLOW.md`
-- `docs/LAYERED_ARCHITECTURE.md`
-- `PROJECT_MANIFEST.md`
+- **Stop & Search:** Search the repo for existing patterns before writing new ones.
+- **One Fix:** Prefer one clean architectural fix over multiple "band-aid" patches.
+- **Tests:** Run `npm test` when behavior changes.

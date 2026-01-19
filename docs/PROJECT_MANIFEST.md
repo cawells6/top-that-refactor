@@ -1,56 +1,129 @@
 # PROJECT MANIFEST: "TOP THAT" (Card Game)
 
 This document is the **Single Source of Truth** for the Top That codebase.
-New code must strictly adhere to these principles.
+If you only read one file before making changes, read this.
+
+## 0. HOW TO USE THIS MANIFEST
+
+- **New/modified code must follow this manifest.** If existing code violates it, fix the root cause when you are already in that area.
+- **When changing runtime data shapes**, update this manifest _and_ the shared types (`src/shared/types.ts`).
+- **Terminology:**
+  - **Deck / Draw Pile:** The face-down pile players draw from.
+  - **Play Pile / Discard Pile:** The face-up center stack players play onto.
+  - **Hand:** The cards held by a player.
 
 ---
 
-## 1. CORE ARCHITECTURE
+## 1. CORE ARCHITECTURE & PRINCIPLES
 
 ### **The "Golden Rule" of State**
-- **Server (`GameController`, `GameState`)**: The absolute authority. It owns the deck, the rules, and the player stats.
-- **Client (`public/`)**: A "dumb" terminal. It visualizes `STATE_UPDATE` events and sends inputs (`PLAY_CARD`). It never calculates game logic.
-- **PlayerStateManager**: The new subsystem (added in Enhancement #10) that tracks connection quality, session metrics, and state checksums.
+- **Server (`GameController`, `GameState`)**: The absolute authority. It owns the deck, rules, and player stats.
+- **Client (`public/`)**: A "dumb" terminal. It visualizes `STATE_UPDATE` events and sends inputs (`PLAY_CARD`). It never calculates game logic or invents state.
+- **PlayerStateManager**: Handles connection quality, session metrics, and state snapshots.
 
 ### **Layered Architecture Contracts**
-Code must respect these boundaries.
 1.  **Network Layer (`socketService.ts`)**: Handles generic `emit/on`. Does NOT know game rules.
-2.  **Controller Layer (`GameController.ts`)**: Orchestrates the game flow. Validates moves.
+2.  **Controller Layer (`GameController.ts`)**: Orchestrates game flow and validates moves.
 3.  **Model Layer (`GameState.ts`, `Player.ts`)**: Pure data structures and logic.
 
 ### **Event Contracts (`src/shared/events.ts`)**
-- `JOIN_GAME` / `JOINED`: Room entry.
+- `JOIN_GAME`: Room entry.
 - `LOBBY_STATE_UPDATE`: Real-time lobby sync (avatars, readiness).
-- `START_GAME` / `GAME_STARTED`: Transition to gameplay.
+- `START_GAME`: Transition to gameplay.
 - `STATE_UPDATE`: The heartbeat. Contains the *entire* relevant game state.
-- `PLAY_CARD` / `CARD_PLAYED`: Gameplay actions.
+- `PLAY_CARD`: Gameplay actions.
+
+### **Strict TypeScript**
+- All new code must be TypeScript.
+- **No `any`**: Use `unknown` + narrowing or strict interfaces.
+- **ESM Imports**: Use `.js` extensions for imports (e.g., `import { x } from './file.js'`).
+
+### **Mobile-First Responsive (The Isolation Rule)**
+- All UI changes must work on vertical mobile screens.
+- **Do not break Desktop to fix Mobile.** Mobile and Desktop layouts are intentionally different.
+- Use `vmin` scaling where appropriate to support ultra-wide and mobile simultaneously.
 
 ---
 
-## 2. TECH STACK & STANDARDS
+## 2. IMMUTABLE GAME RULES (DO NOT INFER)
 
-- **Language:** TypeScript (Strict Mode). No `any`.
-- **Styling:** `vmin` scaling for responsiveness (Mobile & Ultra-wide support).
+Game logic is code, not copy. Do not "optimize" these rules based on other card games.
+1.  **Strictly Higher:** Played cards must be higher than the pile top (not equal).
+2.  **The "2":** Resets the pile value. Can be played on anything.
+3.  **The "5" (Copycat):** Copies the previous card's value and suit. If played on an empty pile, it is just a 5.
+4.  **The "10" (Burn):** Clears/burns the pile. **Does NOT grant another turn** (unlike some variants).
+5.  **Four of a Kind:** Playing 4 matching cards burns the pile.
+
+---
+
+## 3. ASSET & VISUAL STANDARDS
+
+### **Visual System Lock**
+- **Theme:** Green felt background, Gold/Yellow accents.
+- **Changes:** Do not alter fonts, colors, or the "Felt" texture without explicit instruction.
+
+### **SVG & Image Rules**
+- **Transparency:** All assets (Avatars, Cards) must have transparent backgrounds.
+- **Clean XML:** SVGs must be inspected. Remove hidden layers, masks, or stray rectangles before committing.
+- **ViewBox:** Assets must be square and production-ready.
+
+---
+
+## 4. TECH STACK
+
+- **Language:** TypeScript (Strict Mode)
+- **Frontend:** HTML5, CSS3 (Flexbox/Grid), Vanilla JS/TS (No heavy frameworks).
 - **Transport:** Socket.IO.
-- **Assets:** SVG preferred for scalability.
+- **Build/Deploy:** Vite build, Render.com deployment.
+- **Tests:** Jest (`jsdom`) for client, unit tests for logic.
 
 ---
 
-## 3. DEVELOPMENT WORKFLOW (The Checklist)
+## 5. GIT & PROCESS WORKFLOW (CRITICAL)
 
-Before merging any PR, verify:
-1.  **Mobile First:** Does this UI element scale on a vertical phone screen?
-2.  **Type Safety:** Are shared types (`src/shared/types.ts`) used on both Client and Server?
-3.  **Contract Check:** Did I change a socket event? If so, did I update `events.ts` and the interface in `types.ts`?
-4.  **No Magic Numbers:** Use constants for delays and rules.
+### **Branching Strategy**
+- **ALWAYS OPEN A NEW BRANCH** for every new feature or fix.
+- **Naming Convention:** `type/description`
+  - `feat/add-lobby-chat`
+  - `fix/mobile-card-overlap`
+  - `chore/cleanup-docs`
+- **Never commit directly to `main`** (unless updating this Manifest).
+
+### **The "Stop & Think" Rule**
+- Before writing code, verify: "Am I in a clean branch dedicated to this specific task?"
+- If you find a bug unrelated to your current task, **stash changes** and switch to a new `fix/...` branch. Do not mix unrelated changes.
+
+### **Pre-Commit Checklist**
+1.  **Mobile First:** Did I verify this on a vertical phone screen?
+2.  **Contract Check:** Did I change a socket event? (Update `events.ts` and `types.ts`).
+3.  **No Magic Numbers:** Use constants for delays and rules.
+4.  **Architecture Check:** Did I put logic in the UI? (If yes, move it to Server).
 
 ---
 
-## 4. TYPE DEFINITIONS (Current Model)
+## 6. INSTRUCTION TO AI
 
-All data passed over the network must match these interfaces.
+- **Role:** Senior TypeScript Engineer.
+- **First Action:** Check the current branch. If on `main`, ask the user to create a new branch.
+- **Scope Control:** One prompt = One goal. If a change impacts Logic AND UI, ask to split it.
+- **Iteration Limit:** If a solution fails 3 times, **STOP**. Revert to the last known good state and re-assess.
+- **UI Integrity:** Do not generate code that breaks existing CSS flex/grid structures.
+- **Verification:** Before finalizing, ask: "Does this maintain strict type safety and preserve architecture boundaries?"
 
-/* --- Game Assets --- */
+### **The "Override Protocol" (Conflict Resolution)**
+If the user asks for something that violates these rules (e.g., "Make the background blue" or "Change the 10 rule"):
+1.  **Do NOT blindly execute.**
+2.  **Do NOT flatly refuse.**
+3.  **Action:** Explicitly flag the conflict: *"This request conflicts with the [Rule Name] rule in the Manifest. Do you want to proceed with this deviation?"*
+4.  **Execution:** If the user confirms, implement the change and note the deviation.
+
+---
+
+## 7. TYPE DEFINITIONS (SOURCE OF TRUTH)
+
+All _new_ code should converge toward these interfaces.
+
+/* --- Card & Deck --- */
 type CardValue = string | number;
 
 interface Card {
@@ -60,28 +133,24 @@ interface Card {
   copied?: boolean;
 }
 
-/* --- Player Models --- */
-interface PlayerSessionMetrics {
-  joinedAt: Date;
-  actionsPerformed: number;
-  disconnectionCount: number;
-  // ... other metrics defined in Player.ts
-}
-
+/* --- Player State (Client View) --- */
 interface ClientStatePlayer {
   id: string;
   name: string;
   avatar?: string;
+  handCount?: number;
+  upCount?: number;
+  downCount?: number;
   hand?: Card[];
   upCards?: Array<Card | null>;
-  downCards?: Card[];       // Hidden (back=true) for opponents
-  downCount?: number;
+  downCards?: Card[];
+  downCardsHidden?: number;
   disconnected?: boolean;
   isComputer?: boolean;
   error?: string;
 }
 
-/* --- The God Object (Sent via STATE_UPDATE) --- */
+/* --- Game State (The God Object) --- */
 interface GameStateData {
   players: ClientStatePlayer[];
   pile: Card[];
@@ -92,7 +161,16 @@ interface GameStateData {
   lastRealCard: Card | null;
 }
 
-/* --- Lobby State --- */
+/* --- Lobby --- */
+interface LobbyPlayer {
+  id: string;
+  name: string;
+  avatar?: string;
+  status: 'host' | 'invited' | 'joined' | 'ready';
+  isComputer?: boolean;
+  isSpectator?: boolean;
+}
+
 interface InSessionLobbyState {
   roomId: string;
   hostId: string | null;
@@ -100,22 +178,4 @@ interface InSessionLobbyState {
   started?: boolean;
   expectedHumanCount?: number;
   expectedCpuCount?: number;
-
-
-  ## 5. GIT & PROCESS WORKFLOW
-
-- **Branching Strategy:**
-  - **Always open a new branch** for every new feature or fix.
-  - **Naming Convention:** `type/description` (e.g., `feat/add-lobby-chat`, `fix/card-scaling`, `chore/cleanup-docs`).
-  - **Never commit directly to `main`** (unless updating documentation like this Manifest).
-
-- **Commit Standards:**
-  - Commit messages should be descriptive (e.g., "Fix vertical overflow on ultra-wide monitors" not "fix css").
-
-- **The "Stop & Think" Rule:**
-  - Before writing code, verify: "Am I in a clean branch dedicated to this specific task?"
-  - If you find yourself fixing a bug while building a feature, **stash changes** and switch to a `fix/...` branch. Do not mix unrelated changes.
-
-- **Mobile Verification Rule:**
-  - **"Phone First" Check:** Before closing any branch involving UI, you must verify it renders correctly on a vertical mobile screen (use Chrome DevTools "Device Toolbar").
 }
