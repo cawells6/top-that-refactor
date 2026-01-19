@@ -25,7 +25,7 @@ Open public/styles/lobby.css and locate the @media (max-width: 600px) block. Mak
   line-height: 1.4 !important;
 }
 
-/* Place Humans and Automans side‑by‑side and remove excess padding */
+/* Place Players and Bots side‑by‑side and remove excess padding */
 .player-selection--host {
   display: flex !important;
   flex-direction: row !important;
@@ -180,6 +180,6 @@ Ensure the <p class="avatar-hint"> text is present (as you have already added in
 
 No structural changes are required beyond what’s already in your updated public/index.html. If you haven’t already:
 
-Keep the <p class="avatar-hint">(Tap avatar to change)</p> inside both the Humans and Join sections.
+Keep the <p class="avatar-hint">(Tap avatar to change)</p> inside both the Players and Join sections.
 
 Ensure that the <details id="avatar-dropdown"> remains in the DOM but hidden by default (it will be shown when the user taps the avatar as described above).

@@ -26,7 +26,7 @@ Still in the mobile media query, adjust the section-title for the name prompt:
 @media (max-width: 600px) {
   /* …existing overrides… */
 
-  /* Increase the “Who’s Playing Today?” text to match the Humans/Automans headings */
+  /* Increase the “Who’s Playing Today?” text to match the Players/Bots headings */
   .section-title--input {
     font-size: 1.6rem !important;    /* up from 1.3rem:contentReference[oaicite:0]{index=0} */
     line-height: 1.5 !important;
@@ -34,7 +34,7 @@ Still in the mobile media query, adjust the section-title for the name prompt:
 }
 
 
-This keeps the same font family but increases the size to roughly match the HUMANS/AUTOMANS headings.
+This keeps the same font family but increases the size to roughly match the PLAYERS/BOTS headings.
 
 3. Shrink the name input field
 
@@ -51,7 +51,7 @@ Add or modify a rule for the name input (it has id player-name-input):
 
 4. Space the player sections slightly lower
 
-To push the Humans/Automans section down, add a top margin on the container:
+To push the Players/Bots section down, add a top margin on the container:
 
 @media (max-width: 600px) {
   /* Increase space between tab buttons and player selection */

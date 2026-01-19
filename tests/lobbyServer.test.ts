@@ -111,6 +111,7 @@ describe('Lobby joining', () => {
     );
     expect(ackData).toEqual({
       error: 'Game has already started. Cannot join.',
+      success: false,
     });
     // No error event expected
   });
@@ -129,7 +130,7 @@ describe('GameRoomManager', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({ error: 'Room not found.' });
+    expect(ackData).toEqual({ error: 'Room not found.', success: false });
     // No error event expected
   });
 });
@@ -145,7 +146,7 @@ describe('Lobby joining edge cases', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({ error: expect.any(String) });
+    expect(ackData).toEqual({ success: false, error: 'Invalid join payload: please provide a name.' });
   });
 
   test('joining with duplicate id does not create new player', () => {
@@ -223,7 +224,7 @@ describe('Lobby joining edge cases', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({ error: expect.any(String) });
+    expect(ackData).toEqual({ success: false, error: 'Invalid join payload: please provide a name.' });
   });
 
   test('player can leave and rejoin, lobby state updates', () => {

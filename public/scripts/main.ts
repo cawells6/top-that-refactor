@@ -67,6 +67,16 @@ function handleJoinLink({
     // Delegate join logic to socketService so tests can inject a socket override
     // We pass the injected socket (could be a mock) so unit tests can assert behavior.
     joinGameViaLink(normalizedRoomId, socket as any);
+    // Remove the room param from the URL so the join link is single-use
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.delete('room');
+      const query = params.toString();
+      const newPath = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+      window.history.replaceState({}, document.title, newPath);
+    } catch (e) {
+      // Silently ignore if history manipulation isn't available in test env
+    }
   }
 }
 // --- END: New logic for handling join links ---

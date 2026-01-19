@@ -717,7 +717,7 @@
   position: relative;
 }
 
-/* Host lobby: keep Humans/Automans panels at a stable width (sized for max avatars) */
+/* Host lobby: keep Players/Bots panels at a stable width (sized for max avatars) */
 #lobby-container .host-selection-rectangle {
   position: relative;
   overflow: hidden;
@@ -1934,7 +1934,7 @@
     font-size: 1rem !important;
   }
 
-  /* Place Humans and Automans side‑by‑side and remove excess padding */
+  /* Place Players and Bots side‑by‑side and remove excess padding */
   .player-selection--host {
     display: flex !important;
     flex-direction: row !important;
