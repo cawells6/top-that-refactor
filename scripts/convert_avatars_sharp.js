@@ -4,7 +4,7 @@ import path from 'path';
 import sharp from 'sharp';
 
 const DIR = process.argv[2] || 'public/assets/new-avatars';
-const TARGETS: string[] = [];
+const TARGETS = [];
 
 function backup(originalPath) {
   const bak = originalPath + '.bak';

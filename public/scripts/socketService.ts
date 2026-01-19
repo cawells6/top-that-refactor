@@ -71,17 +71,19 @@ export function joinGameViaLink(roomId: string, socketOverride?: { emit: (ev: st
     socketOverride.emit(JOIN_GAME, payload);
   } else {
     // Production mode: Wait for connection stability
-    if (state.socketReady) {
+    // If socket is already connected, emit immediately.
+    if (state.socket && (state.socket as any).connected) {
       state.socket.emit(JOIN_GAME, payload);
-    } else {
-      // Simple retry if socket isn't ready yet (rare in this flow but safe)
-      const check = setInterval(() => {
-        if (state.socketReady) {
-          clearInterval(check);
-          state.socket.emit(JOIN_GAME, payload);
-        }
-      }, 100);
+      return;
     }
+
+    // Simple retry if socket isn't ready yet (rare in this flow but safe)
+    const check = setInterval(() => {
+      if (state.socket && (state.socket as any).connected) {
+        clearInterval(check);
+        state.socket.emit(JOIN_GAME, payload);
+      }
+    }, 100);
   }
 }
 const playQueue: QueuedPlay[] = [];

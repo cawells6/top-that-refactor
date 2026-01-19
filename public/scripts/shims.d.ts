@@ -1,3 +1,7 @@
+declare const __DEV__: boolean;
+declare const DEV: boolean;
+
+export {};
 // public/scripts/shims.d.ts
 // Shims for ESM/NodeNext .js extension imports in TypeScript
 
