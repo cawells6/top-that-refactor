@@ -15,6 +15,8 @@ let shuffledBotAvatars: AvatarItem[] = [];
 let botAvatarAssignments: AvatarItem[] = [];
 // A single randomized order chosen at lobby init to avoid reshuffling on every open
 let initialAvatarOrder: AvatarItem[] = [];
+// Map of avatar URL -> preloaded Image object
+const avatarPreloads: Map<string, { img: HTMLImageElement; loaded: boolean }> = new Map();
 
 // --- Message Queue Logic for Single Error Display ---
 let messageQueue: string[] = [];
@@ -628,45 +630,87 @@ async function loadAvatarGridImages(): Promise<void> {
   );
   if (!imgs.length) return;
 
-  for (let i = 0; i < imgs.length; i++) {
-    const img = imgs[i];
-    // If it's already loaded (src set), skip
-    if (img.src) continue;
-
-    const src = img.getAttribute('data-src');
+  // Attach preloaded images where possible for immediate display.
+  const promises: Promise<void>[] = [];
+  for (const img of imgs) {
+    const src = img.getAttribute('data-src') || '';
     if (!src) continue;
 
-    // Load image and wait for it (with timeout)
-    await new Promise<void>((resolve) => {
-      let settled = false;
-      const onDone = () => {
-        if (settled) return;
-        settled = true;
-        img.classList.remove('avatar-thumb-placeholder');
-        resolve();
-      };
+    // If DOM image already has src, remove placeholder and continue
+    if (img.src) {
+      img.classList.remove('avatar-thumb-placeholder');
+      continue;
+    }
 
-      const onError = () => {
-        if (settled) return;
-        settled = true;
-        img.classList.remove('avatar-thumb-placeholder');
-        resolve();
-      };
-
-      img.onload = onDone;
-      img.onerror = onError;
-
-      // Kick off the load
-      // small delay for progressive feel on slower connections
-      setTimeout(() => {
+    const preload = avatarPreloads.get(src);
+    if (preload) {
+      if (preload.loaded) {
         img.src = src;
-      }, i === 0 ? 0 : 80);
+        img.classList.remove('avatar-thumb-placeholder');
+      } else {
+        // Wait for the preloaded image to finish, then set src
+        const p = new Promise<void>((resolve) => {
+          const onLoaded = () => {
+            img.src = src;
+            img.classList.remove('avatar-thumb-placeholder');
+            resolve();
+          };
+          preload.img.addEventListener('load', onLoaded, { once: true });
+          preload.img.addEventListener('error', () => resolve(), { once: true });
+          // safety timeout
+          setTimeout(() => resolve(), 4000);
+        });
+        promises.push(p);
+      }
+    } else {
+      // No preload available, kick off a non-blocking load
+      const p = new Promise<void>((resolve) => {
+        let settled = false;
+        const onDone = () => {
+          if (settled) return;
+          settled = true;
+          img.classList.remove('avatar-thumb-placeholder');
+          resolve();
+        };
+        img.onload = onDone;
+        img.onerror = onDone;
+        // start load immediately (no stagger)
+        img.src = src;
+        // safety timeout
+        setTimeout(onDone, 4000);
+      });
+      promises.push(p);
+    }
+  }
 
-      // Safety timeout: resolve after 4s even if image doesn't load
-      setTimeout(() => {
-        if (!settled) onDone();
-      }, 4000);
-    });
+  // Wait for any outstanding loads (but do not block UI longer than necessary)
+  await Promise.all(promises);
+}
+
+// Preload avatar images in background at lobby init to avoid delay when opening picker
+function preloadAvatarsList(list: AvatarItem[]) {
+  for (const av of list) {
+    if (!av || !av.icon) continue;
+    const url = av.icon;
+    if (avatarPreloads.has(url)) continue;
+    try {
+      const img = new Image();
+      img.decoding = 'async';
+      img.loading = 'eager';
+      avatarPreloads.set(url, { img, loaded: false });
+      img.onload = () => {
+        const rec = avatarPreloads.get(url);
+        if (rec) rec.loaded = true;
+      };
+      img.onerror = () => {
+        const rec = avatarPreloads.get(url);
+        if (rec) rec.loaded = true; // treat error as settled
+      };
+      // kick off load (non-blocking)
+      img.src = url;
+    } catch (e) {
+      // ignore
+    }
   }
 }
 
@@ -749,6 +793,9 @@ export async function initializeLobby() {
     const randomized = shuffleArray(royaltyAvatars);
     initialAvatarOrder = interleaveByCategory(randomized);
     shuffledBotAvatars = [...initialAvatarOrder];
+
+    // Start background preloads so picker shows instantly when opened
+    preloadAvatarsList(initialAvatarOrder);
     
     reconcileBotAvatarAssignments(0); // Pass a default value
     
