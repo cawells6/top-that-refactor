@@ -5,10 +5,27 @@ import {
   isSpecialCard,
 } from '../../utils/cardUtils.js';
 // Import assets so Vite can resolve hashed filenames
-// @ts-ignore - Vite handles asset imports
-import playerAvatarUrl from '../assets/Player.svg';
-// @ts-ignore - Vite handles asset imports
-import robotAvatarUrl from '../assets/robot.svg';
+// Resolve player/robot avatars at runtime to avoid build-time failures
+let playerAvatarUrl = '/assets/Player.svg';
+let robotAvatarUrl = '/assets/robot.svg';
+
+async function resolveAsset(url: string, fallback: string): Promise<string> {
+  try {
+    const res = await fetch(url, { method: 'HEAD' });
+    if (res.ok) return url;
+  } catch (err) {
+    // ignore
+  }
+  return fallback;
+}
+
+// Kick off resolution but don't block module load
+if (typeof window !== 'undefined') {
+  (async () => {
+    playerAvatarUrl = await resolveAsset(playerAvatarUrl, '/assets/Player.svg');
+    robotAvatarUrl = await resolveAsset(robotAvatarUrl, '/assets/robot.svg');
+  })();
+}
 // @ts-ignore - Vite handles asset imports
 import fourOfAKindIconUrl from '../src/shared/4ofakind-icon.png';
 // @ts-ignore - Vite handles asset imports

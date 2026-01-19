@@ -32,6 +32,7 @@ import {
   SPECIAL_CARD_EFFECT,
   STATE_UPDATE,
 } from '../../src/shared/events.js';
+import { JOIN_GAME } from '../../src/shared/events.js';
 import type { Card, GameStateData } from '../../src/shared/types.js';
 import { isSpecialCard } from '../../utils/cardUtils.js';
 
@@ -49,6 +50,39 @@ let hasPlayedOpeningDeal = false;
 interface QueuedPlay {
   cards: Card[];
   playerId?: string;
+}
+
+/**
+ * ARCHITECTURE FIX: Centralized join logic for invite links.
+ * Moves 'emit' logic out of the UI layer (main.ts) and into the Application layer.
+ * @param roomId - The room ID from the URL
+ * @param socketOverride - Optional mock socket for unit testing
+ */
+export function joinGameViaLink(roomId: string, socketOverride?: { emit: (ev: string, payload: unknown) => void }) {
+  const payload = {
+    roomId,
+    playerName: 'Guest',
+    numHumans: 1,
+    numCPUs: 0
+  };
+
+  if (socketOverride) {
+    // Test mode: Use the injected mock immediately
+    socketOverride.emit(JOIN_GAME, payload);
+  } else {
+    // Production mode: Wait for connection stability
+    if (state.socketReady) {
+      state.socket.emit(JOIN_GAME, payload);
+    } else {
+      // Simple retry if socket isn't ready yet (rare in this flow but safe)
+      const check = setInterval(() => {
+        if (state.socketReady) {
+          clearInterval(check);
+          state.socket.emit(JOIN_GAME, payload);
+        }
+      }, 100);
+    }
+  }
 }
 const playQueue: QueuedPlay[] = [];
 let isProcessingQueue = false;

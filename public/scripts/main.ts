@@ -1,11 +1,13 @@
 // public/scripts/main.ts
 import { JOIN_GAME } from '@shared/events.ts';
+import { joinGameViaLink } from './socketService.js';
 
 import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializeLobby } from './events.js';
 import { initializeGameControls } from './gameControls.js';
 import { initializeManualMode } from './manualMode.js';
 import { initializeSocketHandlers } from './socketService.js';
+import { showToast } from './uiHelpers.js';
 import {
   socket,
   socketReady,
@@ -61,20 +63,10 @@ function handleJoinLink({
   );
   if (normalizedRoomId && !inSession) {
     setCurrentRoom(normalizedRoomId);
-    const joinPayload = {
-      roomId: normalizedRoomId,
-      playerName: 'Guest',
-      numHumans: 1,
-      numCPUs: 0,
-    };
-    socket.emit(JOIN_GAME, joinPayload);
-    const params = new URLSearchParams(window.location.search);
-    params.delete('room');
-    const nextQuery = params.toString();
-    const nextUrl = nextQuery
-      ? `${window.location.pathname}?${nextQuery}`
-      : window.location.pathname;
-    window.history.replaceState({}, document.title, nextUrl);
+
+    // Delegate join logic to socketService so tests can inject a socket override
+    // We pass the injected socket (could be a mock) so unit tests can assert behavior.
+    joinGameViaLink(normalizedRoomId, socket as any);
   }
 }
 // --- END: New logic for handling join links ---
@@ -139,6 +131,12 @@ export async function initMain({
   if (params.get('spectator') === '1' || params.get('spectator') === 'true') {
     setIsSpectator(true);
     document.body.classList.add('spectator-mode');
+  }
+  // Load any saved session (myId/currentRoom) so reconnection logic can rejoin
+  try {
+    if (StateModule.loadSession) StateModule.loadSession();
+  } catch (e) {
+    // Ignore if session load isn't available in test environment
   }
   try {
     new InSessionLobbyModal();

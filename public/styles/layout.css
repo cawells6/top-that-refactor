@@ -412,18 +412,7 @@ body.showing-game #game-rules-button {
   gap: 0;
 }
 
-.hand-row--local .card-container {
-  flex: 0 0 auto;
-  margin: 2px 0;
-}
-
-.hand-row--local:not(.hand-row--compressed) .card-container {
-  margin-right: 0;
-}
-
-.hand-row--local:not(.hand-row--compressed) .card-container:last-child {
-  margin-right: 0;
-}
+/* Card visuals for local hand moved to game-board.css to avoid specificity conflicts */
 
 .hand-row--compressed .card-container + .card-container {
   margin-left: var(--hand-overlap, 0px);

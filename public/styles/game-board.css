@@ -1709,6 +1709,39 @@
     0 0 24px rgba(255, 255, 255, 0.2);
 }
 
+/* --- CONSOLIDATED LOCAL HAND STYLES --- */
+/* Moved from layout.css to prevent specificity wars */
+
+.hand-row--local .card-container {
+  /* Visuals & Positioning */
+  margin-right: -30px; /* Default overlap */
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              margin-right 0.2s ease;
+  
+  /* Stacking Context */
+  position: relative;
+  z-index: 1; 
+  
+  /* Mobile Safety */
+  touch-action: manipulation;
+}
+
+/* Hover Effects (The "Lift") */
+.hand-row--local .card-container:hover {
+  transform: translateY(-15px) scale(1.05); /* The Lift */
+  z-index: 100; /* Ensure it floats above neighbors */
+  margin-right: 0px; /* Expand space slightly */
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+
+/* Selected State */
+.hand-row--local .card-container.selected {
+  transform: translateY(-20px) scale(1.1);
+  z-index: 101;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); /* Gold Glow */
+  border-radius: 8px;
+}
+
 .player-header .turn-indicator {
   font-size: 1.2rem;
   font-weight: bold;

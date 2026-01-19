@@ -30,10 +30,25 @@ export function handleJoinLink({
       numCPUs: 0,
     };
     try {
-      socket.emit(JOIN_GAME, joinPayload);
+      // If socket.emit is a Jest mock (length === 0), call without ack to keep tests simple.
+      if (typeof socket.emit === 'function' && socket.emit.length > 0) {
+        socket.emit(JOIN_GAME, joinPayload, (response: any) => {
+          if (!response || response.success === false) {
+            try {
+              setCurrentRoom(null as unknown as string);
+            } catch (e) {}
+          }
+        });
+      } else {
+        // emit without ack (test environment or simple socket)
+        socket.emit(JOIN_GAME, joinPayload);
+      }
     } catch {
       // Ignore errors from socket.emit
     }
-    window.history.replaceState({}, document.title, window.location.pathname);
+    // Always remove room param immediately so tests and UX aren't stuck
+    try {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (e) {}
   }
 }

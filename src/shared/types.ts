@@ -66,6 +66,11 @@ export interface JoinGamePayload {
   spectator?: boolean;
 }
 
+// Standardized ack/response for JOIN_GAME
+export type JoinGameResponse =
+  | { success: true; roomId: string; playerId: string }
+  | { success: false; error: string };
+
 export interface RejoinData {
   roomId: string;
   playerId: string;

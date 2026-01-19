@@ -1,14 +1,7 @@
 import type { Socket } from 'socket.io-client';
 
 import { JOIN_GAME } from '../shared/events.js';
-import type { GameStateData, JoinGamePayload } from '../shared/types.js';
-
-export interface JoinGameResponse {
-  success: boolean;
-  message?: string;
-  state?: GameStateData;
-  error?: string;
-}
+import type { GameStateData, JoinGamePayload, JoinGameResponse } from '../shared/types.js';
 
 export function attachClientDebugLogging(socket: Socket): void {
   socket.on('connect', () => {

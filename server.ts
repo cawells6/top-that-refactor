@@ -114,7 +114,7 @@ export function startServer(port: number, retries = 0): Promise<http.Server> {
     console.log('==============================\n');
     try {
       fs.appendFileSync('server.log', logMsg + '\n', 'utf-8');
-    } catch (e) {
+    } catch {
       // ignore
     }
 
@@ -134,7 +134,7 @@ export function startServer(port: number, retries = 0): Promise<http.Server> {
       console.log('==============================\n');
       try {
         fs.appendFileSync('server.log', successMsg + '\n', 'utf-8');
-      } catch (e) {
+      } catch {
         // ignore
       }
 
@@ -235,6 +235,7 @@ if ((isExecutedDirectly || isRenderRuntime || isProductionRuntime) && !autoStart
           } else {
             process.exit(0);
           }
+          return undefined;
         })
         .catch((closeErr) => {
           console.error('Error during shutdown:', closeErr);

@@ -708,7 +708,7 @@ function preloadAvatarsList(list: AvatarItem[]) {
       };
       // kick off load (non-blocking)
       img.src = url;
-    } catch (e) {
+    } catch {
       // ignore
     }
   }
@@ -812,8 +812,7 @@ function bindAvatarPicker(): void {
   const humanSilhouettesContainer = document.getElementById('human-silhouettes');
   if (humanSilhouettesContainer) {
     // delegate click to any human silhouette
-    humanSilhouettesContainer.addEventListener('click', (event: Event) => {
-      const target = event.target as HTMLElement;
+    humanSilhouettesContainer.addEventListener('click', (_event: Event) => {
       // open avatar dropdown when any human silhouette is clicked
       const dropdown = document.getElementById('avatar-dropdown') as HTMLDetailsElement;
       if (dropdown && dropdown.classList.contains('hidden')) {
@@ -867,20 +866,67 @@ export function initializePageEventListeners() {
   // --- FEEDBACK MODAL LOGIC ---
   const feedbackModal = document.getElementById('feedback-modal');
   const feedbackClose = document.getElementById('close-feedback-btn');
-  const feedbackForm = document.getElementById('feedback-form') as HTMLFormElement;
+  const feedbackForm = document.getElementById('feedback-form') as HTMLFormElement | null;
 
-  // Open buttons (Lobby Footer + Game Menu)
+  // Open buttons (Lobby Menu + Game Menu)
   const openFeedback = () => {
-      if(feedbackModal) {
-          feedbackModal.classList.remove('modal--hidden');
-          document.getElementById('modal-overlay')?.classList.remove('modal__overlay--hidden');
-          // Close menu if open
-          document.getElementById('game-menu-dropdown')?.classList.add('hidden');
-      }
+    if (!feedbackModal) return;
+    feedbackModal.classList.remove('modal--hidden');
+    document.getElementById('modal-overlay')?.classList.remove('modal__overlay--hidden');
+    // Close game menu if open
+    document.getElementById('game-menu-dropdown')?.classList.add('hidden');
   };
 
   document.getElementById('lobby-feedback-btn')?.addEventListener('click', openFeedback);
   document.getElementById('game-feedback-btn')?.addEventListener('click', openFeedback);
+
+  if (feedbackClose && feedbackModal) {
+    feedbackClose.onclick = () => {
+      feedbackModal.classList.add('modal--hidden');
+      document.getElementById('modal-overlay')?.classList.add('modal__overlay--hidden');
+    };
+  }
+
+  if (feedbackForm && feedbackClose && feedbackModal) {
+    feedbackForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const type = (document.getElementById('feedback-type') as HTMLSelectElement | null)
+        ?.value;
+      const msg = (document.getElementById('feedback-msg') as HTMLTextAreaElement | null)
+        ?.value;
+      if (!type || msg == null) return;
+
+      try {
+        await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, message: msg }),
+        });
+        alert('Thanks for the feedback!');
+        feedbackClose.click();
+        feedbackForm.reset();
+      } catch (err) {
+        console.error(err);
+        alert('Error sending feedback.');
+      }
+    };
+
+    // Close feedback modal when clicking overlay or pressing Escape
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        if (feedbackModal.classList.contains('modal--hidden')) return;
+        feedbackModal.classList.add('modal--hidden');
+        overlay.classList.add('modal__overlay--hidden');
+      });
+    }
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && !feedbackModal.classList.contains('modal--hidden')) {
+        feedbackModal.classList.add('modal--hidden');
+        document.getElementById('modal-overlay')?.classList.add('modal__overlay--hidden');
+      }
+    });
+  }
 
   // --- LOBBY MENU (TOP-LEFT DROPDOWN) ---
   const lobbyMenu = document.getElementById('lobby-menu') as HTMLDetailsElement | null;
@@ -900,49 +946,6 @@ export function initializePageEventListeners() {
       if (!(ev.target instanceof Node)) return;
       if (!lobbyMenu.contains(ev.target)) {
         lobbyMenu.open = false;
-      }
-    });
-  }
-
-  if(feedbackClose && feedbackModal && feedbackForm) {
-    feedbackClose.onclick = () => {
-        feedbackModal.classList.add('modal--hidden');
-        document.getElementById('modal-overlay')?.classList.add('modal__overlay--hidden');
-    };
-    feedbackForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const type = (document.getElementById('feedback-type') as HTMLSelectElement).value;
-        const msg = (document.getElementById('feedback-msg') as HTMLTextAreaElement).value;
-
-        try {
-            await fetch('/api/feedback', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ type, message: msg })
-            });
-            alert('Thanks for the feedback!');
-            feedbackClose.click();
-            feedbackForm.reset();
-        } catch(err) {
-            console.error(err);
-            alert('Error sending feedback.');
-        }
-    };
-    // Close feedback modal when clicking overlay or pressing Escape
-    const overlay = document.getElementById('modal-overlay');
-    if (overlay) {
-      overlay.addEventListener('click', (ev) => {
-        if (!feedbackModal) return;
-        if (!feedbackModal.classList.contains('modal--hidden')) {
-          feedbackModal.classList.add('modal--hidden');
-          overlay.classList.add('modal__overlay--hidden');
-        }
-      });
-    }
-    document.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape' && feedbackModal && !feedbackModal.classList.contains('modal--hidden')) {
-        feedbackModal.classList.add('modal--hidden');
-        document.getElementById('modal-overlay')?.classList.add('modal__overlay--hidden');
       }
     });
   }
@@ -1412,39 +1415,31 @@ async function handleDealClick() {
 
   state.socket.emit(JOIN_GAME, playerDataForEmit, (response: any) => {
     console.log('[CLIENT] Received JOIN_GAME response from server:', response);
-    const dealButton = document.getElementById(
-      'setup-deal-button'
-    ) as HTMLButtonElement;
+    const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
     const idleLabel = isSpectator ? 'START CPU MATCH' : "LET'S PLAY";
-    if (response.error) {
-      console.error('[CLIENT] JOIN_GAME error:', response.error);
-      queueMessage(response.error);
+    if (!response || response.success === false) {
+      const err = response?.error || 'Unable to create/join game.';
+      console.error('[CLIENT] JOIN_GAME error:', err);
+      queueMessage(err);
       if (dealButton) {
         dealButton.disabled = false;
         dealButton.textContent = idleLabel;
       }
-    } else {
-      console.log(
-        '[CLIENT] JOIN_GAME success - Room ID:',
-        response.roomId,
-        'Player ID:',
-        response.playerId
-      );
-      // --- BEST PRACTICE: Reset form fields after successful join ---
-      const form = document.getElementById(
-        'lobby-form'
-      ) as HTMLFormElement | null;
-      if (form) {
-        form.reset();
-        syncCounterUI();
-      }
-      if (dealButton) {
-        dealButton.disabled = false;
-        dealButton.textContent = idleLabel;
-      }
-      if (isSpectator) {
-        state.socket.emit(START_GAME, { computerCount: numCPUs });
-      }
+      return;
+    }
+
+    console.log('[CLIENT] JOIN_GAME success - Room ID:', response.roomId, 'Player ID:', response.playerId);
+    const form = document.getElementById('lobby-form') as HTMLFormElement | null;
+    if (form) {
+      form.reset();
+      syncCounterUI();
+    }
+    if (dealButton) {
+      dealButton.disabled = false;
+      dealButton.textContent = idleLabel;
+    }
+    if (isSpectator) {
+      state.socket.emit(START_GAME, { computerCount: numCPUs });
     }
   });
 
@@ -1514,12 +1509,10 @@ async function handleDevRestart() {
   console.log('[DEV] Creating new game with:', playerData);
 
   state.socket.emit(JOIN_GAME, playerData, (response: any) => {
-    if (response?.error) {
-      console.error('[DEV] Failed to create game:', response.error);
+    if (!response || response.success === false) {
+      console.error('[DEV] Failed to create game:', response?.error);
     } else {
-      console.log(
-        '[DEV] Game created successfully, animation will trigger on STATE_UPDATE'
-      );
+      console.log('[DEV] Game created successfully, animation will trigger on STATE_UPDATE');
     }
   });
 }
@@ -1584,8 +1577,9 @@ async function handleJoinGameClick() {
 
   state.socket.emit(JOIN_GAME, joinPayload, (response: any) => {
     if (joinBtn) joinBtn.disabled = false; // Re-enable button after server response
-    if (response && response.error) {
-      queueMessage(response.error);
+    if (!response || response.success === false) {
+      const err = response?.error || 'Unable to join room.';
+      queueMessage(err);
       state.setCurrentRoom(null);
       state.saveSession();
       return;
