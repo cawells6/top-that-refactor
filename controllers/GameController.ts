@@ -147,7 +147,7 @@ export class GameRoomManager {
     socket: Socket,
     playerData: JoinGamePayload,
     ack?: (
-      response: { roomId: string; playerId: string } | { error: string }
+      response: JoinGameResponse
     ) => void
   ): void {
     console.log(

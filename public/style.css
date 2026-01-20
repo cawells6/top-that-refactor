@@ -10,7 +10,6 @@
 /* style.css - Main entry point for styles */
 /* Hot reload test */
 @import 'styles/base.css';
-@import 'styles/cards.css';
 @import 'styles/layout.css';
 @import 'styles/modal-containers.css';
 @import 'styles/animations.css';

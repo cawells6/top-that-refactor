@@ -1627,20 +1627,21 @@ export function renderGameState(
       avatar.innerHTML = '';
 
       if (player.avatar) {
+        const avatarValue = player.avatar;
         const isImageAvatar =
-          /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(player.avatar) ||
-          player.avatar.startsWith('/assets/');
+          /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(avatarValue) ||
+          avatarValue.startsWith('/assets/');
 
         if (isImageAvatar) {
           // Preload image and append after it loads to avoid flashes
           const tmp = new Image();
           tmp.decoding = 'async';
           tmp.loading = 'eager';
-          tmp.src = player.avatar;
+          tmp.src = avatarValue;
           tmp.onload = () => {
             const img = document.createElement('img');
             img.className = 'image-avatar loaded';
-            img.src = player.avatar;
+            img.src = avatarValue;
             img.alt = 'avatar';
             avatar.appendChild(img);
           };
@@ -1654,7 +1655,7 @@ export function renderGameState(
         } else {
           const emojiDiv = document.createElement('div');
           emojiDiv.className = 'emoji-avatar';
-          emojiDiv.textContent = player.avatar;
+          emojiDiv.textContent = avatarValue;
           avatar.appendChild(emojiDiv);
         }
       } else {
