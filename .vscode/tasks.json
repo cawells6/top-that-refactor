@@ -20,6 +20,20 @@
       "isBackground": true,
       "problemMatcher": ["$tsc"],
       "group": "build"
+    },
+    {
+      "label": "Ship It With Message",
+      "type": "shell",
+      "command": "git add . && git commit -m \"${input:commitMessage}\" && git push origin HEAD && git checkout main && git pull origin main && git merge - && git push origin main",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "commitMessage",
+      "type": "promptString",
+      "description": "Enter your commit message",
+      "default": "Update"
     }
   ]
 }
