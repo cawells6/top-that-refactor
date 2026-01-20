@@ -347,7 +347,8 @@ export function cardImg(
     img.className = 'card-img';
     img.style.visibility = 'hidden';
 
-    const imgSrc = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
+    // Use local assets by default for instant loading
+    const imgSrc = `/assets/cards/${cardCode}.png`;
     img.src = imgSrc;
     img.alt = `${card.value} of ${card.suit}`;
 
@@ -360,18 +361,14 @@ export function cardImg(
 
     img.onerror = () => {
       console.warn(
-        `Failed to load card from deckofcardsapi: ${cardCode}, trying fallback`
+        `Failed to load local card asset: ${cardCode}, trying remote fallback`
       );
-      setTimeout(() => {
-        const fallbacks = [
-          `/cards-api/static/img/${cardCode}.png`,
-          `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png`,
-        ];
-        img.src = fallbacks[1];
-        if (!skeletonMode) {
-          img.style.visibility = 'visible';
-        }
-      }, 500);
+      // Fallback to deckofcardsapi if local is missing (safety net)
+      const fallbackUrl = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
+      img.src = fallbackUrl;
+      if (!skeletonMode) {
+        img.style.visibility = 'visible';
+      }
     };
 
     if (selectable) {
