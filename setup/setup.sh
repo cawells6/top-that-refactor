@@ -108,4 +108,4 @@ print_message "   - For development (with auto-reloading):" "yellow"
 print_message "     npm run dev"
 print_message "   - For production (uses the build artifacts):" "yellow"
 print_message "     npm start"
-// Testing the ship-it buttonsssssx
+// Testing the ship-it buttonsssssxs
