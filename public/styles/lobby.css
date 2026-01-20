@@ -431,7 +431,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #fffdf5;
+  background: transparent;
   font-size: 26px;
   /* Removed extraneous border for a cleaner look */
   border: none !important;
@@ -525,9 +525,11 @@
 }
 
 .avatar-option.selected {
-  background-color: #fff8e1;
+  background-color: transparent;
   box-shadow: 0 6px 18px rgba(255, 195, 0, 0.18);
   transform: scale(1.15);
+  /* Add a border to indicate selection since background is gone */
+  border: 2px solid #ffc300 !important;
 }
 
 /* Counter styles now defined in `public/style.css` */
@@ -620,7 +622,7 @@
 #lobby-container .player-silhouette {
   width: 80px; /* Increased from 60px for desktop */
   height: 80px;
-  background: #fff;
+  background: transparent;
   border-radius: 12px;
   display: flex;
   align-items: center;

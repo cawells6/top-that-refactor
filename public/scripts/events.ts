@@ -131,7 +131,15 @@ function updateAvatarDropdownUI() {
   const preview = document.getElementById('selected-avatar-preview');
   const text = document.getElementById('selected-avatar-text');
 
-  if (preview) preview.textContent = selectedAvatar ? selectedAvatar.icon : '?';
+  if (preview) {
+    preview.innerHTML = '';
+    if (selectedAvatar) {
+        preview.appendChild(renderAvatarVisual(selectedAvatar.icon));
+    } else {
+        preview.textContent = '?';
+    }
+  }
+
   if (text) {
     text.textContent = selectedAvatar
       ? selectedAvatar.label
