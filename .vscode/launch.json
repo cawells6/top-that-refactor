@@ -3,12 +3,14 @@
   // Hover to view descriptions of existing attributes.
   "version": "0.2.0",
   "configurations": [
+    
     {
       "type": "firefox",
       "request": "launch",
       "name": "Launch Vite App in Firefox",
       "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}/public"
+      "webRoot": "${workspaceFolder}/public",
+      "preLaunchTask": "Start Development Environment"
     }
   ]
 }
