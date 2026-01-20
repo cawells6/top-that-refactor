@@ -475,8 +475,8 @@ function updateCenterArea(
     centerWrap = document.createElement('div');
     centerWrap.className = 'center-piles';
     // Ensure card dimensions are set
-    centerWrap.style.setProperty('--card-w-base', '90px');
-    centerWrap.style.setProperty('--card-h-base', '126px');
+    centerWrap.style.setProperty('--card-w-desktop', '90px');
+    centerWrap.style.setProperty('--card-h-desktop', '126px');
     centerArea.appendChild(centerWrap);
   }
 
@@ -1613,6 +1613,10 @@ export function renderGameState(
 
     if (player.isComputer) panel.classList.add('computer-player');
     else panel.classList.remove('computer-player');
+
+    // Flattened Class Logic: Apply standard class based on relationship
+    panel.classList.toggle('player-area--opponent', !isLocalPlayer);
+    panel.classList.toggle('player-area--local', isLocalPlayer);
 
     if (player.disconnected) panel.classList.add('disconnected');
     else panel.classList.remove('disconnected');
