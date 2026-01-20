@@ -347,7 +347,8 @@ export function cardImg(
     img.className = 'card-img';
     img.style.visibility = 'hidden';
 
-    const imgSrc = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
+    // Use local assets by default for instant loading
+    const imgSrc = `/assets/cards/${cardCode}.png`;
     img.src = imgSrc;
     img.alt = `${card.value} of ${card.suit}`;
 
@@ -360,18 +361,14 @@ export function cardImg(
 
     img.onerror = () => {
       console.warn(
-        `Failed to load card from deckofcardsapi: ${cardCode}, trying fallback`
+        `Failed to load local card asset: ${cardCode}, trying remote fallback`
       );
-      setTimeout(() => {
-        const fallbacks = [
-          `/cards-api/static/img/${cardCode}.png`,
-          `https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/${cardCode}.png`,
-        ];
-        img.src = fallbacks[1];
-        if (!skeletonMode) {
-          img.style.visibility = 'visible';
-        }
-      }, 500);
+      // Fallback to deckofcardsapi if local is missing (safety net)
+      const fallbackUrl = `https://deckofcardsapi.com/static/img/${cardCode}.png`;
+      img.src = fallbackUrl;
+      if (!skeletonMode) {
+        img.style.visibility = 'visible';
+      }
     };
 
     if (selectable) {
@@ -475,8 +472,8 @@ function updateCenterArea(
     centerWrap = document.createElement('div');
     centerWrap.className = 'center-piles';
     // Ensure card dimensions are set
-    centerWrap.style.setProperty('--card-w-base', '90px');
-    centerWrap.style.setProperty('--card-h-base', '126px');
+    centerWrap.style.setProperty('--card-w-desktop', '90px');
+    centerWrap.style.setProperty('--card-h-desktop', '126px');
     centerArea.appendChild(centerWrap);
   }
 
@@ -1641,6 +1638,10 @@ export function renderGameState(
 
     if (player.isComputer) panel.classList.add('computer-player');
     else panel.classList.remove('computer-player');
+
+    // Flattened Class Logic: Apply standard class based on relationship
+    panel.classList.toggle('player-area--opponent', !isLocalPlayer);
+    panel.classList.toggle('player-area--local', isLocalPlayer);
 
     if (player.disconnected) panel.classList.add('disconnected');
     else panel.classList.remove('disconnected');
