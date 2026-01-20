@@ -21,13 +21,5 @@ Canonical standards live in `PROJECT_MANIFEST.md`. Follow it for all new/modifie
 
 ## Architecture Map (Quick)
 
-- **UI:** `public/scripts/*` (DOM events, validation, rendering). Entry: `public/scripts/main.ts`.
-- **Client Wrapper:** Use `public/scripts/socketService.ts` or wrappers. **DO NOT** call `socket.emit` directly in UI code.
-- **Server:** `controllers/GameController.ts` (game flow), `controllers/PlayerStateManager.ts` (sync/metrics).
-- **Events:** Import from `src/shared/events.ts`.
 
 ## Debugging Workflow
-
-- **Stop & Search:** Search the repo for existing patterns before writing new ones.
-- **One Fix:** Prefer one clean architectural fix over multiple "band-aid" patches.
-- **Tests:** Run `npm test` when behavior changes.

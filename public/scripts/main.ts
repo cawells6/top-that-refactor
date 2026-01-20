@@ -1,13 +1,13 @@
 // public/scripts/main.ts
-import { JOIN_GAME } from '@shared/events.ts';
-import { joinGameViaLink } from './socketService.js';
+
+
 
 import { InSessionLobbyModal } from './components/InSessionLobbyModal.js';
 import { initializeLobby } from './events.js';
 import { initializeGameControls } from './gameControls.js';
 import { initializeManualMode } from './manualMode.js';
+import { joinGameViaLink } from './socketService.js';
 import { initializeSocketHandlers } from './socketService.js';
-import { showToast } from './uiHelpers.js';
 import {
   socket,
   socketReady,
@@ -23,7 +23,7 @@ const _getViteMode = () => {
     // eslint-disable-next-line no-eval
     const meta = eval("typeof import.meta !== 'undefined' ? import.meta : undefined");
     return meta?.env?.MODE;
-  } catch (e) {
+  } catch {
     return undefined;
   }
 };
@@ -74,7 +74,7 @@ function handleJoinLink({
       const query = params.toString();
       const newPath = query ? `${window.location.pathname}?${query}` : window.location.pathname;
       window.history.replaceState({}, document.title, newPath);
-    } catch (e) {
+    } catch {
       // Silently ignore if history manipulation isn't available in test env
     }
   }
@@ -102,9 +102,10 @@ export async function initMain({
 
   // Dev-only restart button should only appear in tutorial mode.
   // NOTE: Jest (CommonJS) can't parse `import.meta`, so we use a Vite-injected global instead.
+  // Fix: Define __DEV__ fallback if not present
   const isDev =
-    typeof __DEV__ !== 'undefined'
-      ? __DEV__
+    (typeof window !== 'undefined' && typeof (window as any).__DEV__ !== 'undefined')
+      ? (window as any).__DEV__
       : (globalThis as any).process?.env?.NODE_ENV === 'development';
 
   // 1. CHECK FOR TUTORIAL FLAG
@@ -121,7 +122,7 @@ export async function initMain({
       const devRestartButton = document.getElementById('dev-restart-button');
       if (devRestartButton) {
         devRestartButton.style.display = 'block';
-        console.log('dY" [DEV] Restart button enabled (tutorial only)');
+        console.log('dY"\u0015 [DEV] Restart button enabled (tutorial only)');
       }
     }
 
@@ -145,7 +146,7 @@ export async function initMain({
   // Load any saved session (myId/currentRoom) so reconnection logic can rejoin
   try {
     if (StateModule.loadSession) StateModule.loadSession();
-  } catch (e) {
+  } catch {
     // Ignore if session load isn't available in test environment
   }
   try {
