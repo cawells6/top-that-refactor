@@ -588,10 +588,21 @@ function initializeAvatarPicker() {
     el.className = 'avatar-option';
     el.title = av.label;
 
-    // Create placeholder image; we'll set `data-src` and load later
+    // Check if we have a preload ready
+    const preload = avatarPreloads.get(av.icon);
+    const isReady = preload && preload.loaded;
+
     const img = document.createElement('img');
-    img.className = 'image-avatar avatar-thumb-placeholder';
-    img.setAttribute('data-src', av.icon);
+    img.className = 'image-avatar';
+
+    // Only add placeholder class if not ready
+    if (!isReady) {
+        img.classList.add('avatar-thumb-placeholder');
+        img.setAttribute('data-src', av.icon); // Mark for lazy load
+    } else {
+        img.src = av.icon; // Set directly if ready
+    }
+
     img.alt = av.label;
     img.loading = 'lazy';
     img.decoding = 'async';
@@ -647,12 +658,14 @@ async function loadAvatarGridImages(): Promise<void> {
       if (preload.loaded) {
         img.src = src;
         img.classList.remove('avatar-thumb-placeholder');
+        img.removeAttribute('data-src');
       } else {
         // Wait for the preloaded image to finish, then set src
         const p = new Promise<void>((resolve) => {
           const onLoaded = () => {
             img.src = src;
             img.classList.remove('avatar-thumb-placeholder');
+            img.removeAttribute('data-src');
             resolve();
           };
           preload.img.addEventListener('load', onLoaded, { once: true });
@@ -670,6 +683,7 @@ async function loadAvatarGridImages(): Promise<void> {
           if (settled) return;
           settled = true;
           img.classList.remove('avatar-thumb-placeholder');
+          img.removeAttribute('data-src');
           resolve();
         };
         img.onload = onDone;

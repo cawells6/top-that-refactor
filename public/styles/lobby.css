@@ -509,7 +509,7 @@
   justify-content: center;
   cursor: pointer;
   border-radius: 50%;
-  background: #fff;
+  background: transparent;
   /* Removed border for a sleeker avatar presentation */
   border: none !important;
   transition:
