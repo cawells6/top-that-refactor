@@ -542,6 +542,36 @@ function updateCenterArea(
     drawCountEl.textContent = forceBlank ? '0' : String(pile.length);
 
   if (playStack) {
+    // Calculate new signature to avoid unnecessary re-renders
+    let newSignature = 'EMPTY';
+    const topCard =
+      visualPileTop || (pile.length > 0 ? pile[pile.length - 1] : null);
+
+    if (skeletonMode || forceBlank) {
+      newSignature = 'BLANK';
+    } else if (topCard) {
+      const shouldShowCopyShingle =
+        Boolean((topCard as any).copied) && pile.length >= 2;
+      if (shouldShowCopyShingle) {
+        const belowCard = pile[pile.length - 2];
+        newSignature = `SHINGLE:${code(topCard)}:${code(belowCard)}`;
+      } else {
+        const normalizedTopValue = normalizeCardValue(topCard.value);
+        const isStarterSpecial =
+          pile.length === 1 &&
+          (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
+        newSignature = `SINGLE:${code(topCard)}${
+          isStarterSpecial ? ':STARTER' : ''
+        }`;
+      }
+    }
+
+    // If signature hasn't changed, skip DOM updates
+    if (playStack.dataset.pileSignature === newSignature) {
+      return;
+    }
+    playStack.dataset.pileSignature = newSignature;
+
     // During initial deal, Draw pile must stay blank
     if (skeletonMode || forceBlank) {
       playStack.classList.remove('pile-multiple');
@@ -549,8 +579,6 @@ function updateCenterArea(
       return;
     }
 
-    const topCard =
-      visualPileTop || (pile.length > 0 ? pile[pile.length - 1] : null);
     if (topCard) {
       playStack.innerHTML = '';
 
@@ -1621,13 +1649,23 @@ export function renderGameState(
     const nameEl = panel.querySelector('.player-name');
     if (nameEl) nameEl.textContent = player.name || player.id;
 
-    const avatar = panel.querySelector('.player-avatar');
+    const avatar = panel.querySelector('.player-avatar') as HTMLElement;
     if (avatar) {
-      // Clear previous content
-      avatar.innerHTML = '';
+      // Determine the target avatar value
+      let avatarValue = player.avatar;
+      if (!avatarValue) {
+        avatarValue = player.isComputer ? robotAvatarUrl : playerAvatarUrl;
+      }
 
-      if (player.avatar) {
-        const avatarValue = player.avatar;
+      // Check if we already have this avatar rendered to avoid flickering
+      const currentVal = avatar.dataset.currentAvatar;
+      if (currentVal !== avatarValue) {
+        // Update the tracker
+        avatar.dataset.currentAvatar = avatarValue;
+
+        // Clear previous content
+        avatar.innerHTML = '';
+
         const isImageAvatar =
           /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(avatarValue) ||
           avatarValue.startsWith('/assets/');
@@ -1639,18 +1677,24 @@ export function renderGameState(
           tmp.loading = 'eager';
           tmp.src = avatarValue;
           tmp.onload = () => {
-            const img = document.createElement('img');
-            img.className = 'image-avatar loaded';
-            img.src = avatarValue;
-            img.alt = 'avatar';
-            avatar.appendChild(img);
+            // Check if the avatar value hasn't changed while we were loading
+            if (avatar.dataset.currentAvatar === avatarValue) {
+              avatar.innerHTML = ''; // Ensure clean slate
+              const img = document.createElement('img');
+              img.className = 'image-avatar loaded';
+              img.src = avatarValue!;
+              img.alt = 'avatar';
+              avatar.appendChild(img);
+            }
           };
           tmp.onerror = () => {
-            // Fallback to emoji if image fails
-            const emojiDiv = document.createElement('div');
-            emojiDiv.className = 'emoji-avatar';
-            emojiDiv.textContent = '👤';
-            avatar.appendChild(emojiDiv);
+            if (avatar.dataset.currentAvatar === avatarValue) {
+              avatar.innerHTML = '';
+              const emojiDiv = document.createElement('div');
+              emojiDiv.className = 'emoji-avatar';
+              emojiDiv.textContent = '👤';
+              avatar.appendChild(emojiDiv);
+            }
           };
         } else {
           const emojiDiv = document.createElement('div');
@@ -1658,25 +1702,6 @@ export function renderGameState(
           emojiDiv.textContent = avatarValue;
           avatar.appendChild(emojiDiv);
         }
-      } else {
-        // FALLBACK TO LEGACY IMAGES
-        const tmp = new Image();
-        tmp.decoding = 'async';
-        tmp.loading = 'eager';
-        tmp.src = player.isComputer ? robotAvatarUrl : playerAvatarUrl;
-        tmp.onload = () => {
-          const img = document.createElement('img');
-          img.className = 'image-avatar loaded';
-          img.src = tmp.src;
-          img.alt = 'avatar';
-          avatar.appendChild(img);
-        };
-        tmp.onerror = () => {
-          const emojiDiv = document.createElement('div');
-          emojiDiv.className = 'emoji-avatar';
-          emojiDiv.textContent = '👤';
-          avatar.appendChild(emojiDiv);
-        };
       }
     }
 
