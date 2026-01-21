@@ -4,7 +4,7 @@ import path from 'path';
 import sharp from 'sharp';
 
 const DIR = process.argv[2] || 'public/assets/new-avatars';
-const TARGETS = [];
+let TARGETS = [];
 
 function backup(originalPath) {
   const bak = originalPath + '.bak';
@@ -52,6 +52,16 @@ async function convert(fileName) {
 
 async function main() {
   const results = [];
+  // If no explicit targets provided, process all PNGs in DIR
+  if (TARGETS.length === 0) {
+    try {
+      const files = fs.readdirSync(DIR).filter((f) => /\.png$/i.test(f));
+      TARGETS = files;
+    } catch (e) {
+      console.error('Unable to read directory', DIR, e);
+      process.exit(1);
+    }
+  }
   for (const t of TARGETS) {
     results.push(await convert(t));
   }
