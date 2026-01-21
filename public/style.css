@@ -1663,3 +1663,36 @@ body.spectator-mode .spectator-banner {
   height: 100%;
   object-fit: cover;
 }
+
+/* Ensure avatars render with a consistent black fade background so
+   images that include a black gradient match those that do not. */
+.player-silhouette,
+.avatar-option,
+.avatar-dropdown__preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  /* subtle black radial/fade background */
+  background: radial-gradient(circle at 30% 30%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.22) 25%, rgba(0,0,0,0.08) 50%, transparent 70%),
+              linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.0));
+}
+
+.avatar-option img,
+.player-silhouette img,
+.avatar-dropdown__preview img {
+  position: relative;
+  z-index: 1;
+}
+
+/* Provide a faint inner shadow to help avatar edges read on bright backgrounds */
+.player-silhouette::after,
+.avatar-option::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 12px 24px rgba(0,0,0,0.18);
+  border-radius: 50%;
+}
