@@ -32,22 +32,22 @@ function assetUrl(fileName: string): string {
 
 // Use the processed transparent filenames by default where available.
 const AVATAR_FILES = [
-  'king_1_transparent.png',
-  'king_2_transparent.png',
-  'king_3_transparent.png',
-  'king_4_transparent.png',
-  'Knight_1_transparent.png',
-  'Prince_1_transparent.png',
-  'Prince_2_transparent.png',
-  'Prince_3_transparent.png',
-  'Prince_5_transparent.png',
-  'prince_edmund_transparent.png',
-  'Princess 5_transparent.png',
-  'Princess_1_transparent.png',
-  'Princess_Sansa_transparent.png',
-  'queen_amara_transparent.png',
-  'queen_linh_transparent.png',
-  'queen_seraphine_transparent.png',
+  'king_1_transparent_fade.png',
+  'king_2_transparent_fade.png',
+  'king_3_transparent_fade.png',
+  'king_4_transparent_fade.png',
+  'Knight_1_transparent_fade.png',
+  'Prince_1_transparent_fade.png',
+  'Prince_2_transparent_fade.png',
+  'Prince_3_transparent_fade.png',
+  'Prince_5_transparent_fade.png',
+  'prince_edmund_transparent_fade.png',
+  'Princess 5_transparent_fade.png',
+  'Princess_1_transparent_fade.png',
+  'Princess_Sansa_transparent_fade.png',
+  'queen_amara_transparent_fade.png',
+  'queen_linh_transparent_fade.png',
+  'queen_seraphine_transparent_fade.png',
 ];
 
 export const ROYALTY_AVATARS: AvatarItem[] = AVATAR_FILES.map((fileName) => ({
