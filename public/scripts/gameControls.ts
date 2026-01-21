@@ -7,7 +7,7 @@ import type { Card, ClientStatePlayer } from '../../src/types.js';
 
 let initialized = false;
 
-type SelectableCardElement = HTMLImageElement;
+type SelectableCardElement = HTMLElement;
 
 function isMyTurn(): boolean {
   const lastGameState = state.lastGameState;
@@ -32,30 +32,32 @@ function ensureSocketReady(): boolean {
   return true;
 }
 
-function deselectCard(card: HTMLImageElement): void {
+function deselectCard(card: SelectableCardElement): void {
   card.classList.remove('selected');
   const container = card.closest('.card-container');
   if (container) {
     container.classList.remove('selected-container');
+    container.classList.remove('selected');
   }
 }
 
-function forceSelectCard(card: HTMLImageElement): void {
+function forceSelectCard(card: SelectableCardElement): void {
   card.classList.add('selected');
   const container = card.closest('.card-container');
   if (container) {
     container.classList.add('selected-container');
+    container.classList.add('selected');
   }
 }
 
 function clearSelectedCards(): void {
   const selectedCards = Array.from(
     document.querySelectorAll('.card-img.selected')
-  ) as HTMLImageElement[];
+  ) as SelectableCardElement[];
   selectedCards.forEach(deselectCard);
 }
 
-function enforceSelectionRules(clickedCard: HTMLImageElement): void {
+function enforceSelectionRules(clickedCard: SelectableCardElement): void {
   if (!clickedCard.classList.contains('selected')) {
     return;
   }
@@ -67,7 +69,7 @@ function enforceSelectionRules(clickedCard: HTMLImageElement): void {
 
   const selectedCards = Array.from(
     document.querySelectorAll('.card-img.selected')
-  ) as HTMLImageElement[];
+  ) as SelectableCardElement[];
 
   selectedCards.forEach((card) => {
     if (card === clickedCard) {
@@ -103,7 +105,7 @@ interface SelectionResult {
 function collectSelection(): SelectionResult | null {
   const selectedCards = Array.from(
     document.querySelectorAll('#my-area .card-img.selected')
-  ) as HTMLImageElement[];
+  ) as SelectableCardElement[];
 
   if (selectedCards.length === 0) {
     showToast('Select a card to play.', 'info');
@@ -229,6 +231,7 @@ function handlePlayClick(): void {
 
   state.socket.emit(PLAY_CARD, selection);
   clearSelectedCards();
+  suspendHandHover(250);
 }
 
 function handleTakeClick(): void {
@@ -241,23 +244,23 @@ function handleTakeClick(): void {
   }
   state.socket.emit(PICK_UP_PILE);
   clearSelectedCards();
+  suspendHandHover(250);
 }
 
 function getSelectableCard(target: HTMLElement): SelectableCardElement | null {
   if (target.classList.contains('card-img')) {
-    const img = target as HTMLImageElement;
-    return img.classList.contains('selectable') ? img : null;
+    return target.classList.contains('selectable') ? target : null;
   }
 
   const container = target.closest('.card-container');
   if (!container) {
     return null;
   }
-  const img = container.querySelector('.card-img') as HTMLImageElement | null;
-  if (!img || !img.classList.contains('selectable')) {
+  const cardFace = container.querySelector('.card-img') as HTMLElement | null;
+  if (!cardFace || !cardFace.classList.contains('selectable')) {
     return null;
   }
-  return img;
+  return cardFace;
 }
 
 export function initializeGameControls(): void {
@@ -317,4 +320,12 @@ export function initializeGameControls(): void {
     forceSelectCard(selectableCard);
     handlePlayClick();
   });
+}
+
+function suspendHandHover(durationMs: number): void {
+  const root = document.documentElement;
+  root.classList.add('hand-hover-suspended');
+  window.setTimeout(() => {
+    root.classList.remove('hand-hover-suspended');
+  }, durationMs);
 }

@@ -11,14 +11,25 @@
   --panel-bg: rgba(247, 242, 232, 0.96);
   --panel-border: rgba(27, 46, 60, 0.3);
 
+  /* Global UI scale: avoids relying on browser zoom across monitors */
+  --ui-scale: 1;
+
   /* --- NEW CENTRALIZED SIZING (The Fix) --- */
   --card-aspect: 1.4;
-  --card-w-desktop: 90px;
+  /* Responsive card sizing across monitors (avoid relying on browser zoom). */
+  --card-w-desktop: calc(clamp(70px, 3.6vw, 102px) * var(--ui-scale));
   --card-h-desktop: calc(var(--card-w-desktop) * var(--card-aspect));
+  --local-card-scale: 0.82;
 
   /* Dynamic vars that usage classes will actually reference */
   --card-w: var(--card-w-desktop);
   --card-h: var(--card-h-desktop);
+
+  /* Local hand overlap + interaction (used by JS hand compression) */
+  --hand-base-overlap: -18px;
+  --hand-min-peek: 36px;
+  --hand-hover-lift: 18px;
+  --hand-selected-lift: 18px;
 
   /* --- EXISTING TABLE VARS (Preserved) --- */
   --table-margin-top: 0;
@@ -32,12 +43,30 @@
   --table-column-gap-min: 100px;
   --table-column-gap-preferred: 10vw;
   --table-column-gap-max: 150px;
-  --table-padding-vertical-min: 4rem;
-  --table-padding-vertical-preferred: 5vw;
-  --table-padding-vertical-max: 5.5rem;
-  --table-padding-horizontal-min: 7rem;
-  --table-padding-horizontal-preferred: 9vw;
-  --table-padding-horizontal-max: 9rem;
+  /* Table padding controls how close play areas sit to the wood border. */
+  --table-padding-vertical-min: 2rem;
+  --table-padding-vertical-preferred: 2.6vh;
+  --table-padding-vertical-max: 3rem;
+  --table-padding-horizontal-min: 2.75rem;
+  --table-padding-horizontal-preferred: 5vw;
+  --table-padding-horizontal-max: 5.25rem;
+}
+
+/* Ultra-wide: match the “110% zoom feels right” baseline at 100% zoom. */
+@media (min-width: 2200px) {
+  :root {
+    --ui-scale: 1.1;
+    --table-padding-vertical-min: 1.6rem;
+    --table-padding-vertical-preferred: 2.1vh;
+    --table-padding-vertical-max: 2.4rem;
+  }
+}
+
+/* Smaller desktop/laptop: keep the game from feeling oversized. */
+@media (max-width: 1600px) {
+  :root {
+    --ui-scale: 0.9;
+  }
 }
 
 /* --- MOVED GRID SLOTS (From layout.css) --- */
@@ -803,9 +832,10 @@
       18vw,
       260px
     );
-  grid-template-rows: auto auto auto;
+  /* Use full vertical felt: keep opponent top at top, local at bottom. */
+  grid-template-rows: auto 1fr auto;
   justify-content: center;
-  align-content: center;
+  align-content: stretch;
   column-gap: clamp(
     var(--table-column-gap-min),
     var(--table-column-gap-preferred),
@@ -855,8 +885,36 @@
     'center'
     'bottom';
   grid-template-columns: 1fr;
-  grid-template-rows: auto auto auto;
+  /* Give the players real vertical space; keep center piles compact. */
+  grid-template-rows: 1fr auto 1.25fr;
   column-gap: 0;
+  width: min(98vw, 2400px);
+
+  /* 2-player layout: use more of the felt area by tightening the vertical padding. */
+  --table-padding-vertical-min: 1.25rem;
+  --table-padding-vertical-preferred: 2vh;
+  --table-padding-vertical-max: 2.5rem;
+}
+
+/* 2-player layout: let the seat slots stretch so player panels can fill the row height. */
+.table[data-player-count='2'] #opponent-area-top,
+.table[data-player-count='2'] #player-area-bottom {
+  align-self: stretch;
+  height: 100%;
+}
+
+.table[data-player-count='2'] #opponent-area-top {
+  align-items: stretch;
+}
+
+.table[data-player-count='2'] #player-area-bottom {
+  align-items: stretch;
+}
+
+.table[data-player-count='2'] .player-area--opponent,
+.table[data-player-count='2'] .player-area--local {
+  height: 100%;
+  max-height: none;
 }
 
 .table[data-player-count='2'] #opponent-area-left,
@@ -950,7 +1008,7 @@
   justify-content: center;
   align-items: flex-end;
   justify-self: center;
-  align-self: end;
+  align-self: start;
   padding: 0;
   margin-bottom: 2px;
 }
@@ -968,7 +1026,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  align-self: end;
+  align-self: center;
 }
 #opponent-area-right {
   grid-area: right;
@@ -982,12 +1040,20 @@
 #player-area-bottom {
   grid-area: bottom;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
   justify-self: center;
-  align-self: start;
+  /* Stretch to use available row height so we can pack the local panel downward. */
+  align-self: stretch;
+  height: 100%;
   padding: 0;
-  margin-top: 2px;
+  margin-top: 0;
+}
+
+/* Ensure the local player panel can actually grow taller within its slot. */
+#player-area-bottom .player-area--local {
+  height: 100%;
+  max-height: none;
 }
 
 /* Mobile (Portrait) */
@@ -1000,6 +1066,8 @@
     /* Local hand shingling: values are parsed in JS (must be numeric px). */
     --hand-base-overlap: -20px;
     --hand-min-peek: 28px;
+    --hand-hover-lift: 16px;
+    --hand-selected-lift: 16px;
 
     /* Shared pile visuals to prevent background "peeking" around piles. */
     --mobile-pile-bg: rgba(0, 0, 0, 0.32);
@@ -1043,12 +1111,35 @@
     overflow: visible;
   }
 
+  /* Mobile portrait (2-player): allocate more vertical space to the bottom player. */
+  .table[data-player-count='2'] {
+    grid-template-rows: 1fr auto 1.25fr;
+    padding: 0.4rem 0.5rem 0.25rem;
+  }
+
   .table::after {
     display: none !important;
   }
 
   #center-area {
     align-self: start;
+  }
+
+  /* Let the seat slots actually use the available vertical space on mobile,
+     so the top/bottom player panels can grow taller (instead of floating). */
+  #opponent-area-top,
+  #player-area-bottom {
+    align-self: stretch;
+    height: 100%;
+  }
+
+  #opponent-area-top {
+    align-items: stretch;
+  }
+
+  #player-area-bottom {
+    align-items: stretch;
+    padding-bottom: clamp(6px, 1vh, 14px);
   }
 
   #opponent-area-left,
@@ -1597,8 +1688,8 @@
 /* Match local player card sizes to opponent scale without other styling changes */
 /* FLATTENED: was #player-area-bottom .player-area.is-local */
 .player-area--local {
-  --card-w: calc(var(--card-w-desktop) * 0.85);
-  --card-h: calc(var(--card-h-desktop) * 0.85);
+  --card-w: calc(var(--card-w-desktop) * var(--local-card-scale));
+  --card-h: calc(var(--card-h-desktop) * var(--local-card-scale));
   width: min(100%, clamp(320px, 36vw, 480px));
   min-width: 0;
   max-width: 100%;
@@ -1609,13 +1700,27 @@
 
 /* FLATTENED: was #player-area-bottom .player-area.is-local .player-header */
 .player-area--local .player-header {
-  margin-bottom: 8px;
+  margin: 8px auto 0;
 }
 
-/* Mirror reduced card size for deck and discard piles */
+/* Local player: pack zones downward to maximize felt space above,
+   and keep up/down stacks closer to the header. */
+#player-area-bottom .player-area--local {
+  justify-content: flex-end;
+}
+
+#player-area-bottom .player-area--local .player-zone--table {
+  padding-bottom: 0.3rem;
+}
+
+#player-area-bottom .player-area--local .player-header {
+  margin-top: 4px;
+}
+
+/* Mirror local card size for deck and discard piles */
 #center-area .center-piles {
-  --card-w: calc(var(--card-w-desktop) * 0.85);
-  --card-h: calc(var(--card-h-desktop) * 0.85);
+  --card-w: calc(var(--card-w-desktop) * var(--local-card-scale));
+  --card-h: calc(var(--card-h-desktop) * var(--local-card-scale));
 }
 
 #game-table .player-area.active {
@@ -1672,7 +1777,7 @@
 }
 
 #my-area .player-zone--hand-local {
-  margin-top: 0;
+  margin-top: auto;
 }
 
 #game-table .player-actions {
@@ -2437,43 +2542,77 @@
 .hand-row--local .card-container {
   position: relative;
   z-index: 1;
+  margin: 0;
+  touch-action: manipulation;
   transition:
-    transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.18s ease,
     filter 0.18s ease;
+}
+
+/* Hover + selection lifts (no layout shift; avoids widening cards for easier multi-select) */
+.hand-row--local .card-container:hover {
+  z-index: 200;
+  box-shadow: 0 0 14px rgba(255, 195, 0, 0.16);
+}
+
+.hand-row--local .card-container.selected-container,
+.hand-row--local .card-container.selected {
+  z-index: 150;
+  box-shadow: 0 0 16px rgba(255, 195, 0, 0.2);
+}
+
+.hand-row--local .card-container.selected-container:hover,
+.hand-row--local .card-container.selected:hover {
+  z-index: 200;
+}
+
+.hand-row--local .card-container:hover .card-img,
+.hand-row--local .card-container:hover .card-back-custom,
+.hand-row--local .card-container:hover .card-ability-icon {
+  transform: translateY(calc(-1 * var(--hand-hover-lift, 18px)));
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.16),
+    0 12px 22px rgba(0, 0, 0, 0.38);
+}
+
+.hand-row--local .card-container.selected-container .card-img,
+.hand-row--local .card-container.selected-container .card-back-custom,
+.hand-row--local .card-container.selected .card-img,
+.hand-row--local .card-container.selected .card-back-custom,
+.hand-row--local .card-container.selected-container .card-ability-icon,
+.hand-row--local .card-container.selected .card-ability-icon {
+  transform: translateY(calc(-1 * var(--hand-selected-lift, 18px)));
+  filter: brightness(1.06) saturate(1.08);
+  box-shadow:
+    0 0 14px rgba(255, 195, 0, 0.22),
+    0 12px 22px rgba(0, 0, 0, 0.36);
+}
+
+/* Briefly disable hover lift right after play/take to avoid "auto-hover" jitter. */
+.hand-hover-suspended .hand-row--local .card-container:hover {
+  box-shadow: none;
+}
+
+.hand-hover-suspended .hand-row--local .card-container:hover .card-img,
+.hand-hover-suspended .hand-row--local .card-container:hover .card-back-custom,
+.hand-hover-suspended .hand-row--local .card-container:hover .card-ability-icon {
+  transform: none;
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.28);
+}
+
+.hand-row--local .card-img,
+.hand-row--local .card-back-custom {
   will-change: transform;
 }
 
-/* --- CONSOLIDATED LOCAL HAND STYLES --- */
-/* Moved from layout.css to prevent specificity wars */
-
-.hand-row--local .card-container {
-  /* Visuals & Positioning */
-  margin-right: -30px; /* Default overlap */
-  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-              margin-right 0.2s ease;
-  
-  /* Stacking Context */
-  position: relative;
-  z-index: 1; 
-  
-  /* Mobile Safety */
-  touch-action: manipulation;
-}
-
-/* Hover Effects (The "Lift") */
-.hand-row--local .card-container:hover {
-  transform: translateY(-20px) scale(1.05); /* Standardized Lift */
-  z-index: 200; /* Highest priority */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-}
-
-/* Selected State */
-.hand-row--local .card-container.selected {
-  transform: translateY(-20px) scale(1.05); /* Standardized Lift */
-  z-index: 100; /* Locked high, but below hover */
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); /* Gold Glow */
-  border-radius: 8px;
+@media (prefers-reduced-motion: reduce) {
+  .hand-row--local .card-container {
+    transition: none !important;
+  }
+  .hand-row--local .card-container .card-img,
+  .hand-row--local .card-container .card-back-custom {
+    transition: none !important;
+  }
 }
 
 .player-header .turn-indicator {

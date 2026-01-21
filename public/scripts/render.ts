@@ -1030,17 +1030,21 @@ function applyHandCompression(
   const requiredNoOverlapWidth =
     cardTotalWidth * cardCount + naturalGap * (cardCount - 1);
 
-  // If the hand fits with its natural spacing, ensure we return to the
-  // non-overlapped layout (this prevents the hand from "sticking" left after
-  // playing down to a smaller count).
+  // If the hand fits, keep a subtle shingle overlap for readability.
   if (requiredNoOverlapWidth <= availableWidth + 0.5) {
-    if (handRow.classList.contains('hand-row--compressed')) {
-      handRow.classList.remove('hand-row--compressed');
-      handRow.style.removeProperty('--hand-overlap');
+    const overlap = Math.min(baseOverlap, 0);
+    const currentOverlap =
+      parseFloat(handRow.style.getPropertyValue('--hand-overlap')) || 0;
+    if (
+      !handRow.classList.contains('hand-row--compressed') ||
+      Math.abs(currentOverlap - overlap) > 0.5
+    ) {
+      handRow.classList.add('hand-row--compressed');
+      handRow.style.setProperty('--hand-overlap', `${overlap}px`);
     }
     handTray?.classList.remove('hand-tray--scroll');
-    lastHandCompressed = false;
-    lastHandOverlap = 0;
+    lastHandCompressed = true;
+    lastHandOverlap = overlap;
     return;
   }
 
@@ -1590,43 +1594,54 @@ export function renderGameState(
       const header = document.createElement('div');
       header.className = 'player-header';
       header.innerHTML = `
-            <div class="player-ident">
-                <div class="player-avatar"><img src="" alt="avatar"></div>
-                <div class="player-meta">
-                    <div class="player-name"></div>
-                    <div class="player-tags"></div>
-                </div>
-            </div>`;
-      panel.appendChild(header);
+             <div class="player-ident">
+                 <div class="player-avatar"><img src="" alt="avatar"></div>
+                 <div class="player-meta">
+                     <div class="player-name"></div>
+                     <div class="player-tags"></div>
+                 </div>
+             </div>`;
 
       const handZone = document.createElement('div');
       handZone.className = 'player-zone player-zone--hand';
       if (isLocalPlayer) handZone.classList.add('player-zone--hand-local');
       handZone.innerHTML = `
-            <div class="zone-label">Hand</div>
-            <div class="hand-tray ${isLocalPlayer ? 'hand-tray--local' : ''}">
-                <div class="hand-row ${isLocalPlayer ? 'hand-row--local' : 'hand-row--opponent'}"></div>
-            </div>`;
+             <div class="zone-label">Hand</div>
+             <div class="hand-tray ${isLocalPlayer ? 'hand-tray--local' : ''}">
+                 <div class="hand-row ${isLocalPlayer ? 'hand-row--local' : 'hand-row--opponent'}"></div>
+             </div>`;
+
+      // Best-in-class interaction space: keep the local player's header below the hand
+      // so lifted/selected cards never collide with the avatar/name.
+      const placeHeaderLast = seat === 'bottom' && isLocalPlayer;
+      if (!placeHeaderLast) {
+        panel.appendChild(header);
+      }
+
       panel.appendChild(handZone);
 
       if (seat === 'bottom' && isLocalPlayer) {
         const actionRow = document.createElement('div');
         actionRow.className = 'player-actions';
         actionRow.innerHTML = `
-                <button id="play-button" class="action-button action-button--play" disabled>Play</button>
-                <button id="take-button" class="action-button action-button--take" disabled>Take</button>
-            `;
+                 <button id="play-button" class="action-button action-button--play" disabled>Play</button>
+                 <button id="take-button" class="action-button action-button--take" disabled>Take</button>
+             `;
         panel.appendChild(actionRow);
       }
 
       const tableZone = document.createElement('div');
       tableZone.className = 'player-zone player-zone--table';
       tableZone.innerHTML = `
-            <div class="card-zone--tabled">
-                <div class="zone-label">Up / Down</div>
-                <div class="stack-row"></div>
-            </div>`;
+             <div class="card-zone--tabled">
+                 <div class="zone-label">Up / Down</div>
+                 <div class="stack-row"></div>
+             </div>`;
       panel.appendChild(tableZone);
+
+      if (placeHeaderLast) {
+        panel.appendChild(header);
+      }
 
       slotTarget.appendChild(panel);
     }

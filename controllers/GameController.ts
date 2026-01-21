@@ -1833,6 +1833,10 @@ export default class GameController {
 
   // Add this log method for internal logging
   private log(...args: any[]): void {
+    const logsEnabled =
+      process.env.TOPTHAT_VERBOSE === '1' ||
+      process.env.TOPTHAT_SERVER_LOGS === '1';
+    if (!logsEnabled) return;
     console.log(`[GameController][Room ${this.roomId}]`, ...args);
   }
 }

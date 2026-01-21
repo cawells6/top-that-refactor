@@ -69,13 +69,11 @@ export function createCardElement(
       );
       if (selectableEl) {
         selectableEl.classList.toggle('selected');
-        container.classList.toggle(
-          'selected-container',
-          selectableEl.classList.contains('selected')
-        );
+        const isSelected = selectableEl.classList.contains('selected');
+        container.classList.toggle('selected-container', isSelected);
+        container.classList.toggle('selected', isSelected);
 
-        if (onSelect)
-          onSelect(card, selectableEl.classList.contains('selected'));
+        if (onSelect) onSelect(card, isSelected);
       }
     });
   }
