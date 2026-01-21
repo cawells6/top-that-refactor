@@ -2444,44 +2444,6 @@
   will-change: transform;
 }
 
-/* Shared lift values (hover + selected should match) */
-.hand-row--local {
-  --hand-hover-lift: -12px;
-}
-
-.hand-row--local.hand-row--compressed {
-  --hand-hover-lift: -10px;
-}
-
-/* Hover lift for desktop feel (avoid aggressive z-index jumps in overlapped mode) */
-.hand-row--local:not(.hand-row--compressed)
-  .card-container.selectable-container:not(.selected-container):hover {
-  transform: translateY(var(--hand-hover-lift));
-  z-index: 20;
-}
-
-.hand-row--local.hand-row--compressed
-  .card-container.selectable-container:not(.selected-container):hover {
-  transform: translateY(var(--hand-hover-lift));
-  z-index: 5;
-}
-
-/* Selected cards must be easy to see/click */
-.hand-row--local .card-container.selected-container {
-  /* Selected stays raised at the same height as hover. */
-  transform: translateY(var(--hand-hover-lift)) !important;
-  z-index: 40 !important;
-  opacity: 1 !important;
-  filter: none !important;
-}
-
-/* Selection: Subtle white glow */
-.hand-row--local .card-container.selected-container .card-img {
-  box-shadow:
-    0 0 12px rgba(255, 255, 255, 0.4),
-    0 0 24px rgba(255, 255, 255, 0.2);
-}
-
 /* --- CONSOLIDATED LOCAL HAND STYLES --- */
 /* Moved from layout.css to prevent specificity wars */
 
@@ -2501,16 +2463,15 @@
 
 /* Hover Effects (The "Lift") */
 .hand-row--local .card-container:hover {
-  transform: translateY(-15px) scale(1.05); /* The Lift */
-  z-index: 100; /* Ensure it floats above neighbors */
-  margin-right: 0px; /* Expand space slightly */
-  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  transform: translateY(-20px) scale(1.05); /* Standardized Lift */
+  z-index: 200; /* Highest priority */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
 /* Selected State */
 .hand-row--local .card-container.selected {
-  transform: translateY(-20px) scale(1.1);
-  z-index: 101;
+  transform: translateY(-20px) scale(1.05); /* Standardized Lift */
+  z-index: 100; /* Locked high, but below hover */
   box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); /* Gold Glow */
   border-radius: 8px;
 }
