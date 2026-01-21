@@ -30,31 +30,27 @@ function assetUrl(fileName: string): string {
   return `/assets/new-avatars/${fileName}`;
 }
 
-// Use the processed transparent filenames by default where available.
 const AVATAR_FILES = [
-  'king_1_transparent_fade.png',
-  'king_2_transparent_fade.png',
-  'king_3_transparent_fade.png',
-  'king_4_transparent_fade.png',
-  'Knight_1_transparent_fade.png',
-  'Prince_1_transparent_fade.png',
-  'Prince_2_transparent_fade.png',
-  'Prince_3_transparent_fade.png',
-  'Prince_5_transparent_fade.png',
-  'prince_edmund_transparent_fade.png',
-  'Princess 5_transparent_fade.png',
-  'Princess_1_transparent_fade.png',
-  'Princess_Sansa_transparent_fade.png',
-  'queen_amara_transparent_fade.png',
-  'queen_linh_transparent_fade.png',
-  'queen_seraphine_transparent_fade.png',
+  'king_aldric.png',
+  'king_hiroto.png',
+  'king_malik.png',
+  'Knight_Tyrion.png',
+  'prince_edmund.png',
+  'prince_kofi.png',
+  'Prince_Max.png',
+  'prince_rai.png',
+  'Princess_Analise.png',
+  'Princess_Kennedy.png',
+  'Princess_Sansa.png',
+  'queen_amara.png',
+  'queen_linh.png',
+  'queen_seraphine.png',
 ];
 
 export const ROYALTY_AVATARS: AvatarItem[] = AVATAR_FILES.map((fileName) => ({
-  id: fileName.replace(/\.[^.]+$/, '')
-    .replace(/_transparent$/i, ''),
-  icon: assetUrl(encodeURIComponent(fileName)),
-  label: labelFromFilename(fileName.replace(/_transparent$/i, '')),
+  id: fileName.replace(/\.[^.]+$/, ''),
+  icon: assetUrl(fileName),
+  label: labelFromFilename(fileName),
 }));
 
 export function getRandomAvatar(
