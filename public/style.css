@@ -1394,20 +1394,17 @@ body {
   min-width: 320px !important;
   margin-top: 0.5rem !important;
   padding: 0.35rem 0.6rem !important;
-  background: linear-gradient(
-    180deg,
-    rgba(19, 122, 75, 0.1),
-    rgba(19, 122, 75, 0.04)
-  ) !important;
+  /* neutral container for silhouettes (no gold/green accent) */
+  background: transparent !important;
   border-radius: 10px !important;
   border: none !important;
-  background: transparent !important;
   /* combine shadow into a single valid property instead of stray text */
   box-shadow: 0 2px 6px rgba(27, 46, 60, 0.08) !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
 }
 
+ 
 /* Emoji fallback for player silhouettes when SVG fails to load */
 .silhouette-emoji-fallback {
   /* Styles for the emoji if it needs to be centered or sized within the 75x75 area */

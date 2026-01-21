@@ -518,6 +518,7 @@
   user-select: none;
 }
 
+
 .avatar-option:hover {
   transform: scale(1.1);
   /* Subtle glow on hover without changing border */
@@ -526,10 +527,12 @@
 
 .avatar-option.selected {
   background-color: transparent;
-  box-shadow: 0 6px 18px rgba(255, 195, 0, 0.18);
-  transform: scale(1.15);
-  /* Add a border to indicate selection since background is gone */
-  border: 2px solid #ffc300 !important;
+  /* keep a gentle lift but remove gold highlight */
+  box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+  transform: scale(1.12);
+  /* neutral outline instead of gold border */
+  outline: 2px solid rgba(255,255,255,0.06);
+  outline-offset: 2px;
 }
 
 /* Counter styles now defined in `public/style.css` */
