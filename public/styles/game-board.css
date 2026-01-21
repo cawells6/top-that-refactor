@@ -1373,6 +1373,32 @@
   #game-table .pile-name {
     font-size: 1.1rem;
   }
+
+  #game-table .action-button {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+  }
+
+  #game-table .player-area--opponent .player-header {
+    padding: 4px 10px 4px 4px;
+    gap: 8px;
+    max-width: 210px;
+  }
+
+  #game-table .player-area--opponent .player-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  #game-table .player-area--opponent .player-name {
+    font-size: 0.8rem;
+  }
+
+  #game-table .hand-row--opponent {
+    --card-w: calc(var(--card-w-desktop) * 0.68);
+    --card-h: calc(var(--card-h-desktop) * 0.68);
+  }
 }
 
 @media (max-height: 900px) and (min-width: 769px) {
@@ -1830,6 +1856,14 @@
   box-shadow:
     0 0 0 #8e2315,
     inset 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 768px) {
+  #game-table .action-button {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+  }
 }
 
 /* Game branding in top-left corner */
