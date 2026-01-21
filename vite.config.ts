@@ -17,7 +17,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: '0.0.0.0', // Allow access from other devices on the network
     port: 5173, // Port for the Vite client-side dev server
-    open: 'firefox', // This tells Vite to open Firefox
+    // Let Vite auto-open by default (single window).
+    // The `run` launcher sets `NO_AUTO_OPEN=1` for child processes to prevent double-open.
+    open: process.env.NO_AUTO_OPEN ? false : true,
     cors: true, // Enable CORS for all origins
     hmr: {
       clientPort: 5173, // Ensure HMR uses the correct client port
