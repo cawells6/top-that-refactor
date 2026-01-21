@@ -2,14 +2,42 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Start Development Environment",
+      "label": "Run",
       "type": "shell",
-      "command": "./run",
+      "command": "bash",
+      "args": ["-lc", "./run"],
       "group": "build",
       "isBackground": true,
       "problemMatcher": [],
+      "runOptions": {
+        "instanceLimit": 1
+      },
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Start Development Environment",
+      "type": "shell",
+      "command": "npm run run:noopen",
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": [],
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "panel": "dedicated"
       }
     },
     {
