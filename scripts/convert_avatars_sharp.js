@@ -17,6 +17,10 @@ async function convert(fileName) {
     console.warn('Missing file', full);
     return { file: fileName, skipped: true };
   }
+  // Skip already-processed transparent outputs
+  if (/_transparent\.png$/i.test(fileName)) {
+    return { file: fileName, skipped: true };
+  }
   const outName = fileName.replace(/\.png$/i, '_transparent.png');
   const outFull = path.join(DIR, outName);
   try {
@@ -32,14 +36,22 @@ async function convert(fileName) {
       const r = px[i];
       const g = px[i + 1];
       const b = px[i + 2];
-      // simple luminance
-      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      // If pixel is very close to white, make transparent
-      const isNearWhite = lum > 245 && r > 240 && g > 240 && b > 240;
-      out[j] = r;
-      out[j + 1] = g;
-      out[j + 2] = b;
-      out[j + 3] = isNearWhite ? 0 : 255;
+      // Determine original alpha safely (ensureAlpha() should make channels===4)
+      const a = channels >= 4 ? px[i + 3] : 255;
+
+      // If the pixel was originally (nearly) transparent, FORCE it to opaque black.
+      if (a < 10) {
+        out[j] = 0;
+        out[j + 1] = 0;
+        out[j + 2] = 0;
+        out[j + 3] = 255;
+      } else {
+        // Otherwise, keep the original color and make it fully visible.
+        out[j] = r;
+        out[j + 1] = g;
+        out[j + 2] = b;
+        out[j + 3] = 255;
+      }
     }
     await sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } })
       .png()
