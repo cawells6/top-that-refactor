@@ -36,22 +36,16 @@ async function convert(fileName) {
       const r = px[i];
       const g = px[i + 1];
       const b = px[i + 2];
-      // Determine original alpha safely (ensureAlpha() should make channels===4)
+      // preserve original alpha when present
       const a = channels >= 4 ? px[i + 3] : 255;
-
-      // If the pixel was originally (nearly) transparent, FORCE it to opaque black.
-      if (a < 10) {
-        out[j] = 0;
-        out[j + 1] = 0;
-        out[j + 2] = 0;
-        out[j + 3] = 255;
-      } else {
-        // Otherwise, keep the original color and make it fully visible.
-        out[j] = r;
-        out[j + 1] = g;
-        out[j + 2] = b;
-        out[j + 3] = 255;
-      }
+      // simple luminance
+      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      // If pixel is very close to white, make transparent
+      const isNearWhite = lum > 245 && r > 240 && g > 240 && b > 240;
+      out[j] = r;
+      out[j + 1] = g;
+      out[j + 2] = b;
+      out[j + 3] = isNearWhite ? 0 : a;
     }
     await sharp(out, { raw: { width: info.width, height: info.height, channels: 4 } })
       .png()
