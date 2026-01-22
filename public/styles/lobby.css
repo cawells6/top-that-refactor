@@ -1939,6 +1939,11 @@
     font-size: 1rem !important;
   }
 
+  /* Move the host/bot tray downward so the beige header breathes */
+  .host-selection-rectangle {
+    margin-top: 1.5rem !important;
+  }
+
   /* Place Players and Bots side‑by‑side and remove excess padding */
   .player-selection--host {
     display: flex !important;
@@ -1951,10 +1956,19 @@
 
   .player-section {
     flex: 1 1 50% !important; /* each takes half the width */
-    padding: 4px !important; /* reduce interior padding */
-    background: rgba(0, 0, 0, 0.03) !important;
-    border-radius: 6px !important;
+    padding: 0.75rem 0.5rem 1.25rem 0.5rem !important;
+    background: linear-gradient(
+      135deg,
+      #fffdf6 0%,
+      #fff7e8 45%,
+      #f7f0df 100%
+    ) !important;
+    border: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-radius: 10px !important;
     min-height: auto !important; /* remove fixed height */
+    box-shadow:
+      0 12px 24px rgba(0, 0, 0, 0.15),
+      inset 0 2px 6px rgba(255, 255, 255, 0.9);
   }
 
   /* Reduce top margin for section titles on mobile */
@@ -1975,20 +1989,20 @@
     justify-content: center !important;
     align-items: center !important;
     margin: 2px 0 !important;
-    gap: 10px !important;
+    gap: 6px !important;
   }
 
   .counter-btn {
-    width: 32px !important;
-    height: 32px !important;
+    width: 26px !important;
+    height: 26px !important;
     line-height: 1 !important;
-    font-size: 1.25rem !important;
+    font-size: 1rem !important;
   }
 
   .player-counter input {
-    width: 44px !important;
-    height: 36px !important;
-    font-size: 1.25rem !important;
+    width: 36px !important;
+    height: 30px !important;
+    font-size: 1rem !important;
     text-align: center !important;
     margin: 0 2px !important;
   }
