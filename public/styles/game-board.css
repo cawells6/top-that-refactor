@@ -19,6 +19,7 @@
   --card-scale-local: 0.88;
   --card-scale-opponent: 0.85;
 
+  /* Canonical bases so the mobile portrait block can override once and everything inherits. */
   --card-w-base: var(--card-w-desktop);
   --card-h-base: var(--card-h-desktop);
 
@@ -1041,6 +1042,7 @@
 }
 
 /* Mobile (Portrait) */
+/* The portrait-specific stack spacing lives in this block—tweak it when you need to nudge cards/buttons/opponent spacing without touching desktop layout. */
 @media (max-width: 767px) and (orientation: portrait) {
   :root {
     /* Card sizing tuned for common portrait widths (360-430px). */
