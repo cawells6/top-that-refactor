@@ -92,6 +92,7 @@ describe('Special Card Rules', () => {
 
   test('10 burns the pile and removes it from the game', () => {
     gameState.pile = [makeCard(6, 'hearts'), makeCard('Q', 'spades')];
+    gameState.lastRealCard = makeCard(4, 'clubs') as any;
 
     const result = handleSpecialCard(
       mockIo as any,
@@ -109,6 +110,7 @@ describe('Special Card Rules', () => {
     expect(gameState.pile.length).toBe(0);
     expect(gameState.discard.length).toBe(0);
     expect(effectCall?.[1]).toEqual(expect.objectContaining({ type: 'ten' }));
+    expect(gameState.lastRealCard).toBeNull();
   });
 
   test('four of a kind burns even when lower than the pile', () => {

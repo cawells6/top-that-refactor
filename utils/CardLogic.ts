@@ -20,6 +20,11 @@ function serverLog(message: string): void {
   console.log(message);
 }
 
+function burnPileAndForgetLastCard(gameState: GameState): void {
+  gameState.clearPile({ toDiscard: false });
+  gameState.lastRealCard = null;
+}
+
 export function handleSpecialCard(
   io: Server,
   gameState: GameState,
@@ -48,7 +53,7 @@ export function handleSpecialCard(
       type: effectType,
       value: lastPlayedNormalizedValue,
     });
-    gameState.clearPile({ toDiscard: false });
+    burnPileAndForgetLastCard(gameState);
     pileClearedBySpecial = true;
   } else if (isFiveCard(lastPlayedNormalizedValue)) {
     serverLog(
@@ -75,7 +80,7 @@ export function handleSpecialCard(
           type: 'ten',
           value: copiedNormalizedValue,
         });
-        gameState.clearPile({ toDiscard: false });
+        burnPileAndForgetLastCard(gameState);
         pileClearedBySpecial = true;
       }
     }
