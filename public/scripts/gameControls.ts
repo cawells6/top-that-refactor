@@ -231,7 +231,7 @@ function handlePlayClick(): void {
 
   state.socket.emit(PLAY_CARD, selection);
   clearSelectedCards();
-  suspendHandHover(250);
+  suspendHandHover(450);
 }
 
 function handleTakeClick(): void {
@@ -244,7 +244,7 @@ function handleTakeClick(): void {
   }
   state.socket.emit(PICK_UP_PILE);
   clearSelectedCards();
-  suspendHandHover(250);
+  suspendHandHover(450);
 }
 
 function getSelectableCard(target: HTMLElement): SelectableCardElement | null {
@@ -322,10 +322,20 @@ export function initializeGameControls(): void {
   });
 }
 
-function suspendHandHover(durationMs: number): void {
+function suspendHandHover(_durationMs: number): void {
   const root = document.documentElement;
   root.classList.add('hand-hover-suspended');
-  window.setTimeout(() => {
+
+  let cleared = false;
+  const clearHover = () => {
+    if (cleared) return;
+    cleared = true;
     root.classList.remove('hand-hover-suspended');
-  }, durationMs);
+    window.removeEventListener('pointermove', clearHover);
+    handArea?.removeEventListener('pointerleave', clearHover);
+  };
+
+  const handArea = document.getElementById('my-area');
+  window.addEventListener('pointermove', clearHover, { once: true });
+  handArea?.addEventListener('pointerleave', clearHover, { once: true });
 }

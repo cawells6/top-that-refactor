@@ -853,6 +853,7 @@ function updateHandRow(
     if (!el) {
       // New Card
       const newCardEl = cardImg(card, isMyTurn, undefined, true, skeletonMode);
+      newCardEl.style.zIndex = String(i + 1);
       const imgEl = newCardEl.querySelector('.card-img') as HTMLElement;
       if (imgEl) {
         imgEl.dataset.idx = String(i);
@@ -872,6 +873,7 @@ function updateHandRow(
     // Defensive: undo optimistic "hide" styles from play animation if this element is reused.
     el.style.removeProperty('opacity');
     el.style.removeProperty('pointer-events');
+    el.style.zIndex = String(i + 1);
 
     // Existing Card - FORCE SKELETON CHECK
     applySkeleton(el, skeletonMode);
@@ -906,6 +908,7 @@ function updateHandRow(
           true,
           skeletonMode
         );
+        newContent.style.zIndex = String(i + 1);
         // FIX: Apply data-zone to replacement element
         const newImg = newContent.querySelector('.card-img') as HTMLElement;
         if (newImg) {
