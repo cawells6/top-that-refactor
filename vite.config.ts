@@ -1,7 +1,7 @@
 // vite.config.ts
 import path from 'path'; // Node.js path module
 
-import { defineConfig } from 'vite';
+import { defineConfig, type LogLevel } from 'vite';
 
 export default defineConfig(({ mode }) => ({
   // Set the 'public' directory as the root for Vite's dev server
@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
   root: path.resolve(__dirname, 'public'),
 
   // Keep dev logs quiet by default.
-  logLevel: process.env.VITE_LOG_LEVEL || 'silent',
+  logLevel: (process.env.VITE_LOG_LEVEL || 'silent') as LogLevel,
 
   // Use a Vite-injected global for dev-only UI toggles (keeps Jest happy).
   define: {
