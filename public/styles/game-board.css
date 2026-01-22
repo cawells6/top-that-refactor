@@ -16,11 +16,15 @@
   /* Unified scaling: vmin keeps sizes consistent across aspect ratios. */
   --card-w-desktop: clamp(70px, 4.6vmin, 120px);
   --card-h-desktop: calc(var(--card-w-desktop) * var(--card-aspect));
-  --local-card-scale: 0.88;
+  --card-scale-local: 0.88;
+  --card-scale-opponent: 0.85;
+
+  --card-w-base: var(--card-w-desktop);
+  --card-h-base: var(--card-h-desktop);
 
   /* Dynamic vars that usage classes will actually reference */
-  --card-w: var(--card-w-desktop);
-  --card-h: var(--card-h-desktop);
+  --card-w: var(--card-w-base);
+  --card-h: var(--card-h-base);
 
   /* Local hand overlap + interaction (used by JS hand compression) */
   --hand-base-overlap: -18px;
@@ -1040,25 +1044,11 @@
 @media (max-width: 767px) and (orientation: portrait) {
   :root {
     /* Card sizing tuned for common portrait widths (360-430px). */
-    --mobile-card-w-base: clamp(56px, 15vw, 64px);
-    --mobile-card-h-base: calc(
-      var(--mobile-card-w-base) * var(--card-aspect, 1.4)
-    );
+    --card-w-base: clamp(56px, 15vw, 64px);
+    --card-h-base: calc(var(--card-w-base) * var(--card-aspect, 1.4));
     /* Adjust these two scales to tune opponent vs local sizes. */
     --card-scale-opponent: 0.8;
     --card-scale-local: 0.9;
-    --mobile-card-w-opponent: calc(
-      var(--mobile-card-w-base) * var(--card-scale-opponent)
-    );
-    --mobile-card-h-opponent: calc(
-      var(--mobile-card-h-base) * var(--card-scale-opponent)
-    );
-    --mobile-card-w-local: calc(
-      var(--mobile-card-w-base) * var(--card-scale-local)
-    );
-    --mobile-card-h-local: calc(
-      var(--mobile-card-h-base) * var(--card-scale-local)
-    );
 
     /* Local hand shingling: values are parsed in JS (must be numeric px). */
     --hand-base-overlap: -20px;
@@ -1633,8 +1623,8 @@
   min-height: calc(var(--card-h, 126px) * 2 + 32px);
   min-width: 0; /* Allow shrinking below default width */
   overflow: visible; /* Let elements pop out if needed */
-  --card-w: calc(var(--card-w-desktop) * 0.85);
-  --card-h: calc(var(--card-h-desktop) * 0.85);
+  --card-w: calc(var(--card-w-base) * var(--card-scale-opponent));
+  --card-h: calc(var(--card-h-base) * var(--card-scale-opponent));
 }
 
 /* Remove the "glass" line from opponent headers to clean up noise */
@@ -1699,8 +1689,8 @@
 /* Match local player card sizes to opponent scale without other styling changes */
 /* FLATTENED: was #player-area-bottom .player-area.is-local */
 .player-area--local {
-  --card-w: calc(var(--card-w-desktop) * var(--local-card-scale));
-  --card-h: calc(var(--card-h-desktop) * var(--local-card-scale));
+  --card-w: calc(var(--card-w-base) * var(--card-scale-local));
+  --card-h: calc(var(--card-h-base) * var(--card-scale-local));
   width: min(100%, clamp(320px, 36vw, 480px));
   min-width: 0;
   max-width: 100%;
@@ -1730,8 +1720,8 @@
 
 /* Mirror local card size for deck and discard piles */
 #center-area .center-piles {
-  --card-w: calc(var(--card-w-desktop) * var(--local-card-scale));
-  --card-h: calc(var(--card-h-desktop) * var(--local-card-scale));
+  --card-w: calc(var(--card-w-base) * var(--card-scale-local));
+  --card-h: calc(var(--card-h-base) * var(--card-scale-local));
 }
 
 #game-table .player-area.active {
@@ -3039,17 +3029,37 @@
 }
 
 @media (max-width: 767px) and (orientation: portrait) {
-  /* Single source of truth for mobile card sizing. */
-  #opponent-area-top,
-  #opponent-area-top .player-area--opponent {
-    --card-w: var(--mobile-card-w-opponent);
-    --card-h: var(--mobile-card-h-opponent);
+  #player-area-bottom .player-actions {
+    margin-top: 0.05rem;
   }
 
-  #player-area-bottom,
-  #player-area-bottom .player-area--local,
-  #game-table #center-area .center-piles {
-    --card-w: var(--mobile-card-w-local);
-    --card-h: var(--mobile-card-h-local);
+  #player-area-bottom .player-zone--hand-local {
+    margin-top: 0;
+    padding-top: 0.35rem;
+    padding-bottom: 0.15rem;
+  }
+
+  #player-area-bottom .player-area {
+    padding: 0.45rem 0.45rem 0.25rem;
+    gap: 0.05rem;
+    min-height: calc(var(--card-h, 126px) * 2 + 34px);
+  }
+
+  #player-area-bottom .player-zone--table {
+    margin-bottom: 0.05rem;
+    padding-bottom: 0.25rem;
+  }
+
+  #opponent-area-top {
+    margin-top: 1.1rem;
+  }
+
+  #opponent-area-top .player-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  #opponent-area-top .player-name {
+    font-size: 0.7rem;
   }
 }
