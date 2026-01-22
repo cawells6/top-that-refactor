@@ -464,20 +464,21 @@ function updateCenterArea(
   visualPileTop?: CardType | null,
   skeletonMode: boolean = false
 ) {
-  let centerWrap = centerArea.querySelector(
-    '.center-piles'
-  ) as HTMLDivElement | null;
+  let centerWrap = centerArea.querySelector('.center-piles') as
+    | HTMLDivElement
+    | null;
+
   if (!centerWrap) {
     centerArea.innerHTML = '';
     centerWrap = document.createElement('div');
     centerWrap.className = 'center-piles';
-    // Ensure card dimensions are set
-    centerWrap.style.setProperty('--card-w-desktop', '90px');
-    centerWrap.style.setProperty('--card-h-desktop', '126px');
+    // REMOVED: centerWrap.style.setProperty('--card-w-desktop', '90px');
+    // Allowing CSS clamp() to handle sizing for mobile scaling.
     centerArea.appendChild(centerWrap);
   }
 
-  // 1. SOURCE PILE (Left - "Play")
+  // --- 1. LEFT PILE (Source) = DRAW PILE ---
+  // RENAMED VISUALLY TO "DRAW", but keeps ID 'deck-pile' for logic
   let deckContainer = centerWrap.querySelector(
     '.pile-group--deck'
   ) as HTMLElement;
@@ -485,29 +486,37 @@ function updateCenterArea(
     deckContainer = document.createElement('div');
     deckContainer.className = 'pile-group pile-group--deck';
     deckContainer.innerHTML = `
-      <div class="pile-nameplate"><span class="pile-name">Play</span><span class="pile-count">0</span></div>
+      <div class="pile-nameplate"><span class="pile-name">DRAW</span><span class="pile-count">0</span></div>
       <div class="pile-cards deck-stack" id="deck-pile">
          <div class="pile-count-badge" style="display: none;">0</div>
       </div>
     `;
     centerWrap.appendChild(deckContainer);
   }
-  const deckCountEl = deckContainer.querySelector('.pile-count');
-  if (deckCountEl) deckCountEl.textContent = String(gameState.deckSize ?? 0);
-  // Update badge
-  const deckBadgeEl = deckContainer.querySelector('.pile-count-badge');
-  if (deckBadgeEl) deckBadgeEl.textContent = String(gameState.deckSize ?? 0);
 
-  // 2. TARGET PILE (Right - "Draw")
+  // Reconciliation: Only update text if changed (Stops flickering)
+  const deckSize = gameState.deckSize ?? 0;
+  const deckCountEl = deckContainer.querySelector('.pile-count');
+  if (deckCountEl && deckCountEl.textContent !== String(deckSize)) {
+    deckCountEl.textContent = String(deckSize);
+  }
+
+  const deckBadgeEl = deckContainer.querySelector('.pile-count-badge');
+  if (deckBadgeEl) {
+    deckBadgeEl.textContent = String(deckSize);
+  }
+
+  // --- 2. RIGHT PILE (Target) = PLAY PILE ---
+  // RENAMED VISUALLY TO "PLAY", but keeps ID 'play-pile' for logic
   let playContainer = centerWrap.querySelector(
     '.pile-group--discard'
   ) as HTMLElement;
   if (!playContainer) {
     playContainer = document.createElement('div');
     playContainer.className = 'pile-group pile-group--discard';
-    playContainer.id = 'discard-pile';
+    playContainer.id = 'discard-pile-container';
     playContainer.innerHTML = `
-      <div class="pile-nameplate"><span class="pile-name">Draw</span><span class="pile-count">0</span></div>
+      <div class="pile-nameplate"><span class="pile-name">PLAY</span><span class="pile-count">0</span></div>
       <div class="pile-cards play-stack" id="play-pile">
         <div class="pile-count-badge" style="display: none;">0</div>
       </div>
@@ -515,14 +524,23 @@ function updateCenterArea(
     centerWrap.appendChild(playContainer);
   }
 
-  // --- RENDER PLAY SOURCE (Always Visible) ---
+  const pile = gameState.pile ?? [];
+  const forceBlank = !skeletonMode && shouldBlankDrawPile();
+  const displayCount = forceBlank ? '0' : String(pile.length);
+
+  // Reconciliation: Only update text if changed
+  const playCountEl = playContainer.querySelector('.pile-count');
+  if (playCountEl && playCountEl.textContent !== displayCount) {
+    playCountEl.textContent = displayCount;
+  }
+
+  // RENDER DRAW SOURCE (The Deck)
   const deckStack = deckContainer.querySelector('.deck-stack') as HTMLElement;
   if (deckStack) {
-    const deckSize = gameState.deckSize ?? 0;
     if (deckSize > 0 && !deckStack.querySelector('.deck-card')) {
       deckStack.innerHTML = '';
       const deckBack: CardType = { back: true, value: 'A', suit: 'spades' };
-      const deckCard = cardImg(deckBack, false, undefined, true, false); // skeletonMode=false
+      const deckCard = cardImg(deckBack, false, undefined, true, false);
       deckCard.classList.add('deck-card');
       deckStack.appendChild(deckCard);
     } else if (deckSize === 0) {
@@ -530,46 +548,33 @@ function updateCenterArea(
     }
   }
 
-  // --- RENDER DRAW TARGET (The Discard Pile) ---
+  // RENDER PLAY TARGET (The Discard Pile)
   const playStack = playContainer.querySelector('.play-stack') as HTMLElement;
-  const pile = gameState.pile ?? [];
-  const forceBlank = !skeletonMode && shouldBlankDrawPile();
-  const drawCountEl = playContainer.querySelector('.pile-count');
-  if (drawCountEl)
-    drawCountEl.textContent = forceBlank ? '0' : String(pile.length);
 
+  // Reuse existing logic for the play stack signature/rendering
   if (playStack) {
-    // Calculate new signature to avoid unnecessary re-renders
     let newSignature = 'EMPTY';
-    const topCard =
-      visualPileTop || (pile.length > 0 ? pile[pile.length - 1] : null);
+    const topCard = visualPileTop || (pile.length > 0 ? pile[pile.length - 1] : null);
 
     if (skeletonMode || forceBlank) {
       newSignature = 'BLANK';
     } else if (topCard) {
-      const shouldShowCopyShingle =
-        Boolean((topCard as any).copied) && pile.length >= 2;
+      const shouldShowCopyShingle = Boolean((topCard as any).copied) && pile.length >= 2;
       if (shouldShowCopyShingle) {
         const belowCard = pile[pile.length - 2];
         newSignature = `SHINGLE:${code(topCard)}:${code(belowCard)}`;
       } else {
         const normalizedTopValue = normalizeCardValue(topCard.value);
-        const isStarterSpecial =
-          pile.length === 1 &&
-          (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
-        newSignature = `SINGLE:${code(topCard)}${
-          isStarterSpecial ? ':STARTER' : ''
-        }`;
+        const isStarterSpecial = pile.length === 1 && (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
+        newSignature = `SINGLE:${code(topCard)}${isStarterSpecial ? ':STARTER' : ''}`;
       }
     }
 
-    // If signature hasn't changed, skip DOM updates
     if (playStack.dataset.pileSignature === newSignature) {
       return;
     }
     playStack.dataset.pileSignature = newSignature;
 
-    // During initial deal, Draw pile must stay blank
     if (skeletonMode || forceBlank) {
       playStack.classList.remove('pile-multiple');
       playStack.innerHTML = '<div class="pile-placeholder"></div>';
@@ -578,12 +583,10 @@ function updateCenterArea(
 
     if (topCard) {
       playStack.innerHTML = '';
+      const shouldShowCopyShingle = Boolean((topCard as any).copied) && pile.length >= 2;
 
-      const shouldShowCopyShingle =
-        Boolean((topCard as any).copied) && pile.length >= 2;
       if (shouldShowCopyShingle) {
         const belowCard = pile[pile.length - 2];
-
         const belowEl = cardImg(belowCard, false, undefined, true, false);
         belowEl.id = 'pile-below-card';
         belowEl.classList.add('pile-shingle', 'pile-shingle--below');
@@ -597,10 +600,7 @@ function updateCenterArea(
         playStack.appendChild(topEl);
       } else {
         const normalizedTopValue = normalizeCardValue(topCard.value);
-        const isStarterSpecial =
-          pile.length === 1 &&
-          (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
-
+        const isStarterSpecial = pile.length === 1 && (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
         const topEl = cardImg(topCard, false, undefined, true, false);
         topEl.id = 'pile-top-card';
 

@@ -194,7 +194,7 @@ export const tutorialSteps: StepConfig[] = [
     id: 'UPCARDS_PICKUP_RULE',
     title: "Up Cards: If it's too low...",
     instruction:
-      "When you play from your <strong>Up Cards</strong> (or later, your <strong>Down Cards</strong>), there's a key difference from your hand: if the card you try is <strong>too low</strong>, you don't just lose the turn — you must pick up the <strong>Draw pile</strong> plus <strong>the one card you tried to play</strong>.<br><br><strong>You do NOT pick up your other stack cards.</strong><br><br>To see it: <strong>click your 3</strong> (it's too low for the King).",
+      "When you play from your <strong>Up Cards</strong>... you must pick up the <strong>Play pile</strong> (the discard pile) plus the one card you tried to play.<br><br><strong>You do NOT pick up the Draw pile (Deck).</strong>",
     scenario: {
       myHand: [],
       pile: ['KS'],

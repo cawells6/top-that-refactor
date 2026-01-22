@@ -36,6 +36,13 @@ import { JOIN_GAME } from '../../src/shared/events.js';
 import type { Card, GameStateData } from '../../src/shared/types.js';
 import { isSpecialCard } from '../../utils/cardUtils.js';
 
+interface JoinGameResponse {
+  success: boolean;
+  roomId?: string;
+  playerId?: string;
+  error?: string;
+}
+
 // --- VISUAL & QUEUE STATE ---
 let isAnimatingSpecialEffect = false;
 let lockedSpecialEffectState: GameStateData | null = null;
@@ -52,38 +59,71 @@ interface QueuedPlay {
   playerId?: string;
 }
 
+function joinGameWithAck(payload: any): Promise<JoinGameResponse> {
+  return new Promise((resolve, reject) => {
+    if (!state.socket || !state.socket.connected) {
+      return reject(new Error('Socket not connected'));
+    }
+    const timeout = setTimeout(() => {
+      reject(new Error('Join request timed out (server did not respond)'));
+    }, 5000);
+
+    state.socket.emit(JOIN_GAME, payload, (response: JoinGameResponse) => {
+      clearTimeout(timeout);
+      if (response && response.success) {
+        console.log('[Client] Join Ack Successful:', response);
+        if (response.playerId) state.setMyId(response.playerId);
+        if (response.roomId) state.setCurrentRoom(response.roomId);
+        state.saveSession();
+        resolve(response);
+      } else {
+        console.warn('[Client] Join Ack Failed:', response?.error);
+        reject(new Error(response?.error || 'Join refused'));
+      }
+    });
+  });
+}
+
 /**
  * ARCHITECTURE FIX: Centralized join logic for invite links.
  * Moves 'emit' logic out of the UI layer (main.ts) and into the Application layer.
  * @param roomId - The room ID from the URL
  * @param socketOverride - Optional mock socket for unit testing
  */
-export function joinGameViaLink(roomId: string, socketOverride?: { emit: (ev: string, payload: unknown) => void }) {
+export async function joinGameViaLink(
+  roomId: string,
+  socketOverride?: any
+) {
   const payload = {
     roomId,
     playerName: 'Guest',
     numHumans: 1,
-    numCPUs: 0
+    numCPUs: 0,
   };
 
   if (socketOverride) {
-    // Test mode: Use the injected mock immediately
     socketOverride.emit(JOIN_GAME, payload);
-  } else {
-    // Production mode: Wait for connection stability
-    // If socket is already connected, emit immediately.
-    if (state.socket && (state.socket as any).connected) {
-      state.socket.emit(JOIN_GAME, payload);
-      return;
-    }
+    return;
+  }
 
-    // Simple retry if socket isn't ready yet (rare in this flow but safe)
-    const check = setInterval(() => {
-      if (state.socket && (state.socket as any).connected) {
-        clearInterval(check);
-        state.socket.emit(JOIN_GAME, payload);
-      }
-    }, 100);
+  // Wait for socket
+  if (!state.socket || !state.socket.connected) {
+    console.log('[Join] Waiting for socket...');
+    await new Promise<void>((resolve) => {
+      const check = setInterval(() => {
+        if (state.socket && state.socket.connected) {
+          clearInterval(check);
+          resolve();
+        }
+      }, 100);
+    });
+  }
+
+  try {
+    await joinGameWithAck(payload);
+  } catch (err) {
+    console.error('[Join] Link join failed:', err);
+    showToast('Failed to join game: ' + (err as Error).message, 'error');
   }
 }
 const playQueue: QueuedPlay[] = [];
