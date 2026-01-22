@@ -347,8 +347,8 @@ export function cardImg(
     img.className = 'card-img';
     img.style.visibility = 'hidden';
 
-    // Use local assets by default for instant loading
-    const imgSrc = `/assets/cards/${cardCode}.png`;
+    // Use relative assets so cards load even when the board is served from a subpath.
+    const imgSrc = `assets/cards/${cardCode}.png`;
     img.src = imgSrc;
     img.alt = `${card.value} of ${card.suit}`;
 

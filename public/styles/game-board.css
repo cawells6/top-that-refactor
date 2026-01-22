@@ -1808,6 +1808,11 @@
   letter-spacing: 0.5px;
 }
 
+#game-table .action-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(255, 195, 0, 0.3);
+}
+
 #game-table .action-button:active {
   transform: translateY(4px);
   box-shadow:
