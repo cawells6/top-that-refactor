@@ -11,6 +11,15 @@ import Player from '../models/Player.js';
 import { SPECIAL_CARD_EFFECT } from '../src/shared/events.ts';
 import type { Card } from '../src/shared/types.js';
 
+const SERVER_LOGS_ENABLED =
+  process.env.TOPTHAT_VERBOSE === '1' ||
+  process.env.TOPTHAT_SERVER_LOGS === '1';
+
+function serverLog(message: string): void {
+  if (!SERVER_LOGS_ENABLED) return;
+  console.log(message);
+}
+
 export function handleSpecialCard(
   io: Server,
   gameState: GameState,
@@ -25,14 +34,14 @@ export function handleSpecialCard(
   const fourOfKindPlayed = options.fourOfKindPlayed === true;
 
   if (isTwoCard(lastPlayedNormalizedValue)) {
-    console.log(`Special card: 2 played by ${player.id}. Resetting pile.`);
+    serverLog(`Special card: 2 played by ${player.id}. Resetting pile.`);
     io.to(roomId).emit(SPECIAL_CARD_EFFECT, {
       type: 'two',
       value: lastPlayedNormalizedValue,
     });
   } else if (fourOfKindPlayed || isTenCard(lastPlayedNormalizedValue)) {
     const effectType = isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four';
-    console.log(
+    serverLog(
       `Special card: ${effectType} played by ${player.id}. Burning pile.`
     );
     io.to(roomId).emit(SPECIAL_CARD_EFFECT, {
@@ -42,7 +51,7 @@ export function handleSpecialCard(
     gameState.clearPile({ toDiscard: false });
     pileClearedBySpecial = true;
   } else if (isFiveCard(lastPlayedNormalizedValue)) {
-    console.log(
+    serverLog(
       `Special card: 5 played by ${player.id}. Copying last real card.`
     );
     io.to(roomId).emit(SPECIAL_CARD_EFFECT, {

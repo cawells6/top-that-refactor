@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => ({
   // and the source for static assets like index.html.
   root: path.resolve(__dirname, 'public'),
 
+  // Keep dev logs quiet by default.
+  logLevel: process.env.VITE_LOG_LEVEL || 'silent',
+
   // Use a Vite-injected global for dev-only UI toggles (keeps Jest happy).
   define: {
     __DEV__: JSON.stringify(mode !== 'production'),
