@@ -65,13 +65,7 @@ export class InSessionLobbyModal {
         lobbyState
       );
       this.render(lobbyState);
-      const expectedHumans =
-        typeof lobbyState.expectedHumanCount === 'number'
-          ? lobbyState.expectedHumanCount
-          : lobbyState.players.filter(
-              (player) => !player.isComputer && !player.isSpectator
-            ).length;
-      const shouldShowModal = expectedHumans > 1;
+      const shouldShowModal = !lobbyState.started;
 
       if (lobbyState.started) {
         console.log(

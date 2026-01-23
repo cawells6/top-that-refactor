@@ -310,12 +310,15 @@
 
 /* === IN-SESSION LOBBY MODAL STYLES === */
 .in-session-lobby-modal {
-  min-width: 220px;
-  width: 500px; /* Fixed width instead of auto */
-  max-width: 90%; /* Ensure it's responsive */
-  margin: 0 auto;
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 360px;
+  max-width: calc(100% - 32px);
+  margin: 0;
   z-index: 1100;
-  overflow: hidden; /* Prevent content from extending beyond boundaries */
+  overflow: hidden;
+  transform: none;
 }
 
 .in-session-lobby-container .player-section {
@@ -625,16 +628,16 @@
 #lobby-container .player-silhouette {
   width: 80px; /* Increased from 60px for desktop */
   height: 80px;
-  background: transparent;
+  background: #0E1627;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid #ffc300;
+  border: 3px solid rgba(255, 255, 255, 0.6);
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -8px 12px rgba(0, 0, 0, 0.06),
-    0 4px 10px rgba(0, 0, 0, 0.12);
+    inset 0 2px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.45),
+    0 6px 18px rgba(0, 0, 0, 0.45);
   box-sizing: border-box;
   user-select: none;
   position: relative;
@@ -662,10 +665,7 @@
 }
 
 #lobby-container .player-silhouette.is-avatar-picker:hover {
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -8px 12px rgba(0, 0, 0, 0.06),
-    0 6px 14px rgba(255, 195, 0, 0.35);
+  box-shadow: none;
 }
 
 /* Hover helper: show contextual help when hovering avatar picker */

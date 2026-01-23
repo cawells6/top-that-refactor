@@ -464,6 +464,8 @@ function updateCenterArea(
   visualPileTop?: CardType | null,
   skeletonMode: boolean = false
 ) {
+  const isGameStarted = Boolean(gameState.started);
+
   let centerWrap = centerArea.querySelector('.center-piles') as
     | HTMLDivElement
     | null;
@@ -541,14 +543,35 @@ function updateCenterArea(
   }
 
   // --- 4. RENDER DRAW CARDS ---
-  const deckStack = drawPile.querySelector('.deck-stack') as HTMLElement;
-  if (deckStack) {
-    // Check if deck has cards; if so, they cover the burnt text
-    // If empty, we just leave the burnt text visible.
-    // If skeleton mode, we hide the deck cards (if any).
+  const deckStack = drawPile.querySelector('.deck-stack') as HTMLElement | null;
 
-    // Check if a deck card already exists
-    let deckCard = deckStack.querySelector('.deck-card') as HTMLElement;
+  // Ensure card-text exists (restored if wiped)
+  const playStack = playPile.querySelector('.play-stack') as HTMLElement;
+  let cardText = playStack.querySelector('.card-text');
+  if (!cardText) {
+    const textDiv = document.createElement('div');
+    textDiv.className = 'card-text';
+    textDiv.innerHTML = '<div class="burnt-text rotate-right">PLAY</div>';
+    playStack.prepend(textDiv);
+  }
+
+  if (!isGameStarted) {
+    if (deckStack) {
+      deckStack.querySelectorAll('.deck-card, .card-container').forEach((child) => child.remove());
+    }
+    if (playStack) {
+      const cards = playStack.querySelectorAll(
+        '.card-container, .pile-placeholder, .pile-shingle, .deck-card'
+      );
+      cards.forEach((card) => card.remove());
+    playStack.classList.remove('pile-multiple');
+    playStack.dataset.pileSignature = 'EMPTY';
+  }
+  return;
+}
+
+  if (deckStack) {
+    let deckCard = deckStack.querySelector('.deck-card') as HTMLElement | null;
 
     if (skeletonMode) {
       if (deckCard) deckCard.remove();
@@ -562,18 +585,6 @@ function updateCenterArea(
     } else {
       if (deckCard) deckCard.remove();
     }
-  }
-
-  // --- 5. RENDER PLAY CARDS ---
-  const playStack = playPile.querySelector('.play-stack') as HTMLElement;
-
-  // Ensure card-text exists (restored if wiped)
-  let cardText = playStack.querySelector('.card-text');
-  if (!cardText) {
-    const textDiv = document.createElement('div');
-    textDiv.className = 'card-text';
-    textDiv.innerHTML = '<div class="burnt-text rotate-right">PLAY</div>';
-    playStack.prepend(textDiv);
   }
 
   // Reuse existing logic for the play stack signature/rendering
