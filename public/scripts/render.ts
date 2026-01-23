@@ -477,79 +477,97 @@ function updateCenterArea(
     centerArea.appendChild(centerWrap);
   }
 
-  // --- 1. LEFT PILE (Source) = DRAW PILE ---
-  // RENAMED VISUALLY TO "DRAW", but keeps ID 'deck-pile' for logic
-  let deckContainer = centerWrap.querySelector(
-    '.pile-group--deck'
+  // --- 1. NEW LAYOUT WRAPPER ---
+  let pilesContainer = centerWrap.querySelector(
+    '.piles-container'
   ) as HTMLElement;
-  if (!deckContainer) {
-    deckContainer = document.createElement('div');
-    deckContainer.className = 'pile-group pile-group--deck';
-    deckContainer.innerHTML = `
-      <div class="pile-nameplate"><span class="pile-name">DRAW</span><span class="pile-count">0</span></div>
-      <div class="pile-cards deck-stack" id="deck-pile">
-         <div class="pile-count-badge" style="display: none;">0</div>
-      </div>
-    `;
-    centerWrap.appendChild(deckContainer);
+  if (!pilesContainer) {
+    pilesContainer = document.createElement('div');
+    pilesContainer.className = 'piles-container';
+    // Clean out old children if switching from old layout
+    centerWrap.innerHTML = '';
+    centerWrap.appendChild(pilesContainer);
   }
 
-  // Reconciliation: Only update text if changed (Stops flickering)
+  // --- 2. DRAW PILE ---
+  let drawPile = pilesContainer.querySelector('.pile--draw') as HTMLElement;
+  if (!drawPile) {
+    drawPile = document.createElement('div');
+    drawPile.className = 'pile pile--draw';
+    drawPile.innerHTML = `
+      <div class="card-count"><span class="count-value">0</span></div>
+      <div class="card-slot deck-stack" id="deck-pile">
+         <div class="card-text"><div class="burnt-text rotate-left">DRAW</div></div>
+      </div>
+    `;
+    pilesContainer.appendChild(drawPile);
+  }
+
   const deckSize = gameState.deckSize ?? 0;
-  const deckCountEl = deckContainer.querySelector('.pile-count');
-  if (deckCountEl && deckCountEl.textContent !== String(deckSize)) {
-    deckCountEl.textContent = String(deckSize);
+  const drawCountEl = drawPile.querySelector('.count-value');
+  if (drawCountEl && drawCountEl.textContent !== String(deckSize)) {
+    drawCountEl.textContent = String(deckSize);
   }
 
-  const deckBadgeEl = deckContainer.querySelector('.pile-count-badge');
-  if (deckBadgeEl) {
-    deckBadgeEl.textContent = String(deckSize);
-  }
-
-  // --- 2. RIGHT PILE (Target) = PLAY PILE ---
-  // RENAMED VISUALLY TO "PLAY", but keeps ID 'play-pile' for logic
-  let playContainer = centerWrap.querySelector(
-    '.pile-group--discard'
-  ) as HTMLElement;
-  if (!playContainer) {
-    playContainer = document.createElement('div');
-    playContainer.className = 'pile-group pile-group--discard';
-    playContainer.id = 'discard-pile-container';
-    playContainer.innerHTML = `
-      <div class="pile-nameplate"><span class="pile-name">PLAY</span><span class="pile-count">0</span></div>
-      <div class="pile-cards play-stack" id="play-pile">
-        <div class="pile-count-badge" style="display: none;">0</div>
+  // --- 3. PLAY PILE ---
+  let playPile = pilesContainer.querySelector('.pile--play') as HTMLElement;
+  if (!playPile) {
+    playPile = document.createElement('div');
+    playPile.className = 'pile pile--play';
+    playPile.id = 'discard-pile-container'; // Preserve legacy ID for external refs if any
+    playPile.innerHTML = `
+      <div class="card-count"><span class="count-value">0</span></div>
+      <div class="card-slot play-stack" id="play-pile">
+         <div class="card-text"><div class="burnt-text rotate-right">PLAY</div></div>
       </div>
     `;
-    centerWrap.appendChild(playContainer);
+    pilesContainer.appendChild(playPile);
   }
 
   const pile = gameState.pile ?? [];
   const forceBlank = !skeletonMode && shouldBlankDrawPile();
   const displayCount = forceBlank ? '0' : String(pile.length);
 
-  // Reconciliation: Only update text if changed
-  const playCountEl = playContainer.querySelector('.pile-count');
+  const playCountEl = playPile.querySelector('.count-value');
   if (playCountEl && playCountEl.textContent !== displayCount) {
     playCountEl.textContent = displayCount;
   }
 
-  // RENDER DRAW SOURCE (The Deck)
-  const deckStack = deckContainer.querySelector('.deck-stack') as HTMLElement;
+  // --- 4. RENDER DRAW CARDS ---
+  const deckStack = drawPile.querySelector('.deck-stack') as HTMLElement;
   if (deckStack) {
-    if (deckSize > 0 && !deckStack.querySelector('.deck-card')) {
-      deckStack.innerHTML = '';
-      const deckBack: CardType = { back: true, value: 'A', suit: 'spades' };
-      const deckCard = cardImg(deckBack, false, undefined, true, false);
-      deckCard.classList.add('deck-card');
-      deckStack.appendChild(deckCard);
-    } else if (deckSize === 0) {
-      deckStack.innerHTML = '<div class="pile-placeholder"></div>';
+    // Check if deck has cards; if so, they cover the burnt text
+    // If empty, we just leave the burnt text visible.
+    // If skeleton mode, we hide the deck cards (if any).
+
+    // Check if a deck card already exists
+    let deckCard = deckStack.querySelector('.deck-card') as HTMLElement;
+
+    if (skeletonMode) {
+      if (deckCard) deckCard.remove();
+    } else if (deckSize > 0) {
+      if (!deckCard) {
+        const deckBack: CardType = { back: true, value: 'A', suit: 'spades' };
+        deckCard = cardImg(deckBack, false, undefined, true, false);
+        deckCard.classList.add('deck-card');
+        deckStack.appendChild(deckCard);
+      }
+    } else {
+      if (deckCard) deckCard.remove();
     }
   }
 
-  // RENDER PLAY TARGET (The Discard Pile)
-  const playStack = playContainer.querySelector('.play-stack') as HTMLElement;
+  // --- 5. RENDER PLAY CARDS ---
+  const playStack = playPile.querySelector('.play-stack') as HTMLElement;
+
+  // Ensure card-text exists (restored if wiped)
+  let cardText = playStack.querySelector('.card-text');
+  if (!cardText) {
+    const textDiv = document.createElement('div');
+    textDiv.className = 'card-text';
+    textDiv.innerHTML = '<div class="burnt-text rotate-right">PLAY</div>';
+    playStack.prepend(textDiv);
+  }
 
   // Reuse existing logic for the play stack signature/rendering
   if (playStack) {
@@ -577,12 +595,17 @@ function updateCenterArea(
 
     if (skeletonMode || forceBlank) {
       playStack.classList.remove('pile-multiple');
-      playStack.innerHTML = '<div class="pile-placeholder"></div>';
+      // Clear cards but keep text
+      const cards = playStack.querySelectorAll('.card-container, .pile-placeholder, .pile-shingle');
+      cards.forEach(c => c.remove());
       return;
     }
 
     if (topCard) {
-      playStack.innerHTML = '';
+      // Clear previous cards but keep text
+      const cards = playStack.querySelectorAll('.card-container, .pile-placeholder, .pile-shingle');
+      cards.forEach(c => c.remove());
+
       const shouldShowCopyShingle = Boolean((topCard as any).copied) && pile.length >= 2;
 
       if (shouldShowCopyShingle) {
@@ -613,7 +636,8 @@ function updateCenterArea(
       }
     } else {
       playStack.classList.remove('pile-multiple');
-      playStack.innerHTML = '<div class="pile-placeholder"></div>';
+      const cards = playStack.querySelectorAll('.card-container, .pile-placeholder, .pile-shingle');
+      cards.forEach(c => c.remove());
     }
   }
 }

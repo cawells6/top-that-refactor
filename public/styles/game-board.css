@@ -436,193 +436,152 @@
   box-shadow: 0 8px 16px rgba(255, 195, 0, 0.3);
 }
 
+/* Center pile - REFACTORED PER USER REQUEST */
 .center-piles {
+  grid-area: center;
+  /* Use grid placement but rely on piles-container for display */
   display: flex;
-  flex-direction: row;
-  gap: 2px;
   align-items: center;
   justify-content: center;
-  flex-wrap: nowrap;
+  position: relative;
+  z-index: 5;
 }
 
-.pile-group {
+.piles-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.35rem;
-  min-width: calc(var(--card-w, 90px) + 0.4rem);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(40, 9, 9, 0.3);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
-}
-
-.pile-header {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background-color: transparent;
-  padding: 0.2rem 0.6rem;
-  border-radius: 5px;
-  border: none;
-}
-
-.pile-title {
-  font-family: var(--game-font, 'Space Grotesk', sans-serif);
-  font-size: 0.9rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #ffddc7;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-.pile-badge {
-  background: #4a2511;
-  color: #ffddc7;
-  border-radius: 999px;
-  padding: 0.1rem 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 800;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  gap: 2rem;
+  /* Remove old tray styles */
 }
 
 .pile {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
 }
 
-.pile-cards {
-  width: var(--card-w, 90px);
-  height: var(--card-h, 126px);
-  position: relative;
+/* Count Bubble */
+.card-count {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  width: 2rem;
+  height: 2rem;
+  background-color: white;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: visible;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+  border: 2px solid #163C2C;
 }
 
-.pile-cards .card-img {
+.card-count span {
+  color: black;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+/* Card Slot (Visual + Container for Cards) */
+.card-slot {
+  width: var(--card-w);
+  height: var(--card-h);
+  background-color: #16241B;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.4),
+    inset 0 1px 2px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.card-text {
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  pointer-events: none;
+  z-index: 0; /* Behind appended cards */
+}
+
+.burnt-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: #FFC300;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,0.6),
+    0 -1px 1px rgba(255,255,255,0.1);
+  font-family: serif;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.burnt-text.rotate-left {
+  transform: rotate(-12deg);
+}
+
+.burnt-text.rotate-right {
+  transform: rotate(12deg);
+}
+
+/* Adjustments for actual cards placed inside */
+.card-slot > .card-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  z-index: 5;
+}
+
+.card-slot > .card-container > .card-img,
+.card-slot > .card-container > .card-back-custom {
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.35);
 }
 
-.pile-card-label {
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: 'Luckiest Guy', system-ui, sans-serif;
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  color: var(--logo-yellow, #ffc300);
-  text-transform: uppercase;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
-  pointer-events: none;
-  z-index: 3;
-}
-
-.pile-count-badge {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #ffc300;
-  color: #1b2e3c;
-  font-size: 0.7rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
-  pointer-events: none;
-  z-index: 3;
-}
-
-.deck-stack::before,
-.deck-stack::after {
+/* DISCARD PILE (Messy Ghost Card) */
+/* Re-applying to new structure */
+.card-slot .play-stack.pile-multiple::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.16);
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  box-shadow: none;
-  transform: translate(6px, 6px);
-  z-index: 0;
-}
-
-.deck-stack::after {
-  transform: translate(3px, 3px);
-  opacity: 0.55;
-}
-
-.deck-card {
-  position: relative;
-  z-index: 1;
-}
-
-.pile-info {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.35);
-  border-radius: 999px;
-  padding: 0.2rem 0.6rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fef7e0;
-}
-
-.pile-label {
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.pile-count {
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.pile-placeholder {
   width: 100%;
   height: 100%;
-  border-radius: 10px;
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.6);
-  background: rgba(0, 0, 0, 0.25);
+  background-color: #e0e0e0;
+  border-radius: 8px;
+  transform: rotate(-5deg);
+  opacity: 0.7;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-.pile-placeholder::before {
-  content: '';
-  width: 62%;
-  height: 62%;
-  border-radius: 50%;
-  border: 2px dashed rgba(255, 255, 255, 0.18);
-  background: rgba(0, 0, 0, 0.25);
+.card-slot .play-stack.pile-multiple {
+  --shingle-x: 8px;
+  --shingle-y: 13px;
 }
 
-.pile-burned {
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #ffcfb5;
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
-  background: rgba(255, 122, 89, 0.2);
-  border: 1px solid rgba(255, 122, 89, 0.35);
+.card-slot .play-stack .pile-shingle--below {
+  z-index: 1;
+  transform: translate(
+    calc(-1 * var(--shingle-x)),
+    calc(-1 * var(--shingle-y))
+  );
+  opacity: 1;
+}
+
+.card-slot .play-stack .pile-shingle--top {
+  z-index: 2;
+  transform: translate(0, 0) rotate(0deg);
+}
+
+@media (max-width: 768px) {
+  .card-slot .play-stack.pile-multiple {
+    --shingle-x: 6px;
+    --shingle-y: 10px;
+  }
 }
 
 /* --- CORE CARD STYLES (Migrated from cards.css) --- */
@@ -1230,60 +1189,6 @@
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-  }
-
-  /* --- 2. Convert Pile Counts to "Circle Badges" --- */
-  /* Hide the old text labels/counts */
-  #game-table .pile-name,
-  #game-table .pile-count {
-    display: none !important;
-  }
-
-  /* Ensure pile groups are tight */
-  #game-table #center-area .pile-group {
-    gap: 0;
-    padding: 0;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0;
-    box-shadow: none !important;
-    min-width: auto;
-  }
-
-  /* Hide pile "slots" when a card exists; show a smaller silhouette only when empty. */
-  #game-table #center-area .pile-cards {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  #game-table #center-area .pile-placeholder {
-    width: calc(var(--card-w, 64px) * 0.85);
-    height: calc(var(--card-h, 90px) * 0.85);
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.18);
-    border: 2px dashed rgba(255, 255, 255, 0.22);
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.45);
-    opacity: 1;
-    pointer-events: none;
-  }
-
-  /* Show the badge */
-  #game-table .pile-count-badge {
-    position: absolute;
-    display: flex !important;
-    top: -8px;
-    right: -8px;
-    width: 22px;
-    height: 22px;
-    font-size: 0.75rem;
-    background: #1f2937; /* Dark background */
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    z-index: 10;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
   }
 
   /* --- 3. Clean Up Pile Cards (CSS Only) --- */
@@ -2299,9 +2204,9 @@
 
 /* Center pile */
 /* --- 2. THE CENTER TRAY (Wooden Inlay) --- */
+/*
 .center-piles {
   grid-area: center;
-  /* Move away from red to a dark, desaturated "shadow" color */
   background: rgba(0, 0, 0, 0.25);
 
   border-radius: 30px;
@@ -2311,762 +2216,15 @@
   align-items: center;
   justify-content: center;
 
-  /* The magic: use INSET shadows to create the "recessed" look */
   box-shadow:
     inset 0 10px 20px rgba(0, 0, 0, 0.6),
-    /* Deep top shadow */ inset 0 2px 5px rgba(0, 0, 0, 0.4),
-    /* Mid shadow */ 0 1px 1px rgba(255, 255, 255, 0.1); /* Thin highlight on the bottom edge */
+    inset 0 2px 5px rgba(0, 0, 0, 0.4),
+    0 1px 1px rgba(255, 255, 255, 0.1);
 
-  /* A dark border that acts as the "rim" of the hole */
   border: 2px solid rgba(0, 0, 0, 0.3);
 
   position: relative;
   z-index: 5;
 }
-
-/* RECESSED CARD SLOTS (Inside the tray) */
-#game-table .pile-cards {
-  width: var(--card-w, 90px);
-  height: var(--card-h, 126px);
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 10px;
-  box-shadow:
-    inset 0 3px 8px rgba(0, 0, 0, 0.7),
-    0 1px 0 rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-/* DECK STACK (3D Paper Depth) */
-#game-table .deck-stack .card-img {
-  box-shadow:
-    1px 1px 0 #999,
-    2px 2px 0 #ddd,
-    3px 3px 0 #999,
-    4px 4px 0 #ddd,
-    5px 5px 0 #999,
-    6px 6px 12px rgba(0, 0, 0, 0.5);
-  transform: translate(-3px, -3px);
-  border-radius: 8px;
-}
-
-#game-table .deck-half .card-img {
-  box-shadow:
-    1px 1px 0 #999,
-    2px 2px 0 #ddd,
-    3px 3px 0 #999,
-    4px 4px 8px rgba(0, 0, 0, 0.4);
-  transform: translate(-2px, -2px);
-}
-
-#game-table .deck-low .card-img {
-  box-shadow:
-    1px 1px 0 #999,
-    2px 2px 5px rgba(0, 0, 0, 0.3);
-  transform: translate(-1px, -1px);
-}
-
-#game-table .deck-stack::before,
-#game-table .deck-stack::after {
-  display: none;
-}
-
-/* DISCARD PILE (Messy Ghost Card) */
-#game-table .play-stack.pile-multiple::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: #e0e0e0;
-  border-radius: 8px;
-  transform: rotate(-5deg);
-  opacity: 0.7;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-}
-
-/* Shingled Cards (for 5/Copycat) */
-#game-table .play-stack {
-  overflow: visible;
-}
-
-#game-table .pile-cards .card-container {
-  margin: 0;
-}
-
-#game-table .play-stack.pile-multiple {
-  /* Use integer pixel offsets to keep the peeking card crisp (avoid subpixel blur). */
-  --shingle-x: 8px;
-  --shingle-y: 13px;
-}
-
-#game-table .play-stack.pile-multiple::before {
-  /* Slightly stronger “messy stack” backing when showing a copied shingle. */
-  opacity: 0.8;
-}
-
-@media (max-width: 768px) {
-  #game-table .play-stack.pile-multiple {
-    --shingle-x: 6px;
-    --shingle-y: 10px;
-  }
-}
-
-#game-table .play-stack .pile-shingle {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-#game-table .play-stack .pile-shingle--below {
-  z-index: 1;
-  transform: translate(
-    calc(-1 * var(--shingle-x)),
-    calc(-1 * var(--shingle-y))
-  );
-  opacity: 1;
-}
-
-#game-table .play-stack .pile-shingle--top {
-  z-index: 2;
-  transform: translate(0, 0) rotate(0deg);
-}
-
-#pile-below-card,
-#pile-top-card {
-  transition: all 0.2s ease;
-}
-
-#pile-below-card .card-container {
-  position: relative;
-}
-
-#pile-top-card .card-container {
-  position: relative;
-}
-
-/* --- 3. LABELS (Clear & Readable) --- */
-#game-table .pile-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-#game-table .pile-nameplate {
-  background: none;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  gap: 0.35rem;
-}
-
-#game-table .pile-name {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.35rem;
-  color: #ffffff;
-  letter-spacing: 0.1em;
-  opacity: 0.95;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 1);
-  margin: 0;
-}
-
-#game-table .pile-count {
-  background: none;
-  border: none;
-  color: #ffd700;
-  font-size: 1rem;
-  font-weight: bold;
-  padding: 0;
-  margin: 0;
-  border-radius: 0;
-  box-shadow: none;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 1);
-}
-
-#game-table .pile-card-label,
-#game-table .pile-count-badge {
-  display: none;
-}
-
-/* Placeholder should be visible during initial deal animation */
-.pile-placeholder {
-  opacity: 0.4;
-}
-
-/* Hide per-card ability icons once a card is on the center piles (too busy). */
-#center-area .pile-cards .card-ability-icon {
-  display: none !important;
-}
-
-/* --- 4. OPPONENT HANDS (Neat Stacks) --- */
-.hand-row--opponent {
-  position: relative; /* Anchor for hand count badge */
-  display: flex;
-  justify-content: center;
-  perspective: 600px;
-}
-
-.hand-row--opponent .card-container {
-  margin-left: calc(-1 * var(--card-w, 90px) * 0.56);
-  transition:
-    transform 0.3s ease,
-    margin 0.3s ease;
-  filter: drop-shadow(-2px 0 3px rgba(0, 0, 0, 0.5));
-  pointer-events: none;
-  position: relative; /* Anchor for hand count badge */
-}
-
-.hand-row--opponent .card-container:first-child {
-  margin-left: 0;
-}
-
-#opponent-area-top .card-container,
-#opponent-area-left .card-container,
-#opponent-area-right .card-container,
-#opponent-area-top .card-img,
-#opponent-area-left .card-img,
-#opponent-area-right .card-img {
-  pointer-events: none;
-}
-
-#opponent-area-top .card-img:hover,
-#opponent-area-left .card-img:hover,
-#opponent-area-right .card-img:hover {
-  transform: none;
-  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.28);
-  cursor: default;
-}
-
-/* Card animations & selection */
-.card-container {
-  /* Transition the highlight effects for a smooth feel */
-  transition: box-shadow 0.2s ease-out;
-  overflow: visible; /* Prevent card edges from being clipped */
-}
-
-/* Local hand interaction */
-.hand-row--local {
-  isolation: isolate;
-}
-
-.hand-row--local .card-container {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  touch-action: manipulation;
-  transition:
-    opacity 0.18s ease,
-    filter 0.18s ease;
-}
-
-/* Hover + selection lifts (no layout shift; avoids widening cards for easier multi-select) */
-.hand-row--local .card-container:hover {
-  z-index: 200;
-  box-shadow: 0 0 14px rgba(255, 195, 0, 0.16);
-}
-
-.hand-row--local .card-container.selected-container,
-.hand-row--local .card-container.selected {
-  z-index: 150;
-  box-shadow: 0 0 16px rgba(255, 195, 0, 0.2);
-}
-
-.hand-row--local .card-container.selected-container:hover,
-.hand-row--local .card-container.selected:hover {
-  z-index: 200;
-}
-
-.hand-row--local .card-container:hover .card-img,
-.hand-row--local .card-container:hover .card-back-custom,
-.hand-row--local .card-container:hover .card-ability-icon {
-  transform: translateY(calc(-1 * var(--hand-hover-lift, 18px)));
-  box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.16),
-    0 12px 22px rgba(0, 0, 0, 0.38);
-}
-
-.hand-row--local .card-container.selected-container .card-img,
-.hand-row--local .card-container.selected-container .card-back-custom,
-.hand-row--local .card-container.selected .card-img,
-.hand-row--local .card-container.selected .card-back-custom,
-.hand-row--local .card-container.selected-container .card-ability-icon,
-.hand-row--local .card-container.selected .card-ability-icon {
-  transform: translateY(calc(-1 * var(--hand-selected-lift, 18px)));
-  filter: brightness(1.06) saturate(1.08);
-  box-shadow:
-    0 0 14px rgba(255, 195, 0, 0.22),
-    0 12px 22px rgba(0, 0, 0, 0.36);
-}
-
-/* Briefly disable hover lift right after play/take to avoid "auto-hover" jitter. */
-.hand-hover-suspended .hand-row--local .card-container:hover {
-  box-shadow: none;
-}
-
-.hand-hover-suspended .hand-row--local .card-container:hover .card-img,
-.hand-hover-suspended .hand-row--local .card-container:hover .card-back-custom,
-.hand-hover-suspended .hand-row--local .card-container:hover .card-ability-icon {
-  transform: none;
-  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.28);
-}
-
-.hand-row--local .card-img,
-.hand-row--local .card-back-custom {
-  will-change: transform;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hand-row--local .card-container {
-    transition: none !important;
-  }
-  .hand-row--local .card-container .card-img,
-  .hand-row--local .card-container .card-back-custom {
-    transition: none !important;
-  }
-}
-
-.player-header .turn-indicator {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: gold;
-  text-shadow: 0 0 10px gold;
-  animation: pulse 1.5s infinite;
-  display: none;
-  margin-left: auto; /* Push to the right */
-}
-
-.player-area.active .player-header .turn-indicator {
-  display: block;
-}
-
-/* Dev-only Restart Button */
-.dev-restart-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 12px 20px;
-  background: #ff6b6b;
-  color: white;
-  border: 2px solid #ff5252;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  z-index: 10000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s ease;
-}
-
-.dev-restart-button:hover {
-  background: #ff5252;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-}
-
-.dev-restart-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Toast container */
-.toast-container {
-  position: fixed;
-  top: 2rem;
-  right: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  z-index: 2000;
-}
-
-.toast {
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 1rem;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-.toast.show {
-  opacity: 1;
-}
-
-/* Game Over Modal */
-#game-over-modal .modal-content {
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  text-align: center;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
-}
-
-#game-over-title {
-  color: gold;
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-#play-again-button {
-  background-color: gold;
-  color: black;
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-#play-again-button:hover {
-  background-color: #ffdd44;
-}
-
-.card-zone h4 {
-  position: absolute;
-  top: -1.2rem;
-  left: 0.5rem;
-  font-family: var(--game-font, 'Space Grotesk', sans-serif);
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.card-zone--hand h4 {
-  top: -1.5rem;
-}
-
-/* New Player Card Area Styles */
-.player-cards-area {
-  width: 100%;
-  padding: 1rem;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.card-zone {
-  width: 100%;
-  position: relative;
-}
-
-.card-zone--tabled {
-  background-color: transparent;
-  border-radius: 0; /* Remove radius to prevent clipping card corners */
-  padding: 0.35rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-height: calc(var(--card-h, 126px) + 18px);
-  padding-bottom: 0.65rem;
-}
-
-/* Ensure containers for up/down cards do not clip their contents */
-.stack-row,
-.stack {
-  overflow: visible;
-}
-
-.card-zone--face-down,
-.card-zone--face-up {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  position: relative;
-}
-
-/* Add placeholders for card slots */
-.card-zone--face-down::before,
-.card-zone--face-up::before {
-  content: '';
-  display: block;
-  width: var(--card-w, 90px);
-  height: var(--card-h, 126px);
-  border: 2px dashed rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-}
-/* Repeat for 3 slots */
-.card-zone--face-down::after,
-.card-zone--face-up::after {
-  content: '';
-  display: block;
-  width: var(--card-w, 90px);
-  height: var(--card-h, 126px);
-  border: 2px dashed rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-}
-.card-zone--face-down > div,
-.card-zone--face-up > div {
-  width: var(--card-w, 90px);
-  height: var(--card-h, 126px);
-  border: 2px dashed rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-}
-
-.card-zone--hand {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: var(--card-h, 126px);
-}
-
-/* Hand Count Badge Colors */
-.hand-count-badge {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  color: white;
-  font-weight: bold;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  border: 2px solid white;
-}
-
-.hand-count-badge.badge-safe {
-  background-color: #28a745; /* Green */
-}
-
-.hand-count-badge.badge-warning {
-  background-color: #ffc107; /* Yellow */
-  color: #212529;
-  text-shadow: none;
-}
-
-.hand-count-badge.badge-danger {
-  background-color: #dc3545; /* Red */
-}
-
-/* Dimmed state for table stacks when hand is active */
-.stack-row.dimmed-stacks {
-  opacity: 0.4;
-  filter: grayscale(0.6);
-  pointer-events: none; /* Prevents clicking */
-  transition:
-    opacity 0.3s ease,
-    filter 0.3s ease;
-}
-
-/* Ensure the forced down cards still look distinct if needed, 
-   but they will also be dimmed by the parent rule above */
-
-/* Game start overlay (post-opening-deal prompt) */
-.game-start-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  cursor: pointer;
-  user-select: none;
-  touch-action: manipulation;
-  background: radial-gradient(
-    circle at 50% 40%,
-    rgba(15, 23, 42, 0.72) 0%,
-    rgba(15, 23, 42, 0.35) 55%,
-    rgba(15, 23, 42, 0) 78%
-  );
-  backdrop-filter: blur(2px);
-  opacity: 0;
-  transition: opacity 0.18s ease;
-}
-
-.game-start-overlay.is-visible {
-  opacity: 1;
-}
-
-.game-start-overlay.is-hiding {
-  opacity: 0;
-}
-
-.game-start-overlay__card {
-  pointer-events: none;
-  width: min(420px, 100%);
-  padding: 1.25rem 1.35rem;
-  border-radius: 16px;
-  border: 3px solid #ffc300;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.97) 0%,
-    rgba(254, 249, 240, 0.97) 100%
-  );
-  box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.42),
-    0 0 0 1px rgba(255, 195, 0, 0.2);
-  text-align: center;
-  transform: translateY(10px) scale(0.98);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.game-start-overlay.is-visible .game-start-overlay__card {
-  transform: translateY(0) scale(1);
-}
-
-.game-start-overlay__title {
-  font-size: 1.7rem;
-  font-weight: 900;
-  margin: 0;
-  background: linear-gradient(135deg, #f6c556 0%, #f39c12 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-transform: none;
-}
-
-.game-start-overlay__hint {
-  margin-top: 0.55rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #1b2e3c;
-  opacity: 0.92;
-}
-
-@media (max-width: 600px) {
-  .game-start-overlay__card {
-    padding: 1.05rem 1.1rem;
-    border-radius: 14px;
-  }
-
-  .game-start-overlay__title {
-    font-size: 1.45rem;
-  }
-
-  .game-start-overlay__hint {
-    font-size: 1rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .game-start-overlay,
-  .game-start-overlay__card {
-    transition: none !important;
-  }
-}
-
-/* --- PILE LABELS (The "Pill" Look) --- */
-.pile-nameplate {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  /* Glassmorphism Pill */
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 4px 12px;
-  border-radius: 999px;
-
-  /* Layout stability */
-  min-width: 80px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  z-index: 2;
-  margin-bottom: 4px; /* Space between label and cards */
-}
-
-.pile-name {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.2rem;
-  letter-spacing: 0.08em;
-  color: #e2e8f0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  margin: 0;
-  line-height: 1;
-}
-
-.pile-count {
-  font-family: var(--game-font, 'Space Grotesk', sans-serif);
-  font-size: 1rem;
-  font-weight: 700;
-  color: #ffd700;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  margin: 0;
-  line-height: 1;
-}
-
-/* --- MOBILE OVERRIDES --- */
-@media (max-width: 767px) {
-  /* Force labels to be visible on mobile now that they look good */
-  #game-table .pile-name,
-  #game-table .pile-count {
-    display: inline-block !important;
-  }
-
-  /* Adjust pill size for mobile */
-  .pile-nameplate {
-    padding: 2px 8px;
-    min-width: 60px;
-  }
-
-  .pile-name {
-    font-size: 1rem;
-  }
-
-  .pile-count {
-    font-size: 0.9rem;
-  }
-
-  /* Ensure the pile group doesn't have a background, just the elements */
-  #game-table #center-area .pile-group {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-}
-
-@media (max-width: 767px) and (orientation: portrait) {
-  #player-area-bottom .player-actions {
-    margin-top: 0.05rem;
-  }
-
-  #player-area-bottom .player-zone--hand-local {
-    margin-top: 0;
-    padding-top: 0.35rem;
-    padding-bottom: 0.15rem;
-  }
-
-  #player-area-bottom .player-area {
-    padding: 0.45rem 0.45rem 0.25rem;
-    gap: 0.05rem;
-    min-height: calc(var(--card-h, 126px) * 2 + 34px);
-  }
-
-  #player-area-bottom .player-zone--table {
-    margin-bottom: 0.05rem;
-    padding-bottom: 0.25rem;
-  }
-
-  #opponent-area-top {
-    margin-top: 1.1rem;
-  }
-
-  #opponent-area-top .player-avatar {
-    width: 32px;
-    height: 32px;
-  }
-
-  #opponent-area-top .player-name {
-    font-size: 0.7rem;
-  }
-}
+*/
+/* REPLACED BY NEW CENTER PILE LOGIC ABOVE */

@@ -14,7 +14,10 @@ export async function performOpeningDeal(
   myPlayerId: string
 ): Promise<void> {
   try {
-    const playSource = document.getElementById('deck-pile'); // Source "Play" pile
+    // 1. Pause to let players see the "DRAW" / "PLAY" burnt text markings
+    await wait(1800);
+
+    const playSource = document.getElementById('deck-pile'); // Source "Play" pile (Deck)
     if (!playSource) {
       console.warn(
         '[DealingAnimation] deck-pile not found; skipping opening deal animation'
@@ -24,6 +27,16 @@ export async function performOpeningDeal(
       renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
       await showStartOverlay();
       return;
+    }
+
+    // 2. Visually spawn the deck card (since skeleton mode removed it)
+    // This ensures cards have a visible source to fly from.
+    if (!playSource.querySelector('.deck-card') && (gameState.deckSize ?? 0) > 0) {
+      // Create a temporary deck back card
+      const deckBack: Card = { back: true, value: 'A', suit: 'spades' };
+      const cardEl = cardImg(deckBack, false, undefined, true, false);
+      cardEl.classList.add('deck-card');
+      playSource.appendChild(cardEl);
     }
 
     // Prefer the actual deck card element for more accurate start positioning.
