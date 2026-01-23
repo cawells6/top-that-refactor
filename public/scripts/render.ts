@@ -478,15 +478,22 @@ function updateCenterArea(
   }
 
   // --- 1. NEW LAYOUT WRAPPER ---
-  let pilesContainer = centerWrap.querySelector(
+  let gameBorder = centerWrap.querySelector('.game-border') as HTMLElement;
+  if (!gameBorder) {
+    gameBorder = document.createElement('div');
+    gameBorder.className = 'game-border';
+    // Clean out old children if switching from old layout
+    centerWrap.innerHTML = '';
+    centerWrap.appendChild(gameBorder);
+  }
+
+  let pilesContainer = gameBorder.querySelector(
     '.piles-container'
   ) as HTMLElement;
   if (!pilesContainer) {
     pilesContainer = document.createElement('div');
     pilesContainer.className = 'piles-container';
-    // Clean out old children if switching from old layout
-    centerWrap.innerHTML = '';
-    centerWrap.appendChild(pilesContainer);
+    gameBorder.appendChild(pilesContainer);
   }
 
   // --- 2. DRAW PILE ---
