@@ -340,9 +340,23 @@
   z-index: 2;
 }
 
-#game-table .hand-row--local .card-container:hover {
+#game-table .hand-row--local .card-container:hover,
+#game-table .hand-row--local .card-container.selected,
+#game-table .hand-row--local .card-container.selected-container {
   z-index: 220;
+}
+
+#game-table .hand-row--local .card-container:hover .card-img {
   transform: translateY(calc(-1 * var(--hand-hover-lift, 18px)));
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.4),
+    0 0 18px rgba(255, 214, 102, 0.3);
+}
+
+#game-table .hand-row--local .card-container.selected .card-img,
+#game-table .hand-row--local .card-container.selected-container .card-img,
+#game-table .hand-row--local .card-img.selected {
+  transform: translateY(calc(-1 * var(--hand-selected-lift, 18px)));
   box-shadow:
     0 10px 20px rgba(0, 0, 0, 0.4),
     0 0 18px rgba(255, 214, 102, 0.3);
@@ -505,7 +519,7 @@
     0 6px 16px -4px rgba(0, 0, 0, 0.35),
     inset 0 1px 1px rgba(255, 255, 255, 0.3);
   z-index: 20;
-  border: 3px solid rgba(255, 255, 255, 0.35);
+  border: 3px solid #6A4FB3;
 }
 
 .card-count span {
