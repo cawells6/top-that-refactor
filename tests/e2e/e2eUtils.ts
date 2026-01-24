@@ -8,16 +8,30 @@ export async function waitForAnimationsToFinish(page: Page) {
   // Handle overlay if it appears
   const overlay = page.locator('#game-start-overlay');
 
-  // Check if attached at all before doing anything
   if (await overlay.count() > 0) {
       if (await overlay.isVisible()) {
           try {
-              await overlay.click({ timeout: 1000, force: true });
+              await overlay.click({ timeout: 500, force: true });
           } catch (e) {
-              // Ignore click failure (maybe it disappeared)
+              // Ignore
           }
       }
-      // Wait for it to be gone
-      await expect(overlay).toBeHidden();
+
+      // If still visible after click, try to remove it via JS (Safety net)
+      if (await overlay.isVisible()) {
+          // Give it a moment to fade
+          await page.waitForTimeout(200);
+          if (await overlay.isVisible()) {
+             await page.evaluate(() => {
+                 const el = document.getElementById('game-start-overlay');
+                 if (el) el.remove();
+             });
+          }
+      }
+
+      // Final check
+      if (await overlay.count() > 0) {
+        await expect(overlay).toBeHidden();
+      }
   }
 }

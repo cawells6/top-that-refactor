@@ -5,6 +5,7 @@ export class LobbyPage {
   readonly nameInput: Locator;
   readonly hostTab: Locator;
   readonly joinTab: Locator;
+  readonly humansPlusBtn: Locator;
   readonly cpuPlusBtn: Locator;
   readonly startGameBtn: Locator;
   readonly joinCodeInput: Locator;
@@ -15,6 +16,7 @@ export class LobbyPage {
     this.nameInput = page.locator('#player-name-input');
     this.hostTab = page.locator('.lobby-tab-button[data-tab="host"]');
     this.joinTab = page.locator('.lobby-tab-button[data-tab="join"]');
+    this.humansPlusBtn = page.locator('#humans-plus');
     this.cpuPlusBtn = page.locator('#cpus-plus');
     this.startGameBtn = page.locator('#setup-deal-button');
     this.joinCodeInput = page.locator('#join-code-input');
@@ -32,12 +34,23 @@ export class LobbyPage {
     await this.nameInput.fill(name);
   }
 
+  async addHuman() {
+    await this.humansPlusBtn.click();
+  }
+
   async addCpu() {
     await this.cpuPlusBtn.click();
   }
 
   async startGame() {
     await this.startGameBtn.click();
+  }
+
+  async getRoomCode(): Promise<string> {
+    // Wait for the room code input to be visible in the modal
+    const codeInput = this.page.locator('#game-id-input');
+    await expect(codeInput).toBeVisible({ timeout: 5000 });
+    return await codeInput.inputValue();
   }
 
   async joinGame(code: string) {
