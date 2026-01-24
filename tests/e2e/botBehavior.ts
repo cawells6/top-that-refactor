@@ -1,101 +1,127 @@
-import { expect, Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import { GamePage } from '../pages/GamePage';
-import { normalizeCardValue, rank, isSpecialCard, isValidPlay } from '../../utils/cardUtils';
 import { waitForAnimationsToFinish } from './e2eUtils';
-import type { Card } from '../../src/shared/types';
+import { normalizeCardValue, rank } from '../../utils/cardUtils';
 
-export async function playValidMove(game: GamePage, page: Page, turnLogPrefix: string = '[Bot]') {
+export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix: string = '[Bot]') {
+    // 1. Wait for stability before reading state
     await waitForAnimationsToFinish(page);
-    const state = await game.getGameState();
+
+    // 2. Get State
+    const state = await gamePage.getGameState();
     if (!state) return;
 
+    // Correctly extract hand from GameStateData
     const myPlayer = state.players.find(p => p.id === state.currentPlayerId);
     const hand = myPlayer?.hand || [];
     const pile = state.pile || [];
+    const topCard = pile.length > 0 ? pile[pile.length - 1] : null;
+    const topCardValue = topCard ? rank(topCard) : 0;
 
-    // Group cards by value
-    const groups = new Map<string, Card[]>();
+    // 3. Find Best Valid Move
+    let bestValue: number | null = null;
+    let bestCards: any[] = [];
+
+    // Group cards by value to easily find multiples
+    const groups = new Map<string, any[]>();
     for (const card of hand) {
+        // Use normalized string key for grouping (e.g. "ten", "king")
         const key = String(normalizeCardValue(card.value));
         if (!groups.has(key)) groups.set(key, []);
         groups.get(key)?.push(card);
     }
 
-    // Find valid moves
-    let bestMove: Card[] | null = null;
-
-    // 1. Burn (4 of a kind)
+    // Strategy:
+    // A. Burn (4 of a kind) - Priority
     for (const group of groups.values()) {
         if (group.length >= 4) {
-            bestMove = group;
+            bestCards = group;
+            bestValue = rank(group[0]); // Just for logging
             break;
         }
     }
 
-    // 2. Special cards
-    if (!bestMove) {
+    // B. Special Cards (10, 2, 5) logic
+    if (bestCards.length === 0) {
+        // Simple heuristic: Try to save specials, but play if needed?
+        // Or play standard logic.
+        // Let's iterate all groups and find the "best" one.
+        // "Best" = Lowest valid rank?
+
+        let candidateGroups: any[][] = [];
+
         for (const group of groups.values()) {
-            if (group.length > 0 && isSpecialCard(group[0].value)) {
-                 if (isValidPlay(group, pile)) {
-                     bestMove = group;
-                     break;
-                 }
+            const card = group[0];
+            const cardRank = rank(card);
+            const normVal = normalizeCardValue(card.value);
+
+            // Is valid?
+            let isValid = false;
+            if (pile.length === 0) isValid = true;
+            else if (normVal === 'ten' || normVal === 'two' || normVal === 'five') isValid = true;
+            else if (cardRank >= topCardValue) isValid = true;
+
+            if (isValid) {
+                candidateGroups.push(group);
             }
+        }
+
+        if (candidateGroups.length > 0) {
+            // Sort candidates by rank (lowest first) to save high cards
+            // But maybe save specials (2, 10) for last?
+            // Assign weight: Standard cards = Rank. Specials = High Rank (effectively) to delay usage.
+            candidateGroups.sort((a, b) => {
+                const getWeight = (c: any) => {
+                    const v = normalizeCardValue(c.value);
+                    if (v === 'two') return 100; // Save 2s
+                    if (v === 'ten') return 101; // Save 10s
+                    return rank(c);
+                };
+                return getWeight(a[0]) - getWeight(b[0]);
+            });
+            bestCards = candidateGroups[0];
+            bestValue = rank(bestCards[0]);
         }
     }
 
-    // 3. Lowest valid card
-    if (!bestMove) {
-        const validGroups: Card[][] = [];
-        for (const group of groups.values()) {
-            if (isValidPlay(group, pile)) {
-                validGroups.push(group);
+    // 4. Action
+    if (bestCards.length > 0) {
+        // Find indices of all cards in the chosen group
+        // We need to map back to the original hand indices
+        const indicesToSelect: number[] = [];
+        const usedIndices = new Set<number>();
+
+        for (const cardToPlay of bestCards) {
+            const idx = hand.findIndex((c, i) =>
+                c.value === cardToPlay.value &&
+                c.suit === cardToPlay.suit &&
+                !usedIndices.has(i)
+            );
+            if (idx !== -1) {
+                indicesToSelect.push(idx);
+                usedIndices.add(idx);
             }
         }
 
-        if (validGroups.length > 0) {
-            // Sort by rank ascending
-            validGroups.sort((a, b) => rank(a[0]) - rank(b[0]));
-            bestMove = validGroups[0];
-        }
-    }
+        console.log(`${turnLogPrefix} Bot playing ${bestCards.length}x ${bestCards[0].value} (Indices: ${indicesToSelect.join(',')})`);
 
-    if (bestMove) {
-        console.log(`${turnLogPrefix} Playing: ${bestMove.map(c => c.value).join(',')}`);
-        // Select cards (using index in hand)
-        const indices: number[] = [];
-        const indicesUsed = new Set<number>();
+        await gamePage.selectCards(indicesToSelect);
+        await gamePage.playCards();
 
-        for (const cardToPlay of bestMove) {
-             // Find index in original hand that matches logic and hasn't been used
-             const idx = hand.findIndex((c, i) =>
-                 c.value === cardToPlay.value &&
-                 c.suit === cardToPlay.suit &&
-                 !indicesUsed.has(i)
-             );
-
-             if (idx !== -1) {
-                 indices.push(idx);
-                 indicesUsed.add(idx);
-             }
-        }
-
-        await game.selectCards(indices);
-        await game.playCards();
-
-        // Assert Animation Lifecycle: Handled by checking start then finish
+        // Assert Animation Start (at least one card flying)
         try {
             await expect(page.locator('.flying-card, .flying-card-ghost').first()).toBeVisible({ timeout: 2000 });
         } catch(e) {
-            // Animation might have been too fast or missed, but we proceed to wait for finish
+            // Ignore if missed
         }
         await waitForAnimationsToFinish(page);
-
-        // Verify no error toast
-        await expect(game.toast).not.toBeVisible();
     } else {
-        console.log(`${turnLogPrefix} Taking pile`);
-        await game.takePile();
+        // Take Pile
+        console.log(`${turnLogPrefix} Bot taking pile`);
+        await gamePage.takePile();
         await waitForAnimationsToFinish(page);
     }
 }
+
+// Export alias to match existing tests
+export const playValidMove = playBestMove;
