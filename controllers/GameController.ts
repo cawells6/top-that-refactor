@@ -1176,6 +1176,7 @@ export default class GameController {
           const playerSocket = this.io.sockets.sockets.get(player.socketId);
           if (playerSocket) {
             playerSocket.emit(ERROR_EVENT, 'Invalid play.');
+            this.pushState();
           }
         }
       } else {

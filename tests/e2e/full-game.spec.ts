@@ -30,12 +30,27 @@ test('Full Game - Human vs CPU', async ({ page }) => {
     });
 
     let turns = 0;
+    let lastPlayerId = '';
+    let stuckTurns = 0;
+
     while (!(await game.isGameOver())) {
         turns++;
         // Safety break
         if (turns > 500) {
             console.log('Game exceeded 500 turns - stopping');
             break;
+        }
+
+        const state = await game.getGameState();
+        const currentPlayerId = state?.currentPlayerId || '';
+        if (currentPlayerId && currentPlayerId === lastPlayerId) {
+            stuckTurns++;
+            if (stuckTurns >= 30) {
+                throw new Error(`Game stuck on player ${currentPlayerId} for 30 loop iterations (approx 6s)!`);
+            }
+        } else {
+            stuckTurns = 0;
+            lastPlayerId = currentPlayerId;
         }
 
         // Clean Up the Loop: Ensure animations finish before interacting
