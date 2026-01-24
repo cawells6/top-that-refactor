@@ -37,3 +37,27 @@ button,
 }
 
 /* ...existing code... */
+
+/* Invite Friends Button */
+.invite-btn {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important;
+  color: white !important;
+  border: none !important;
+  width: 100%;
+  padding: 12px;
+  font-weight: bold;
+  border-radius: 8px;
+  box-shadow: 0 4px 0 #075985, 0 5px 10px rgba(0, 0, 0, 0.2) !important;
+  transition: transform 0.1s, box-shadow 0.1s !important;
+}
+
+.invite-btn:hover {
+  background: linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 0 #075985, 0 8px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+.invite-btn:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 2px 0 #075985, 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+}

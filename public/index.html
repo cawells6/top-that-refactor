@@ -646,30 +646,39 @@
           />
         </div>
 
-        <div class="game-id-section" style="margin-bottom: 8px;">
-          <label for="game-id-input" style="color:#666;font-weight:bold;margin-right:8px;">ROOM CODE:</label>
-          <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
-            <input
-              id="game-id-input"
-              class="game-id-input"
-              type="text"
-              readonly
-              aria-hidden="true"
-              style="
-                width: 110px;
-                font-size: 1.05rem;
-                padding: 6px 10px;
-                border-radius: 10px;
-                background: #e9ecef;
-                border: 1px solid #ced4da;
-                text-align: center;
-                color: #495057;
-                font-weight: bold;
-              "
-            />
-            <button id="copy-link-button" class="header-btn secondary-btn copy-inline-btn" type="button">COPY</button>
+        <div class="game-id-section" style="margin-bottom: 8px; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center;">
+            <label for="game-id-input" style="color:#666;font-weight:bold;">ROOM CODE:</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input
+                id="game-id-input"
+                class="game-id-input"
+                type="text"
+                readonly
+                aria-hidden="true"
+                style="
+                  width: 110px;
+                  font-size: 1.05rem;
+                  padding: 6px 10px;
+                  border-radius: 10px;
+                  background: #e9ecef;
+                  border: 1px solid #ced4da;
+                  text-align: center;
+                  color: #495057;
+                  font-weight: bold;
+                  margin-bottom: 0;
+                "
+              />
+              <button id="copy-link-button" class="header-btn secondary-btn copy-inline-btn" type="button">COPY</button>
+            </div>
           </div>
-          <div class="game-id-hint" style="text-align:center;margin-top:6px;color:#666;font-size:0.85rem;">Guests paste this code into the Join form to enter the game</div>
+          <div class="game-id-hint" style="text-align:center;color:#666;font-size:0.85rem;width:100%;">Guests paste this code into the Join form to enter the game</div>
+        </div>
+
+        <div class="invite-section" style="margin-top: 10px; display: flex; justify-content: center;">
+          <button id="invite-friends-button" class="header-btn invite-btn" type="button">
+            INVITE FRIENDS
+          </button>
         </div>
 
         <div id="players-container" class="players-container"></div>
