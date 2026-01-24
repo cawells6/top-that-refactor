@@ -808,9 +808,8 @@ export async function initializeLobby() {
     const avatarModule = await import('../../src/shared/avatars.js');
     royaltyAvatars = avatarModule.ROYALTY_AVATARS;
 
-    // 1. Randomize Avatar on Load
-    const randomIndex = Math.floor(Math.random() * royaltyAvatars.length);
-    selectedAvatar = royaltyAvatars[randomIndex];
+    // Do NOT auto-select an avatar on load — leave `selectedAvatar` null so
+    // the player must explicitly choose an avatar if they want one.
     // Choose a single shuffled order for this session, then interleave by category
     const randomized = shuffleArray(royaltyAvatars);
     initialAvatarOrder = interleaveByCategory(randomized);
@@ -880,7 +879,7 @@ export function initializePageEventListeners() {
     });
   }
 
-  // Sync UI immediately with random choice
+  // Sync UI immediately (no avatar selected by default)
   updateAvatarDropdownUI();
   updatePlayerSilhouettes();
   updateJoinAvatar(); // New helper

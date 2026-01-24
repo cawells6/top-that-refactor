@@ -427,6 +427,11 @@ function updateOpponentHandStack(
       const cardEl = cardImg(backCard, false, undefined, true, skeletonMode);
       cardEl.classList.add('stacked-card');
       cardEl.style.position = 'relative'; // Anchor for badge positioning
+      // Make opponent cards overlap (shingle) by applying a negative left margin
+      // for all but the first card. Use the same overlap calc as other layouts.
+      cardEl.style.marginLeft = i === 0 ? '0px' : 'calc(-1 * var(--card-w, 90px) * .56)';
+      // Ensure proper stacking order so later cards sit on top
+      cardEl.style.zIndex = String(i + 1);
       handStack.appendChild(cardEl);
     }
   } else if (currentCards.length > desiredCards) {
@@ -456,6 +461,16 @@ function updateOpponentHandStack(
       lastCard.appendChild(badge);
     }
   }
+
+  // If there are multiple visible back-cards, ensure they are shingled by
+  // updating margin and z-index on all current children. This covers the
+  // reconciliation path where nodes were reused.
+  const visibleCards = handStack.querySelectorAll('.card-container:not(.card-slot--empty)');
+  visibleCards.forEach((el, idx) => {
+    const he = el as HTMLElement;
+    he.style.marginLeft = idx === 0 ? '0px' : 'calc(-1 * var(--card-w, 90px) * .56)';
+    he.style.zIndex = String(idx + 1);
+  });
 }
 
 function updateCenterArea(
