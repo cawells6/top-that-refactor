@@ -208,8 +208,7 @@ test.describe('Game Scenarios', () => {
                     } else {
                         // If enabled, try to click and expect toast (Server-side validation)
                         await game.playCards();
-                        const toast = page.locator('.toast.error');
-                        await expect(toast).toBeVisible();
+                        await expect(page.getByText('Invalid play')).toBeVisible();
                     }
 
                     // ASSERTION: Card still in hand (count didn't change)

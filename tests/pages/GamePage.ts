@@ -44,6 +44,14 @@ export class GamePage {
     }
   }
 
+  async selectUpCard(index: number) {
+    await this.page.locator(`.stack-row .card-container.up-card[data-idx="${index}"]`).click();
+  }
+
+  async selectDownCard(index: number) {
+    await this.page.locator(`.stack-row .card-container.down-card[data-idx="${index}"]`).click();
+  }
+
   async playCards() {
     await this.playBtn.click();
   }

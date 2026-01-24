@@ -60,7 +60,9 @@ export function showToast(
     transition: 'opacity 0.3s ease',
     opacity: '1',
   });
-  document.body.appendChild(toast);
+
+  const container = document.getElementById('toast-container') || document.body;
+  container.appendChild(toast);
 
   // Force reflow
   toast.offsetHeight;
