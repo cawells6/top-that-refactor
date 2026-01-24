@@ -353,6 +353,10 @@
     0 0 18px rgba(255, 214, 102, 0.3);
 }
 
+#game-table .hand-row--local .card-container:hover .card-ability-icon {
+  transform: translateY(calc(-1 * var(--hand-hover-lift, 18px)));
+}
+
 #game-table .hand-row--local .card-container.selected .card-img,
 #game-table .hand-row--local .card-container.selected-container .card-img,
 #game-table .hand-row--local .card-img.selected {
@@ -360,6 +364,12 @@
   box-shadow:
     0 10px 20px rgba(0, 0, 0, 0.4),
     0 0 18px rgba(255, 214, 102, 0.3);
+}
+
+#game-table .hand-row--local .card-container.selected .card-ability-icon,
+#game-table .hand-row--local .card-container.selected-container .card-ability-icon,
+#game-table .hand-row--local .card-img.selected + .card-ability-icon {
+  transform: translateY(calc(-1 * var(--hand-selected-lift, 18px)));
 }
 
 .hand-row--compressed {
@@ -516,8 +526,7 @@
   align-items: center;
   justify-content: center;
   box-shadow:
-    0 6px 16px -4px rgba(0, 0, 0, 0.35),
-    inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    0 6px 16px -4px rgba(0, 0, 0, 0.35);
   z-index: 20;
   border: 3px solid #6A4FB3;
 }
@@ -667,6 +676,7 @@
   pointer-events: none;
   z-index: 3;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));
+  transition: transform 0.18s ease;
 }
 
 .card-container--special-inactive .card-ability-icon {
