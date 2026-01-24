@@ -1,26 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 import { LobbyPage } from '../pages/LobbyPage';
 import { GamePage } from '../pages/GamePage';
-import { waitForAnimationsToFinish } from './e2eUtils';
+import { waitForAnimationsToFinish, createPlayer, getMyId } from './e2eUtils';
 import { playValidMove } from './botBehavior';
-
-// Helper to set up a player in a new isolated context
-async function createPlayer(browser: any, name: string) {
-    const context = await browser.newContext();
-    const page = await context.newPage();
-    const lobby = new LobbyPage(page);
-    const game = new GamePage(page);
-
-    // Setup console logging for debugging this specific player
-    page.on('console', msg => console.log(`[${name}] ${msg.text()}`));
-
-    return { page, context, lobby, game, name };
-}
-
-// Helper to get local player ID from window state
-async function getMyId(page: Page) {
-    return await page.evaluate(() => (window as any).state?.myId);
-}
 
 test('2 Humans + 2 CPUs (4 Player Game)', async ({ browser }) => {
     test.setTimeout(120000); // 2 minutes

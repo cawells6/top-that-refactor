@@ -1,4 +1,22 @@
 import { Page, expect } from '@playwright/test';
+import { LobbyPage } from '../pages/LobbyPage';
+import { GamePage } from '../pages/GamePage';
+
+export async function createPlayer(browser: any, name: string) {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const lobby = new LobbyPage(page);
+    const game = new GamePage(page);
+
+    // Setup console logging for debugging this specific player
+    page.on('console', msg => console.log(`[${name}] ${msg.text()}`));
+
+    return { page, context, lobby, game, name };
+}
+
+export async function getMyId(page: Page) {
+    return await page.evaluate(() => (window as any).state?.myId);
+}
 
 export async function waitForAnimationsToFinish(page: Page) {
   // Wait for flying cards to disappear
