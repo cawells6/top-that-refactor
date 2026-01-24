@@ -1,8 +1,8 @@
-import { test, expect, type Page } from '@playwright/test';
-import { LobbyPage } from '../pages/LobbyPage';
-import { GamePage } from '../pages/GamePage';
-import { waitForAnimationsToFinish, createPlayer, getMyId } from './e2eUtils';
+import { test, expect } from '@playwright/test';
+
 import { playValidMove } from './botBehavior';
+import { waitForAnimationsToFinish, createPlayer, getMyId } from './e2eUtils';
+import { GamePage } from '../pages/GamePage';
 
 test('2 Humans + 2 CPUs (4 Player Game)', async ({ browser }) => {
     test.setTimeout(120000); // 2 minutes
