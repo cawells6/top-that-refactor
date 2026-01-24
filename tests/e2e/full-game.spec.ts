@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { LobbyPage } from '../pages/LobbyPage';
 import { GamePage } from '../pages/GamePage';
 import { normalizeCardValue, rank, isSpecialCard, isValidPlay } from '../../utils/cardUtils';
+import { waitForAnimationsToFinish } from './e2eUtils';
 import type { Card } from '../../src/shared/types';
 
 test('Full Game - Human vs CPU', async ({ page }) => {
@@ -21,6 +22,14 @@ test('Full Game - Human vs CPU', async ({ page }) => {
 
     await game.waitForGameStart();
 
+    // Ensure animations/overlay are handled before snapshot
+    await waitForAnimationsToFinish(page);
+
+    // Initial game state snapshot
+    await expect(page).toHaveScreenshot('game-start.png', {
+        mask: [page.locator('.game-log-time'), page.locator('.game-log-entry')]
+    });
+
     let turns = 0;
     while (!(await game.isGameOver())) {
         turns++;
@@ -28,6 +37,16 @@ test('Full Game - Human vs CPU', async ({ page }) => {
         if (turns > 500) {
             console.log('Game exceeded 500 turns - stopping');
             break;
+        }
+
+        // Clean Up the Loop: Ensure animations finish before interacting
+        await waitForAnimationsToFinish(page);
+
+        // Visual Snapshots for first few turns
+        if (turns <= 2) {
+             await expect(page).toHaveScreenshot(`turn-${turns}-end.png`, {
+                mask: [page.locator('.game-log-time'), page.locator('.game-log-entry')]
+            });
         }
 
         if (await game.isMyTurn()) {
@@ -107,6 +126,12 @@ test('Full Game - Human vs CPU', async ({ page }) => {
 
                 await game.selectCards(indices);
                 await game.playCards();
+
+                // Assert Animation Lifecycle
+                // Verify animation starts (element exists)
+                await expect(page.locator('.flying-card, .flying-card-ghost').first()).toBeVisible({ timeout: 2000 });
+                // Verify animation ends (element removed)
+                await expect(page.locator('.flying-card, .flying-card-ghost')).toHaveCount(0);
 
                 // Verify no error toast
                 await expect(game.toast).not.toBeVisible();
