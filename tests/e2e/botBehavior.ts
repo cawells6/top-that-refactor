@@ -59,7 +59,7 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
             let isValid = false;
             if (pile.length === 0) isValid = true;
             else if (normVal === 'ten' || normVal === 'two' || normVal === 'five') isValid = true;
-            else if (cardRank >= topCardValue) isValid = true;
+            else if (cardRank > topCardValue) isValid = true;
 
             if (isValid) {
                 candidateGroups.push(group);
