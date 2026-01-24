@@ -951,7 +951,6 @@ function updateHandRow(
           skeletonMode
         );
         newContent.style.zIndex = String(i + 1);
-        // FIX: Apply data-zone to replacement element
         const newImg = newContent.querySelector('.card-img') as HTMLElement;
         if (newImg) {
           newImg.dataset.idx = String(i);
