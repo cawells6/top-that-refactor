@@ -31,7 +31,7 @@ If you only read one file before making changes, read this.
 - `LOBBY_STATE_UPDATE`: Real-time lobby sync (avatars, readiness).
 - `START_GAME`: Transition to gameplay.
 - `STATE_UPDATE`: The heartbeat. Contains the *entire* relevant game state.
-- `PLAY_CARD`: Gameplay actions.
+- `PLAY_CARD`: Gameplay actions test.
 
 ### **Strict TypeScript**
 - All new code must be TypeScript.
