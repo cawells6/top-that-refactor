@@ -12,6 +12,10 @@ NC='\033[0m' # No Color
 MSG="$*"
 
 # If no commit message provided, use a default
+if [ "$MSG" = "undefined" ]; then
+  MSG=""
+fi
+
 if [ -z "$MSG" ]; then
   MSG="Update files"
   echo -e "${YELLOW}No commit message provided, using default: '$MSG'${NC}"

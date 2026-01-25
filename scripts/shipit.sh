@@ -14,9 +14,18 @@ fi
 
 # 2. Get the commit message
 MSG="$1"
-if [ -z "$MSG" ]; then
+
+# VS Code tasks can pass the literal string "undefined" if the prompt is
+# canceled or not resolved. Treat that as missing.
+if [ "${MSG:-}" = "undefined" ]; then
+  MSG=""
+fi
+
+if [ -z "${MSG:-}" ]; then
   MSG="Update"
 fi
+
+echo "Commit message: $MSG"
 
 echo "🚀 Starting ShipIt Sequence from branch: $CURRENT_BRANCH"
 
