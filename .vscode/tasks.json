@@ -52,7 +52,14 @@
     {
       "label": "Ship It With Message",
       "type": "shell",
-      "command": "./scripts/shipit.sh \"${input:commitMessage}\"",
+      "command": "C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe",
+      "args": [
+        "-lc",
+        "./scripts/shipit.sh \"${input:commitMessage}\""
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
       "presentation": {
         "echo": true,
         "reveal": "always",
