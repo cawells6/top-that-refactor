@@ -128,6 +128,7 @@ body {
   padding: 0 !important;
   margin: 0 !important;
   z-index: 1000 !important;
+  isolation: isolate;
 }
 
 /* Initial hidden states - enhanced by layout-stabilizer.js */
@@ -1118,38 +1119,38 @@ body {
 }
 
 #copy-link-button {
-  background: linear-gradient(135deg, #2196f3 0%, #64b5f6 100%);
-  color: #ffffff !important;
-  border: none;
-}
-
-#copy-link-button:hover {
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-  color: #ffffff !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
-}
-
-#copy-link-button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 4px rgba(33, 150, 243, 0.2);
-}
-
-/* Ready-up button in the in-session lobby should match the lobby's LET'S PLAY button */
-#ready-up-button {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c !important;
   border: none;
 }
 
-#ready-up-button:hover {
+#copy-link-button:hover {
   background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
   color: #1b2e3c !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
 }
 
-#ready-up-button:active {
+#copy-link-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
+}
+
+/* Ready-up button base styling (only when not using the PLAY button shell) */
+#ready-up-button:not(.play-button-container) {
+  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
+  color: #1b2e3c !important;
+  border: none;
+}
+
+#ready-up-button:not(.play-button-container):hover {
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
+  color: #1b2e3c !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
+}
+
+#ready-up-button:not(.play-button-container):active {
   transform: translateY(0);
   box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
 }

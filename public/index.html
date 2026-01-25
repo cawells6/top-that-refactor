@@ -42,8 +42,8 @@
     <div class="game-viewport">
       <main class="main-content" id="main-content">
         <div class="lobby lobby--hidden" id="lobby-container">
-          <div id="lobby-outer-card" class="lobby-modal-container">
-            <div id="lobby-inner-content" class="game-setup-content">
+        <div id="lobby-outer-card" class="lobby-modal-container">
+          <div id="lobby-inner-content" class="game-setup-content">
               <details id="lobby-menu" class="lobby-menu">
                 <summary class="lobby-menu__summary" aria-label="Lobby menu">
                   <span class="lobby-menu__icon" aria-hidden="true">
@@ -298,6 +298,82 @@
                       >
                         HOST GAME
                       </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="lobby-tab-panel lobby-tab-panel--waiting"
+                  data-tab-panel="waiting"
+                  id="in-session-lobby-modal"
+                  tabindex="-1"
+                >
+                  <div class="host-selection-rectangle host-selection-rectangle--join in-session-host-rectangle">
+                    <div class="player-section waiting-code-section">
+                      <h3 id="in-session-lobby-title" class="section-title">
+                        WAITING FOR PLAYERS...
+                      </h3>
+
+                      <div class="name-input-section" id="guest-name-section">
+                        <input
+                          type="text"
+                          id="guest-player-name-input"
+                          placeholder="ENTER YOUR NAME"
+                          maxlength="20"
+                          required
+                          autocomplete="off"
+                        />
+                      </div>
+
+                      <div class="players-box">
+                        <div
+                          id="players-container"
+                          class="players-container waiting-slots"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div class="lobby-actions lobby-actions--waiting">
+                      <div class="waiting-actions-spacer" aria-hidden="true"></div>
+                      <button
+                        id="ready-up-button"
+                        class="lets-play-btn play-button-container"
+                        type="button"
+                        aria-label="Let's Play"
+                      >
+                        <div class="deep-shadow" aria-hidden="true"></div>
+                        <div class="pulsing-glow" aria-hidden="true"></div>
+                        <div class="outer-gold-ring" aria-hidden="true">
+                          <div class="button-base">
+                            <div class="gloss-sweep"></div>
+                            <div class="top-highlight"></div>
+                            <div class="text-container">
+                              <span class="text-shadow">LET'S PLAY</span>
+                              <span class="text-main">LET'S PLAY</span>
+                            </div>
+                            <div class="bottom-shadow"></div>
+                          </div>
+                        </div>
+                      </button>
+                      <div class="waiting-invite">
+                        <div class="waiting-invite-label">ROOM CODE</div>
+                        <div class="waiting-code-row">
+                          <input
+                            id="game-id-input"
+                            class="game-id-input waiting-code-input"
+                            type="text"
+                            readonly
+                            aria-hidden="true"
+                          />
+                          <button
+                            id="copy-link-button"
+                            class="header-btn secondary-btn copy-inline-btn"
+                            type="button"
+                          >
+                            COPY
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -567,6 +643,7 @@
             </button>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -622,66 +699,6 @@
               SEND FEEDBACK
             </button>
           </form>
-        </div>
-      </div>
-    </div>
-
-    <div
-      class="modal modal--hidden in-session-lobby-modal"
-      id="in-session-lobby-modal"
-    >
-      <div class="game-setup-content">
-        <h3 id="in-session-lobby-title" class="section-title">
-          WAITING FOR PLAYERS...
-        </h3>
-
-        <div class="name-input-section" id="guest-name-section">
-          <input
-            type="text"
-            id="guest-player-name-input"
-            placeholder="ENTER YOUR NAME"
-            maxlength="20"
-            required
-            autocomplete="off"
-          />
-        </div>
-
-        <div class="game-id-section" style="margin-bottom: 8px;">
-          <label for="game-id-input" style="color:#666;font-weight:bold;margin-right:8px;">ROOM CODE:</label>
-          <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
-            <input
-              id="game-id-input"
-              class="game-id-input"
-              type="text"
-              readonly
-              aria-hidden="true"
-              style="
-                width: 110px;
-                font-size: 1.05rem;
-                padding: 6px 10px;
-                border-radius: 10px;
-                background: #e9ecef;
-                border: 1px solid #ced4da;
-                text-align: center;
-                color: #495057;
-                font-weight: bold;
-              "
-            />
-            <button id="copy-link-button" class="header-btn secondary-btn copy-inline-btn" type="button">COPY</button>
-          </div>
-          <div class="game-id-hint" style="text-align:center;margin-top:6px;color:#666;font-size:0.85rem;">Guests paste this code into the Join form to enter the game</div>
-        </div>
-
-        <div id="players-container" class="players-container"></div>
-
-        <div class="lobby-buttons-row">
-          <button
-            id="ready-up-button"
-            class="header-btn primary-action-btn"
-            type="button"
-          >
-            LET'S PLAY
-          </button>
         </div>
       </div>
     </div>

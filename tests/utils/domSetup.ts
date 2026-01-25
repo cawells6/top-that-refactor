@@ -7,23 +7,54 @@
 export function setupModalDOM() {
   document.body.innerHTML = `
     <div id="modal-overlay" class="modal__overlay modal__overlay--hidden"></div>
-    <div class="modal modal--hidden in-session-lobby-modal" id="in-session-lobby-modal" tabindex="-1">
-      <div class="in-session-lobby-container">
-        <h3 id="in-session-lobby-title" class="section-title">Waiting for Players...</h3>
-        <div class="name-input-section" id="guest-name-section">
-          <input id="guest-player-name-input" type="text" />
-        </div>
-        <div class="game-id-section">
-          <label for="game-id-input">ROOM CODE:</label>
-          <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
-            <input id="game-id-input" class="game-id-input" type="text" readonly aria-hidden="true" />
-            <button id="copy-link-button" class="header-btn" type="button">COPY</button>
-          </div>
-          <div class="game-id-hint">Guests paste this code into the Join form to enter the game</div>
-        </div>
-        <div id="players-container" class="players-container"></div>
-        <div class="lobby-buttons-row">
-          <button id="ready-up-button" class="header-btn" type="button">Let's Play</button>
+    <div class="lobby lobby--hidden" id="lobby-container">
+      <div id="lobby-outer-card" class="lobby-modal-container">
+        <div id="lobby-inner-content" class="game-setup-content">
+          <form id="lobby-form">
+            <div class="lobby-tab-panel lobby-tab-panel--host is-active" data-tab-panel="host"></div>
+            <div class="lobby-tab-panel lobby-tab-panel--join" data-tab-panel="join"></div>
+            <div class="lobby-tab-panel lobby-tab-panel--waiting" data-tab-panel="waiting" id="in-session-lobby-modal" tabindex="-1">
+              <div class="host-selection-rectangle host-selection-rectangle--join">
+                <div class="player-section waiting-code-section">
+                  <h3 id="in-session-lobby-title" class="section-title">Waiting for Players...</h3>
+                  <div class="name-input-section" id="guest-name-section">
+                    <input id="guest-player-name-input" type="text" />
+                  </div>
+                  <div class="players-box">
+                    <div id="players-container" class="players-container waiting-slots"></div>
+                  </div>
+                </div>
+
+                <div class="lobby-actions lobby-actions--waiting">
+                  <div class="waiting-actions-spacer" aria-hidden="true"></div>
+
+                  <button id="ready-up-button" class="lets-play-btn play-button-container" type="button" aria-label="Let's Play">
+                    <div class="deep-shadow" aria-hidden="true"></div>
+                    <div class="pulsing-glow" aria-hidden="true"></div>
+                    <div class="outer-gold-ring" aria-hidden="true">
+                      <div class="button-base">
+                        <div class="gloss-sweep"></div>
+                        <div class="top-highlight"></div>
+                        <div class="text-container">
+                          <span class="text-shadow">LET'S PLAY</span>
+                          <span class="text-main">LET'S PLAY</span>
+                        </div>
+                        <div class="bottom-shadow"></div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <div class="waiting-invite">
+                    <div class="waiting-invite-label">ROOM CODE</div>
+                    <div class="waiting-code-row">
+                      <input id="game-id-input" class="game-id-input waiting-code-input" type="text" readonly aria-hidden="true" />
+                      <button id="copy-link-button" class="header-btn" type="button">COPY</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
     </div>

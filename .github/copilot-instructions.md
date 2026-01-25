@@ -19,7 +19,3 @@ Canonical standards live in `PROJECT_MANIFEST.md`. Follow it for all new/modifie
 4.  **Visual Lock:** The visual theme (Green felt, Gold accents) is **FROZEN**.
     * **Protocol:** If asked to change this, **ASK FIRST**: *"This changes the established theme. Are you sure?"* If yes, proceed.
 
-## Architecture Map (Quick)
-
-
-## Debugging Workflow

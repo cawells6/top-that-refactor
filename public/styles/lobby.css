@@ -309,55 +309,363 @@
 }
 
 /* === IN-SESSION LOBBY MODAL STYLES === */
-.in-session-lobby-modal {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  width: 360px;
-  max-width: calc(100% - 32px);
-  margin: 0;
-  z-index: 1100;
-  overflow: hidden;
-  transform: none;
+.lobby-tab-panel--waiting {
+  display: none;
 }
 
-.in-session-lobby-container .player-section {
-  /* Match main lobby .player-section */
-  background: #f8f9fa;
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  padding: 1.5rem;
+.lobby-tab-panel--waiting.is-active {
+  display: flex;
+  justify-content: center;
+}
+
+.lobby-tab-panel--waiting .host-selection-rectangle.host-selection-rectangle--join {
+  /* Match the main lobby's footprint (the big felt tray), so "waiting"
+     swaps into the same space as host/join instead of feeling like an overlay. */
+  width: min(100%, 900px);
+  padding: 1.25rem 1.5rem;
+}
+
+.lobby-tab-panel--waiting .waiting-code-section {
+  /* Use the whole parchment card area for players (not a tiny inner window). */
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  align-items: stretch;
+  min-height: 280px;
+
+  /* Match join card surface */
+  background: linear-gradient(135deg, #fffdf6 0%, #fff7e8 45%, #f7f0df 100%);
+  border: 2px solid #e5e7eb;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.12),
+    0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.lobby-tab-panel--waiting .waiting-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.lobby-tab-panel--waiting .waiting-code-input {
+  width: 140px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
   text-align: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 195, 0, 0.6);
+  background: rgba(255, 255, 255, 0.9);
+  color: #1b2e3c;
+  font-family: inherit;
+  font-weight: 800;
+  outline: none;
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.08),
+    0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.lobby-tab-panel--waiting .waiting-slots {
+  /* Mirror the main lobby silhouettes: 4 fit on one line. */
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 12px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  max-height: none;
+  overflow: visible;
+  text-align: center;
+}
+
+.lobby-tab-panel--waiting .waiting-slot {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 120px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.2rem;
-}
-
-.in-session-lobby-container .section-title {
-  /* Match main lobby .section-title and use 'USERS' verbiage */
-  background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 2.2rem;
-  font-weight: 900;
-  letter-spacing: -0.01em; /* Negative for even tighter headings */
-  -webkit-text-stroke: 1px #1b2e3c;
-  margin-bottom: 0.75rem;
-  text-transform: uppercase;
-  text-align: center;
+  gap: 8px;
+  width: 96px;
+  padding: 6px 6px 0;
+  background: transparent;
   border: none;
   box-shadow: none;
+}
+
+.lobby-tab-panel--waiting .waiting-slot.is-placeholder {
+  opacity: 0.7;
+}
+
+.lobby-tab-panel--waiting .waiting-slot .waiting-slot-name {
+  font-weight: 900;
+  font-size: 0.9rem;
+  color: #1b2e3c;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.lobby-tab-panel--waiting .waiting-code-section .players-box {
+  width: 100%;
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  flex: 1 1 auto;
+  background: transparent;
   padding: 0;
 }
 
-/* Remove any link at the bottom left of the in-session lobby modal */
-.in-session-lobby-modal a,
-.in-session-lobby-modal .lobby-link {
-  display: none !important;
+.lobby-tab-panel--waiting .waiting-code-section .players-container {
+  /* Ensure no scroll box in the waiting panel. */
+  max-height: none;
+  overflow: visible;
+  margin-top: 0;
+  text-align: center;
+}
+
+/* Slightly larger frames here so a small number of players still fills the card */
+#lobby-container .lobby-tab-panel--waiting .player-silhouette {
+  width: 80px;
+  height: 80px;
+}
+
+@media (max-width: 420px) {
+  /* Keep 4 silhouettes on a single line on narrow screens */
+  #lobby-container .lobby-tab-panel--waiting .player-silhouette {
+    width: 64px;
+    height: 64px;
+  }
+
+  .lobby-tab-panel--waiting .waiting-slot {
+    width: 76px;
+  }
+
+  .lobby-tab-panel--waiting .waiting-slot .waiting-slot-name {
+    font-size: 0.8rem;
+  }
+}
+
+.lobby-actions--waiting {
+  margin: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  column-gap: 14px;
+  margin-top: 1rem;
+}
+
+.lobby-actions--waiting .play-button-container {
+  grid-column: 2;
+  justify-self: center;
+}
+
+.lobby-actions--waiting .waiting-invite {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.lobby-actions--waiting .waiting-invite-label {
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Ready-up button should match the lobby's PLAY button style */
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container {
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  box-shadow: none;
+  cursor: pointer;
+  display: inline-block;
+  height: auto;
+  min-width: 0;
+  padding: 0;
+  position: relative;
+  transition: transform 0.3s ease;
+  transform: scale(0.7);
+  transform-origin: center;
+  width: auto;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container:hover:not(:disabled) {
+  transform: scale(0.735);
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container:active:not(:disabled) {
+  transform: scale(0.665) translateY(2px);
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .deep-shadow {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 9999px;
+  filter: blur(30px);
+  transform: translateY(8px);
+  z-index: 0;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .pulsing-glow {
+  position: absolute;
+  inset: 0;
+  background: rgba(45, 212, 191, 0.2);
+  border-radius: 9999px;
+  filter: blur(20px);
+  z-index: 1;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container:disabled
+  .pulsing-glow {
+  animation: none;
+  opacity: 0.2;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .outer-gold-ring {
+  position: relative;
+  background: linear-gradient(to bottom, #ffc70c, #e6b30b);
+  border-radius: 9999px;
+  padding: 3px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .button-base {
+  position: relative;
+  background: linear-gradient(to bottom, #0d9488, #0f766e, #115e59);
+  border-radius: 9999px;
+  padding: 16px 64px;
+  box-shadow:
+    inset 0 -2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .gloss-sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: all 0.6s ease;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container:hover:not(:disabled)
+  .gloss-sweep {
+  opacity: 1;
+  transform: translateX(100%);
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .top-highlight {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 4px;
+  height: 24px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
+  border-radius: 9999px;
+  filter: blur(4px);
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .text-container {
+  position: relative;
+  display: inline-block;
+  z-index: 1;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .text-shadow {
+  position: absolute;
+  inset: 0;
+  font-size: 36px;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: rgba(0, 0, 0, 0.3);
+  transform: translateY(4px);
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .text-main {
+  position: relative;
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 0.05em;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  z-index: 1;
+}
+
+.lobby-tab-panel--waiting
+  .host-selection-rectangle
+  #ready-up-button.lets-play-btn.play-button-container
+  .bottom-shadow {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 4px;
+  height: 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
+  border-radius: 9999px;
+  filter: blur(4px);
 }
 
 .highlight-input {

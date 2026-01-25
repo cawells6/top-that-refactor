@@ -1,10 +1,35 @@
 // public/scripts/components/InSessionLobbyModal.ts
 import { LOBBY_STATE_UPDATE, PLAYER_READY } from '@shared/events.ts';
 import { InSessionLobbyState } from '@shared/types.ts';
+import { ROYALTY_AVATARS } from '@shared/avatars.ts';
 
 import * as state from '../state.js';
 import { showToast } from '../uiHelpers.js';
 import * as uiManager from '../uiManager.js';
+
+function isImageAvatar(value: string): boolean {
+  return (
+    /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(value) ||
+    value.startsWith('/assets/')
+  );
+}
+
+function renderAvatarVisual(avatarValue: string): HTMLElement {
+  if (isImageAvatar(avatarValue)) {
+    const img = document.createElement('img');
+    img.className = 'image-avatar';
+    img.src = avatarValue;
+    img.alt = 'avatar';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    return img;
+  }
+
+  const emojiDiv = document.createElement('div');
+  emojiDiv.className = 'emoji-avatar';
+  emojiDiv.textContent = avatarValue;
+  return emojiDiv;
+}
 
 export class InSessionLobbyModal {
   private modalElement: HTMLElement;
@@ -12,6 +37,7 @@ export class InSessionLobbyModal {
   private copyLinkBtn: HTMLButtonElement;
   private readyUpButton: HTMLButtonElement;
   private guestNameInput: HTMLInputElement;
+  private previousLobbyTab: 'host' | 'join' | null = null;
   private currentRoomId: string = '';
   private previousPlayers: Map<string, { name: string; isComputer?: boolean }> =
     new Map();
@@ -35,13 +61,43 @@ export class InSessionLobbyModal {
   }
 
   private showModal(): void {
-    this.modalElement.classList.remove('modal--hidden');
+    document.body.classList.add('showing-in-session');
+    const lobbyForm = document.getElementById('lobby-form');
+    const panels = Array.from(
+      document.querySelectorAll<HTMLElement>('.lobby-tab-panel')
+    );
+    const activePanel = panels.find((panel) =>
+      panel.classList.contains('is-active')
+    );
+    const activeTab = activePanel?.dataset.tabPanel;
+    if (activeTab === 'host' || activeTab === 'join') {
+      this.previousLobbyTab = activeTab;
+    }
+    panels.forEach((panel) => panel.classList.remove('is-active'));
     this.modalElement.classList.remove('hidden');
+    this.modalElement.classList.remove('modal--hidden');
+    this.modalElement.classList.add('is-active');
+    if (lobbyForm) {
+      lobbyForm.setAttribute('data-lobby-tab', 'waiting');
+    }
   }
 
   private hideModal(): void {
-    this.modalElement.classList.add('modal--hidden');
-    this.modalElement.classList.add('hidden');
+    document.body.classList.remove('showing-in-session');
+    const lobbyForm = document.getElementById('lobby-form');
+    const panels = Array.from(
+      document.querySelectorAll<HTMLElement>('.lobby-tab-panel')
+    );
+    panels.forEach((panel) => panel.classList.remove('is-active'));
+    const restoreTab = this.previousLobbyTab || 'host';
+    const restorePanel = panels.find(
+      (panel) => panel.dataset.tabPanel === restoreTab
+    );
+    if (restorePanel) restorePanel.classList.add('is-active');
+    if (lobbyForm) {
+      lobbyForm.setAttribute('data-lobby-tab', restoreTab);
+    }
+    this.previousLobbyTab = null;
   }
 
   private async initialize(): Promise<void> {
@@ -76,7 +132,6 @@ export class InSessionLobbyModal {
         // Rendering is now handled by the STATE_UPDATE event
       } else if (shouldShowModal) {
         console.log('[InSessionLobbyModal] Game not started, showing modal');
-        uiManager.hideElement(uiManager.getLobbyContainer());
         this.showModal();
       } else {
         this.hideModal();
@@ -161,85 +216,69 @@ export class InSessionLobbyModal {
       ])
     );
 
+    // Render expected slots in a grid so players see how many are expected.
+    const expectedHumans =
+      typeof lobbyState.expectedHumanCount === 'number'
+        ? lobbyState.expectedHumanCount
+        : lobbyState.players.filter((p) => !p.isComputer).length;
+    const expectedCpus =
+      typeof lobbyState.expectedCpuCount === 'number'
+        ? lobbyState.expectedCpuCount
+        : lobbyState.players.filter((p) => p.isComputer).length;
+    const expectedTotal = Math.max(1, expectedHumans + expectedCpus);
+
+    const humans = lobbyState.players.filter((p) => !p.isComputer);
+    const cpus = lobbyState.players.filter((p) => p.isComputer);
+    const orderedPlayers = [...humans, ...cpus];
+
     this.playersContainer.innerHTML = '';
     this.playersContainer.setAttribute('role', 'list');
     this.playersContainer.setAttribute('aria-label', 'Players in lobby');
 
-    lobbyState.players.forEach((player) => {
-      const playerEl = document.createElement('div');
-      playerEl.className = 'player-item';
-      playerEl.setAttribute('role', 'listitem');
+    for (let i = 0; i < expectedTotal; i++) {
+      const player = orderedPlayers[i] || null;
+      const slot = document.createElement('div');
+      slot.className = 'waiting-slot';
+      slot.setAttribute('role', 'listitem');
+      if (!player) slot.classList.add('is-placeholder');
 
-      // Avatar element
-      const avatarEl = document.createElement('div');
-      avatarEl.className = 'player-avatar';
+      const frame = document.createElement('div');
+      const isCpuSlot = i >= expectedHumans;
 
-      if (player.avatar) {
-        const isImageAvatar =
-          /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(player.avatar) ||
-          player.avatar.startsWith('/assets/');
+      // Mirror the lobby silhouettes as closely as possible:
+      // - Humans: placeholders show "?" until a player has an avatar
+      // - CPUs: use the new avatar pool for placeholders (no old robot.svg)
+      let avatarValue: string | null = null;
+      if (player?.avatar) {
+        avatarValue = player.avatar;
+      } else if (isCpuSlot && ROYALTY_AVATARS.length > 0) {
+        avatarValue = ROYALTY_AVATARS[i % ROYALTY_AVATARS.length].icon;
+      }
 
-        if (isImageAvatar) {
-          const img = document.createElement('img');
-          img.className = 'image-avatar';
-          img.src = player.avatar;
-          img.alt = 'avatar';
-          img.loading = 'lazy';
-          img.decoding = 'async';
-          avatarEl.appendChild(img);
-        } else {
-          const emojiDiv = document.createElement('div');
-          emojiDiv.className = 'emoji-avatar';
-          emojiDiv.textContent = player.avatar;
-          avatarEl.appendChild(emojiDiv);
-        }
+      if (avatarValue) {
+        frame.className = `player-silhouette ${isCpuSlot ? 'cpu' : 'human'}`;
+        frame.appendChild(renderAvatarVisual(avatarValue));
       } else {
-        const img = document.createElement('img');
-        img.src = player.isComputer
-          ? '/assets/robot.svg'
-          : '/assets/Player.svg';
-        img.alt = 'avatar';
-        avatarEl.appendChild(img);
+        frame.className = `player-silhouette ${isCpuSlot ? 'cpu' : 'human'} placeholder`;
+        frame.textContent = '?';
       }
 
-      // Name / label
-      const labelWrap = document.createElement('div');
-      labelWrap.className = 'player-meta';
       const nameEl = document.createElement('div');
-      nameEl.className = 'player-name';
-      nameEl.textContent =
-        player.name + (player.id === state.myId ? ' (You)' : '');
-      labelWrap.appendChild(nameEl);
+      nameEl.className = 'waiting-slot-name';
 
-      // Badges (spectator / host)
-      if (player.isSpectator) {
-        playerEl.classList.add('spectator');
-        const spectatorBadge = document.createElement('span');
-        spectatorBadge.textContent = 'Spectator';
-        spectatorBadge.className = 'spectator-badge';
-        spectatorBadge.setAttribute('aria-label', 'Spectator');
-        labelWrap.appendChild(spectatorBadge);
+      if (player) {
+        let name = player.name;
+        if (player.id === state.myId) name += ' (You)';
+        nameEl.textContent = name;
+      } else {
+        // Keep placeholders minimal, matching the main lobby (no big "OPEN/BOT" labels)
+        nameEl.textContent = '';
       }
 
-      if (player.id === lobbyState.hostId) {
-        const hostBadge = document.createElement('span');
-        hostBadge.textContent = 'Host';
-        hostBadge.className = 'host-badge';
-        hostBadge.setAttribute('aria-label', 'Host player');
-        labelWrap.appendChild(hostBadge);
-      }
-
-      // Build player element: left side avatar + name, right side badges
-      const ident = document.createElement('div');
-      ident.className = 'player-ident';
-      ident.appendChild(avatarEl);
-      ident.appendChild(labelWrap);
-
-      // Keep player element layout consistent with other lists
-      playerEl.appendChild(ident);
-
-      this.playersContainer.appendChild(playerEl);
-    });
+      slot.appendChild(frame);
+      slot.appendChild(nameEl);
+      this.playersContainer.appendChild(slot);
+    }
 
     const localPlayer = lobbyState.players.find((p) => p.id === state.myId);
     const hasKnownName =
@@ -269,12 +308,18 @@ export class InSessionLobbyModal {
         this.guestNameInput.focus();
       }
 
-      // Ensure the button is always all caps, even if text changes
-      this.readyUpButton.textContent = this.readyUpButton.disabled
+      const label = this.readyUpButton.disabled
         ? 'STARTING...'
         : "LET'S PLAY";
-      this.readyUpButton.textContent =
-        this.readyUpButton.textContent.toUpperCase();
+      const upperLabel = label.toUpperCase();
+      const textMain = this.readyUpButton.querySelector('.text-main');
+      const textShadow = this.readyUpButton.querySelector('.text-shadow');
+      if (textMain && textShadow) {
+        textMain.textContent = upperLabel;
+        textShadow.textContent = upperLabel;
+      } else {
+        this.readyUpButton.textContent = upperLabel;
+      }
     }
   }
 

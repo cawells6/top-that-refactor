@@ -60,6 +60,7 @@ export function showLobbyForm(): void {
 
   body.classList.add('showing-lobby');
   body.classList.remove('showing-game');
+  body.classList.remove('showing-in-session');
 
   lobbyContainer.classList.remove('hidden');
   if (lobbyFormContent) lobbyFormContent.classList.remove('hidden');
@@ -102,6 +103,7 @@ export function showGameTable(): void {
 
   body.classList.remove('showing-lobby');
   body.classList.add('showing-game');
+  body.classList.remove('showing-in-session');
 
   if (lobbyContainer) {
     lobbyContainer.classList.add('hidden');

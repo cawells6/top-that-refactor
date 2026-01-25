@@ -123,6 +123,21 @@ function setButtonDisabled(el: HTMLElement | null, disabled: boolean) {
   if (el && 'disabled' in el) (el as HTMLButtonElement).disabled = disabled;
 }
 
+function setPlayButtonLabel(
+  button: HTMLButtonElement | null,
+  label: string
+): void {
+  if (!button) return;
+  const textMain = button.querySelector('.text-main');
+  const textShadow = button.querySelector('.text-shadow');
+  if (textMain && textShadow) {
+    textMain.textContent = label;
+    textShadow.textContent = label;
+  } else {
+    button.textContent = label;
+  }
+}
+
 function getBotAvatarPool(): AvatarItem[] {
   return shuffledBotAvatars.length > 0 ? shuffledBotAvatars : royaltyAvatars;
 }
@@ -577,7 +592,7 @@ function applySpectatorMode(): void {
     'setup-deal-button'
   ) as HTMLButtonElement | null;
   if (startBtn) {
-    startBtn.textContent = 'START CPU MATCH';
+    setPlayButtonLabel(startBtn, 'START CPU MATCH');
   }
   syncCounterUI();
 }
@@ -1437,7 +1452,9 @@ async function handleDealClick() {
 
   state.socket.emit(JOIN_GAME, playerDataForEmit, (response: any) => {
     console.log('[CLIENT] Received JOIN_GAME response from server:', response);
-    const dealButton = document.getElementById('setup-deal-button') as HTMLButtonElement;
+    const dealButton = document.getElementById(
+      'setup-deal-button'
+    ) as HTMLButtonElement | null;
     const idleLabel = isSpectator ? 'START CPU MATCH' : "LET'S PLAY";
     if (!response || response.success === false) {
       const err = response?.error || 'Unable to create/join game.';
@@ -1445,7 +1462,7 @@ async function handleDealClick() {
       queueMessage(err);
       if (dealButton) {
         dealButton.disabled = false;
-        dealButton.textContent = idleLabel;
+        setPlayButtonLabel(dealButton, idleLabel);
       }
       return;
     }
@@ -1458,7 +1475,7 @@ async function handleDealClick() {
     }
     if (dealButton) {
       dealButton.disabled = false;
-      dealButton.textContent = idleLabel;
+      setPlayButtonLabel(dealButton, idleLabel);
     }
     if (isSpectator) {
       state.socket.emit(START_GAME, { computerCount: numCPUs });
@@ -1470,7 +1487,7 @@ async function handleDealClick() {
   ) as HTMLButtonElement;
   if (dealButton) {
     dealButton.disabled = true;
-    dealButton.textContent = 'STARTING...';
+    setPlayButtonLabel(dealButton, 'STARTING...');
   }
 }
 
