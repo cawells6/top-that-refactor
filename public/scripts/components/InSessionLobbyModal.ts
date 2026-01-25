@@ -1,5 +1,5 @@
 // public/scripts/components/InSessionLobbyModal.ts
-import { LOBBY_STATE_UPDATE, PLAYER_READY } from '@shared/events.ts';
+import { LOBBY_STATE_UPDATE, PLAYER_READY, START_GAME } from '@shared/events.ts';
 import { InSessionLobbyState } from '@shared/types.ts';
 import { ROYALTY_AVATARS } from '@shared/avatars.ts';
 
@@ -36,13 +36,18 @@ export class InSessionLobbyModal {
   private playersContainer: HTMLElement;
   private copyLinkBtn: HTMLButtonElement;
   private readyUpButton: HTMLButtonElement;
+  private backButton: HTMLButtonElement | null;
   private guestNameInput: HTMLInputElement;
   private previousLobbyTab: 'host' | 'join' | null = null;
   private currentRoomId: string = '';
+  private expectedCpuCount: number = 0;
+  private isHostView: boolean = false;
+  private hostCanStart: boolean = false;
   private previousPlayers: Map<string, { name: string; isComputer?: boolean }> =
     new Map();
   private handleCopyLink = this.copyLink.bind(this);
-  private handleReadyUp = this.readyUp.bind(this);
+  private handlePrimaryAction = this.primaryAction.bind(this);
+  private handleBack = this.backToLobby.bind(this);
 
   constructor() {
     this.modalElement = document.getElementById('in-session-lobby-modal')!;
@@ -53,6 +58,9 @@ export class InSessionLobbyModal {
       this.modalElement.querySelector('#players-container')!;
     this.copyLinkBtn = this.modalElement.querySelector('#copy-link-button')!;
     this.readyUpButton = this.modalElement.querySelector('#ready-up-button')!;
+    this.backButton = this.modalElement.querySelector(
+      '#waiting-back-button'
+    ) as HTMLButtonElement | null;
     this.guestNameInput = this.modalElement.querySelector(
       '#guest-player-name-input'
     )!;
@@ -148,7 +156,8 @@ export class InSessionLobbyModal {
 
   private addEventListeners(): void {
     this.copyLinkBtn.addEventListener('click', this.handleCopyLink);
-    this.readyUpButton.addEventListener('click', this.handleReadyUp);
+    this.readyUpButton.addEventListener('click', this.handlePrimaryAction);
+    this.backButton?.addEventListener('click', this.handleBack);
   }
 
   private copyLink(): void {
@@ -165,25 +174,82 @@ export class InSessionLobbyModal {
       .catch(() => showToast('Failed to copy code.', 'error'));
   }
 
-  private readyUp(): void {
-    const playerName = this.guestNameInput.value.trim();
-    if (playerName) {
-      if (state.socket?.connected === false) {
-        showToast('Not connected to server. Please try again.', 'error');
-        return;
-      }
-      if (this.readyUpButton.disabled) return; // Prevent double emit
-      console.log('[CLIENT] Emitting PLAYER_READY with', playerName);
-      state.socket?.emit(PLAYER_READY, playerName);
-      this.readyUpButton.disabled = true;
-      this.guestNameInput.disabled = true;
+  private setPrimaryButtonLabel(label: string): void {
+    const upperLabel = label.toUpperCase();
+    const textMain = this.readyUpButton.querySelector('.text-main');
+    const textShadow = this.readyUpButton.querySelector('.text-shadow');
+    if (textMain && textShadow) {
+      textMain.textContent = upperLabel;
+      textShadow.textContent = upperLabel;
     } else {
+      this.readyUpButton.textContent = upperLabel;
+    }
+    this.readyUpButton.setAttribute('aria-label', label);
+  }
+
+  private primaryAction(): void {
+    if (state.socket?.connected === false) {
+      showToast('Not connected to server. Please try again.', 'error');
+      return;
+    }
+    if (this.readyUpButton.disabled) return; // prevent double emit
+
+    // Host flow: explicit "START GAME" button (server still auto-starts when ready).
+    if (this.isHostView) {
+      if (!this.hostCanStart) return;
+      state.socket?.emit(START_GAME, { computerCount: this.expectedCpuCount });
+      this.readyUpButton.disabled = true;
+      this.setPrimaryButtonLabel('STARTING...');
+      return;
+    }
+
+    // Guest flow: send name + ready.
+    const playerName = this.guestNameInput.value.trim();
+    if (!playerName) {
       showToast('Please enter your name!', 'error');
+      return;
+    }
+
+    console.log('[CLIENT] Emitting PLAYER_READY with', playerName);
+    state.socket?.emit(PLAYER_READY, playerName);
+    this.readyUpButton.disabled = true;
+    this.guestNameInput.disabled = true;
+    this.setPrimaryButtonLabel('STARTING...');
+  }
+
+  private backToLobby(): void {
+    // Backing out should reset session so the user can host a bots-only match instead.
+    try {
+      state.setMyId(null);
+      state.setCurrentRoom(null);
+      state.setIsSpectator(false);
+      state.setDesiredCpuCount(0);
+      sessionStorage.removeItem('myId');
+      sessionStorage.removeItem('currentRoom');
+      sessionStorage.removeItem('desiredCpuCount');
+      sessionStorage.removeItem('spectator');
+    } catch {
+      // ignore
+    }
+
+    try {
+      state.socket?.disconnect();
+    } catch {
+      // ignore
+    }
+
+    // A clean reload avoids having to reinitialize the socket client manually.
+    if (typeof window !== 'undefined' && typeof window.location?.reload === 'function') {
+      window.location.reload();
     }
   }
 
   public render(lobbyState: InSessionLobbyState): void {
     this.currentRoomId = lobbyState.roomId;
+    this.expectedCpuCount =
+      typeof lobbyState.expectedCpuCount === 'number'
+        ? lobbyState.expectedCpuCount
+        : lobbyState.players.filter((p) => p.isComputer).length;
 
     // Update the session modal heading to be all caps
     const title = this.modalElement.querySelector('#in-session-lobby-title');
@@ -191,11 +257,11 @@ export class InSessionLobbyModal {
       title.textContent = 'WAITING FOR PLAYERS...';
     }
 
-    const gameCodeInput = this.modalElement.querySelector(
-      '#game-id-input'
-    ) as HTMLInputElement | null;
-    if (gameCodeInput) {
-      gameCodeInput.value = lobbyState.roomId.toUpperCase();
+    const waitingRoomCode = this.modalElement.querySelector(
+      '#waiting-room-code'
+    ) as HTMLElement | null;
+    if (waitingRoomCode) {
+      waitingRoomCode.textContent = lobbyState.roomId.toUpperCase();
     }
 
     if (this.previousPlayers.size > 0) {
@@ -221,11 +287,7 @@ export class InSessionLobbyModal {
       typeof lobbyState.expectedHumanCount === 'number'
         ? lobbyState.expectedHumanCount
         : lobbyState.players.filter((p) => !p.isComputer).length;
-    const expectedCpus =
-      typeof lobbyState.expectedCpuCount === 'number'
-        ? lobbyState.expectedCpuCount
-        : lobbyState.players.filter((p) => p.isComputer).length;
-    const expectedTotal = Math.max(1, expectedHumans + expectedCpus);
+    const expectedTotal = Math.max(1, expectedHumans + this.expectedCpuCount);
 
     const humans = lobbyState.players.filter((p) => !p.isComputer);
     const cpus = lobbyState.players.filter((p) => p.isComputer);
@@ -286,6 +348,14 @@ export class InSessionLobbyModal {
       localPlayer.name.trim().length > 0 &&
       localPlayer.name.trim().toLowerCase() !== 'guest';
 
+    const humanPlayers = lobbyState.players.filter((p) => !p.isComputer);
+    const allHumansReady = humanPlayers.every(
+      (p) => p.status === 'host' || p.status === 'ready'
+    );
+    this.isHostView = localPlayer?.status === 'host';
+    this.hostCanStart =
+      humanPlayers.length === expectedHumans && allHumansReady && !lobbyState.started;
+
     if (
       localPlayer &&
       (localPlayer.status === 'host' ||
@@ -293,7 +363,16 @@ export class InSessionLobbyModal {
         localPlayer.isSpectator)
     ) {
       this.guestNameInput.style.display = 'none';
-      this.readyUpButton.style.display = 'none';
+
+      if (this.isHostView && !lobbyState.started) {
+        // Host sees Start Game, centered in the same spot as PLAY on the main lobby.
+        this.readyUpButton.style.display = '';
+        this.readyUpButton.disabled = !this.hostCanStart;
+        this.setPrimaryButtonLabel('START GAME');
+      } else {
+        // Non-host ready/spectator does not need an action button.
+        this.readyUpButton.style.display = 'none';
+      }
     } else {
       this.readyUpButton.style.display = '';
       this.readyUpButton.disabled = false;
@@ -308,18 +387,7 @@ export class InSessionLobbyModal {
         this.guestNameInput.focus();
       }
 
-      const label = this.readyUpButton.disabled
-        ? 'STARTING...'
-        : "LET'S PLAY";
-      const upperLabel = label.toUpperCase();
-      const textMain = this.readyUpButton.querySelector('.text-main');
-      const textShadow = this.readyUpButton.querySelector('.text-shadow');
-      if (textMain && textShadow) {
-        textMain.textContent = upperLabel;
-        textShadow.textContent = upperLabel;
-      } else {
-        this.readyUpButton.textContent = upperLabel;
-      }
+      this.setPrimaryButtonLabel("LET'S PLAY");
     }
   }
 
@@ -329,6 +397,7 @@ export class InSessionLobbyModal {
       state.socket.off('disconnect');
     }
     this.copyLinkBtn.removeEventListener('click', this.handleCopyLink);
-    this.readyUpButton.removeEventListener('click', this.handleReadyUp);
+    this.readyUpButton.removeEventListener('click', this.handlePrimaryAction);
+    this.backButton?.removeEventListener('click', this.handleBack);
   }
 }

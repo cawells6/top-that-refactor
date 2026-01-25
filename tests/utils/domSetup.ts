@@ -26,7 +26,7 @@ export function setupModalDOM() {
                 </div>
 
                 <div class="lobby-actions lobby-actions--waiting">
-                  <div class="waiting-actions-spacer" aria-hidden="true"></div>
+                  <button id="waiting-back-button" class="lobby-nav-button secondary-btn waiting-back-btn" type="button">BACK</button>
 
                   <button id="ready-up-button" class="lets-play-btn play-button-container" type="button" aria-label="Let's Play">
                     <div class="deep-shadow" aria-hidden="true"></div>
@@ -44,13 +44,10 @@ export function setupModalDOM() {
                     </div>
                   </button>
 
-                  <div class="waiting-invite">
-                    <div class="waiting-invite-label">ROOM CODE</div>
-                    <div class="waiting-code-row">
-                      <input id="game-id-input" class="game-id-input waiting-code-input" type="text" readonly aria-hidden="true" />
-                      <button id="copy-link-button" class="header-btn" type="button">COPY</button>
-                    </div>
-                  </div>
+                  <button id="copy-link-button" class="lobby-nav-button secondary-btn waiting-copy-btn" type="button">
+                    <span class="waiting-copy-label">COPY</span>
+                    <span class="waiting-copy-code" id="waiting-room-code">------</span>
+                  </button>
                 </div>
               </div>
             </div>
