@@ -22,6 +22,21 @@ Canonical standards live in `docs/PROJECT_MANIFEST.md`. Follow it for all new/mo
 
 This repo values accuracy over speed. Take the time to understand the code path end-to-end before making changes, especially in the lobby and socket flows.
 
+## UI And CSS Discipline (Prevent "15 Attempt" Fixes)
+
+When changing UI layout or styles, assume there are existing global rules and overrides.
+
+1. Before editing CSS, search for all selectors that may affect the target element:
+   - Look for the element id/class and any shared classes it uses (example: `.lobby-nav-button`, `.lobby-actions`).
+   - Check for later rules in the same file that might override earlier rules (cascade order wins when specificity is equal).
+2. Prefer matching existing patterns instead of inventing new ones:
+   - If a button should look like Join/Host, reuse the same classes and `data-tab` styling hooks.
+3. If you must override, do it deliberately:
+   - Use a more specific selector (or `!important` as a last resort) and place it after the generic rule it overrides.
+   - Avoid broad selectors that might leak to other tabs/panels.
+4. Verify visually in both desktop and mobile:
+   - Confirm grid/flex placement and hover/active states in all relevant lobby panels (Host / Join / Waiting).
+
 ## Quick Type References
 
 New code should converge toward these interfaces (source of truth is the codebase; these are reminders):
