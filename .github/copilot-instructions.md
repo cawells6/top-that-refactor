@@ -19,3 +19,12 @@ Canonical standards live in `PROJECT_MANIFEST.md`. Follow it for all new/modifie
 4.  **Visual Lock:** The visual theme (Green felt, Gold accents) is **FROZEN**.
     * **Protocol:** If asked to change this, **ASK FIRST**: *"This changes the established theme. Are you sure?"* If yes, proceed.
 
+## UI And CSS Discipline (Prevent Long Iterations)
+
+When changing UI layout or styles, assume there are existing global rules and overrides.
+
+1. **Search first:** Find all selectors that might affect the target element (id/class + shared classes like `.lobby-nav-button`, `.lobby-actions`).
+2. **Cascade check:** Look for later rules in the same file that will override earlier ones (order + specificity).
+3. **Reuse patterns:** If something should look like Join/Host, reuse the same classes and `data-tab` hooks instead of inventing new styles.
+4. **Override deliberately:** If an override is necessary, prefer higher-specificity selectors placed after the generic rule; use `!important` only as a last resort.
+5. **Verify both layouts:** Confirm desktop and mobile behavior (grid/flex placement + hover/active) in all relevant lobby panels.
