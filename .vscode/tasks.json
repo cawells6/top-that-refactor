@@ -52,8 +52,7 @@
     {
       "label": "Ship It With Message",
       "type": "shell",
-      "command": "git add -A && git commit -m \"${input:commitMessage}\" && git push",
-      "problemMatcher": [],
+      "command": "./scripts/gpush.sh \"${input:commitMessage}\"",
       "presentation": {
         "echo": true,
         "reveal": "always",
