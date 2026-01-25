@@ -370,7 +370,7 @@ export class InSessionLobbyModal {
         this.readyUpButton.disabled = !this.hostCanStart;
         // Keep the exact PLAY button label for consistency with the lobby.
         // Clicking still emits START_GAME (host-only on the server).
-        this.setPrimaryButtonLabel("LET'S PLAY");
+        this.setPrimaryButtonLabel('PLAY');
       } else {
         // Non-host ready/spectator does not need an action button.
         this.readyUpButton.style.display = 'none';
@@ -389,7 +389,7 @@ export class InSessionLobbyModal {
         this.guestNameInput.focus();
       }
 
-      this.setPrimaryButtonLabel("LET'S PLAY");
+      this.setPrimaryButtonLabel('PLAY');
     }
   }
 

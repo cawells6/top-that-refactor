@@ -460,7 +460,8 @@
   margin-top: 1rem;
 }
 
-.lobby-actions--waiting .waiting-back-btn {
+/* Override the generic ".lobby-nav-button { grid-column: 3 }" rule for waiting */
+#lobby-container .host-selection-rectangle .lobby-actions--waiting .waiting-back-btn {
   grid-column: 1;
   justify-self: start;
   min-width: 150px;

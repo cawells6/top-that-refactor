@@ -130,7 +130,7 @@ describe('InSessionLobbyModal', () => {
   it('does not emit PLAYER_READY if name is empty', () => {
     const nameInput = screen.getByRole('textbox') as HTMLInputElement;
     nameInput.value = '';
-    const readyButton = screen.getByRole('button', { name: /Let's Play/i });
+    const readyButton = screen.getByRole('button', { name: /Play/i });
     fireEvent.click(readyButton);
     expect(state.socket.emit).not.toHaveBeenCalledWith(PLAYER_READY, '');
   });
@@ -138,7 +138,7 @@ describe('InSessionLobbyModal', () => {
   it('prevents rapid double ready clicks from emitting twice', () => {
     const nameInput = screen.getByRole('textbox') as HTMLInputElement;
     nameInput.value = 'Tester';
-    const readyButton = screen.getByRole('button', { name: /Let's Play/i });
+    const readyButton = screen.getByRole('button', { name: /Play/i });
     fireEvent.click(readyButton);
     fireEvent.click(readyButton);
     const calls = (state.socket.emit as jest.Mock).mock.calls.filter(
