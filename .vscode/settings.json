@@ -14,5 +14,6 @@
       "approve": true,
       "matchCommandLine": true
     }
-  }
+  }"files.autoSave": "onFocusChange",
+"files.autoSaveDelay": 1000,
 }

@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-import { playValidMove } from './botBehavior';
-import { waitForAnimationsToFinish, createPlayer, getMyId } from './e2eUtils';
-import { GamePage } from '../pages/GamePage';
+// Local imports (Add .js extensions and keep them separate)
+import { playValidMove } from './botBehavior.js';
+import { waitForAnimationsToFinish, createPlayer, getMyId } from './e2eUtils.js';
 
 test('2 Humans + 2 CPUs (4 Player Game)', async ({ browser }) => {
     test.setTimeout(120000); // 2 minutes

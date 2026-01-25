@@ -52,7 +52,7 @@
     {
       "label": "Ship It With Message",
       "type": "shell",
-      "command": "./scripts/gpush.sh \"${input:commitMessage}\"",
+      "command": "./scripts/shipit.sh \"${input:commitMessage}\"",
       "presentation": {
         "echo": true,
         "reveal": "always",

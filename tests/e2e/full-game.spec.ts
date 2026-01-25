@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { LobbyPage } from '../pages/LobbyPage';
-import { GamePage } from '../pages/GamePage';
-import { waitForAnimationsToFinish } from './e2eUtils';
-import { playValidMove } from './botBehavior';
+
+// Local imports (Add .js extensions and keep them separate)
+import { playValidMove } from './botBehavior.js';
+import { waitForAnimationsToFinish } from './e2eUtils.js';
+import { GamePage } from '../pages/GamePage.js';
+import { LobbyPage } from '../pages/LobbyPage.js';
 
 test('Full Game - Human vs CPU', async ({ page }) => {
     // Listen for console logs

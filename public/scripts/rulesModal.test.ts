@@ -58,7 +58,7 @@ jest.mock(
   }
 );
 
-import { handleRulesClick, hideRulesModalAndOverlay } from './events.ts';
+import { handleRulesClick, hideRulesModalAndOverlay } from './events.js';
 
 describe('Rules modal interactions', () => {
   beforeEach(async () => {

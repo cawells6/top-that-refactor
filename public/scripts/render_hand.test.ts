@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
-import { renderGameState } from './render';
-import { GameStateData, Card } from '../../src/shared/types';
+import { renderGameState } from './render.js';
+import { GameStateData, Card } from '../../src/shared/types.js';
 
 // Mock assets
 jest.mock('../../src/shared/4ofakind-icon.png', () => 'icon.png');
@@ -48,7 +48,9 @@ describe('Hand Rendering', () => {
       players: [player1],
       currentPlayerId: 'p1',
       pile: [],
-      deckSize: 10
+      deckSize: 10,
+      discardCount: 0,
+      lastRealCard: null
     };
 
     // First render
