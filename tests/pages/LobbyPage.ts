@@ -47,10 +47,15 @@ export class LobbyPage {
   }
 
   async getRoomCode(): Promise<string> {
-    // Wait for the room code input to be visible in the modal
-    const codeInput = this.page.locator('#game-id-input');
-    await expect(codeInput).toBeVisible({ timeout: 5000 });
-    return await codeInput.inputValue();
+    // Waiting panel renders the room code as text (not an input).
+    const codeEl = this.page.locator('#waiting-room-code');
+    await expect(codeEl).toBeVisible({ timeout: 5000 });
+
+    // Wait for it to be populated (not the placeholder dashes).
+    await expect(codeEl).not.toHaveText(/^-+$/);
+
+    const raw = (await codeEl.textContent()) || '';
+    return raw.trim();
   }
 
   async joinGame(code: string) {
