@@ -26,7 +26,7 @@ export function setupModalDOM() {
                 </div>
 
                 <div class="lobby-actions lobby-actions--waiting">
-                  <button id="waiting-back-button" class="lobby-nav-button secondary-btn waiting-back-btn" type="button">BACK</button>
+                  <button id="waiting-back-button" class="lobby-tab-button lobby-nav-button waiting-back-btn" type="button" data-tab="join">BACK</button>
 
                   <button id="ready-up-button" class="lets-play-btn play-button-container" type="button" aria-label="Let's Play">
                     <div class="deep-shadow" aria-hidden="true"></div>
