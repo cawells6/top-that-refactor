@@ -44,7 +44,7 @@ export function setupModalDOM() {
                     </div>
                   </button>
 
-                  <button id="copy-link-button" class="lobby-nav-button secondary-btn waiting-copy-btn" type="button">
+                  <button id="copy-link-button" class="lobby-tab-button lobby-nav-button waiting-copy-btn" type="button" data-tab="host">
                     <span class="waiting-copy-label">COPY</span>
                     <span class="waiting-copy-code" id="waiting-room-code">------</span>
                   </button>

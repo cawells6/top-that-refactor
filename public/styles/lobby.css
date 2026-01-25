@@ -482,7 +482,9 @@
   gap: 10px;
   padding: 12px 18px;
   border-radius: 999px;
+  font-family: inherit !important; /* Match the rest of the lobby buttons */
   font-weight: 900;
+  font-size: 1.05rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   background: linear-gradient(180deg, #ffe066 0%, #ffc300 100%);
@@ -1222,6 +1224,15 @@
   border-radius: 999px;
   font-size: 1.05rem;
   letter-spacing: 0.08em;
+}
+
+/* Waiting panel: BACK must stay on the left (override the generic lobby-nav-button rule above). */
+#lobby-container
+  .host-selection-rectangle
+  .lobby-actions.lobby-actions--waiting
+  #waiting-back-button.lobby-nav-button {
+  grid-column: 1 !important;
+  justify-self: start !important;
 }
 
 #lobby-container .host-selection-rectangle--join .lobby-actions--join {
