@@ -65,7 +65,7 @@ describe('Rules modal interactions', () => {
     jest.useFakeTimers();
     document.body.innerHTML = `
       <button id="setup-rules-button">RULES</button>
-      <button id="setup-deal-button"></button>
+      <button id="host-play-button"></button>
       <div id="lobby-container"></div>
       <div id="modal-overlay" class="modal__overlay--hidden"></div>
       <div id="rules-modal" class="modal--hidden">

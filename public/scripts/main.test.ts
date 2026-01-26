@@ -68,7 +68,7 @@ function setupMainDOM({ withLobby = true, withModal = true } = {}) {
             <div id="in-session-lobby-title"></div>
             <div id="players-container"></div>
             <button id="copy-link-button"></button>
-            <button id="ready-up-button"></button>
+            <button id="waiting-ready-button"></button>
             <input id="guest-player-name-input" />
           </div>`
         : ''

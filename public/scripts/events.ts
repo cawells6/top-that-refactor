@@ -589,7 +589,7 @@ function applySpectatorMode(): void {
     totalPlayersInput.value = '0';
   }
   const startBtn = document.getElementById(
-    'setup-deal-button'
+    'host-play-button'
   ) as HTMLButtonElement | null;
   if (startBtn) {
     setPlayButtonLabel(startBtn, 'START CPU MATCH');
@@ -1017,7 +1017,7 @@ export function initializePageEventListeners() {
   // Only setup modal buttons now (header buttons removed)
   const setupRulesButton = document.getElementById('setup-rules-button');
   const setupTutorialButton = document.getElementById('setup-tutorial-button');
-  const setupDealButton = document.getElementById('setup-deal-button');
+  const hostPlayButton = document.getElementById('host-play-button');
   const joinRulesButton = document.getElementById('join-rules-button');
   const gameRulesButton = document.getElementById('game-rules-button');
 
@@ -1040,8 +1040,8 @@ export function initializePageEventListeners() {
     gameRulesButton.addEventListener('click', handleGameRulesClick);
   }
 
-  if (setupDealButton) {
-    setupDealButton.addEventListener('click', handleDealClick);
+  if (hostPlayButton) {
+    hostPlayButton.addEventListener('click', handleDealClick);
   }
 
   const lobbyForm = document.getElementById('lobby-form');
@@ -1082,12 +1082,12 @@ export function initializePageEventListeners() {
 
   setLobbyTab('host');
 
-  const goToJoinButton = document.getElementById('go-to-join-button');
+  const goToJoinButton = document.getElementById('nav-join-friend-button');
   if (goToJoinButton) {
     goToJoinButton.addEventListener('click', () => setLobbyTab('join'));
   }
 
-  const goToHostButton = document.getElementById('go-to-host-button');
+  const goToHostButton = document.getElementById('nav-host-game-button');
   if (goToHostButton) {
     goToHostButton.addEventListener('click', () => setLobbyTab('host'));
   }
@@ -1101,9 +1101,9 @@ export function initializePageEventListeners() {
   }
 
   // UI hooks
-  const joinGameButton = document.getElementById('join-game-button');
-  if (joinGameButton) {
-    joinGameButton.addEventListener('click', handleJoinGameClick);
+  const joinEnterButton = document.getElementById('join-enter-button');
+  if (joinEnterButton) {
+    joinEnterButton.addEventListener('click', handleJoinGameClick);
   }
 
   // Dev-only restart button (only works if button is visible)
@@ -1295,7 +1295,7 @@ export function initializePageEventListeners() {
 // —– UI helper functions —–
 function updateStartGameButton() {
   // Update to target the setup Deal button instead of header button
-  const startGameBtn = document.getElementById('setup-deal-button');
+  const startGameBtn = document.getElementById('host-play-button');
   if (startGameBtn) {
     const totalPlayersInput = document.getElementById(
       'total-players-input'
@@ -1453,7 +1453,7 @@ async function handleDealClick() {
   state.socket.emit(JOIN_GAME, playerDataForEmit, (response: any) => {
     console.log('[CLIENT] Received JOIN_GAME response from server:', response);
     const dealButton = document.getElementById(
-      'setup-deal-button'
+      'host-play-button'
     ) as HTMLButtonElement | null;
     const idleLabel = isSpectator ? 'START CPU MATCH' : "LET'S PLAY";
     if (!response || response.success === false) {
@@ -1483,7 +1483,7 @@ async function handleDealClick() {
   });
 
   const dealButton = document.getElementById(
-    'setup-deal-button'
+    'host-play-button'
   ) as HTMLButtonElement;
   if (dealButton) {
     dealButton.disabled = true;
@@ -1561,7 +1561,7 @@ async function handleJoinGameClick() {
   clearMessageQueueAndHide();
 
   const joinBtn = document.getElementById(
-    'join-game-button'
+    'join-enter-button'
   ) as HTMLButtonElement | null;
   if (joinBtn && joinBtn.disabled) {
     // Prevent duplicate emits if already disabled

@@ -13,7 +13,7 @@ describe('handleJoinLink', () => {
           <input id="game-id-input" class="game-id-input" type="text" readonly aria-hidden="true" />
           <button id="copy-link-button"></button>
         </div>
-        <button id="ready-up-button"></button>
+        <button id="waiting-ready-button"></button>
         <input id="guest-player-name-input" />
       </div>
       <div id="waiting-state" class="hidden"></div>

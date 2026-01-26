@@ -18,9 +18,9 @@ export class LobbyPage {
     this.joinTab = page.locator('.lobby-tab-button[data-tab="join"]');
     this.humansPlusBtn = page.locator('#humans-plus');
     this.cpuPlusBtn = page.locator('#cpus-plus');
-    this.startGameBtn = page.locator('#setup-deal-button');
+    this.startGameBtn = page.locator('#host-play-button');
     this.joinCodeInput = page.locator('#join-code-input');
-    this.joinGameBtn = page.locator('#join-game-button');
+    this.joinGameBtn = page.locator('#join-enter-button');
   }
 
   async goto() {

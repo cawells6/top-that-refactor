@@ -86,7 +86,7 @@ describe('InSessionLobbyModal', () => {
     expect(screen.getByText('Me (You)')).toBeInTheDocument();
     // Ready button should be hidden
     const readyButton = document.getElementById(
-      'ready-up-button'
+      'waiting-ready-button'
     ) as HTMLButtonElement;
     expect(readyButton).toHaveStyle('display: none');
   });

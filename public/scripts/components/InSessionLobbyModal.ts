@@ -57,7 +57,9 @@ export class InSessionLobbyModal {
     this.playersContainer =
       this.modalElement.querySelector('#players-container')!;
     this.copyLinkBtn = this.modalElement.querySelector('#copy-link-button')!;
-    this.readyUpButton = this.modalElement.querySelector('#ready-up-button')!;
+    this.readyUpButton = this.modalElement.querySelector(
+      '#waiting-ready-button'
+    )!;
     this.backButton = this.modalElement.querySelector(
       '#waiting-back-button'
     ) as HTMLButtonElement | null;

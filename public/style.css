@@ -309,7 +309,7 @@ body {
   display: none; /* Remove the green top bar for the blue card style */
 }
 
-#lobby-form[data-lobby-tab='join'] #setup-deal-button {
+#lobby-form[data-lobby-tab='join'] #host-play-button {
   display: none;
 }
 
@@ -1038,9 +1038,9 @@ body {
 }
 
 #setup-rules-button,
-#setup-deal-button,
+#host-play-button,
 #setup-tutorial-button,
-#join-game-button,
+#join-enter-button,
 #join-rules-button {
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
   font-size: 1.4rem;
@@ -1058,7 +1058,7 @@ body {
 }
 
 #setup-rules-button:hover,
-#join-game-button:hover,
+#join-enter-button:hover,
 #join-rules-button:hover {
   background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
   color: #1b2e3c !important;
@@ -1067,7 +1067,7 @@ body {
 }
 
 #setup-rules-button:active,
-#join-game-button:active,
+#join-enter-button:active,
 #join-rules-button:active {
   transform: translateY(0);
   background: linear-gradient(135deg, #e6bb0d 0%, #f4d03f 100%);
@@ -1082,7 +1082,7 @@ body {
 
 /* Deal button (Let's Play) - goldish color scheme styling */
 /* Deal button (Let's Play) - felt green center action */
-#setup-deal-button {
+#host-play-button {
   padding: 0 !important;
   width: 100px;
   height: 100px;
@@ -1137,20 +1137,20 @@ body {
 }
 
 /* Ready-up button base styling (only when not using the PLAY button shell) */
-#ready-up-button:not(.play-button-container) {
+#waiting-ready-button:not(.play-button-container) {
   background: linear-gradient(135deg, #ffc300 0%, #ffdb4d 100%);
   color: #1b2e3c !important;
   border: none;
 }
 
-#ready-up-button:not(.play-button-container):hover {
+#waiting-ready-button:not(.play-button-container):hover {
   background: linear-gradient(135deg, #ffdb4d 0%, #ffe066 100%);
   color: #1b2e3c !important;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(255, 195, 0, 0.3);
 }
 
-#ready-up-button:not(.play-button-container):active {
+#waiting-ready-button:not(.play-button-container):active {
   transform: translateY(0);
   box-shadow: 0 1px 4px rgba(255, 195, 0, 0.2);
 }

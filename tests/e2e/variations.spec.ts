@@ -74,7 +74,7 @@ test.describe('Game Variations', () => {
                 await p2.lobby.joinGame(roomCode);
 
                 // Joiner clicks Ready
-                const joinerStartButton = p2.page.locator('#ready-up-button');
+                const joinerStartButton = p2.page.locator('#waiting-ready-button');
                 await expect(joinerStartButton).toBeVisible();
                 await joinerStartButton.click();
             }

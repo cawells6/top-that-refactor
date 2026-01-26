@@ -36,10 +36,10 @@ test('2 Humans + 2 CPUs (4 Player Game)', async ({ browser }) => {
 
     // After Joiner joins, the Host's modal should update or game starts?
     // In `InSessionLobbyModal`, it shows players.
-    // Host needs to click "LET'S PLAY" (ready-up-button) maybe?
-    // Wait, the `in-session-lobby-modal` has a button: `#ready-up-button` ("LET'S PLAY").
+    // Host needs to click "LET'S PLAY" (waiting-ready-button) maybe?
+    // Wait, the `in-session-lobby-modal` has a button: `#waiting-ready-button` ("LET'S PLAY").
     // If we are waiting for players, does it auto-start?
-    // The previous tests used `startGame()` which clicks `#setup-deal-button`.
+    // The previous tests used `startGame()` which clicks `#host-play-button`.
     // But that was for Single Player (or Host + CPU).
 
     // If multiple humans, they go to lobby.
@@ -51,7 +51,7 @@ test('2 Humans + 2 CPUs (4 Player Game)', async ({ browser }) => {
     // Otherwise, `handleDealClick` just joins/creates.
 
     // The `InSessionLobbyModal` handles the "Waiting" state.
-    // It has `ready-up-button`.
+    // It has `waiting-ready-button`.
     // We probably need to click it.
 
     // Let's assume we need to click "LET'S PLAY" on the Host to start the game
@@ -65,7 +65,7 @@ test('2 Humans + 2 CPUs (4 Player Game)', async ({ browser }) => {
     // is often hidden for the Host (since they created it).
     // The Joiner (p2) needs to click "Let's Play" / "Ready Up".
 
-    const joinerStartButton = p2.page.locator('#ready-up-button');
+    const joinerStartButton = p2.page.locator('#waiting-ready-button');
     // Ensure it's visible and enabled
     await expect(joinerStartButton).toBeVisible();
     // Use force click if needed or just standard click

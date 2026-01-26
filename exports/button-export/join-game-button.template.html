@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Join Game Button (Template)</title>
+    <!-- Matches app load order relevant to this button:
+         1) /styles/components.css
+         2) /style.css
+         3) /styles/lobby.css
+    -->
+    <link rel="stylesheet" href="join-game-button.template.css" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #137a4b;
+        font-family: 'Space Grotesk', 'Source Sans 3', sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Minimal ancestor structure so lobby.css selectors apply (Source: public/index.html) -->
+    <div id="lobby-container">
+      <div class="host-selection-rectangle host-selection-rectangle--join">
+        <div class="lobby-actions lobby-actions--join">
+          <button
+            id="join-enter-button"
+            type="button"
+            class="pill-button pill-button--green lets-play-btn play-button-container"
+            aria-label="Join game"
+          >
+            <div class="deep-shadow" aria-hidden="true"></div>
+            <div class="pulsing-glow" aria-hidden="true"></div>
+            <div class="outer-gold-ring" aria-hidden="true">
+              <div class="button-base">
+                <div class="gloss-sweep"></div>
+                <div class="top-highlight"></div>
+                <div class="text-container">
+                  <span class="text-shadow">JOIN</span>
+                  <span class="text-main">JOIN</span>
+                </div>
+                <div class="bottom-shadow"></div>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

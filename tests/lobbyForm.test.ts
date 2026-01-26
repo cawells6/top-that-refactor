@@ -29,8 +29,8 @@ function setupLobbyFormDOM() {
       <div id="lobby-validation-message"><div class="message-box-content"><p></p></div></div>
       <div class="lobby-buttons-row">
         <button id="setup-rules-button" type="button">RULES</button>
-        <button id="setup-deal-button" type="button">LET'S PLAY</button>
-        <button id="join-game-button" type="button">Join Game</button>
+        <button id="host-play-button" type="button">LET'S PLAY</button>
+        <button id="join-enter-button" type="button">Join Game</button>
       </div>
     </form>
   `;
@@ -134,10 +134,10 @@ describe('Lobby Form Submission', () => {
       'cpu-players-input'
     ) as HTMLInputElement;
     submitButton = document.getElementById(
-      'setup-deal-button'
+      'host-play-button'
     ) as HTMLButtonElement;
     joinButton = document.getElementById(
-      'join-game-button'
+      'join-enter-button'
     ) as HTMLButtonElement;
     nameInputError = getErrorText();
     playerCountError = getErrorText();

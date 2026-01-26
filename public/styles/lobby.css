@@ -517,7 +517,7 @@
 /* Ready-up button should match the lobby's PLAY button style */
 .lobby-tab-panel--waiting
   .host-selection-rectangle
-  #ready-up-button.lets-play-btn.play-button-container {
+  #waiting-ready-button.lets-play-btn.play-button-container {
   background: transparent;
   border: none;
   border-radius: 9999px;
@@ -536,19 +536,19 @@
 
 .lobby-tab-panel--waiting
   .host-selection-rectangle
-  #ready-up-button.lets-play-btn.play-button-container:hover:not(:disabled) {
+  #waiting-ready-button.lets-play-btn.play-button-container:hover:not(:disabled) {
   transform: scale(0.735);
 }
 
 .lobby-tab-panel--waiting
   .host-selection-rectangle
-  #ready-up-button.lets-play-btn.play-button-container:active:not(:disabled) {
+  #waiting-ready-button.lets-play-btn.play-button-container:active:not(:disabled) {
   transform: scale(0.665) translateY(2px);
 }
 
 .lobby-tab-panel--waiting
   .host-selection-rectangle
-  #ready-up-button.lets-play-btn.play-button-container:disabled {
+  #waiting-ready-button.lets-play-btn.play-button-container:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -1101,7 +1101,7 @@
 #lobby-container
   .host-selection-rectangle--join
   .lobby-actions--join
-  #join-game-button.play-button-container {
+  #join-enter-button.play-button-container {
   grid-column: 2;
   justify-self: center;
 }
@@ -1109,7 +1109,7 @@
 #lobby-container
   .host-selection-rectangle--join
   .lobby-actions--join
-  #go-to-host-button.lobby-nav-button {
+  #nav-host-game-button.lobby-nav-button {
   grid-column: 3;
   justify-self: end;
 }
@@ -1227,7 +1227,7 @@
 /* Mobile Adjustments for Buttons */
 @media (max-width: 600px) {
   /* Prevent oval/stretched button on mobile */
-  #setup-deal-button.primary-action-btn:not(.lets-play-btn) {
+  #host-play-button.primary-action-btn:not(.lets-play-btn) {
     width: 80px !important;
     height: 80px !important;
     min-width: 80px !important;
@@ -1457,8 +1457,8 @@
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06) !important;
 }
 
-/* Higher specificity than `public/style.css`'s `#setup-deal-button` */
-#setup-deal-button.lets-play-btn {
+/* Higher specificity than `public/style.css`'s `#host-play-button` */
+#host-play-button.lets-play-btn {
   /* 1. Geometry & Layout */
   width: 88px;
   height: 88px;
@@ -1502,14 +1502,14 @@
   user-select: none;
 }
 
-#setup-deal-button.lets-play-btn:hover {
+#host-play-button.lets-play-btn:hover {
   background: #137a4b;
 }
 
 /* Host panel: match mock "pill" PLAY button */
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn:not(.play-button-container) {
+  #host-play-button.lets-play-btn:not(.play-button-container) {
   width: min(260px, 85%);
   height: 68px;
   min-width: 0;
@@ -1544,7 +1544,7 @@
 
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn:not(.play-button-container):hover {
+  #host-play-button.lets-play-btn:not(.play-button-container):hover {
   transform: translateY(-2px);
   box-shadow:
     0 16px 0 #0a3d27,
@@ -1556,7 +1556,7 @@
 
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn:not(.play-button-container):active {
+  #host-play-button.lets-play-btn:not(.play-button-container):active {
   transform: translateY(12px);
   box-shadow:
     0 2px 0 #0a3d27,
@@ -1568,7 +1568,7 @@
 
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn:not(.play-button-container):focus-visible {
+  #host-play-button.lets-play-btn:not(.play-button-container):focus-visible {
   outline: none;
   box-shadow:
     0 14px 0 #0a3d27,
@@ -1582,7 +1582,7 @@
 /* Lobby PLAY button (Figma v1) */
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn.play-button-container {
+  #host-play-button.lets-play-btn.play-button-container {
   background: transparent;
   border: none;
   border-radius: 9999px;
@@ -1602,7 +1602,7 @@
 /* Reuse PLAY button styling for JOIN GAME */
 #lobby-container
   .host-selection-rectangle
-  #join-game-button.lets-play-btn.play-button-container {
+  #join-enter-button.lets-play-btn.play-button-container {
   background: transparent;
   border: none;
   border-radius: 9999px;
@@ -1621,39 +1621,39 @@
 
 #lobby-container
   .host-selection-rectangle
-  #join-game-button.lets-play-btn.play-button-container:hover:not(:disabled) {
+  #join-enter-button.lets-play-btn.play-button-container:hover:not(:disabled) {
   /* Keep hover reaction subtle (match the lobby PLAY button feel without "popping") */
   transform: scale(0.714) !important;
 }
 
 #lobby-container
   .host-selection-rectangle
-  #join-game-button.lets-play-btn.play-button-container:active:not(:disabled) {
+  #join-enter-button.lets-play-btn.play-button-container:active:not(:disabled) {
   transform: scale(0.686) translateY(1px) !important;
 }
 
 #lobby-container
   .host-selection-rectangle
-  #join-game-button.lets-play-btn.play-button-container:disabled {
+  #join-enter-button.lets-play-btn.play-button-container:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn.play-button-container:hover:not(:disabled) {
+  #host-play-button.lets-play-btn.play-button-container:hover:not(:disabled) {
   transform: scale(0.735);
 }
 
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn.play-button-container:active:not(:disabled) {
+  #host-play-button.lets-play-btn.play-button-container:active:not(:disabled) {
   transform: scale(0.665) translateY(2px);
 }
 
 #lobby-container
   .host-selection-rectangle
-  #setup-deal-button.lets-play-btn.play-button-container:disabled {
+  #host-play-button.lets-play-btn.play-button-container:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -1661,27 +1661,27 @@
 @media (max-width: 520px) {
   #lobby-container
     .host-selection-rectangle
-    #setup-deal-button.lets-play-btn.play-button-container,
+    #host-play-button.lets-play-btn.play-button-container,
   #lobby-container
     .host-selection-rectangle
-    #join-game-button.lets-play-btn.play-button-container
+    #join-enter-button.lets-play-btn.play-button-container
     .button-base {
     padding: 12px 44px;
   }
 
   #lobby-container
     .host-selection-rectangle
-    #setup-deal-button.lets-play-btn.play-button-container,
+    #host-play-button.lets-play-btn.play-button-container,
   #lobby-container
     .host-selection-rectangle
-    #join-game-button.lets-play-btn.play-button-container
+    #join-enter-button.lets-play-btn.play-button-container
     .text-main,
   #lobby-container
     .host-selection-rectangle
-    #setup-deal-button.lets-play-btn.play-button-container,
+    #host-play-button.lets-play-btn.play-button-container,
   #lobby-container
     .host-selection-rectangle
-    #join-game-button.lets-play-btn.play-button-container
+    #join-enter-button.lets-play-btn.play-button-container
     .text-shadow {
     font-size: 28px;
   }
@@ -1766,28 +1766,28 @@
 }
 
 /* JOIN FRIEND button: match the thin blue border look from RULES */
-#join-game-button {
+#join-enter-button {
   background: rgba(33, 150, 243, 0.1) !important;
   border: 1px solid rgba(33, 150, 243, 0.4) !important;
   color: #1b2e3c !important;
   margin-left: 0 !important;
 }
 
-#join-game-button:hover {
+#join-enter-button:hover {
   background: rgba(33, 150, 243, 0.2) !important;
   border-color: rgba(33, 150, 243, 0.65) !important;
   box-shadow: none !important;
   transform: none !important;
 }
 
-#join-game-button:active {
+#join-enter-button:active {
   background: rgba(33, 150, 243, 0.24) !important;
   box-shadow: none !important;
   transform: none !important;
 }
 
 /* Pressed State */
-#setup-deal-button.lets-play-btn:active {
+#host-play-button.lets-play-btn:active {
   transform: translateY(9px);
   background: #137a4b;
   box-shadow:
@@ -1800,7 +1800,7 @@
 }
 
 /* Keyboard Focus State */
-#setup-deal-button.lets-play-btn:focus {
+#host-play-button.lets-play-btn:focus {
   background: #137a4b;
   outline: none; /* Remove blue ring */
 }
