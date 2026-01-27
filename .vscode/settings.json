@@ -109,4 +109,19 @@
     "chat.promptFilesRecommendations": {
 
     }
+    // Make the font beefier and easier to read
+  "editor.fontFamily": "'JetBrains Mono', 'Fira Code', Consolas, monospace", 
+  "editor.fontSize": 16,             // 14 is default, 15/16 is much better for eyes
+  "editor.lineHeight": 24,           // Gives lines breathing room (prevents crowding)
+  
+  // Visual guides
+  "editor.renderWhitespace": "selection",  // Only show dots when you select text
+  "editor.bracketPairColorization.enabled": true, // Color matches brackets () [] {}
+  "editor.guides.bracketPairs": true,      // Draws a line between matching brackets
+  "workbench.colorCustomizations": {
+    "sideBar.foreground": "#ffffff",             // Makes file names white
+    "sideBarTitle.foreground": "#ffffff",        // Makes "EXPLORER" title white
+    "list.inactiveSelectionForeground": "#ffffff", // Keeps them white when you click away
+    "list.activeSelectionForeground": "#ffffff"    // Keeps them white when selected
+  },
 }
