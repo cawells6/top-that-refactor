@@ -108,19 +108,25 @@
     "chat.checkpoints.showFileChanges": true,
     "chat.promptFilesRecommendations": {
 
-    },"workbench.colorCustomizations": {   // Side Bar (Files) - Keep White
+    },"workbench.colorCustomizations": {
+    // Side Bar
     "sideBar.foreground": "#ffffff",
     "sideBarTitle.foreground": "#ffffff",
     "list.inactiveSelectionForeground": "#ffffff",
     "list.activeSelectionForeground": "#ffffff",
 
-    // Status Bar (Bottom) - Matte Dark
-    "statusBar.background": "#262626",         // Dark Grey (Not bright blue)
-    "statusBar.foreground": "#ffffff",         // White text for readability
-    "statusBar.border": "#333333",             // Subtle separation line
-    
-    // Optional: Match the "Run" button color when debugging active
-    "statusBar.debuggingBackground": "#e57373", 
-    "statusBar.debuggingForeground": "#000000"
+    // Status Bar
+    "statusBar.background": "#262626",
+    "statusBar.foreground": "#ffffff",
+    "statusBar.border": "#333333",
+    "statusBar.debuggingBackground": "#e57373",
+    "statusBar.debuggingForeground": "#000000",
+
+    // Context Menu (Right-Click Menu)
+    "menu.background": "#262626",         // Dark background matching status bar
+    "menu.foreground": "#ffffff",         // Bright WHITE text (fixes grey look)
+    "menu.selectionBackground": "#42A5F5",// Blue highlight when you hover
+    "menu.selectionForeground": "#ffffff",// Keep text white when hovering
+    "menu.border": "#555555"              // distinct border so it doesn't blend in
   },
 }
