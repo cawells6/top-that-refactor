@@ -208,8 +208,9 @@ describe('Game Flow - Manual Start by Host', () => {
     const joinedCallHost = globalMockSocket.emit.mock.calls.find(
       (call: any) =>
         call[0] === JOINED &&
-        call[1]?.name === playerAJoin.playerName &&
-        call[1]?.roomId === 'test-room'
+        call[1]?.success === true &&
+        call[1]?.roomId === 'test-room' &&
+        call[1]?.playerId === globalMockSocket.id
     );
     expect(joinedCallHost).toBeDefined();
     // Player IDs are now generated, so check by name
@@ -265,8 +266,9 @@ describe('Game Flow - Manual Start by Host', () => {
     const joinedCallB = playerBJoinSocket.emit.mock.calls.find(
       (call: any) =>
         call[0] === JOINED &&
-        call[1]?.name === playerBJoin.playerName &&
-        call[1]?.roomId === 'test-room'
+        call[1]?.success === true &&
+        call[1]?.roomId === 'test-room' &&
+        call[1]?.playerId === playerBJoinSocket.id
     );
     expect(joinedCallB).toBeDefined();
     // Check both players are present by name
@@ -345,7 +347,7 @@ describe('Game Flow - Manual Start by Host', () => {
     expect(nextTurnCall).toBeDefined();
     // The first player to act is the first human
     if (nextTurnCall && playerA_Instance)
-      expect(nextTurnCall[1]).toBe(playerA_Instance.id);
+      expect(nextTurnCall[1]).toMatchObject({ currentPlayerId: playerA_Instance.id });
   });
 });
 
@@ -469,7 +471,7 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     expect(gameController['players'].get(playerId)!.disconnected).toBe(false);
     expect(topLevelEmitMock).toHaveBeenCalledWith(
       JOINED,
-      expect.objectContaining({ id: playerId })
+      expect.objectContaining({ success: true, roomId: 'test-room', playerId })
     );
   });
 
@@ -649,9 +651,9 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     expect(joinedCall).toBeDefined();
     const payload = joinedCall[1];
     expect(payload).toMatchObject({
-      id: expect.any(String),
-      name: 'PayloadTest',
+      success: true,
       roomId: 'test-room',
+      playerId: expect.any(String),
     });
   });
 
@@ -721,8 +723,8 @@ describe('Game Flow - Automatic Start When All Humans Ready', () => {
     gameController.attachSocketEventHandlers(socketA as any);
     gameController.attachSocketEventHandlers(socketB as any);
     // Act
-    socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
-    socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
+    socketA.simulateIncomingEvent(PLAYER_READY, { isReady: true });
+    socketB.simulateIncomingEvent(PLAYER_READY, { isReady: true });
     // Assert
     expect(gameController['gameState'].started).toBe(true);
     const stateUpdateCall = topLevelEmitMock.mock.calls.find(
@@ -784,10 +786,17 @@ describe('Game Flow - Invalid Card Play', () => {
     (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
     gameController.attachSocketEventHandlers(socketA as any);
     gameController.attachSocketEventHandlers(socketB as any);
-    socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
-    socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
+    socketA.simulateIncomingEvent(PLAYER_READY, { isReady: true });
+    socketB.simulateIncomingEvent(PLAYER_READY, { isReady: true });
 
-    const invalidPlayData = { cardIndices: [99], zone: 'hand' };
+    const playerA = Array.from(gameController['players'].values()).find(
+      (p) => p.name === 'Alice'
+    )!;
+    gameController['gameState'].currentPlayerIndex = gameController[
+      'gameState'
+    ].players.indexOf(playerA.id);
+
+    const invalidPlayData = { cardIndices: [99] };
     socketA.simulateIncomingEvent(PLAY_CARD, invalidPlayData);
 
     const errorCall = topLevelEmitMock.mock.calls.find(
@@ -816,8 +825,8 @@ describe('Game Flow - Invalid Card Play', () => {
     (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
     gameController.attachSocketEventHandlers(socketA as any);
     gameController.attachSocketEventHandlers(socketB as any);
-    socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
-    socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
+    socketA.simulateIncomingEvent(PLAYER_READY, { isReady: true });
+    socketB.simulateIncomingEvent(PLAYER_READY, { isReady: true });
 
     const playerA = Array.from(gameController['players'].values()).find(
       (p) => p.name === 'Alice'
@@ -838,7 +847,7 @@ describe('Game Flow - Invalid Card Play', () => {
     const expectedHandSize = gameController['gameState'].pile.length + 1;
     topLevelEmitMock.mockClear();
 
-    const downPlay = { cardIndices: [0], zone: 'downCards' as const };
+    const downPlay = { cardIndices: [0] };
     socketA.simulateIncomingEvent(PLAY_CARD, downPlay);
 
     jest.runOnlyPendingTimers();
@@ -876,8 +885,8 @@ describe('Game Flow - Invalid Card Play', () => {
     (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
     gameController.attachSocketEventHandlers(socketA as any);
     gameController.attachSocketEventHandlers(socketB as any);
-    socketA.simulateIncomingEvent(PLAYER_READY, 'Alice');
-    socketB.simulateIncomingEvent(PLAYER_READY, 'Bob');
+    socketA.simulateIncomingEvent(PLAYER_READY, { isReady: true });
+    socketB.simulateIncomingEvent(PLAYER_READY, { isReady: true });
 
     const playerA = Array.from(gameController['players'].values()).find(
       (p) => p.name === 'Alice'
@@ -953,7 +962,8 @@ describe('Game Flow - Special Card Effects', () => {
     await Promise.resolve();
 
     const nextTurnCall = topLevelEmitMock.mock.calls.find(
-      (call) => call[0] === NEXT_TURN && call[1] === hostSocket.id
+      (call) =>
+        call[0] === NEXT_TURN && (call[1] as any)?.currentPlayerId === hostSocket.id
     );
     expect(nextTurnCall).toBeDefined();
     expect(scheduleSpy).not.toHaveBeenCalled();
