@@ -931,24 +931,19 @@ export default class GameController {
       return;
     }
 
-    const player = this.players.get(playerId);
-    if (!player) {
-      socket.emit(ERROR_EVENT, 'Player data not found.');
-      return;
-    }
-
     // --- GUARD: Block input during turn transition ---
     if (this.isTurnTransitioning) {
       socket.emit(ERROR_EVENT, 'Turn is changing, please wait.');
       return;
     }
 
-    if (
-      this.gameState.players[this.gameState.currentPlayerIndex] !== playerId
-    ) {
-      socket.emit(ERROR_EVENT, 'Not your turn.');
+    if (!Array.isArray(cardIndices) || cardIndices.some((i) => !Number.isInteger(i))) {
+      socket.emit(ERROR_EVENT, 'Invalid play: cardIndices must be an array of integers.');
       return;
     }
+
+    const player = this.validateRequest(socket, playerId, true);
+    if (!player) return;
 
     const requiredZone =
       player.hand.length > 0
@@ -967,6 +962,11 @@ export default class GameController {
 
     if (!cardIndices || cardIndices.length === 0) {
       socket.emit(ERROR_EVENT, 'No cards selected to play.');
+      return;
+    }
+
+    if (new Set(cardIndices).size !== cardIndices.length) {
+      socket.emit(ERROR_EVENT, 'Invalid play: Duplicate card indices detected.');
       return;
     }
 
@@ -1003,6 +1003,32 @@ export default class GameController {
     }
 
     this.handlePlayCardInternal(player, cardIndices, zone, cardsToPlay);
+  }
+
+  /**
+   * Validates that a request comes from the correct player and (optionally) it is their turn.
+   * @returns The Player object if valid, or null if invalid (and emits ERROR).
+   */
+  private validateRequest(
+    socket: TypedSocket,
+    playerId: string,
+    requireTurn: boolean = true
+  ): Player | null {
+    const player = this.players.get(playerId);
+    if (!player) {
+      socket.emit(ERROR_EVENT, 'Player not found in game.');
+      return null;
+    }
+
+    if (requireTurn) {
+      const currentPlayerId =
+        this.gameState.players[this.gameState.currentPlayerIndex];
+      if (!currentPlayerId || currentPlayerId !== player.id) {
+        socket.emit(ERROR_EVENT, 'It is not your turn.');
+        return null;
+      }
+    }
+    return player;
   }
 
   /**
