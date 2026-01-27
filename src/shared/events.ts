@@ -1,51 +1,103 @@
-// src/shared/events.ts
+import {
+  JoinGamePayload,
+  JoinGameResponse,
+  GameStateData,
+  InSessionLobbyState,
+  Card,
+  AddToPileOptions,
+  RejoinData
+} from './types';
 
+// --- EVENT NAME CONSTANTS ---
 // Game setup and flow
-export const JOIN_GAME: string = 'join-game';
-export const JOINED: string = 'joined';
-export const START_GAME: string = 'start-game';
-export const GAME_STARTED: string = 'game-started'; // Confirms game has started, includes initial full state
-export const ANIMATIONS_COMPLETE: string = 'animations-complete'; // Client signals opening animations are done
-export const NEXT_TURN: string = 'next-turn';
-export const GAME_OVER: string = 'game-over';
-export const REJOIN: string = 'rejoin'; // Player attempts to rejoin a game in progress
+export const JOIN_GAME = 'join-game';
+export const JOINED = 'joined';
+export const START_GAME = 'start-game';
+export const GAME_STARTED = 'game-started';
+export const ANIMATIONS_COMPLETE = 'animations-complete';
+export const NEXT_TURN = 'next-turn';
+export const GAME_OVER = 'game-over';
+export const REJOIN = 'rejoin';
 
 // Player actions
-export const PLAY_CARD: string = 'play-card';
-export const PICK_UP_PILE: string = 'pick-up-pile'; // Player chooses to pick up the pile
-export const CARD_PLAYED: string = 'card-played'; // A card was successfully played
-export const PILE_PICKED_UP: string = 'pile-picked-up'; // The pile was picked up by a player
+export const PLAY_CARD = 'play-card';
+export const PICK_UP_PILE = 'pick-up-pile';
+export const CARD_PLAYED = 'card-played';
+export const PILE_PICKED_UP = 'pile-picked-up';
 
 // Lobby system events
-export const LOBBY_CREATED: string = 'lobbyCreated';
-export const PLAYER_READY: string = 'playerReady';
-export const LOBBY_STATE_UPDATE: string = 'lobbyStateUpdate';
+export const LOBBY_CREATED = 'lobbyCreated';
+export const PLAYER_READY = 'playerReady';
+export const LOBBY_STATE_UPDATE = 'lobbyStateUpdate';
 
 // Game state and updates
-export const STATE_UPDATE: string = 'state-update'; // Generic state update from server
-export const SPECIAL_CARD_EFFECT: string = 'specialCardEffect'; // Renamed from SPECIAL_CARD, Indicates a special card effect (e.g., 2, 5, 10 played)
+export const STATE_UPDATE = 'state-update';
+export const SPECIAL_CARD_EFFECT = 'specialCardEffect';
 
-// Errors and generic messages
-export const ERROR: string = 'err'; // Generic error message from server
-export const SESSION_ERROR: string = 'session-error'; // Fatal/session-level errors
+// Errors
+export const ERROR = 'err';
+export const SESSION_ERROR = 'session-error';
 
-// Debug helper - call in both client and server to verify same event names
+// --- TYPED EVENT CONTRACTS ---
+
+/**
+ * Events sent FROM Client TO Server
+ */
+export interface ClientToServerEvents {
+  // Lobby & Setup
+  [JOIN_GAME]: (payload: JoinGamePayload, callback?: (response: JoinGameResponse) => void) => void;
+  [PLAYER_READY]: (payload: { isReady: boolean }) => void;
+  [START_GAME]: () => void;
+  [REJOIN]: (payload: RejoinData, callback?: (response: JoinGameResponse) => void) => void;
+
+  // In-Game Actions
+  [PLAY_CARD]: (payload: { cardIndices: number[] }) => void;
+  [PICK_UP_PILE]: () => void;
+  [ANIMATIONS_COMPLETE]: () => void;
+
+  // Debug / Misc
+  'debug-reset-game': () => void;
+}
+
+/**
+ * Events sent FROM Server TO Client
+ */
+export interface ServerToClientEvents {
+  // Lobby Updates
+  [LOBBY_STATE_UPDATE]: (state: InSessionLobbyState) => void;
+  [JOINED]: (response: JoinGameResponse) => void;
+  [LOBBY_CREATED]: (roomId: string) => void;
+
+  // Game Lifecycle
+  [GAME_STARTED]: (gameState: GameStateData) => void;
+  [STATE_UPDATE]: (gameState: GameStateData) => void;
+  [GAME_OVER]: (payload: { winnerId: string; winnerName: string }) => void;
+
+  // Action Feedback
+  [CARD_PLAYED]: (payload: {
+    playerId: string;
+    cards: Card[];
+    newPileSize: number;
+    pileTop: Card | null;
+  }) => void;
+
+  [PILE_PICKED_UP]: (payload: {
+    playerId: string;
+    pileSize: number;
+  }) => void;
+
+  [SPECIAL_CARD_EFFECT]: (payload: {
+    type: 'ten' | 'two' | 'four-of-a-kind';
+    playerId: string;
+    description: string;
+  }) => void;
+
+  // Errors
+  [ERROR]: (message: string) => void;
+  [SESSION_ERROR]: (message: string) => void;
+}
+
+// Debug helper
 export function logEventNames() {
-  console.log('Event Names:', {
-    JOIN_GAME,
-    JOINED,
-    LOBBY_STATE_UPDATE,
-    STATE_UPDATE,
-    // Add other important events...
-  });
+  console.log('Event Names Loaded:', { JOIN_GAME, PLAY_CARD, GAME_STARTED });
 }
-
-// Optional: You could also define these as an enum if you prefer,
-// though string constants are very common for event names.
-/*
-export enum GameEvents {
-  JoinGame = 'join-game',
-  Joined = 'joined',
-  // ... etc.
-}
-*/

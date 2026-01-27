@@ -35,12 +35,12 @@
     "editor.background": "#000000",
     "editor.foreground": "#e0e0e0",
     "editorCursor.foreground": "#ffffff",
-    "editorLineNumber.foreground": "#858585",
+    "editorLineNumber.foreground": "#7f7f7f",
     "editorLineNumber.activeForeground": "#ffffff",
 
     // --- TERMINAL FONT (Paste this in) ---
     "terminal.background": "#000000",
-    "terminal.foreground": "#cccccc",
+    "terminal.foreground": "#ffffff",
     "terminalCursor.foreground": "#ffffff",
 
     // --- 6. PROBLEMS PANEL & ERROR COLORS ---
@@ -75,7 +75,7 @@
     "textMateRules": [
       {
         "scope": ["keyword", "storage.type", "storage.modifier"],
-        "settings": { "foreground": "#67ceaf" }  // Purple (e.g. const, let, return, function)
+        "settings": { "foreground": "#167357" }  // Purple (e.g. const, let, return, function)
       },
       {
         "scope": ["entity.name.function", "support.function"],
@@ -83,7 +83,7 @@
       },
       {
         "scope": ["string", "string.template"],
-        "settings": { "foreground": "#eb6a13" }  // Green (e.g. "Hello World")
+        "settings": { "foreground": "#ef6525" }  // Green (e.g. "Hello World")
       },
       {
         "scope": ["variable", "variable.parameter"],
@@ -91,7 +91,7 @@
       },
       {
         "scope": ["comment"],
-        "settings": { "foreground": "#8cd66a" }  // Dark Green (e.g. // This is a comment)
+        "settings": { "foreground": "#d955fee7" }  // Dark Green (e.g. // This is a comment)
       },
       {
         "scope": ["constant.numeric"],
