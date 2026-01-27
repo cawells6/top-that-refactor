@@ -4,6 +4,10 @@
     {
       "label": "Run",
       "type": "shell",
+      "icon": {
+        "id": "play",
+        "color": "charts.red"
+      },
       "command": "bash",
       "args": ["-lc", "./run"],
       "group": "build",
@@ -52,6 +56,10 @@
     {
       "label": "Ship It With Message",
       "type": "shell",
+      "icon": {
+        "id": "rocket",
+        "color": "charts.green"
+      },
       "command": "C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe",
       "args": [
         "-lc",
