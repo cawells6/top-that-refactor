@@ -24,3 +24,10 @@ public/current-port.txt
 # Playwright artifacts
 playwright-report/
 test-results/
+
+# --- Hygiene Cleanup ---
+logs/*
+!logs/README.LOGS.md
+current-port.txt
+exports/button-export/
+*_output.json
