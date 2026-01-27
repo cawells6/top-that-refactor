@@ -88,9 +88,9 @@
             {
                 "name": "Ship",
                 "color": "#81c784",
-                "command": "./scripts/shipit.sh""
-            }
-             {
+                "command": "./scripts/shipit.sh"
+            },
+            {
                 "name": "Switch",
                 "color": "#3395e0",
                 "command": "./scripts/switch-branch.sh"
@@ -108,20 +108,19 @@
     "chat.checkpoints.showFileChanges": true,
     "chat.promptFilesRecommendations": {
 
-    }
-    // Make the font beefier and easier to read
-  "editor.fontFamily": "'JetBrains Mono', 'Fira Code', Consolas, monospace", 
-  "editor.fontSize": 16,             // 14 is default, 15/16 is much better for eyes
-  "editor.lineHeight": 24,           // Gives lines breathing room (prevents crowding)
-  
-  // Visual guides
-  "editor.renderWhitespace": "selection",  // Only show dots when you select text
-  "editor.bracketPairColorization.enabled": true, // Color matches brackets () [] {}
-  "editor.guides.bracketPairs": true,      // Draws a line between matching brackets
-  "workbench.colorCustomizations": {
-    "sideBar.foreground": "#ffffff",             // Makes file names white
-    "sideBarTitle.foreground": "#ffffff",        // Makes "EXPLORER" title white
-    "list.inactiveSelectionForeground": "#ffffff", // Keeps them white when you click away
-    "list.activeSelectionForeground": "#ffffff"    // Keeps them white when selected
+    },"workbench.colorCustomizations": {   // Side Bar (Files) - Keep White
+    "sideBar.foreground": "#ffffff",
+    "sideBarTitle.foreground": "#ffffff",
+    "list.inactiveSelectionForeground": "#ffffff",
+    "list.activeSelectionForeground": "#ffffff",
+
+    // Status Bar (Bottom) - Matte Dark
+    "statusBar.background": "#262626",         // Dark Grey (Not bright blue)
+    "statusBar.foreground": "#ffffff",         // White text for readability
+    "statusBar.border": "#333333",             // Subtle separation line
+    
+    // Optional: Match the "Run" button color when debugging active
+    "statusBar.debuggingBackground": "#e57373", 
+    "statusBar.debuggingForeground": "#000000"
   },
 }
