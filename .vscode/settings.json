@@ -70,7 +70,35 @@
     "statusBar.debuggingBackground": "#e57373",
     "statusBar.debuggingForeground": "#000000"
   },
-
+// --- 1.5 SYNTAX HIGHLIGHTING (Specific Text Colors) ---
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": ["keyword", "storage.type", "storage.modifier"],
+        "settings": { "foreground": "#67ceaf" }  // Purple (e.g. const, let, return, function)
+      },
+      {
+        "scope": ["entity.name.function", "support.function"],
+        "settings": { "foreground": "#569CD6" }  // Blue (e.g. startServer, console.log)
+      },
+      {
+        "scope": ["string", "string.template"],
+        "settings": { "foreground": "#eb6a13" }  // Green (e.g. "Hello World")
+      },
+      {
+        "scope": ["variable", "variable.parameter"],
+        "settings": { "foreground": "#9CDCFE" }  // Light Blue (e.g. myVariable)
+      },
+      {
+        "scope": ["comment"],
+        "settings": { "foreground": "#8cd66a" }  // Dark Green (e.g. // This is a comment)
+      },
+      {
+        "scope": ["constant.numeric"],
+        "settings": { "foreground": "#B5CEA8" }  // Pale Green (e.g. 10, 500)
+      }
+    ]
+  },
   // --- EXISTING AI & TOOL SETTINGS ---
   "github.copilot.enable": {
     "scminput": true,
