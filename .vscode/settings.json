@@ -1,132 +1,171 @@
 {
-    "terminal.integrated.sendKeybindingsToShell": true,
-    "terminal.integrated.enableMultiLinePasteWarning": "never",
-    "github.copilot.chat.codesearch.enabled": true,
-    "github.copilot.chat.editor.temporalContext.enabled": true,
-    "github.copilot.chat.edits.temporalContext.enabled": true,
-    "terminal.integrated.defaultProfile.windows": "Git Bash",
-    "workbench.editor.enablePreview": false,
-    "explorer.confirmDelete": false,
-    "explorer.confirmDragAndDrop": false,
-    "security.workspace.trust.untrustedFiles": "open",
-    "editor.renderWhitespace": "none",
-    "github.copilot.enable": {
-        "scminput": true,
-        "markdown": true,
-        "plaintext": true
-    },
-    "copilot-instructions.md": [],
-    "github.copilot.chat.languageContext.fix.typescript.enabled": true,
-    "github.copilot.chat.languageContext.inline.typescript.enabled": true,
-    "github.copilot.chat.languageContext.typescript.enabled": true,
-    "workbench.colorTheme": "Ayu Dark",
-    "files.eol": "\n",
-    "workbench.iconTheme": "ayu",
-    "workbench.settings.applyToAllProfiles": [
-        "github.copilot.chat.codeGeneration.useInstructionFiles",
-        "chat.tools.autoApprove"
-    ],
-    "github.copilot.chat.agent.thinkingTool": true,
-    "github.copilot.chat.completionContext.typescript.mode": "on",
-    "github.copilot.chat.search.keywordSuggestions": true,
-    "chat.agent.maxRequests": 5000,
-    "github.copilot.nextEditSuggestions.enabled": true,
-    "diffEditor.codeLens": true,
-    "git.confirmSync": false,
-    "git.enableSmartCommit": true,
-    "workbench.preferredDarkColorTheme": "GitHub Dark Default",
-    "breadcrumbs.enabled": false,
-    "workbench.editor.autoLockGroups": {
-        "default": true,
-        "workbench.editor.chatSession": false,
-        "workbench.editorinputs.searchEditorInput": true,
-        "jupyter-notebook": true,
-        "notebookOutputEditor": true
-    },
-    "editor.minimap.enabled": false,
-    "editor.renderControlCharacters": false,
-    "geminicodeassist.project": "canvas-decker-rvp17",
-    "geminicodeassist.inlineSuggestions.enableAuto": true,
-    "geminicodeassist.agentDebugMode": true,
-    "geminicodeassist.agentYoloMode": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "terminal.integrated.copyOnSelection": true,
-    "zenMode.silentNotifications": false,
-    "chatgpt.openOnStartup": true,
-    "chat.tools.terminal.autoApprove": {
-        "/^cd /c/Top-That-Refactor && git add \\.github/copilot-instructions\\.md public/scripts/render\\.ts$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "git commit": true,
-        "git push": true,
-        "npm run build": true,
-        "git add": true,
-        "/^git remote -v && git ls-remote --heads origin invite-friends-feature-9693840481560173110 \\|\\| true && git fetch origin invite-friends-feature-9693840481560173110$/": {
-            "approve": true,
-            "matchCommandLine": true
-        }
-    },
-    "chat.editing.confirmEditRequestRemoval": false,
-    "claudeCode.preferredLocation": "panel",
-    "terminal.integrated.initialHint": false,
-    "workbench.secondarySideBar.showLabels": false,
-    "chat.viewSessions.orientation": "stacked",
-   "actionButtons": {
-   
-        "defaultColor": "#fcff82",
-        "reloadButton": "↻",
-        "loadNpmCommands": false,
-        "commands": [
-            {
-                "name": "Run",
-                "color": "#e57373",
-                "singleInstance": true,
-                "focus": true,
-                "command": "run"
-            },
-            {
-                "name": "Ship",
-                "color": "#81c784",
-                "command": "./scripts/shipit.sh"
-            },
-            {
-                "name": "Switch",
-                "color": "#3395e0",
-                "command": "./scripts/switch-branch.sh"
-            }
-        ]
-    },
-    "gitlens.ai.model": "vscode",
-    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
-    "playwright.showTrace": true,
-    "files.autoSave": "afterDelay",
-    "workbench.activityBar.location": "top",
-    "chatgpt.followUpQueueMode": "interrupt",
-    "workbench.secondarySideBar.defaultVisibility": "hidden",
-    "chat.agent.thinking.generateTitles": false,
-    "chat.checkpoints.showFileChanges": true,
-    "chat.promptFilesRecommendations": {
+  "terminal.integrated.sendKeybindingsToShell": true,
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.editor.temporalContext.enabled": true,
+  "github.copilot.chat.edits.temporalContext.enabled": true,
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "workbench.editor.enablePreview": false,
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "security.workspace.trust.untrustedFiles": "open",
+  
+  // --- READABILITY & FONTS (NEW) ---
+  "editor.fontFamily": "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+  "editor.fontSize": 15,
+  "editor.lineHeight": 24,
+  "editor.renderWhitespace": "selection",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.renderControlCharacters": false,
+  "editor.minimap.enabled": false,
 
-    },"workbench.colorCustomizations": {
-    // Side Bar
+  // --- THEME CUSTOMIZATION (NEW) ---
+  "workbench.colorCustomizations": {
+    // 1. MENUS (Pure Black & White)
+    "menu.background": "#000000",
+    "menu.foreground": "#ffffff",
+    "menu.selectionBackground": "#3395e0",
+    "menu.selectionForeground": "#ffffff",
+    "menu.border": "#ffffff",
+    "titleBar.activeBackground": "#000000",
+    "titleBar.activeForeground": "#ffffff",
+
+    // 2. EDITOR (Dark Grey Background, Soft Text)
+    "editor.background": "#000000",
+    "editor.foreground": "#e0e0e0",
+    "editorCursor.foreground": "#ffffff",
+    "editorLineNumber.foreground": "#858585",
+    "editorLineNumber.activeForeground": "#ffffff",
+
+    // --- TERMINAL FONT (Paste this in) ---
+    "terminal.background": "#000000",
+    "terminal.foreground": "#cccccc",
+    "terminalCursor.foreground": "#ffffff",
+
+    // --- 6. PROBLEMS PANEL & ERROR COLORS ---
+    "panel.background": "#000000",            // Matches Terminal Background
+    "panel.border": "#ffffff",                // Subtle border
+    "panelTitle.activeBorder": "#516e85",     // Blue underline for active tab
+    "panelTitle.activeForeground": "#ffffff", // White text for "PROBLEMS"
+    "panelTitle.inactiveForeground": "#858585",
+    
+    // Soften the Error/Warning Text
+    "editorError.foreground": "#e57373",      // Pastel Red in code
+    "editorWarning.foreground": "#FFB74D",    // Pastel Yellow in code
+    "list.errorForeground": "#e57373",        // Pastel Red in list
+    "list.warningForeground": "#FFB74D",       // Pastel Yellow in list
+    
+    // 3. SIDE BAR (Files are White)
+    "sideBar.background": "#000000",
     "sideBar.foreground": "#ffffff",
     "sideBarTitle.foreground": "#ffffff",
     "list.inactiveSelectionForeground": "#ffffff",
     "list.activeSelectionForeground": "#ffffff",
 
-    // Status Bar
-    "statusBar.background": "#262626",
+    // 4. STATUS BAR (Matte Dark)
+    "statusBar.background": "#000000",
     "statusBar.foreground": "#ffffff",
-    "statusBar.border": "#333333",
+    "statusBar.border": "#e4e1e1",
     "statusBar.debuggingBackground": "#e57373",
-    "statusBar.debuggingForeground": "#000000",
-
-    // Context Menu (Right-Click Menu)
-    "menu.background": "#262626",         // Dark background matching status bar
-    "menu.foreground": "#ffffff",         // Bright WHITE text (fixes grey look)
-    "menu.selectionBackground": "#42A5F5",// Blue highlight when you hover
-    "menu.selectionForeground": "#ffffff",// Keep text white when hovering
-    "menu.border": "#555555"              // distinct border so it doesn't blend in
+    "statusBar.debuggingForeground": "#000000"
   },
+
+  // --- EXISTING AI & TOOL SETTINGS ---
+  "github.copilot.enable": {
+    "scminput": true,
+    "markdown": true,
+    "plaintext": true
+  },
+  "copilot-instructions.md": [],
+  "github.copilot.chat.languageContext.fix.typescript.enabled": true,
+  "github.copilot.chat.languageContext.inline.typescript.enabled": true,
+  "github.copilot.chat.languageContext.typescript.enabled": true,
+  "workbench.colorTheme": "Ayu Dark",
+  "files.eol": "\n",
+  "workbench.iconTheme": "ayu",
+  "workbench.settings.applyToAllProfiles": [
+    "github.copilot.chat.codeGeneration.useInstructionFiles",
+    "chat.tools.autoApprove"
+  ],
+  "github.copilot.chat.agent.thinkingTool": true,
+  "github.copilot.chat.completionContext.typescript.mode": "on",
+  "github.copilot.chat.search.keywordSuggestions": true,
+  "chat.agent.maxRequests": 5000,
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "diffEditor.codeLens": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "workbench.preferredDarkColorTheme": "GitHub Dark Default",
+  "breadcrumbs.enabled": false,
+  "workbench.editor.autoLockGroups": {
+    "default": true,
+    "workbench.editor.chatSession": false,
+    "workbench.editorinputs.searchEditorInput": true,
+    "jupyter-notebook": true,
+    "notebookOutputEditor": true
+  },
+  "geminicodeassist.project": "canvas-decker-rvp17",
+  "geminicodeassist.inlineSuggestions.enableAuto": true,
+  "geminicodeassist.agentDebugMode": true,
+  "geminicodeassist.agentYoloMode": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "terminal.integrated.copyOnSelection": true,
+  "zenMode.silentNotifications": false,
+  "chatgpt.openOnStartup": true,
+  "chat.tools.terminal.autoApprove": {
+    "/^cd /c/Top-That-Refactor && git add \\.github/copilot-instructions\\.md public/scripts/render\\.ts$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "git commit": true,
+    "git push": true,
+    "npm run build": true,
+    "git add": true,
+    "/^git remote -v && git ls-remote --heads origin invite-friends-feature-9693840481560173110 \\|\\| true && git fetch origin invite-friends-feature-9693840481560173110$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  },
+  "chat.editing.confirmEditRequestRemoval": false,
+  "claudeCode.preferredLocation": "panel",
+  "terminal.integrated.initialHint": false,
+  "workbench.secondarySideBar.showLabels": false,
+  "chat.viewSessions.orientation": "stacked",
+  "gitlens.ai.model": "vscode",
+  "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+  "playwright.showTrace": true,
+  "files.autoSave": "afterDelay",
+  "workbench.activityBar.location": "top",
+  "chatgpt.followUpQueueMode": "interrupt",
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "chat.agent.thinking.generateTitles": false,
+  "chat.checkpoints.showFileChanges": true,
+  
+  // --- ACTION BUTTONS (Your Custom Colors) ---
+  "actionButtons": {
+    "defaultColor": "#fcff82",
+    "reloadButton": "↻",
+    "loadNpmCommands": false,
+    "commands": [
+      {
+        "name": "Run",
+        "color": "#e57373",
+        "singleInstance": true,
+        "focus": true,
+        "command": "./run"
+      },
+      {
+        "name": "Ship",
+        "color": "#81c784",
+        "command": "./scripts/shipit.sh"
+      },
+      {
+        "name": "Switch",
+        "color": "#3395e0",
+        "command": "./scripts/switch-branch.sh"
+      }
+    ]
+  },
+  "chat.promptFilesRecommendations": {}
 }

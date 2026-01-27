@@ -6,7 +6,6 @@
       "type": "shell",
       "icon": {
         "id": "play",
-        "color": "charts.red"
       },
       "command": "bash",
       "args": ["-lc", "./run"],
