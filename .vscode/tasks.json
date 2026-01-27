@@ -58,7 +58,7 @@
       "type": "shell",
       "icon": {
         "id": "rocket",
-        "color": "charts.green"
+        "color": "terminal.ansiGreen"
       },
       "command": "C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe",
       "args": [
