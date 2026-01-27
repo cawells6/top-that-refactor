@@ -1221,7 +1221,7 @@ export default class GameController {
       `Emitted CARD_PLAYED for player ${player.id}. Cards: ${JSON.stringify(cardsToPlay)}`
     );
 
-    handleSpecialCard(
+    const { pileClearedBySpecial } = handleSpecialCard(
       this.io,
       this.gameState,
       player,
@@ -1252,6 +1252,12 @@ export default class GameController {
         if (drawnCard) player.hand.push(drawnCard);
       }
       player.sortHand();
+    }
+
+    if (pileClearedBySpecial) {
+      this.log(
+        `Player ${player.id} burned the pile. Passing turn to next player (Pile Empty).`
+      );
     }
 
     this.log('Proceeding to next turn via transition.');
