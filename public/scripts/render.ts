@@ -4,27 +4,27 @@ import {
   rank,
   isSpecialCard,
 } from '../../utils/cardUtils.js';
-// Import assets so Vite can resolve hashed filenames
-// Resolve player/robot avatars at runtime to avoid build-time failures
-let playerAvatarUrl = '/assets/Player.svg';
-let robotAvatarUrl = '/assets/robot.svg';
+import { ROYALTY_AVATARS } from '@shared/avatars.ts';
 
-async function resolveAsset(url: string, fallback: string): Promise<string> {
-  try {
-    const res = await fetch(url, { method: 'HEAD' });
-    if (res.ok) return url;
-  } catch (err) {
-    // ignore
+function stableIndex(seed: string, mod: number): number {
+  if (mod <= 0) return 0;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
   }
-  return fallback;
+  return hash % mod;
 }
 
-// Kick off resolution but don't block module load
-if (typeof window !== 'undefined') {
-  (async () => {
-    playerAvatarUrl = await resolveAsset(playerAvatarUrl, '/assets/Player.svg');
-    robotAvatarUrl = await resolveAsset(robotAvatarUrl, '/assets/robot.svg');
-  })();
+function getFallbackAvatar(playerId: string, isComputer: boolean): string {
+  if (ROYALTY_AVATARS.length > 0) {
+    const base = stableIndex(
+      `${isComputer ? 'cpu:' : 'human:'}${playerId}`,
+      ROYALTY_AVATARS.length
+    );
+    const idx = (base + (isComputer ? 1 : 0)) % ROYALTY_AVATARS.length;
+    return ROYALTY_AVATARS[idx].icon;
+  }
+  return isComputer ? '🖥️' : '👤';
 }
 // @ts-ignore - Vite handles asset imports
 import fourOfAKindIconUrl from '../src/shared/4ofakind-icon.png';
@@ -1714,7 +1714,7 @@ export function renderGameState(
       // Determine the target avatar value
       let avatarValue = player.avatar;
       if (!avatarValue) {
-        avatarValue = player.isComputer ? robotAvatarUrl : playerAvatarUrl;
+        avatarValue = getFallbackAvatar(player.id, !!player.isComputer);
       }
 
       // Check if we already have this avatar rendered to avoid flickering

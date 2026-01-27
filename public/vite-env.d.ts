@@ -67,17 +67,6 @@ declare module '*.png' {
   export default content;
 }
 
-// Explicit declarations for specific asset imports used in the project
-declare module '../assets/Player.svg' {
-  const content: string;
-  export default content;
-}
-
-declare module '../assets/robot.svg' {
-  const content: string;
-  export default content;
-}
-
 declare module '../src/shared/logov2.svg' {
   const content: string;
   export default content;

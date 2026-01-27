@@ -31,3 +31,9 @@ logs/*
 current-port.txt
 exports/button-export/
 *_output.json
+
+# Local test/verification artifacts
+jest-results.json
+verification*.png
+test_output.txt
+tatus
