@@ -45,9 +45,9 @@ describe('Lobby joining', () => {
     const payload = makeJoinPayload({ id: 'HOST_ID', playerName: 'Host' });
     (gameController['publicHandleJoin'] as Function)(hostSocket, payload);
     expect(hostSocket.emit).toHaveBeenCalledWith(JOINED, {
-      id: 'HOST_ID',
-      name: 'Host',
       roomId: 'test-room',
+      playerId: 'HOST_ID',
+      success: true,
     });
     const lobbyCall = topLevelEmitMock.mock.calls.find(
       (c) => c[0] === LOBBY_STATE_UPDATE

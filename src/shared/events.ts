@@ -4,9 +4,8 @@ import {
   GameStateData,
   InSessionLobbyState,
   Card,
-  AddToPileOptions,
   RejoinData
-} from './types';
+} from './types.js';
 
 // --- EVENT NAME CONSTANTS ---
 // Game setup and flow
@@ -38,6 +37,9 @@ export const SPECIAL_CARD_EFFECT = 'specialCardEffect';
 export const ERROR = 'err';
 export const SESSION_ERROR = 'session-error';
 
+// Debug
+export const DEBUG_RESET_GAME = 'debug-reset-game';
+
 // --- TYPED EVENT CONTRACTS ---
 
 /**
@@ -56,7 +58,7 @@ export interface ClientToServerEvents {
   [ANIMATIONS_COMPLETE]: () => void;
 
   // Debug / Misc
-  'debug-reset-game': () => void;
+  [DEBUG_RESET_GAME]: () => void;
 }
 
 /**
@@ -71,6 +73,7 @@ export interface ServerToClientEvents {
   // Game Lifecycle
   [GAME_STARTED]: (gameState: GameStateData) => void;
   [STATE_UPDATE]: (gameState: GameStateData) => void;
+  [NEXT_TURN]: (payload: { currentPlayerId: string }) => void;
   [GAME_OVER]: (payload: { winnerId: string; winnerName: string }) => void;
 
   // Action Feedback
