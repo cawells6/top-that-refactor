@@ -90,7 +90,7 @@
     "chat.requestBorder": "#ffffff",
     "chat.requestBackground": "#000000",
     "chat.requestBubbleBackground": "#000000",
-    "chat.requestBubbleHoverBackground": "#0a0a0a",
+    "chat.requestBubbleHoverBackground": "#000000",
     "chat.requestCodeBorder": "#ffffff",
     "chat.slashCommandBackground": "#000000",
     "chat.slashCommandForeground": "#ffffff",
