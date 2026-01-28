@@ -64,7 +64,6 @@ export default defineConfig(({ mode }) => ({
       // Ensure index.html from the 'public' directory (Vite's root) is used as the input
       input: {
         main: path.resolve(__dirname, 'public/index.html'),
-        card: path.resolve(__dirname, 'public/card-test.html'),
       },
     },
   },
