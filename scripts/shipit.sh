@@ -13,7 +13,9 @@ if [ "$CURRENT_BRANCH" == "main" ]; then
 fi
 
 # 2. Get the commit message
-MSG="$1"
+# With `set -u`, referencing `$1` when omitted will crash the script, so default to empty.
+# Use `$*` so multi-word messages work without requiring extra quoting by callers.
+MSG="${*:-}"
 
 # VS Code tasks can pass the literal string "undefined" if the prompt is
 # canceled or not resolved. Treat that as missing.
