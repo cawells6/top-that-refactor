@@ -1,16 +1,18 @@
 {
+  // terminal + basics
   "terminal.integrated.sendKeybindingsToShell": true,
   "terminal.integrated.enableMultiLinePasteWarning": "never",
-  "github.copilot.chat.codesearch.enabled": true,
-  "github.copilot.chat.editor.temporalContext.enabled": true,
-  "github.copilot.chat.edits.temporalContext.enabled": true,
   "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "terminal.integrated.copyOnSelection": true,
+  "terminal.integrated.initialHint": false,
+
   "workbench.editor.enablePreview": false,
   "explorer.confirmDelete": false,
   "explorer.confirmDragAndDrop": false,
   "security.workspace.trust.untrustedFiles": "open",
-  
-  // --- READABILITY & FONTS (NEW) ---
+  "breadcrumbs.enabled": false,
+
+  // editor readability
   "editor.fontFamily": "'JetBrains Mono', 'Fira Code', Consolas, monospace",
   "editor.fontSize": 15,
   "editor.lineHeight": 24,
@@ -19,113 +21,138 @@
   "editor.guides.bracketPairs": true,
   "editor.renderControlCharacters": false,
   "editor.minimap.enabled": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
 
-  // --- THEME CUSTOMIZATION (NEW) ---
+  // theme + UI colors
+  "workbench.colorTheme": "Abyss",
+  "workbench.preferredDarkColorTheme": "GitHub Dark Default",
+  "workbench.iconTheme": "vs-minimal",
+
   "workbench.colorCustomizations": {
-    // 1. MENUS (Pure Black & White)
+    // global inputs (this is what controls the chat input textbox text color too)
+    "input.background": "#000000",
+    "input.foreground": "#ffffff",
+    "input.placeholderForeground": "#ffffff",
+    "input.border": "#ffffff",
+
+    // menus + titlebar
     "menu.background": "#000000",
     "menu.foreground": "#ffffff",
-    "menu.selectionBackground": "#3395e0",
-    "menu.selectionForeground": "#ffffff",
+    "menu.selectionBackground": "#ffffff",
+    "menu.selectionForeground": "#000000",
     "menu.border": "#ffffff",
     "titleBar.activeBackground": "#000000",
     "titleBar.activeForeground": "#ffffff",
 
-    // 2. EDITOR (Dark Grey Background, Soft Text)
+    // editor
     "editor.background": "#000000",
     "editor.foreground": "#e0e0e0",
     "editorCursor.foreground": "#ffffff",
-    "editorLineNumber.foreground": "#7f7f7f",
+    "editorLineNumber.foreground": "#ffffff",
     "editorLineNumber.activeForeground": "#ffffff",
 
-    // --- TERMINAL FONT (Paste this in) ---
+    // terminal
     "terminal.background": "#000000",
     "terminal.foreground": "#ffffff",
     "terminalCursor.foreground": "#ffffff",
 
-    // --- 6. PROBLEMS PANEL & ERROR COLORS ---
-    "panel.background": "#000000",            // Matches Terminal Background
-    "panel.border": "#ffffff",                // Subtle border
-    "panelTitle.activeBorder": "#516e85",     // Blue underline for active tab
-    "panelTitle.activeForeground": "#ffffff", // White text for "PROBLEMS"
-    "panelTitle.inactiveForeground": "#858585",
-    
-    // Soften the Error/Warning Text
-    "editorError.foreground": "#e57373",      // Pastel Red in code
-    "editorWarning.foreground": "#FFB74D",    // Pastel Yellow in code
-    "list.errorForeground": "#e57373",        // Pastel Red in list
-    "list.warningForeground": "#FFB74D",       // Pastel Yellow in list
-    
-    // 3. SIDE BAR (Files are White)
+    // sidebar + lists (this is what controls chat session titles + Problems list text)
     "sideBar.background": "#000000",
     "sideBar.foreground": "#ffffff",
     "sideBarTitle.foreground": "#ffffff",
+
+    "list.foreground": "#ffffff",
+    "list.hoverForeground": "#ffffff",
+    "list.focusForeground": "#ffffff",
     "list.inactiveSelectionForeground": "#ffffff",
     "list.activeSelectionForeground": "#ffffff",
 
-    // 4. STATUS BAR (Matte Dark)
+    // panel + Problems
+    "panel.background": "#000000",
+    "panel.border": "#ffffff",
+    "panelTitle.activeForeground": "#ffffff",
+    "panelTitle.inactiveForeground": "#ffffff",
+    "panelTitle.activeBorder": "#ffffff",
+
+    "list.errorForeground": "#e57373",
+    "list.warningForeground": "#FFB74D",
+    "editorError.foreground": "#e57373",
+    "editorWarning.foreground": "#FFB74D",
+
+    // status bar
     "statusBar.background": "#000000",
     "statusBar.foreground": "#ffffff",
     "statusBar.border": "#e4e1e1",
     "statusBar.debuggingBackground": "#e57373",
-    "statusBar.debuggingForeground": "#000000"
+    "statusBar.debuggingForeground": "#000000",
+
+    // chat / codex view colors (request bubbles, slash commands, avatars, etc.)
+    "chat.requestBorder": "#ffffff",
+    "chat.requestBackground": "#000000",
+    "chat.requestBubbleBackground": "#000000",
+    "chat.requestBubbleHoverBackground": "#0a0a0a",
+    "chat.requestCodeBorder": "#ffffff",
+    "chat.slashCommandBackground": "#000000",
+    "chat.slashCommandForeground": "#ffffff",
+    "chat.avatarBackground": "#000000",
+    "chat.avatarForeground": "#ffffff",
+    "chat.editedFileForeground": "#ffffff"
   },
-// --- 1.5 SYNTAX HIGHLIGHTING (Specific Text Colors) ---
+
+  // syntax highlighting
   "editor.tokenColorCustomizations": {
     "textMateRules": [
-      {
-        "scope": ["keyword", "storage.type", "storage.modifier"],
-        "settings": { "foreground": "#167357" }  // Purple (e.g. const, let, return, function)
-      },
-      {
-        "scope": ["entity.name.function", "support.function"],
-        "settings": { "foreground": "#569CD6" }  // Blue (e.g. startServer, console.log)
-      },
-      {
-        "scope": ["string", "string.template"],
-        "settings": { "foreground": "#ef6525" }  // Green (e.g. "Hello World")
-      },
-      {
-        "scope": ["variable", "variable.parameter"],
-        "settings": { "foreground": "#9CDCFE" }  // Light Blue (e.g. myVariable)
-      },
-      {
-        "scope": ["comment"],
-        "settings": { "foreground": "#d955fee7" }  // Dark Green (e.g. // This is a comment)
-      },
-      {
-        "scope": ["constant.numeric"],
-        "settings": { "foreground": "#B5CEA8" }  // Pale Green (e.g. 10, 500)
-      }
+      { "scope": ["keyword", "storage.type", "storage.modifier"], "settings": { "foreground": "#167357" } },
+      { "scope": ["entity.name.function", "support.function"], "settings": { "foreground": "#569CD6" } },
+      { "scope": ["string", "string.template"], "settings": { "foreground": "#ef6525" } },
+      { "scope": ["variable", "variable.parameter"], "settings": { "foreground": "#9CDCFE" } },
+      { "scope": ["comment"], "settings": { "foreground": "#d955fee7" } },
+      { "scope": ["constant.numeric"], "settings": { "foreground": "#B5CEA8" } }
     ]
   },
-  // --- EXISTING AI & TOOL SETTINGS ---
-  "github.copilot.enable": {
-    "scminput": true,
-    "markdown": true,
-    "plaintext": true
-  },
-  "copilot-instructions.md": [],
+
+  // copilot/chat + tools
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.editor.temporalContext.enabled": true,
+  "github.copilot.chat.edits.temporalContext.enabled": true,
+  "github.copilot.enable": { "scminput": true, "markdown": true, "plaintext": true },
   "github.copilot.chat.languageContext.fix.typescript.enabled": true,
   "github.copilot.chat.languageContext.inline.typescript.enabled": true,
   "github.copilot.chat.languageContext.typescript.enabled": true,
-  "workbench.colorTheme": "Ayu Dark",
+  "github.copilot.chat.agent.thinkingTool": true,
+  "github.copilot.chat.completionContext.typescript.mode": "on",
+  "github.copilot.chat.search.keywordSuggestions": true,
+  "github.copilot.nextEditSuggestions.enabled": true,
+
+  "chat.agent.maxRequests": 5000,
+  "chat.agent.thinking.generateTitles": false,
+  "chat.checkpoints.showFileChanges": true,
+  "chat.editing.confirmEditRequestRemoval": false,
+  "chat.viewSessions.orientation": "stacked",
+  "chat.promptFilesRecommendations": {},
+
+  "chatgpt.openOnStartup": true,
+  "chatgpt.followUpQueueMode": "interrupt",
+
+  "claudeCode.preferredLocation": "panel",
+  "gitlens.ai.model": "vscode",
+  "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+
   "files.eol": "\n",
-  "workbench.iconTheme": "ayu",
+  "files.autoSave": "afterDelay",
+  "diffEditor.codeLens": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "playwright.showTrace": true,
+  "zenMode.silentNotifications": false,
+
+  "workbench.activityBar.location": "top",
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "workbench.secondarySideBar.showLabels": false,
   "workbench.settings.applyToAllProfiles": [
     "github.copilot.chat.codeGeneration.useInstructionFiles",
     "chat.tools.autoApprove"
   ],
-  "github.copilot.chat.agent.thinkingTool": true,
-  "github.copilot.chat.completionContext.typescript.mode": "on",
-  "github.copilot.chat.search.keywordSuggestions": true,
-  "chat.agent.maxRequests": 5000,
-  "github.copilot.nextEditSuggestions.enabled": true,
-  "diffEditor.codeLens": true,
-  "git.confirmSync": false,
-  "git.enableSmartCommit": true,
-  "workbench.preferredDarkColorTheme": "GitHub Dark Default",
-  "breadcrumbs.enabled": false,
   "workbench.editor.autoLockGroups": {
     "default": true,
     "workbench.editor.chatSession": false,
@@ -133,14 +160,14 @@
     "jupyter-notebook": true,
     "notebookOutputEditor": true
   },
+
   "geminicodeassist.project": "canvas-decker-rvp17",
   "geminicodeassist.inlineSuggestions.enableAuto": true,
   "geminicodeassist.agentDebugMode": true,
   "geminicodeassist.agentYoloMode": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "terminal.integrated.copyOnSelection": true,
-  "zenMode.silentNotifications": false,
-  "chatgpt.openOnStartup": true,
+
+  "copilot-instructions.md": [],
+
   "chat.tools.terminal.autoApprove": {
     "/^cd /c/Top-That-Refactor && git add \\.github/copilot-instructions\\.md public/scripts/render\\.ts$/": {
       "approve": true,
@@ -155,45 +182,16 @@
       "matchCommandLine": true
     }
   },
-  "chat.editing.confirmEditRequestRemoval": false,
-  "claudeCode.preferredLocation": "panel",
-  "terminal.integrated.initialHint": false,
-  "workbench.secondarySideBar.showLabels": false,
-  "chat.viewSessions.orientation": "stacked",
-  "gitlens.ai.model": "vscode",
-  "gitlens.ai.vscode.model": "copilot:gpt-4.1",
-  "playwright.showTrace": true,
-  "files.autoSave": "afterDelay",
-  "workbench.activityBar.location": "top",
-  "chatgpt.followUpQueueMode": "interrupt",
-  "workbench.secondarySideBar.defaultVisibility": "hidden",
-  "chat.agent.thinking.generateTitles": false,
-  "chat.checkpoints.showFileChanges": true,
-  
-  // --- ACTION BUTTONS (Your Custom Colors) ---
+
+  // action buttons
   "actionButtons": {
     "defaultColor": "#fcff82",
     "reloadButton": "↻",
     "loadNpmCommands": false,
     "commands": [
-      {
-        "name": "Run",
-        "color": "#e57373",
-        "singleInstance": true,
-        "focus": true,
-        "command": "./run"
-      },
-      {
-        "name": "Ship",
-        "color": "#81c784",
-        "command": "./scripts/shipit.sh"
-      },
-      {
-        "name": "Switch",
-        "color": "#3395e0",
-        "command": "./scripts/switch-branch.sh"
-      }
+      { "name": "Run", "color": "#e57373", "singleInstance": true, "focus": true, "command": "./run" },
+      { "name": "Ship", "color": "#81c784", "command": "./scripts/shipit.sh" },
+      { "name": "Switch", "color": "#3395e0", "command": "./scripts/switch-branch.sh" }
     ]
-  },
-  "chat.promptFilesRecommendations": {}
+  }
 }
