@@ -1157,7 +1157,7 @@ export class TutorialController {
           if (isTwoCard(topCard.value)) effectType = 'two';
           else if (isFiveCard(topCard.value)) effectType = 'five';
           else if (isTenCard(topCard.value)) effectType = 'ten';
-          else if (playedCards.length === 4) effectType = 'four';
+          else if (playedCards.length === 4) effectType = 'four-of-a-kind';
 
           // Match the game UI timing: show effect shortly after the cards land,
           // then wait long enough for the player to see it before advancing.

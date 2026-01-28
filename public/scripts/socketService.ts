@@ -33,15 +33,16 @@ import {
   STATE_UPDATE,
 } from '../../src/shared/events.js';
 import { JOIN_GAME } from '../../src/shared/events.js';
-import type { Card, GameStateData } from '../../src/shared/types.js';
+import type {
+  Card,
+  CardPlayedPayload,
+  GameStateData,
+  JoinGamePayload,
+  JoinGameResponse,
+  PilePickedUpPayload,
+  SpecialCardEffectPayload,
+} from '../../src/shared/types.js';
 import { isSpecialCard } from '../../utils/cardUtils.js';
-
-interface JoinGameResponse {
-  success: boolean;
-  roomId?: string;
-  playerId?: string;
-  error?: string;
-}
 
 // --- VISUAL & QUEUE STATE ---
 let isAnimatingSpecialEffect = false;
@@ -59,7 +60,7 @@ interface QueuedPlay {
   playerId?: string;
 }
 
-function joinGameWithAck(payload: any): Promise<JoinGameResponse> {
+function joinGameWithAck(payload: JoinGamePayload): Promise<JoinGameResponse> {
   return new Promise((resolve, reject) => {
     if (!state.socket || !state.socket.connected) {
       return reject(new Error('Socket not connected'));
@@ -92,7 +93,7 @@ function joinGameWithAck(payload: any): Promise<JoinGameResponse> {
  */
 export async function joinGameViaLink(
   roomId: string,
-  socketOverride?: any
+  socketOverride?: { emit: (event: string, payload: unknown) => void }
 ) {
   const payload = {
     roomId,
@@ -251,13 +252,16 @@ export async function initializeSocketHandlers(): Promise<void> {
 
   state.socket.on(
     JOINED,
-    (data: { playerId?: string; id?: string; roomId: string }) => {
-      const playerId = data.playerId || data.id;
-      if (!playerId) {
-        console.warn('[Client] JOINED payload missing player id:', data);
+    (data: JoinGameResponse) => {
+      if (!data.success) {
+        console.warn('[Client] JOINED failure payload:', data.error);
         return;
       }
-      state.setMyId(playerId);
+      if (!data.playerId) {
+        console.warn('[Client] JOINED payload missing playerId:', data);
+        return;
+      }
+      state.setMyId(data.playerId);
       state.setCurrentRoom(data.roomId);
       state.saveSession();
     }
@@ -265,7 +269,7 @@ export async function initializeSocketHandlers(): Promise<void> {
 
   state.socket.on(
     CARD_PLAYED,
-    async (data: { cards: Card[]; playerId?: string }) => {
+    async (data: CardPlayedPayload) => {
       console.log(
         '[CARD_PLAYED] Received:',
         data.cards,
@@ -383,7 +387,7 @@ export async function initializeSocketHandlers(): Promise<void> {
 
   state.socket.on(
     SPECIAL_CARD_EFFECT,
-    async (payload: { type?: string; value?: number | string | null }) => {
+    async (payload: SpecialCardEffectPayload) => {
       console.log('[SPECIAL_CARD_EFFECT]', payload?.type);
 
       if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
@@ -431,7 +435,7 @@ export async function initializeSocketHandlers(): Promise<void> {
       setTimeout(async () => {
         console.log('[ANIMATION END] Releasing buffers.');
 
-        if (effectType === 'ten' || effectType === 'four') {
+        if (effectType === 'ten' || effectType === 'four-of-a-kind') {
           const latestState = pendingStateUpdate ?? state.getLastGameState();
           const holdPlayerId = cardsBeingAnimatedPlayerId;
 
@@ -466,17 +470,13 @@ export async function initializeSocketHandlers(): Promise<void> {
 
   state.socket.on(
     PILE_PICKED_UP,
-    (data: { playerId: string; pileSize?: number }) => {
+    (data: PilePickedUpPayload) => {
       console.log('Pile picked up by:', data.playerId);
 
       // Log the pile pickup
       const currentState = state.getLastGameState();
       if (currentState) {
-        const pileSize =
-          typeof data.pileSize === 'number'
-            ? data.pileSize
-            : (currentState.pile?.length ?? 0);
-        logPileTaken(data.playerId, pileSize, currentState.players);
+        logPileTaken(data.playerId, data.pileSize, currentState.players);
       }
 
       if (data.playerId === state.myId) {

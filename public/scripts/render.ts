@@ -230,7 +230,7 @@ export function logSpecialEffect(effectType: string, _value?: any): void {
     case 'five':
       message = '5️⃣ Copies top card!';
       break;
-    case 'four':
+    case 'four-of-a-kind':
       message = '💥 Four of a kind!';
       break;
     default:
@@ -1341,7 +1341,7 @@ export function showCardEvent(
       if (type === 'two') src = ICON_PATHS.two;
       else if (type === 'five') src = ICON_PATHS.five;
       else if (type === 'ten') src = ICON_PATHS.ten;
-      else if (type === 'four') src = ICON_PATHS.four;
+      else if (type === 'four-of-a-kind') src = ICON_PATHS.four;
       else if (type === 'invalid') src = ICON_PATHS.invalid;
       else if (type === 'regular') return;
 
@@ -1369,7 +1369,7 @@ export function showCardEvent(
       if (type === 'two') iconColor = '#3b82f6';
       else if (type === 'five') iconColor = '#10b981';
       else if (type === 'ten') iconColor = '#ef4444';
-      else if (type === 'four') iconColor = '#fbbf24';
+      else if (type === 'four-of-a-kind') iconColor = '#fbbf24';
       else if (type === 'invalid') iconColor = '#dc2626';
       icon.style.color = iconColor;
 

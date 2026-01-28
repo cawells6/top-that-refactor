@@ -3,8 +3,15 @@ import {
   JoinGameResponse,
   GameStateData,
   InSessionLobbyState,
-  Card,
-  RejoinData
+  RejoinData,
+  // Add these imports:
+  PlayCardPayload,
+  PlayerReadyPayload,
+  CardPlayedPayload,
+  PilePickedUpPayload,
+  NextTurnPayload,
+  GameOverPayload,
+  SpecialCardEffectPayload
 } from './types.js';
 
 // --- EVENT NAME CONSTANTS ---
@@ -48,12 +55,12 @@ export const DEBUG_RESET_GAME = 'debug-reset-game';
 export interface ClientToServerEvents {
   // Lobby & Setup
   [JOIN_GAME]: (payload: JoinGamePayload, callback?: (response: JoinGameResponse) => void) => void;
-  [PLAYER_READY]: (payload: { isReady: boolean }) => void;
+  [PLAYER_READY]: (payload: PlayerReadyPayload) => void;
   [START_GAME]: () => void;
   [REJOIN]: (payload: RejoinData, callback?: (response: JoinGameResponse) => void) => void;
 
   // In-Game Actions
-  [PLAY_CARD]: (payload: { cardIndices: number[] }) => void;
+  [PLAY_CARD]: (payload: PlayCardPayload) => void;
   [PICK_UP_PILE]: () => void;
   [ANIMATIONS_COMPLETE]: () => void;
 
@@ -73,27 +80,13 @@ export interface ServerToClientEvents {
   // Game Lifecycle
   [GAME_STARTED]: (gameState: GameStateData) => void;
   [STATE_UPDATE]: (gameState: GameStateData) => void;
-  [NEXT_TURN]: (payload: { currentPlayerId: string }) => void;
-  [GAME_OVER]: (payload: { winnerId: string; winnerName: string }) => void;
+  [NEXT_TURN]: (payload: NextTurnPayload) => void;
+  [GAME_OVER]: (payload: GameOverPayload) => void;
 
   // Action Feedback
-  [CARD_PLAYED]: (payload: {
-    playerId: string;
-    cards: Card[];
-    newPileSize: number;
-    pileTop: Card | null;
-  }) => void;
-
-  [PILE_PICKED_UP]: (payload: {
-    playerId: string;
-    pileSize: number;
-  }) => void;
-
-  [SPECIAL_CARD_EFFECT]: (payload: {
-    type: 'ten' | 'two' | 'four-of-a-kind';
-    playerId: string;
-    description: string;
-  }) => void;
+  [CARD_PLAYED]: (payload: CardPlayedPayload) => void;
+  [PILE_PICKED_UP]: (payload: PilePickedUpPayload) => void;
+  [SPECIAL_CARD_EFFECT]: (payload: SpecialCardEffectPayload) => void;
 
   // Errors
   [ERROR]: (message: string) => void;
