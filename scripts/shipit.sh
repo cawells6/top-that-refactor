@@ -13,27 +13,19 @@ if [ "$CURRENT_BRANCH" == "main" ]; then
 fi
 
 # 2. Get the commit message
-# With `set -u`, referencing `$1` when omitted will crash the script, so default to empty.
-# Use `$*` so multi-word messages work without requiring extra quoting by callers.
+# Use arguments if provided (e.g. ./shipit.sh "Fix login")
 MSG="${*:-}"
 
-# VS Code tasks can pass the literal string "undefined" if the prompt is
-# canceled or not resolved. Treat that as missing.
-if [ "${MSG:-}" = "undefined" ]; then
-  MSG=""
-fi
-
+# If NO argument was provided, ASK the user interactively
 if [ -z "${MSG:-}" ]; then
-  MSG="Update"
+  read -p "Enter Commit Message (Press Enter for 'Auto-save update'): " USER_INPUT
+  MSG="${USER_INPUT:-Auto-save update}"
 fi
 
 echo "Commit message: $MSG"
-
 echo "🚀 Starting ShipIt Sequence from branch: $CURRENT_BRANCH"
 
 # 3. Save and Backup (using your gpush script)
-# We accept exit code 0 or 1 here just in case gpush has a minor warning, 
-# but generally we want it to succeed.
 if ! ./scripts/gpush.sh "$MSG"; then
   echo "ℹ️  Nothing to commit/push on $CURRENT_BRANCH. Continuing to merge anyway..."
 fi
@@ -54,8 +46,4 @@ git merge --ff-only "$CURRENT_BRANCH" || git merge "$CURRENT_BRANCH"
 echo "Mwuhahaha... Pushing to Live..."
 git push origin main
 
-# 7. Go back to your work
-echo "🔙 Returning to $CURRENT_BRANCH..."
-git checkout "$CURRENT_BRANCH"
-
-echo "✅ DONE! Fixes are live on Main."
+echo "✅ DONE! Fixes are live on Main. You are now on Main."
