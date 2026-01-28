@@ -138,6 +138,8 @@ describe('Special Card Rules', () => {
     expect(result.pileClearedBySpecial).toBe(true);
     expect(gameState.pile.length).toBe(0);
     expect(gameState.discard.length).toBe(0);
-    expect(effectCall?.[1]).toEqual(expect.objectContaining({ type: 'four' }));
+    expect(effectCall?.[1]).toEqual(
+      expect.objectContaining({ type: 'four-of-a-kind' })
+    );
   });
 });

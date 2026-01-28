@@ -79,3 +79,43 @@ export interface RejoinData {
 export interface AddToPileOptions {
   isCopy?: boolean;
 }
+
+// --- NETWORK PAYLOADS ---
+
+// (Keep JoinGamePayload/Response as is)
+
+export interface PlayCardPayload {
+  cardIndices: number[];
+}
+
+export interface PlayerReadyPayload {
+  isReady: boolean;
+}
+
+export interface CardPlayedPayload {
+  playerId: string;
+  cards: Card[];
+  newPileSize: number;
+  pileTop: Card | null;
+}
+
+export interface PilePickedUpPayload {
+  playerId: string;
+  pileSize: number;
+}
+
+export interface NextTurnPayload {
+  currentPlayerId: string;
+}
+
+export interface GameOverPayload {
+  winnerId: string;
+  winnerName: string;
+}
+
+export interface SpecialCardEffectPayload {
+  type: 'ten' | 'two' | 'four-of-a-kind' | 'five' | 'regular';
+  value?: string | number | null;
+  playerId?: string;
+  description?: string;
+}

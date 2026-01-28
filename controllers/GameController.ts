@@ -27,6 +27,7 @@ import {
 } from '../src/shared/events.ts';
 import {
   Card,
+  PlayCardPayload,
   ClientStatePlayer,
   GameStateData,
   InSessionLobbyState,
@@ -59,10 +60,6 @@ type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 interface StartGameOptions {
   computerCount?: number;
   socket?: TypedSocket;
-}
-
-interface PlayData {
-  cardIndices: number[];
 }
 
 export class GameRoomManager {
@@ -245,7 +242,9 @@ export default class GameController {
     socket.removeAllListeners('disconnect');
 
     socket.on(START_GAME, () => this.handleStartGame({ socket }));
-    socket.on(PLAY_CARD, (data: PlayData) => this.handlePlayCard(socket, data));
+    socket.on(PLAY_CARD, (data: PlayCardPayload) =>
+      this.handlePlayCard(socket, data)
+    );
     socket.on(PICK_UP_PILE, () => this.handlePickUpPile(socket));
     socket.on(ANIMATIONS_COMPLETE, () => this.handleAnimationsComplete(socket));
     socket.on(PLAYER_READY, ({ isReady }: { isReady: boolean }) => {
@@ -920,7 +919,7 @@ export default class GameController {
 
   private handlePlayCard(
     socket: TypedSocket,
-    { cardIndices }: PlayData
+    { cardIndices }: PlayCardPayload
   ): void {
     const playerId = this.socketIdToPlayerId.get(socket.id);
     this.log(

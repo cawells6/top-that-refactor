@@ -45,7 +45,7 @@ export function handleSpecialCard(
       value: lastPlayedNormalizedValue,
     });
   } else if (fourOfKindPlayed || isTenCard(lastPlayedNormalizedValue)) {
-    const effectType = isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four';
+    const effectType = isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four-of-a-kind';
     serverLog(
       `Special card: ${effectType} played by ${player.id}. Burning pile.`
     );
