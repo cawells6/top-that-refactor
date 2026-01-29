@@ -212,8 +212,8 @@ export default class GameController {
   private gameTimeouts: Set<NodeJS.Timeout> = new Set();
   private pendingComputerTurns: Set<string> = new Set();
   private turnLock: boolean = false;
-  private openingCpuFallbackTimeout: NodeJS.Timeout | null = null;
   private startupUnlockTimeout: NodeJS.Timeout | null = null;
+  private startupLockEndsAtMs: number | null = null;
 
   // Transition State Management
   private isTurnTransitioning: boolean = false;
@@ -222,6 +222,43 @@ export default class GameController {
 
   private readonly cpuTurnDelayMs = 2000;
   private readonly cpuSpecialDelayMs = 3000;
+
+  private rejectIfTransitionLocked(
+    socket: TypedSocket,
+    actionLabel: string,
+    options: { includeTurnTransition?: boolean } = {}
+  ): boolean {
+    const includeTurnTransition = options.includeTurnTransition !== false;
+
+    if (this.gameState.isStarting) {
+      socket.emit(
+        ERROR_EVENT,
+        `Blocked: ${actionLabel} while game is starting. Please wait.`
+      );
+      return true;
+    }
+
+    if (includeTurnTransition && this.isTurnTransitioning) {
+      socket.emit(
+        ERROR_EVENT,
+        `Blocked: ${actionLabel} while turn is transitioning. Please wait.`
+      );
+      return true;
+    }
+
+    return false;
+  }
+
+  private getStartupLockDurationMs(): number {
+    const raw = process.env.TOPTHAT_STARTUP_LOCK_MS;
+    if (typeof raw === 'string' && raw.trim().length > 0) {
+      const parsed = Number(raw);
+      if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+    }
+    if (process.env.NODE_ENV === 'test') return 0;
+    return 12000;
+  }
+
   constructor(io: TypedServer, roomId: string) {
     this.io = io;
     this.roomId = roomId;
@@ -262,6 +299,10 @@ export default class GameController {
         typeof playerNameRaw === 'string' ? playerNameRaw.trim() : '';
 
       if (playerId) {
+        if (this.gameState.isStarting) {
+          socket.emit(ERROR_EVENT, 'Game is starting, please wait.');
+          return;
+        }
         const player = this.players.get(playerId);
         if (player) {
           if (playerName) {
@@ -379,6 +420,15 @@ export default class GameController {
       socket.emit(SESSION_ERROR, 'Invalid room for rejoin.');
       return;
     }
+
+    if (this.gameState.isStarting) {
+      if (typeof ack === 'function') {
+        ack({ success: false, error: 'Game is starting. Please try again in a moment.' });
+      }
+      socket.emit(SESSION_ERROR, 'Game is starting. Please try again in a moment.');
+      return;
+    }
+
     const player = this.players.get(playerId);
     if (player) {
       const oldSocketId = player.socketId;
@@ -840,16 +890,6 @@ export default class GameController {
     this.pushLobbyState();
 
     this.scheduleStartupUnlockFallback();
-
-    // Note: CPU turns are scheduled when client emits 'animations-complete' event
-    // This ensures CPU waits for dealing animation + "LET'S GO!" overlay to finish
-
-    // Failsafe: if no client ever emits ANIMATIONS_COMPLETE (e.g., animation is skipped
-    // or errors), the game can stall forever on a CPU's opening turn.
-    const firstPlayer = this.players.get(firstPlayerId);
-    if (firstPlayer?.isComputer) {
-      this.scheduleOpeningCpuFallback(firstPlayerId);
-    }
   }
 
   /**
@@ -1001,15 +1041,7 @@ export default class GameController {
       return;
     }
 
-    // --- GUARD: Block input during start transition ---
-    if (this.gameState.isStarting) {
-      socket.emit(ERROR_EVENT, 'Game is starting, please wait.');
-      return;
-    }
-
-    // --- GUARD: Block input during turn transition ---
-    if (this.isTurnTransitioning) {
-      socket.emit(ERROR_EVENT, 'Turn is changing, please wait.');
+    if (this.rejectIfTransitionLocked(socket, 'play cards')) {
       return;
     }
 
@@ -1139,6 +1171,9 @@ export default class GameController {
     zone: 'hand' | 'upCards' | 'downCards',
     cardsToPlay: Card[]
   ): void {
+    if (this.gameState.isStarting) {
+      return;
+    }
     if (
       !this.ensureValidState('handlePlayCardInternal', {
         requiresStarted: true,
@@ -1361,8 +1396,11 @@ export default class GameController {
       return;
     }
 
-    if (this.gameState.isStarting) {
-      socket.emit(ERROR_EVENT, 'Game is starting, please wait.');
+    if (
+      this.rejectIfTransitionLocked(socket, 'pick up pile', {
+        includeTurnTransition: false,
+      })
+    ) {
       return;
     }
 
@@ -1408,6 +1446,9 @@ export default class GameController {
   }
 
   private handlePickUpPileInternal(player: Player): void {
+    if (this.gameState.isStarting) {
+      return;
+    }
     if (
       !this.ensureValidState('handlePickUpPileInternal', {
         requiresStarted: true,
@@ -1566,44 +1607,18 @@ export default class GameController {
     }
 
     this.log('[handleAnimationsComplete] Client animations finished');
-
-    // Any client reporting animations complete means it's safe to drop the startup failsafe.
-    this.clearOpeningCpuFallback();
-    this.clearStartingLock('animations-complete');
-
-    const currentPlayerId =
-      this.gameState.players[this.gameState.currentPlayerIndex];
-    const currentPlayer = this.players.get(currentPlayerId);
-
-    if (!currentPlayer) {
-      this.log(
-        '[handleAnimationsComplete] No current player found when animations completed'
-      );
-      return;
-    }
-
-    if (!currentPlayer.isComputer) {
-      this.log(
-        '[handleAnimationsComplete] Current player is human; no CPU scheduling needed'
-      );
-      return;
-    }
-
-    this.log(
-      `[handleAnimationsComplete] Scheduling CPU turn for ${currentPlayerId} in 1 second`
-    );
-    this.scheduleComputerTurn(currentPlayer, 1000);
   }
 
   private playComputerTurn(computerPlayer: Player): void {
     if (
+      this.gameState.isStarting ||
       !this.gameState.started ||
       this.gameState.players[this.gameState.currentPlayerIndex] !==
         computerPlayer.id ||
       this.isProcessingTurn
     ) {
       this.log(
-        `CPU ${computerPlayer.id} turn skipped: not their turn, game not started, or turn already in progress.`
+        `CPU ${computerPlayer.id} turn skipped: game is starting, not their turn, game not started, or turn already in progress.`
       );
       return;
     }
@@ -1691,51 +1706,6 @@ export default class GameController {
     this.gameTimeouts.add(timeoutId);
   }
 
-  private clearOpeningCpuFallback(): void {
-    if (!this.openingCpuFallbackTimeout) return;
-    clearTimeout(this.openingCpuFallbackTimeout);
-    this.gameTimeouts.delete(this.openingCpuFallbackTimeout);
-    this.openingCpuFallbackTimeout = null;
-  }
-
-  private scheduleOpeningCpuFallback(expectedCpuPlayerId: string): void {
-    this.clearOpeningCpuFallback();
-
-    // ~10s covers the opening deal + overlay; only used if ANIMATIONS_COMPLETE never arrives.
-    const FALLBACK_DELAY_MS = 12000;
-
-    const timeoutId = setTimeout(() => {
-      this.gameTimeouts.delete(timeoutId);
-      if (this.openingCpuFallbackTimeout === timeoutId) {
-        this.openingCpuFallbackTimeout = null;
-      }
-
-      if (!this.gameState.started) return;
-      if (
-        this.gameState.currentPlayerIndex < 0 ||
-        this.gameState.currentPlayerIndex >= this.gameState.players.length
-      ) {
-        return;
-      }
-
-      const currentPlayerId =
-        this.gameState.players[this.gameState.currentPlayerIndex];
-      if (currentPlayerId !== expectedCpuPlayerId) return;
-
-      const currentPlayer = this.players.get(currentPlayerId);
-      if (!currentPlayer || !currentPlayer.isComputer) return;
-
-      this.clearStartingLock('opening-cpu-fallback');
-      this.log(
-        `[OpeningCpuFallback] No ANIMATIONS_COMPLETE received; starting CPU turn for ${currentPlayerId}`
-      );
-      this.scheduleComputerTurn(currentPlayer, 0);
-    }, FALLBACK_DELAY_MS);
-
-    this.openingCpuFallbackTimeout = timeoutId;
-    this.gameTimeouts.add(timeoutId);
-  }
-
   private clearStartupUnlockFallback(): void {
     if (!this.startupUnlockTimeout) return;
     clearTimeout(this.startupUnlockTimeout);
@@ -1747,15 +1717,36 @@ export default class GameController {
     if (!this.gameState.isStarting) return;
     this.log(`[StartingLock] Clearing isStarting from ${source}`);
     this.gameState.isStarting = false;
+    this.startupLockEndsAtMs = null;
     this.clearStartupUnlockFallback();
     this.pushState();
     this.pushLobbyState();
+
+    // If the game is now active and a CPU is up, schedule their turn.
+    if (
+      this.gameState.started &&
+      this.gameState.players.length > 0 &&
+      this.gameState.currentPlayerIndex >= 0 &&
+      this.gameState.currentPlayerIndex < this.gameState.players.length
+    ) {
+      const currentPlayerId =
+        this.gameState.players[this.gameState.currentPlayerIndex];
+      const currentPlayer = this.players.get(currentPlayerId);
+      if (currentPlayer?.isComputer) {
+        this.scheduleComputerTurn(currentPlayer, 250);
+      }
+    }
   }
 
   private scheduleStartupUnlockFallback(): void {
     this.clearStartupUnlockFallback();
-    // Covers opening deal + overlay; we should never remain locked indefinitely.
-    const FALLBACK_DELAY_MS = 12000;
+    // Covers opening deal + overlay; server-defined (not client-driven).
+    const FALLBACK_DELAY_MS = this.getStartupLockDurationMs();
+    this.startupLockEndsAtMs = Date.now() + FALLBACK_DELAY_MS;
+    if (FALLBACK_DELAY_MS === 0) {
+      this.clearStartingLock('startup-unlock-immediate');
+      return;
+    }
     const timeoutId = setTimeout(() => {
       this.gameTimeouts.delete(timeoutId);
       if (this.startupUnlockTimeout === timeoutId) {
@@ -1771,8 +1762,8 @@ export default class GameController {
     this.gameTimeouts.forEach((id) => clearTimeout(id));
     this.gameTimeouts.clear();
     this.pendingComputerTurns.clear();
-    this.openingCpuFallbackTimeout = null;
     this.startupUnlockTimeout = null;
+    this.startupLockEndsAtMs = null;
 
     // Clear transition timeout if active
     if (this.transitionTimeout) {

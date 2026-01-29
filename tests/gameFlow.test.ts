@@ -834,7 +834,10 @@ describe('Game Flow - Invalid Card Play', () => {
     jest.useRealTimers();
   });
 
-  test('Blocks player actions while the game is starting (until ANIMATIONS_COMPLETE)', () => {
+  test('Blocks player actions while the game is starting', () => {
+    const prevLock = process.env.TOPTHAT_STARTUP_LOCK_MS;
+    process.env.TOPTHAT_STARTUP_LOCK_MS = '5000';
+    try {
     const joinPayloadA: JoinGamePayload = {
       playerName: 'Alice',
       numHumans: 2,
@@ -868,6 +871,13 @@ describe('Game Flow - Invalid Card Play', () => {
       (call) => call[0] === ERROR && String(call[1]).includes('starting')
     );
     expect(errorCall).toBeDefined();
+    } finally {
+      if (typeof prevLock === 'undefined') {
+        delete process.env.TOPTHAT_STARTUP_LOCK_MS;
+      } else {
+        process.env.TOPTHAT_STARTUP_LOCK_MS = prevLock;
+      }
+    }
   });
 
   test('Player receives error when playing card with invalid index', () => {

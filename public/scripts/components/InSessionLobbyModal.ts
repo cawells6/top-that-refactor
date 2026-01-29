@@ -355,6 +355,7 @@ export class InSessionLobbyModal {
     this.isHostView = localPlayer?.status === 'host';
     this.hostCanStart =
       humanPlayers.length === expectedHumans && allHumansReady && !lobbyState.started;
+    const isStarting = lobbyState.isStarting === true;
 
     if (
       localPlayer &&
@@ -367,29 +368,31 @@ export class InSessionLobbyModal {
       if (this.isHostView && !lobbyState.started) {
         // Host sees Start Game, centered in the same spot as PLAY on the main lobby.
         this.readyUpButton.style.display = '';
-        this.readyUpButton.disabled = !this.hostCanStart;
+        this.readyUpButton.disabled = isStarting || !this.hostCanStart;
         // Keep the exact PLAY button label for consistency with the lobby.
         // Clicking signals readiness; the server controls the actual start.
-        this.setPrimaryButtonLabel('PLAY');
+        this.setPrimaryButtonLabel(isStarting ? 'STARTING...' : 'PLAY');
       } else {
         // Non-host ready/spectator does not need an action button.
         this.readyUpButton.style.display = 'none';
       }
     } else {
       this.readyUpButton.style.display = '';
-      this.readyUpButton.disabled = false;
+      this.readyUpButton.disabled = isStarting;
 
       if (hasKnownName) {
         this.guestNameInput.value = localPlayer?.name || '';
         this.guestNameInput.style.display = 'none';
       } else {
         this.guestNameInput.style.display = '';
-        this.guestNameInput.disabled = false;
+        this.guestNameInput.disabled = isStarting;
         this.guestNameInput.value = '';
-        this.guestNameInput.focus();
+        if (!isStarting) {
+          this.guestNameInput.focus();
+        }
       }
 
-      this.setPrimaryButtonLabel('PLAY');
+      this.setPrimaryButtonLabel(isStarting ? 'STARTING...' : 'PLAY');
     }
   }
 
