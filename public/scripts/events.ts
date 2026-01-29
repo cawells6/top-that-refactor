@@ -1404,16 +1404,20 @@ async function handleDealClick() {
   state.setDesiredCpuCount(numCPUs);
 
   const playerDataForEmit: {
+    id?: string;
     playerName: string;
     avatar?: string;
     numHumans: number;
     numCPUs: number;
     spectator?: boolean;
   } = {
+    ...(state.myId ? { id: state.myId! } : {}),
     playerName: name,
     numHumans: numHumans,
     numCPUs: numCPUs,
   };
+  // Ensure id is explicitly undefined if null (though the spread above handles it)
+  if (!playerDataForEmit.id) delete playerDataForEmit.id;
   if (selectedAvatar) {
     (playerDataForEmit as any).avatar = selectedAvatar.icon;
   }
@@ -1597,6 +1601,7 @@ async function handleJoinGameClick() {
 
   const joinPayload = {
     roomId: code,
+    ...(state.myId ? { id: state.myId } : {}),
     playerName: name,
     // Only include avatar when selected
     ...(selectedAvatar ? { avatar: selectedAvatar.icon } : {}),
