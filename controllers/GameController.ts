@@ -177,9 +177,9 @@ export class GameRoomManager {
       this.rooms.set(roomId, controller);
     }
 
-    // Pass a copy of playerData without the room identifier so the controller
-    // assigns the joining player's ID from the socket.
-    const joinData = { ...playerData, id: undefined };
+    // Pass through join payload as-is so the client can supply a persistent
+    // player id for refresh/reconnect session takeover flows.
+    const joinData = { ...playerData };
     serverLog(
       `[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`
     );
@@ -357,6 +357,19 @@ export default class GameController {
     }
     const player = this.players.get(playerId);
     if (player) {
+      const oldSocketId = player.socketId;
+      if (oldSocketId && oldSocketId !== socket.id) {
+        this.socketIdToPlayerId.delete(oldSocketId);
+
+        const oldSocket = this.io.sockets.sockets.get(oldSocketId);
+        if (oldSocket && typeof (oldSocket as any).disconnect === 'function') {
+          this.log(
+            `[Rejoin] Force disconnecting old socket ${oldSocketId} for player ${playerId}`
+          );
+          (oldSocket as any).disconnect(true);
+        }
+      }
+
       socket.join(this.roomId);
       player.socketId = socket.id;
       player.disconnected = false;
@@ -454,6 +467,13 @@ export default class GameController {
       }
     };
     if (existingPlayer && !existingPlayer.disconnected) {
+      if (existingPlayer.socketId !== socket.id) {
+        this.log(
+          `Player ID '${id}' (${name}) collision. Treating as Session Takeover (Refresh/Reconnect).`
+        );
+        this.handleRejoin(socket, this.roomId, id, ack);
+        return;
+      }
       this.log(
         `Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`
       );

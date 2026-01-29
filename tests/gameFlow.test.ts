@@ -416,6 +416,41 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     expect(Array.from(gameController['players'].values()).length).toBe(1);
   });
 
+  test('Allows session takeover on refresh (same playerId, new socket)', () => {
+    const joinPayload: JoinGamePayload = {
+      id: 'PLAYER_1',
+      playerName: 'Alpha',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayload);
+    const player = (gameController as any).players.get('PLAYER_1');
+    expect(player).toBeDefined();
+    expect(player.socketId).toBe(socketA.id);
+
+    // Simulate a browser refresh: same logical player, new socket id.
+    (gameController['publicHandleJoin'] as Function)(socketB, joinPayload);
+
+    const updated = (gameController as any).players.get('PLAYER_1');
+    expect(updated.socketId).toBe(socketB.id);
+
+    // Old socket mapping is cleaned up so we don't have ghost lookups.
+    expect((gameController as any).socketIdToPlayerId.get(socketA.id)).toBe(
+      undefined
+    );
+    expect((gameController as any).socketIdToPlayerId.get(socketB.id)).toBe(
+      'PLAYER_1'
+    );
+
+    // Old socket is forcefully disconnected for single-session semantics.
+    expect(socketA.disconnect).toHaveBeenCalled();
+
+    // Still only one player record.
+    expect(Array.from((gameController as any).players.values()).length).toBe(1);
+  });
+
   test('Join with missing/invalid playerName is rejected', () => {
     const joinPayload: any = { numHumans: 1, numCPUs: 0, roomId: 'test-room' };
     let errorResult: any;
