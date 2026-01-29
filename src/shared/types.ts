@@ -32,6 +32,7 @@ export interface GameStateData {
   deckSize: number;
   currentPlayerId?: string;
   started: boolean;
+  isStarting: boolean;
   lastRealCard: Card | null;
 }
 
@@ -51,6 +52,7 @@ export interface InSessionLobbyState {
   hostId: string | null;
   players: LobbyPlayer[];
   started?: boolean; // Added to communicate game start state
+  isStarting?: boolean;
   expectedHumanCount?: number;
   expectedCpuCount?: number;
 }
@@ -90,6 +92,7 @@ export interface PlayCardPayload {
 
 export interface PlayerReadyPayload {
   isReady: boolean;
+  playerName?: string;
 }
 
 export interface CardPlayedPayload {

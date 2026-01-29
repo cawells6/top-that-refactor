@@ -132,7 +132,10 @@ describe('InSessionLobbyModal', () => {
     nameInput.value = '';
     const readyButton = screen.getByRole('button', { name: /Play/i });
     fireEvent.click(readyButton);
-    expect(state.socket.emit).not.toHaveBeenCalledWith(PLAYER_READY, '');
+    expect(state.socket.emit).not.toHaveBeenCalledWith(
+      PLAYER_READY,
+      expect.objectContaining({ isReady: true })
+    );
   });
 
   it('prevents rapid double ready clicks from emitting twice', () => {
@@ -142,7 +145,12 @@ describe('InSessionLobbyModal', () => {
     fireEvent.click(readyButton);
     fireEvent.click(readyButton);
     const calls = (state.socket.emit as jest.Mock).mock.calls.filter(
-      (c) => c[0] === PLAYER_READY && c[1] === 'Tester'
+      (c) =>
+        c[0] === PLAYER_READY &&
+        typeof c[1] === 'object' &&
+        c[1] !== null &&
+        c[1].isReady === true &&
+        c[1].playerName === 'Tester'
     );
     expect(calls.length).toBe(1);
   });

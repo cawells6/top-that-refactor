@@ -45,6 +45,7 @@ describe('Hand Rendering', () => {
 
     const state1: GameStateData = {
       started: true,
+      isStarting: false,
       players: [player1],
       currentPlayerId: 'p1',
       pile: [],

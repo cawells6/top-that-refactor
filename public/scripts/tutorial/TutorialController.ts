@@ -262,6 +262,7 @@ export class TutorialController {
   private buildGameState() {
     return {
       started: true,
+      isStarting: false,
       currentPlayerId: this.currentStep.isAuto
         ? 'tutorial-opponent'
         : 'tutorial-player',

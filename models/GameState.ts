@@ -13,6 +13,7 @@ export default class GameState {
   public deck: Card[] | null; // Changed: Initialized to null
   public lastRealCard: Card | null;
   public started: boolean; // Added: Game started flag
+  public isStarting: boolean; // Transition lock for start sequence
 
   constructor() {
     this.players = [];
@@ -23,6 +24,7 @@ export default class GameState {
     this.deck = null; // Changed: Initialized to null
     this.lastRealCard = null;
     this.started = false; // Added: Initialized to false
+    this.isStarting = false;
   }
 
   public startGameInstance(): void {
@@ -37,6 +39,7 @@ export default class GameState {
   public endGameInstance(): void {
     // Added method
     this.started = false;
+    this.isStarting = false;
     this.deck = null; // Reset deck
     this.pile = [];
     this.discard = [];

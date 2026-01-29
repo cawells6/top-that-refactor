@@ -109,10 +109,12 @@ describe('Lobby joining', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({
-      error: 'Game has already started. Cannot join.',
-      success: false,
-    });
+    expect(ackData).toEqual(
+      expect.objectContaining({
+        success: false,
+        error: expect.stringMatching(/starting|already started/i),
+      })
+    );
     // No error event expected
   });
 });

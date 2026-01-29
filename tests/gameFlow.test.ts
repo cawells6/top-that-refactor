@@ -12,6 +12,7 @@ import {
   STATE_UPDATE,
   NEXT_TURN,
   PLAYER_READY,
+  ANIMATIONS_COMPLETE,
   PLAY_CARD,
   GAME_OVER,
   PILE_PICKED_UP,
@@ -384,6 +385,35 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     // Debug: log all socket ids and their emit function type
     // console.log('SOCKETS IN MAP:', Array.from(mockIo.sockets.sockets.entries()).map(([id, s]) => ({ id, emitType: typeof s.emit })));
     gameController = new GameController(mockIo as any, 'test-room');
+  });
+
+  test('Rejects new joins while the game is starting', () => {
+    const hostJoin: JoinGamePayload = {
+      playerName: 'Host',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    (gameController['publicHandleJoin'] as Function)(socketA, hostJoin);
+
+    gameController['gameState'].isStarting = true;
+
+    const joiner: JoinGamePayload = {
+      playerName: 'Joiner',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+
+    const ack = jest.fn();
+    (gameController['publicHandleJoin'] as Function)(socketB, joiner, ack);
+
+    expect(ack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+      })
+    );
+    expect(String(ack.mock.calls[0]?.[0]?.error || '')).toMatch(/starting/i);
   });
 
   test('Prevents duplicate join with same socket/player ID', () => {
@@ -804,6 +834,42 @@ describe('Game Flow - Invalid Card Play', () => {
     jest.useRealTimers();
   });
 
+  test('Blocks player actions while the game is starting (until ANIMATIONS_COMPLETE)', () => {
+    const joinPayloadA: JoinGamePayload = {
+      playerName: 'Alice',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    const joinPayloadB: JoinGamePayload = {
+      playerName: 'Bob',
+      numHumans: 2,
+      numCPUs: 0,
+      roomId: 'test-room',
+    };
+    (gameController['publicHandleJoin'] as Function)(socketA, joinPayloadA);
+    (gameController['publicHandleJoin'] as Function)(socketB, joinPayloadB);
+    gameController.attachSocketEventHandlers(socketA as any);
+    gameController.attachSocketEventHandlers(socketB as any);
+    socketA.simulateIncomingEvent(PLAYER_READY, { isReady: true });
+    socketB.simulateIncomingEvent(PLAYER_READY, { isReady: true });
+
+    const playerA = Array.from(gameController['players'].values()).find(
+      (p) => p.name === 'Alice'
+    )!;
+    gameController['gameState'].currentPlayerIndex = gameController[
+      'gameState'
+    ].players.indexOf(playerA.id);
+
+    topLevelEmitMock.mockClear();
+    socketA.simulateIncomingEvent(PLAY_CARD, { cardIndices: [0] });
+
+    const errorCall = topLevelEmitMock.mock.calls.find(
+      (call) => call[0] === ERROR && String(call[1]).includes('starting')
+    );
+    expect(errorCall).toBeDefined();
+  });
+
   test('Player receives error when playing card with invalid index', () => {
     const joinPayloadA: JoinGamePayload = {
       playerName: 'Alice',
@@ -823,6 +889,7 @@ describe('Game Flow - Invalid Card Play', () => {
     gameController.attachSocketEventHandlers(socketB as any);
     socketA.simulateIncomingEvent(PLAYER_READY, { isReady: true });
     socketB.simulateIncomingEvent(PLAYER_READY, { isReady: true });
+    socketA.simulateIncomingEvent(ANIMATIONS_COMPLETE);
 
     const playerA = Array.from(gameController['players'].values()).find(
       (p) => p.name === 'Alice'
@@ -862,6 +929,7 @@ describe('Game Flow - Invalid Card Play', () => {
     gameController.attachSocketEventHandlers(socketB as any);
     socketA.simulateIncomingEvent(PLAYER_READY, { isReady: true });
     socketB.simulateIncomingEvent(PLAYER_READY, { isReady: true });
+    socketA.simulateIncomingEvent(ANIMATIONS_COMPLETE);
 
     const playerA = Array.from(gameController['players'].values()).find(
       (p) => p.name === 'Alice'
@@ -922,6 +990,7 @@ describe('Game Flow - Invalid Card Play', () => {
     gameController.attachSocketEventHandlers(socketB as any);
     socketA.simulateIncomingEvent(PLAYER_READY, { isReady: true });
     socketB.simulateIncomingEvent(PLAYER_READY, { isReady: true });
+    socketA.simulateIncomingEvent(ANIMATIONS_COMPLETE);
 
     const playerA = Array.from(gameController['players'].values()).find(
       (p) => p.name === 'Alice'
@@ -1115,10 +1184,7 @@ describe('Game Flow - 3 Player Full Game Simulation', () => {
     expect(gameOverCall).toBeDefined();
     expect(gameOverCall![1]).toEqual(winnerId);
 
-    gameController['gameState'].started = false;
-    gameController['gameState'].deck = null;
-    (gameController['publicHandleJoin'] as Function)(sockets[0], playerData[0]);
-    (gameController['publicHandleJoin'] as Function)(sockets[1], playerData[1]);
+    gameController['gameState'].endGameInstance();
     (gameController['handleStartGame'] as Function)({
       computerCount: 1,
       socket: sockets[0],

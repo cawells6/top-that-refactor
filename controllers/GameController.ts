@@ -9,7 +9,6 @@ import {
   JOINED,
   STATE_UPDATE,
   REJOIN,
-  START_GAME,
   NEXT_TURN,
   GAME_OVER,
   CARD_PLAYED,
@@ -28,6 +27,7 @@ import {
 import {
   Card,
   PlayCardPayload,
+  PlayerReadyPayload,
   ClientStatePlayer,
   GameStateData,
   InSessionLobbyState,
@@ -213,6 +213,7 @@ export default class GameController {
   private pendingComputerTurns: Set<string> = new Set();
   private turnLock: boolean = false;
   private openingCpuFallbackTimeout: NodeJS.Timeout | null = null;
+  private startupUnlockTimeout: NodeJS.Timeout | null = null;
 
   // Transition State Management
   private isTurnTransitioning: boolean = false;
@@ -234,24 +235,38 @@ export default class GameController {
   public attachSocketEventHandlers(socket: TypedSocket): void {
     this.log(`Attaching event handlers for socket ${socket.id}`);
 
-    socket.removeAllListeners(START_GAME);
     socket.removeAllListeners(PLAY_CARD);
     socket.removeAllListeners(PICK_UP_PILE);
     socket.removeAllListeners(PLAYER_READY);
     socket.removeAllListeners(DEBUG_RESET_GAME);
     socket.removeAllListeners('disconnect');
 
-    socket.on(START_GAME, () => this.handleStartGame({ socket }));
     socket.on(PLAY_CARD, (data: PlayCardPayload) =>
       this.handlePlayCard(socket, data)
     );
     socket.on(PICK_UP_PILE, () => this.handlePickUpPile(socket));
     socket.on(ANIMATIONS_COMPLETE, () => this.handleAnimationsComplete(socket));
-    socket.on(PLAYER_READY, ({ isReady }: { isReady: boolean }) => {
+    socket.on(PLAYER_READY, (payload: PlayerReadyPayload | string) => {
       const playerId = this.socketIdToPlayerId.get(socket.id);
+      const isReady =
+        typeof payload === 'object' && payload !== null
+          ? Boolean((payload as PlayerReadyPayload).isReady)
+          : false;
+      const playerNameRaw =
+        typeof payload === 'object' && payload !== null
+          ? (payload as PlayerReadyPayload).playerName
+          : typeof payload === 'string'
+            ? payload
+            : undefined;
+      const playerName =
+        typeof playerNameRaw === 'string' ? playerNameRaw.trim() : '';
+
       if (playerId) {
         const player = this.players.get(playerId);
         if (player) {
+          if (playerName) {
+            player.name = playerName;
+          }
           if (player.id !== this.hostId) {
             player.status = isReady ? 'ready' : 'joined';
           }
@@ -279,6 +294,7 @@ export default class GameController {
       hostId: this.hostId,
       players: lobbyPlayers,
       started: this.gameState.started, // Add started property
+      isStarting: this.gameState.isStarting,
       expectedHumanCount: this.expectedHumanCount,
       expectedCpuCount: this.expectedCpuCount,
     };
@@ -293,13 +309,21 @@ export default class GameController {
    */
   private checkIfGameCanStart(): void {
     this.log('[checkIfGameCanStart] Called');
-    if (this.expectedHumanCount <= 0) {
-      this.log(
-        '[checkIfGameCanStart] Expected human count is 0 or less, returning'
-      );
+    const humanPlayers = this.getHumanPlayers();
+    if (this.gameState.started || this.gameState.isStarting) {
       return;
     }
-    const humanPlayers = this.getHumanPlayers();
+
+    if (this.expectedHumanCount <= 0) {
+      // Spectator/bots-only match: auto-start when configured for 2+ CPUs.
+      if (humanPlayers.length === 0 && this.expectedCpuCount >= 2) {
+        this.log(
+          `[checkIfGameCanStart] Starting bots-only match with ${this.expectedCpuCount} CPUs`
+        );
+        this.handleStartGame({ computerCount: this.expectedCpuCount });
+      }
+      return;
+    }
     const allHumansReady = humanPlayers.every(
       (p) => p.status === 'host' || p.status === 'ready'
     );
@@ -501,6 +525,15 @@ export default class GameController {
       );
       return;
     }
+    if (this.gameState.isStarting) {
+      this.log(
+        `Game is starting. Player '${name}' cannot join yet. Rejecting join.`
+      );
+      if (typeof ack === 'function') {
+        ack({ success: false, error: 'Game is starting. Please try again in a moment.' });
+      }
+      return;
+    }
     if (this.gameState.started) {
       this.log(
         `Game already started. Player '${name}' cannot join. Emitting ERROR_EVENT.`
@@ -612,6 +645,12 @@ export default class GameController {
       `Handling start game request. Computer count: ${computerCount}. Requested by: ${requestingSocket?.id}`
     );
 
+    if (this.gameState.isStarting) {
+      const errorMsg = 'Game is already starting.';
+      if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
+      return;
+    }
+
     if (
       requestingSocket &&
       this.socketIdToPlayerId.get(requestingSocket.id) !== this.hostId
@@ -625,6 +664,10 @@ export default class GameController {
       if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
       return;
     }
+
+    this.gameState.isStarting = true;
+    this.pushLobbyState();
+    this.pushState();
 
     this.syncPlayersWithGameState({
       ensureHostFirst: Boolean(requestingSocket),
@@ -647,6 +690,7 @@ export default class GameController {
         'At least two players (humans or CPUs) are required to start.';
       this.log(`Start game failed: ${errorMsg}`);
       if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
+      this.clearStartingLock('startGame:invalid-player-count');
       return;
     }
     if (currentHumanPlayers > 0 && currentHumanPlayers + computerCount < 2) {
@@ -654,12 +698,14 @@ export default class GameController {
         'At least two total players (humans + CPUs) are required.';
       this.log(`Start game failed: ${errorMsg}`);
       if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
+      this.clearStartingLock('startGame:invalid-player-count');
       return;
     }
     if (currentHumanPlayers + computerCount > this.gameState.maxPlayers) {
       const errorMsg = `Cannot start: Total players (${currentHumanPlayers + computerCount}) would exceed max players (${this.gameState.maxPlayers}).`;
       this.log(`Start game failed: ${errorMsg}`);
       if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
+      this.clearStartingLock('startGame:too-many-players');
       return;
     }
 
@@ -710,6 +756,7 @@ export default class GameController {
         const errorMsg = 'Invalid game state. Start aborted.';
         this.log(`Start game failed: ${errorMsg}`);
         if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
+        this.clearStartingLock('startGame:pre-start-invalid');
       })
     ) {
       return;
@@ -729,6 +776,7 @@ export default class GameController {
           this.log(`Start game failed: ${errorMsg}`);
           this.gameState.started = false;
           if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
+          this.clearStartingLock('startGame:post-start-invalid');
         }
       )
     ) {
@@ -743,6 +791,7 @@ export default class GameController {
       );
       this.gameState.started = false;
       if (requestingSocket) requestingSocket.emit(ERROR_EVENT, errorMsg);
+      this.clearStartingLock('startGame:not-enough-players');
       return;
     }
 
@@ -789,6 +838,8 @@ export default class GameController {
 
     // Keep lobby state in sync after start so clients can hide the modal.
     this.pushLobbyState();
+
+    this.scheduleStartupUnlockFallback();
 
     // Note: CPU turns are scheduled when client emits 'animations-complete' event
     // This ensures CPU waits for dealing animation + "LET'S GO!" overlay to finish
@@ -947,6 +998,12 @@ export default class GameController {
     );
     if (!playerId) {
       socket.emit(ERROR_EVENT, 'Player not recognized.');
+      return;
+    }
+
+    // --- GUARD: Block input during start transition ---
+    if (this.gameState.isStarting) {
+      socket.emit(ERROR_EVENT, 'Game is starting, please wait.');
       return;
     }
 
@@ -1304,6 +1361,11 @@ export default class GameController {
       return;
     }
 
+    if (this.gameState.isStarting) {
+      socket.emit(ERROR_EVENT, 'Game is starting, please wait.');
+      return;
+    }
+
     const player = this.players.get(playerId);
     if (!player) {
       this.log(`Pick up pile failed: Player data not found for ID ${playerId}`);
@@ -1507,6 +1569,7 @@ export default class GameController {
 
     // Any client reporting animations complete means it's safe to drop the startup failsafe.
     this.clearOpeningCpuFallback();
+    this.clearStartingLock('animations-complete');
 
     const currentPlayerId =
       this.gameState.players[this.gameState.currentPlayerIndex];
@@ -1662,6 +1725,7 @@ export default class GameController {
       const currentPlayer = this.players.get(currentPlayerId);
       if (!currentPlayer || !currentPlayer.isComputer) return;
 
+      this.clearStartingLock('opening-cpu-fallback');
       this.log(
         `[OpeningCpuFallback] No ANIMATIONS_COMPLETE received; starting CPU turn for ${currentPlayerId}`
       );
@@ -1672,11 +1736,43 @@ export default class GameController {
     this.gameTimeouts.add(timeoutId);
   }
 
+  private clearStartupUnlockFallback(): void {
+    if (!this.startupUnlockTimeout) return;
+    clearTimeout(this.startupUnlockTimeout);
+    this.gameTimeouts.delete(this.startupUnlockTimeout);
+    this.startupUnlockTimeout = null;
+  }
+
+  private clearStartingLock(source: string): void {
+    if (!this.gameState.isStarting) return;
+    this.log(`[StartingLock] Clearing isStarting from ${source}`);
+    this.gameState.isStarting = false;
+    this.clearStartupUnlockFallback();
+    this.pushState();
+    this.pushLobbyState();
+  }
+
+  private scheduleStartupUnlockFallback(): void {
+    this.clearStartupUnlockFallback();
+    // Covers opening deal + overlay; we should never remain locked indefinitely.
+    const FALLBACK_DELAY_MS = 12000;
+    const timeoutId = setTimeout(() => {
+      this.gameTimeouts.delete(timeoutId);
+      if (this.startupUnlockTimeout === timeoutId) {
+        this.startupUnlockTimeout = null;
+      }
+      this.clearStartingLock('startup-unlock-fallback');
+    }, FALLBACK_DELAY_MS);
+    this.startupUnlockTimeout = timeoutId;
+    this.gameTimeouts.add(timeoutId);
+  }
+
   private clearAllTimeouts(): void {
     this.gameTimeouts.forEach((id) => clearTimeout(id));
     this.gameTimeouts.clear();
     this.pendingComputerTurns.clear();
     this.openingCpuFallbackTimeout = null;
+    this.startupUnlockTimeout = null;
 
     // Clear transition timeout if active
     if (this.transitionTimeout) {
@@ -1851,6 +1947,7 @@ export default class GameController {
       deckSize: this.gameState.deck?.length || 0,
       currentPlayerId: currentPlayerId,
       started: this.gameState.started,
+      isStarting: this.gameState.isStarting,
       lastRealCard: this.gameState.lastRealCard,
     };
 

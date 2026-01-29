@@ -5,7 +5,6 @@ import {
   JOIN_GAME,
   JOINED,
   LOBBY_STATE_UPDATE,
-  START_GAME,
 } from '../../src/shared/events.js';
 
 // --- Avatar State Management ---
@@ -1476,9 +1475,6 @@ async function handleDealClick() {
     if (dealButton) {
       dealButton.disabled = false;
       setPlayButtonLabel(dealButton, idleLabel);
-    }
-    if (isSpectator) {
-      state.socket.emit(START_GAME, { computerCount: numCPUs });
     }
   });
 

@@ -1,7 +1,7 @@
 // public/scripts/components/InSessionLobbyModal.ts
-import { LOBBY_STATE_UPDATE, PLAYER_READY, START_GAME } from '@shared/events.ts';
-import { InSessionLobbyState } from '@shared/types.ts';
 import { ROYALTY_AVATARS } from '@shared/avatars.ts';
+import { LOBBY_STATE_UPDATE, PLAYER_READY } from '@shared/events.ts';
+import { InSessionLobbyState } from '@shared/types.ts';
 
 import * as state from '../state.js';
 import { showToast } from '../uiHelpers.js';
@@ -196,24 +196,22 @@ export class InSessionLobbyModal {
     }
     if (this.readyUpButton.disabled) return; // prevent double emit
 
-    // Host flow: explicit "START GAME" button (server still auto-starts when ready).
+    // Host flow: signal readiness (server controls the actual start).
     if (this.isHostView) {
       if (!this.hostCanStart) return;
-      state.socket?.emit(START_GAME, { computerCount: this.expectedCpuCount });
+      state.socket?.emit(PLAYER_READY, { isReady: true });
       this.readyUpButton.disabled = true;
       this.setPrimaryButtonLabel('STARTING...');
       return;
     }
 
-    // Guest flow: send name + ready.
+    // Guest flow: send name + ready (server controls the actual start).
     const playerName = this.guestNameInput.value.trim();
     if (!playerName) {
       showToast('Please enter your name!', 'error');
       return;
     }
-
-    console.log('[CLIENT] Emitting PLAYER_READY with', playerName);
-    state.socket?.emit(PLAYER_READY, playerName);
+    state.socket?.emit(PLAYER_READY, { isReady: true, playerName });
     this.readyUpButton.disabled = true;
     this.guestNameInput.disabled = true;
     this.setPrimaryButtonLabel('STARTING...');
@@ -371,7 +369,7 @@ export class InSessionLobbyModal {
         this.readyUpButton.style.display = '';
         this.readyUpButton.disabled = !this.hostCanStart;
         // Keep the exact PLAY button label for consistency with the lobby.
-        // Clicking still emits START_GAME (host-only on the server).
+        // Clicking signals readiness; the server controls the actual start.
         this.setPrimaryButtonLabel('PLAY');
       } else {
         // Non-host ready/spectator does not need an action button.

@@ -56,7 +56,6 @@ export interface ClientToServerEvents {
   // Lobby & Setup
   [JOIN_GAME]: (payload: JoinGamePayload, callback?: (response: JoinGameResponse) => void) => void;
   [PLAYER_READY]: (payload: PlayerReadyPayload) => void;
-  [START_GAME]: () => void;
   [REJOIN]: (payload: RejoinData, callback?: (response: JoinGameResponse) => void) => void;
 
   // In-Game Actions
