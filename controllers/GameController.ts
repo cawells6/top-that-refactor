@@ -179,7 +179,7 @@ export class GameRoomManager {
 
     // Pass a copy of playerData without the room identifier so the controller
     // assigns the joining player's ID from the socket.
-    const joinData = { ...playerData, id: undefined };
+    const joinData = { ...playerData };
     serverLog(
       `[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`
     );
@@ -357,6 +357,17 @@ export default class GameController {
     }
     const player = this.players.get(playerId);
     if (player) {
+      if (player.socketId && player.socketId !== socket.id) {
+        this.log(
+          `[SESSION TAKEOVER] Player ${player.id} reclaiming session from old socket ${player.socketId}`
+        );
+        this.socketIdToPlayerId.delete(player.socketId);
+        const oldSocket = this.io.sockets.sockets.get(player.socketId);
+        if (oldSocket) {
+          oldSocket.disconnect(true);
+        }
+      }
+
       socket.join(this.roomId);
       player.socketId = socket.id;
       player.disconnected = false;
@@ -455,10 +466,25 @@ export default class GameController {
     };
     if (existingPlayer && !existingPlayer.disconnected) {
       this.log(
-        `Player ID '${id}' (${name}) is already active. Emitting ERROR_EVENT.`
+        `Player ID '${id}' (${name}) is already active. Attempting session takeover (rejoin).`
       );
-      this.log('[DEBUG] Emitting ERROR_EVENT: duplicate join');
-      callAck({ success: false, error: `Player ID '${id}' is already active in a game.` });
+      this.handleRejoin(
+        socket,
+        this.roomId,
+        id,
+        ack
+          ? (rejoinAck) => {
+              if (rejoinAck.success) {
+                callAck({ success: true, roomId: this.roomId, playerId: id });
+              } else {
+                callAck({
+                  success: false,
+                  error: rejoinAck.error || 'Rejoin (Takeover) failed',
+                });
+              }
+            }
+          : undefined
+      );
       return;
     }
     if (existingPlayer && existingPlayer.disconnected) {

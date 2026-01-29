@@ -386,7 +386,7 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
     gameController = new GameController(mockIo as any, 'test-room');
   });
 
-  test('Prevents duplicate join with same socket/player ID', () => {
+  test('Allows session takeover (rejoin) with same socket/player ID', () => {
     const joinPayload: JoinGamePayload = {
       id: socketA.id,
       playerName: 'Alpha',
@@ -394,25 +394,29 @@ describe('Comprehensive Join/Lobby/Start Flow Edge Cases', () => {
       numCPUs: 0,
       roomId: 'test-room',
     };
-    let errorResult;
+    let joinResult;
     (gameController['publicHandleJoin'] as Function)(
       socketA,
       joinPayload,
       (result: any) => {
-        errorResult = result;
+        joinResult = result;
       }
     );
-    // Try to join again with same socket
+    // Try to join again with same socket (should succeed as session takeover)
+    let secondJoinResult;
     (gameController['publicHandleJoin'] as Function)(
       socketA,
       joinPayload,
       (result: any) => {
-        errorResult = result;
+        secondJoinResult = result;
       }
     );
-    // Should return error for duplicate
-    expect(errorResult && (errorResult as any).error).toBeDefined();
-    // Only one player in the list
+    // Should return success for second join
+    expect(secondJoinResult && (secondJoinResult as any).success).toBe(true);
+    expect(secondJoinResult && (secondJoinResult as any).roomId).toBe(
+      'test-room'
+    );
+    // Only one player in the list (same player)
     expect(Array.from(gameController['players'].values()).length).toBe(1);
   });
 
