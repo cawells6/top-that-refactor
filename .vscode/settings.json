@@ -190,8 +190,8 @@
     "loadNpmCommands": false,
     "commands": [
       { "name": "Run", "color": "#e57373", "singleInstance": true, "focus": true, "command": "./run" },
-      { "name": "Ship", "color": "#81c784", "command": "./scripts/shipit.sh" },
-      { "name": "Switch", "color": "#3395e0", "command": "./scripts/switch-branch.sh" }
+      { "name": "Ship", "color": "#81c784", "command": "\"C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe\" -lc \"./scripts/shipit.sh\"" },
+      { "name": "Switch", "color": "#3395e0", "command": "\"C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe\" -lc \"./scripts/switch-branch.sh\"" }
     ]
   }
 }
