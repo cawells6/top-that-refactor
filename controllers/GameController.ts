@@ -36,6 +36,9 @@ import {
 import { validateJoinPayload } from '../src/shared/validation.js';
 import { handleSpecialCard } from '../utils/CardLogic.js';
 import { isSpecialCard, normalizeCardValue } from '../utils/cardUtils.js';
+import { IBotStrategy } from '../services/bot/IBotStrategy.js';
+import { DefaultBotStrategy } from '../services/bot/DefaultBotStrategy.js';
+import { BotAction } from '../services/bot/types.js';
 
 const SERVER_LOGS_ENABLED =
   process.env.TOPTHAT_VERBOSE === '1' ||
@@ -247,6 +250,7 @@ export default class GameController {
   private startupUnlockTimeout: NodeJS.Timeout | null = null;
   private startupLockEndsAtMs: number | null = null;
   private shutdownTimer: NodeJS.Timeout | null = null;
+  private botStrategy: IBotStrategy;
 
   public lastActivity: number = Date.now();
 
@@ -317,6 +321,7 @@ export default class GameController {
     this.socketIdToPlayerId = new Map<string, string>();
     this.expectedHumanCount = 1;
     this.expectedCpuCount = 0;
+    this.botStrategy = new DefaultBotStrategy();
   }
 
   public attachSocketEventHandlers(socket: TypedSocket): void {
@@ -1689,62 +1694,17 @@ export default class GameController {
     this.isProcessingTurn = true;
 
     try {
-      const requiredZone =
-        computerPlayer.hand.length > 0
-          ? 'hand'
-          : computerPlayer.getUpCardCount() > 0
-            ? 'upCards'
-            : computerPlayer.downCards.length > 0
-              ? 'downCards'
-              : null;
+      const move = this.botStrategy.calculateMove(this.gameState, computerPlayer);
 
-      if (!requiredZone) {
-        return;
-      }
-
-      if (requiredZone === 'hand') {
-        const bestPlay = this.findBestPlayForComputer(computerPlayer, 'hand');
-        if (bestPlay) {
-          this.handlePlayCardInternal(
-            computerPlayer,
-            bestPlay.indices,
-            bestPlay.zone,
-            bestPlay.cards
-          );
-        } else {
-          this.handlePickUpPileInternal(computerPlayer);
-        }
-      } else if (requiredZone === 'upCards') {
-        const bestPlay = this.findBestPlayForComputer(
+      if (move.action === 'PLAY') {
+        this.handlePlayCardInternal(
           computerPlayer,
-          'upCards',
-          {
-            singleCardOnly: true,
-          }
+          move.indices,
+          move.zone,
+          move.cards
         );
-        if (bestPlay) {
-          this.handlePlayCardInternal(
-            computerPlayer,
-            bestPlay.indices,
-            bestPlay.zone,
-            bestPlay.cards
-          );
-        } else {
-          this.handlePickUpPileInternal(computerPlayer);
-        }
       } else {
-        const downIndex = Math.floor(
-          Math.random() * computerPlayer.downCards.length
-        );
-        const downCardToPlay = computerPlayer.downCards[downIndex];
-        if (downCardToPlay) {
-          this.handlePlayCardInternal(
-            computerPlayer,
-            [downIndex],
-            'downCards',
-            [downCardToPlay]
-          );
-        }
+        this.handlePickUpPileInternal(computerPlayer);
       }
     } catch (error) {
       this.log(`Error in CPU turn for ${computerPlayer.id}: ${error}`);
@@ -1858,71 +1818,7 @@ export default class GameController {
     }
   }
 
-  private findBestPlayForComputer(
-    player: Player,
-    zone: 'hand' | 'upCards',
-    options: { singleCardOnly?: boolean } = {}
-  ): { cards: Card[]; indices: number[]; zone: 'hand' | 'upCards' } | null {
-    const cardsInZone = zone === 'hand' ? player.hand : player.upCards;
-    let hasPlayableCard = false;
-    if (zone === 'hand') {
-      hasPlayableCard = cardsInZone.length > 0;
-    } else {
-      hasPlayableCard = cardsInZone.some((card) => Boolean(card));
-    }
-    if (!hasPlayableCard) return null;
 
-    const optionsList: {
-      cards: Card[];
-      indices: number[];
-      zone: 'hand' | 'upCards';
-    }[] = [];
-
-    if (!options.singleCardOnly) {
-      const grouped = new Map<string, { cards: Card[]; indices: number[] }>();
-      for (let i = 0; i < cardsInZone.length; i++) {
-        const card = cardsInZone[i] as Card | null;
-        if (!card) {
-          continue;
-        }
-        const key = String(normalizeCardValue(card.value) ?? card.value);
-        const existing = grouped.get(key);
-        if (existing) {
-          existing.cards.push(card);
-          existing.indices.push(i);
-        } else {
-          grouped.set(key, { cards: [card], indices: [i] });
-        }
-      }
-
-      for (const group of grouped.values()) {
-        if (group.cards.length > 1 && this.gameState.isValidPlay(group.cards)) {
-          optionsList.push({
-            cards: group.cards,
-            indices: group.indices,
-            zone,
-          });
-        }
-      }
-    }
-
-    for (let i = 0; i < cardsInZone.length; i++) {
-      const card = cardsInZone[i] as Card | null;
-      if (!card) {
-        continue;
-      }
-      if (this.gameState.isValidPlay([card])) {
-        optionsList.push({ cards: [card], indices: [i], zone });
-      }
-    }
-
-    if (optionsList.length === 0) {
-      return null;
-    }
-
-    const choiceIndex = Math.floor(Math.random() * optionsList.length);
-    return optionsList[choiceIndex];
-  }
 
   private handleDisconnect(socket: TypedSocket): void {
     this.touchActivity('disconnect');
