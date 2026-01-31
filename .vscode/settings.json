@@ -30,7 +30,7 @@
 
   "workbench.colorCustomizations": {
     // global inputs (this is what controls the chat input textbox text color too)
-    "input.background": "#000000",
+    "input.background": "#000210",
     "input.foreground": "#ffffff",
     "input.placeholderForeground": "#ffffff",
     "input.border": "#ffffff",

@@ -37,8 +37,6 @@ export default [
       'vite.config.ts*.timestamp-*',
       '.vite/',
       'public/scripts/**/*.js', // JS files in public/scripts handled by their own block
-      'src/game/GameManager.js', // Placeholder legacy file (not used in runtime)
-      'src/network/GameConnection.js', // Placeholder legacy file (not used in runtime)
       'shared/eslint.config.js', // Ignore this file as it uses CommonJS syntax
     ],
   },

@@ -1330,17 +1330,6 @@ function openRulesModal() {
     document.body.classList.add('rules-modal-open');
     document.documentElement.classList.add('rules-modal-open');
 
-    // Trigger card image updates by dispatching a custom event
-    setTimeout(() => {
-      try {
-        // Dispatch a custom event that rules-cards.ts will listen for
-        const cardUpdateEvent = new CustomEvent('update-rule-cards');
-        document.dispatchEvent(cardUpdateEvent);
-      } catch (e) {
-        console.error('Failed to dispatch card update event:', e);
-      }
-    }, 100);
-
     console.log('Rules modal opened, lobby hidden');
   } else {
     console.error('Rules modal or overlay not found');

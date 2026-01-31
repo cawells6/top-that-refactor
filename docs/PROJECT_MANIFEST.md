@@ -19,7 +19,7 @@ If you only read one file before making changes, read this.
 ### **The "Golden Rule" of State**
 - **Server (`GameController`, `GameState`)**: The absolute authority. It owns the deck, rules, and player stats.
 - **Client (`public/`)**: A "dumb" terminal. It visualizes `STATE_UPDATE` events and sends inputs (`PLAY_CARD`). It never calculates game logic or invents state.
-- **PlayerStateManager**: Handles connection quality, session metrics, and state snapshots.
+
 
 ### **Layered Architecture Contracts**
 1.  **Network Layer (`socketService.ts`)**: Handles generic `emit/on`. Does NOT know game rules.
