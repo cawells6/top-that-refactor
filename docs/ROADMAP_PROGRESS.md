@@ -40,13 +40,3 @@
 | **19** | **GameController unit tests** | 🚧 **Partial** | Some tests exist in `tests/`, but coverage for edge cases is incomplete. |
 | **20** | **Mid-game rejoin tests** | ❌ **Pending** | Integration tests exist but do not explicitly cover mid-game disconnect/reconnect flows. |
 | **21** | **Build output runnable server** | ❌ **Pending** | `tsconfig.build.json` exists but build output verification is needed. |
-
-Recommended Next Step
-
-We should proceed with Item 5: Shared JOIN validation rules.
-
-    Why? It is the only remaining "Phase 1" item that is Pending.
-
-    Goal: Move the hardcoded validation logic from GameController.ts into a new src/shared/validation.ts file so the client can use it too.
-
-Ready to start Item 5?
