@@ -50,6 +50,7 @@ const MS_PER_MINUTE = 60 * 1000;
 const ROOM_CLEANUP_INTERVAL_MS = 60 * 1000;
 const STALE_TIMEOUT_MS = 30 * MS_PER_MINUTE;
 const EMPTY_TIMEOUT_MS = 5 * MS_PER_MINUTE;
+const GRACE_PERIOD_MS = 30000;
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -238,6 +239,7 @@ export default class GameController {
   private turnLock: boolean = false;
   private startupUnlockTimeout: NodeJS.Timeout | null = null;
   private startupLockEndsAtMs: number | null = null;
+  private shutdownTimer: NodeJS.Timeout | null = null;
 
   public lastActivity: number = Date.now();
 
@@ -475,6 +477,11 @@ export default class GameController {
 
     const player = this.players.get(playerId);
     if (player) {
+      if (this.shutdownTimer) {
+        this.log('Player rejoined. Cancelling game shutdown.');
+        clearTimeout(this.shutdownTimer);
+        this.shutdownTimer = null;
+      }
       const oldSocketId = player.socketId;
       if (oldSocketId && oldSocketId !== socket.id) {
         this.socketIdToPlayerId.delete(oldSocketId);
@@ -1931,9 +1938,24 @@ export default class GameController {
         const activePlayers = Array.from(this.players.values()).filter(
           (p: Player) => !p.disconnected
         );
-        if (activePlayers.length === 0 && this.gameState.started) {
-          this.gameState.endGameInstance();
+        const activeHumans = activePlayers.filter((p) => !p.isComputer);
+
+        if (activeHumans.length === 0 && this.gameState.started) {
+          this.log(
+            'Last human disconnected. Starting 30-second shutdown timer.'
+          );
+          this.touchActivity('SHUTDOWN_START');
+
+          // Immediately clear any pending bot turns or other game actions.
           this.clearAllTimeouts();
+
+          // Set a new timer to end the game.
+          this.shutdownTimer = setTimeout(() => {
+            this.log('Shutdown grace period over. Ending game.');
+            this.gameState.endGameInstance();
+            this.pushState(); // Notify clients the game has ended
+            this.shutdownTimer = null;
+          }, GRACE_PERIOD_MS);
         } else if (
           this.gameState.started &&
           playerId === this.gameState.players[this.gameState.currentPlayerIndex]

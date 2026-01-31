@@ -19,7 +19,7 @@
 | :--- | :--- | :--- | :--- |
 | **7** | **Centralize public state projection** | ✅ **Done** | `GameController.pushState` manually masks cards. Logic not yet moved to `GameState.getPublicView`. |
 | **8** | **Persistent playerId for rejoin** | ✅ **Done** | `socketService.ts` persists session. `GameController` handles `REJOIN` event successfully. |
-| **9** | **Graceful shutdown on mass disconnect** | ❌ **Pending** | `GameController.handleDisconnect` kills game immediately if 0 players. Needs 30s grace timer. |
+| **9** | **Graceful shutdown on mass disconnect** | ✅ **Done** | `GameController.handleDisconnect` now starts a 30s timer when the last human leaves. `handleRejoin` cancels it. |
 | **10** | **Room lifecycle destroy hook** | ❌ **Pending** | `GameRoomManager` deletes rooms directly. Needs `destroy()` method for cleanup. |
 | **11** | **Extract bot logic to BotService** | ❌ **Pending** | Bot logic is still coupled inside `GameController.ts` methods. |
 
