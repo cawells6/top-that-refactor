@@ -3,8 +3,10 @@ import {
   normalizeCardValue,
   rank,
   isSpecialCard,
+  isValidPlay,
 } from '../../utils/cardUtils.js';
 import { ROYALTY_AVATARS } from '@shared/avatars.ts';
+export { isValidPlay };
 
 function stableIndex(seed: string, mod: number): number {
   if (mod <= 0) return 0;
@@ -982,19 +984,7 @@ export function renderPlayedCards(cards: CardType[]): void {
   playStack.appendChild(cardEl);
 }
 
-export function isValidPlay(cards: CardType[], pile: CardType[]): boolean {
-  if (!cards || cards.length === 0) return false;
-  const firstValue = normalizeCardValue(cards[0].value);
-  if (cards.some((card) => normalizeCardValue(card.value) !== firstValue))
-    return false;
-  if (cards.length >= 4) return true;
-  if (!pile || pile.length === 0) return true;
-  if (isSpecialCard(firstValue)) return true;
-  const playedRank = rank(cards[0]);
-  const topPileCard = pile[pile.length - 1];
-  const topPileRank = rank(topPileCard);
-  return playedRank > topPileRank;
-}
+
 
 function hasValidHandPlay(hand: CardType[], pile: CardType[]): boolean {
   if (!hand || hand.length === 0) return false;

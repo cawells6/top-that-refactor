@@ -1271,6 +1271,10 @@ export default class GameController {
       return;
     }
 
+    this.log(
+      '[SERVER VALIDATION]',
+      JSON.stringify({ cardsToPlay, pile: this.gameState.pile }, null, 2)
+    );
     const isValid = this.gameState.isValidPlay(cardsToPlay);
     const normalizedFirstValue = normalizeCardValue(cardsToPlay[0].value);
     const fourOfKindPlayed =

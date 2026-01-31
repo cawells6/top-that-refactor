@@ -26,7 +26,7 @@
 ## 🛠️ Phase 3: Standardization & UX
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
-| **12** | **Dedupe isValidPlay** | ✅ **Done** | Logic centralized in `utils/cardUtils.ts` and used by both Client and Server. |
+| **12** | **Dedupe isValidPlay** | ✅ **Done** | Logic centralized in `utils/cardUtils.ts`. Client-side (`public/scripts/render.ts`) now correctly imports and re-exports this function, ensuring both Client and Server use the same code. |
 | **13** | **Centralize timing constants** | ❌ **Pending** | Magic numbers (`400`, `2000`) exist in `GameController.ts` and `socketService.ts`. |
 | **14** | **Show server error text in-game** | ✅ **Done** | `socketService.ts` listens for `ERROR` event and displays toast/visual feedback. |
 | **15** | **Explicit burn feedback** | ❌ **Pending** | Server forces pickup on invalid play but doesn't emit specific "Burn" payload with revealed cards. |

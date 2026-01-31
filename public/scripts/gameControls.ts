@@ -14,6 +14,7 @@ function isMyTurn(): boolean {
   const myId = state.myId;
 
   if (lastGameState && myId) {
+    if (lastGameState.isStarting) return false;
     return lastGameState.currentPlayerId === myId;
   }
   const selectableCard = document.querySelector('.card-img.selectable');
@@ -168,6 +169,10 @@ function resolveSelectedCards(
 }
 
 function handlePlayClick(): void {
+  if (state.getLastGameState()?.isStarting) {
+    showToast('Game is starting, please wait.', 'info');
+    return;
+  }
   if (!isMyTurn()) {
     showToast('Not your turn.', 'error');
     return;
@@ -193,6 +198,10 @@ function handlePlayClick(): void {
     if (resolvedCards && resolvedCards.length > 0) {
       // ONLY block invalid plays if they are from the HAND.
       // If Up/Down, we let the server decide (because it might be a valid "pickup" move).
+      console.log(
+        'Client-side validation:',
+        JSON.stringify({ resolvedCards, pile }, null, 2)
+      );
       if (selection.zone === 'hand' && !isValidPlay(resolvedCards, pile)) {
         showToast('Invalid Play!', 'error');
         // ABORT: Do not animate, do not hide, do not emit.

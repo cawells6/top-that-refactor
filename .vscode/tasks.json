@@ -5,16 +5,16 @@
       "label": "Run",
       "type": "shell",
       "icon": {
-        "id": "play",
+        "id": "play"
       },
-      "command": "bash",
-      "args": ["-lc", "./run"],
+      "command": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "args": [
+        "-lc",
+        "export TOPTHAT_VERBOSE=1 && ./run"
+      ],
       "group": "build",
       "isBackground": true,
       "problemMatcher": [],
-      "runOptions": {
-        "instanceLimit": 1
-      },
       "options": {
         "cwd": "${workspaceFolder}"
       },
