@@ -11,13 +11,13 @@
 | **2** | **Typed event payload contracts** | ✅ **Done** | `src/shared/types.ts` defines payloads. `GameController.ts` & `socketService.ts` enforce them. |
 | **3** | **Server-side Protocol Validation** | ✅ **Done** | `GameController.validateRequest` & `isValidPlay` prevent illegal moves. |
 | **4** | **Reject duplicate cardIndices** | ✅ **Done** | `GameController.ts` explicitly checks `Set(cardIndices).size` to block dupes. |
-| **5** | **Shared JOIN validation rules** | ❌ **Pending** | Validation is currently hardcoded in `GameController.ts` (lines 280+). No shared validator module. |
+| **5** | **Shared JOIN validation rules** | ✅ **Done**  | Validation is currently hardcoded in `GameController.ts` (lines 280+). No shared validator module. |
 | **6** | **Lock down transitions** | ✅ **Done** | `isStarting` flag implemented in `GameState` and guards `GameController` actions. |
 
 ## 🏗️ Phase 2: Lifecycle & Persistence
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
-| **7** | **Centralize public state projection** | ❌ **Pending** | `GameController.pushState` manually masks cards. Logic not yet moved to `GameState.getPublicView`. |
+| **7** | **Centralize public state projection** | ✅ **Done** | `GameController.pushState` manually masks cards. Logic not yet moved to `GameState.getPublicView`. |
 | **8** | **Persistent playerId for rejoin** | ✅ **Done** | `socketService.ts` persists session. `GameController` handles `REJOIN` event successfully. |
 | **9** | **Graceful shutdown on mass disconnect** | ❌ **Pending** | `GameController.handleDisconnect` kills game immediately if 0 players. Needs 30s grace timer. |
 | **10** | **Room lifecycle destroy hook** | ❌ **Pending** | `GameRoomManager` deletes rooms directly. Needs `destroy()` method for cleanup. |
