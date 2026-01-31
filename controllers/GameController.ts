@@ -28,8 +28,6 @@ import {
   Card,
   PlayCardPayload,
   PlayerReadyPayload,
-  ClientStatePlayer,
-  GameStateData,
   InSessionLobbyState,
   JoinGamePayload,
   JoinGameResponse,
@@ -46,6 +44,11 @@ function serverLog(...args: unknown[]): void {
   if (!SERVER_LOGS_ENABLED) return;
   console.log(...args);
 }
+
+const MS_PER_MINUTE = 60 * 1000;
+const ROOM_CLEANUP_INTERVAL_MS = 60 * 1000;
+const STALE_TIMEOUT_MS = 30 * MS_PER_MINUTE;
+const EMPTY_TIMEOUT_MS = 5 * MS_PER_MINUTE;
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -116,15 +119,35 @@ export class GameRoomManager {
     });
 
     this.cleanupInterval = setInterval(() => {
+      const nowMs: number = Date.now();
       for (const [roomId, controller] of this.rooms.entries()) {
-        const hasActivePlayers = Array.from(
-          controller['players'].values()
-        ).some((p) => !p.disconnected);
-        if (!hasActivePlayers && !controller['gameState'].started) {
+        const hasConnectedClients: boolean = controller.hasConnectedClients();
+        if (hasConnectedClients) continue;
+
+        const inactiveMs: number = nowMs - controller.lastActivity;
+
+        if (!controller.isGameStarted() && inactiveMs > EMPTY_TIMEOUT_MS) {
+          const inactiveMinutes = Math.floor(inactiveMs / MS_PER_MINUTE);
+          console.log(
+            `[GameRoomManager] Cleaning up empty room ${roomId} (Inactive for ${inactiveMinutes} min)`
+          );
+          this.rooms.delete(roomId);
+          continue;
+        }
+
+        if (inactiveMs > STALE_TIMEOUT_MS) {
+          const inactiveMinutes = Math.floor(inactiveMs / MS_PER_MINUTE);
+          console.log(
+            `[GameRoomManager] Cleaning up stale room ${roomId} (Inactive for ${inactiveMinutes} min)`
+          );
+
+          const maybeDestroy = controller as unknown as { destroy?: () => void };
+          maybeDestroy.destroy?.();
+
           this.rooms.delete(roomId);
         }
       }
-    }, 60000);
+    }, ROOM_CLEANUP_INTERVAL_MS);
   }
 
   public destroy(): void {
@@ -215,6 +238,8 @@ export default class GameController {
   private startupUnlockTimeout: NodeJS.Timeout | null = null;
   private startupLockEndsAtMs: number | null = null;
 
+  public lastActivity: number = Date.now();
+
   // Transition State Management
   private isTurnTransitioning: boolean = false;
   private transitionTimeout: NodeJS.Timeout | null = null;
@@ -222,6 +247,21 @@ export default class GameController {
 
   private readonly cpuTurnDelayMs = 2000;
   private readonly cpuSpecialDelayMs = 3000;
+
+  public hasConnectedClients(): boolean {
+    return Array.from(this.players.values()).some(
+      (player) => !player.isComputer && !player.disconnected
+    );
+  }
+
+  public isGameStarted(): boolean {
+    return this.gameState.started;
+  }
+
+  private touchActivity(source: string): void {
+    this.lastActivity = Date.now();
+    this.log(`[Activity] ${source}`);
+  }
 
   private rejectIfTransitionLocked(
     socket: TypedSocket,
@@ -299,6 +339,7 @@ export default class GameController {
         typeof playerNameRaw === 'string' ? playerNameRaw.trim() : '';
 
       if (playerId) {
+        this.touchActivity('PLAYER_READY');
         if (this.gameState.isStarting) {
           socket.emit(ERROR_EVENT, 'Game is starting, please wait.');
           return;
@@ -393,6 +434,7 @@ export default class GameController {
       `[SERVER] publicHandleJoin for socket ${socket.id}, data:`,
       playerData
     );
+    this.touchActivity('JOIN_GAME');
     this.attachSocketEventHandlers(socket);
     this.handleJoin(socket, playerData, ack);
   }
@@ -403,6 +445,7 @@ export default class GameController {
     playerId: string,
     ack?: (response: JoinGameResponse) => void
   ): void {
+    this.touchActivity('REJOIN');
     this.attachSocketEventHandlers(socket);
     this.handleRejoin(socket, roomId, playerId, ack);
   }
@@ -1034,6 +1077,7 @@ export default class GameController {
     socket: TypedSocket,
     { cardIndices }: PlayCardPayload
   ): void {
+    this.touchActivity('PLAY_CARD');
     const playerId = this.socketIdToPlayerId.get(socket.id);
     this.log(
       `Handling play card request from socket ${socket.id} (Player ID: ${playerId}). Indices: ${cardIndices}`
@@ -1386,6 +1430,7 @@ export default class GameController {
   }
 
   private handlePickUpPile(socket: TypedSocket): void {
+    this.touchActivity('PICK_UP_PILE');
     const playerId = this.socketIdToPlayerId.get(socket.id);
     this.log(
       `Handling pick up pile request from socket ${socket.id} (Player ID: ${playerId})`
@@ -1589,6 +1634,7 @@ export default class GameController {
   }
 
   private handleAnimationsComplete(socket: TypedSocket): void {
+    this.touchActivity('ANIMATIONS_COMPLETE');
     const playerId = this.socketIdToPlayerId.get(socket.id);
     if (!playerId) {
       this.log('[handleAnimationsComplete] No player ID found for socket');
@@ -1842,6 +1888,7 @@ export default class GameController {
   }
 
   private handleDisconnect(socket: TypedSocket): void {
+    this.touchActivity('disconnect');
     const playerId = this.socketIdToPlayerId.get(socket.id);
     if (playerId) {
       const player = this.players.get(playerId);
@@ -1939,72 +1986,6 @@ export default class GameController {
 
       this.io.to(targetPlayerId).emit(STATE_UPDATE, personalizedState);
     }
-  }
-
-  // --- QUARANTINE METHOD (Roadmap ID: 5) ---
-  // Legacy state broadcasting logic retained for rollback. Do not call.
-  private pushState__quarantinedLegacy(): void {
-    const currentPlayerId =
-      this.gameState.started &&
-      this.gameState.players.length > 0 &&
-      this.gameState.currentPlayerIndex >= 0 &&
-      this.gameState.currentPlayerIndex < this.gameState.players.length
-        ? this.gameState.players[this.gameState.currentPlayerIndex]
-        : undefined;
-
-    const gamePlayers = this.getActivePlayers();
-    const stateForEmit: GameStateData = {
-      players: gamePlayers.map((player: Player): ClientStatePlayer => {
-        const isSelf =
-          player.socketId &&
-          this.io.sockets.sockets.get(player.socketId) !== undefined;
-        const hiddenDownCards = player.downCards.map(
-          () => ({ value: '?', suit: '?', back: true }) as Card
-        );
-        return {
-          id: player.id,
-          name: player.name,
-          avatar: player.avatar, // Include avatar
-          hand: isSelf || player.isComputer ? player.hand : undefined,
-          handCount: player.hand.length,
-          upCards: player.upCards,
-          upCount: player.getUpCardCount(),
-          downCards: hiddenDownCards,
-          downCount: player.downCards.length,
-          disconnected: player.disconnected,
-          isComputer: player.isComputer,
-        };
-      }),
-      pile: this.gameState.pile,
-      discardCount: this.gameState.discard.length,
-      deckSize: this.gameState.deck?.length || 0,
-      currentPlayerId: currentPlayerId,
-      started: this.gameState.started,
-      isStarting: this.gameState.isStarting,
-      lastRealCard: this.gameState.lastRealCard,
-    };
-
-    // Emit personalized state to each connected player
-    this.players.forEach((playerInstance) => {
-      if (playerInstance.socketId && !playerInstance.disconnected) {
-        const targetSocket = this.io.sockets.sockets.get(
-          playerInstance.socketId
-        );
-        if (targetSocket) {
-          const personalizedState: GameStateData = {
-            ...stateForEmit,
-            players: stateForEmit.players.map((p) => ({
-              ...p,
-              hand: p.id === playerInstance.id ? p.hand : undefined,
-              downCards: p.downCards?.map(
-                () => ({ value: '?', suit: '?', back: true }) as Card
-              ),
-            })),
-          };
-          targetSocket.emit(STATE_UPDATE, personalizedState);
-        }
-      }
-    });
   }
 
   // Add this log method for internal logging
