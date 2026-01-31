@@ -10,12 +10,10 @@ export function validateJoinPayload(
   isHost: boolean,
   maxPlayers: number
 ): ValidationResult {
-  // 1. Mandatory Name Check
   if (!payload.playerName || !payload.playerName.trim()) {
     return { isValid: false, error: 'Name is required.' };
   }
 
-  // 2. Host Configuration Gating
   if (isHost) {
     const numHumans = payload.numHumans ?? 0;
     const numCPUs = payload.numCPUs ?? 0;
