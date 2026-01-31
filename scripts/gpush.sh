@@ -46,7 +46,7 @@ fi
 
 # Push to remote
 echo -e "${GREEN}🔄 Pushing to remote repository...${NC}"
-git push
+git push origin HEAD
 
 # Check if push was successful
 if [ $? -ne 0 ]; then
