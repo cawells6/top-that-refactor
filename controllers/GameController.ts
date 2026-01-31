@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import GameState from '../models/GameState.js';
 import Player from '../models/Player.js';
 import { getRandomAvatar } from '../src/shared/avatars.js';
+import { validateJoinPayload } from '../src/shared/validation.js';
 import {
   JOIN_GAME,
   JOINED,
@@ -23,7 +24,7 @@ import {
   DEBUG_RESET_GAME,
   type ClientToServerEvents,
   type ServerToClientEvents,
-} from '../src/shared/events.ts';
+} from '../src/shared/events.js';
 import {
   Card,
   PlayCardPayload,
@@ -495,33 +496,15 @@ export default class GameController {
     const isHostJoining = this.players.size === 0;
     const isSpectator = playerData.spectator === true;
 
-    // --- Payload validation (always require a name) ---
-    if (
-      typeof playerData.playerName !== 'string' ||
-      !playerData.playerName.trim()
-    ) {
-      if (typeof ack === 'function') {
-        ack({ success: false, error: 'Invalid join payload: please provide a name.' });
-      }
+    const validation = validateJoinPayload(
+      playerData,
+      isHostJoining,
+      this.gameState.maxPlayers
+    );
+    if (!validation.isValid) {
+      if (typeof ack === 'function')
+        ack({ success: false, error: validation.error || 'Invalid join payload.' });
       return;
-    }
-
-    // --- Only validate player counts for the host creating a room ---
-    if (isHostJoining) {
-      const minHumans = isSpectator ? 0 : 1;
-      if (
-        typeof playerData.numHumans !== 'number' ||
-        typeof playerData.numCPUs !== 'number' ||
-        playerData.numHumans < minHumans ||
-        playerData.numCPUs < 0 ||
-        playerData.numHumans + playerData.numCPUs < 2 ||
-        playerData.numHumans + playerData.numCPUs > this.gameState.maxPlayers
-      ) {
-        if (typeof ack === 'function') {
-          ack({ success: false, error: 'Invalid join payload: check name and player counts.' });
-        }
-        return;
-      }
     }
 
     // console.log('[SERVER] handleJoin: playerData', playerData);
