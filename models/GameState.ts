@@ -1,6 +1,13 @@
 // models/GameState.ts
 
-import { Card, CardValue, AddToPileOptions } from '../src/shared/types.js';
+import Player from './Player.js';
+import {
+  AddToPileOptions,
+  Card,
+  CardValue,
+  ClientStatePlayer,
+  SanitizedClientState,
+} from '../src/shared/types.js';
 import { isValidPlay } from '../utils/cardUtils.js';
 import { getRandom } from '../utils/rng.js';
 
@@ -206,5 +213,49 @@ export default class GameState {
 
   public isValidPlay(cards: Card[]): boolean {
     return isValidPlay(cards, this.pile);
+  }
+
+  public getSanitizedState(
+    targetPlayerId: string,
+    players: Player[]
+  ): SanitizedClientState {
+    const currentPlayerId =
+      this.started &&
+      this.players.length > 0 &&
+      this.currentPlayerIndex >= 0 &&
+      this.currentPlayerIndex < this.players.length
+        ? this.players[this.currentPlayerIndex]
+        : undefined;
+
+    const sanitizedPlayers: ClientStatePlayer[] = players.map(
+      (p): ClientStatePlayer => {
+        const isTarget = p.id === targetPlayerId;
+
+        return {
+          id: p.id,
+          name: p.name,
+          avatar: p.avatar,
+          handCount: p.hand.length,
+          hand: isTarget ? p.hand.map((c) => ({ ...c })) : [],
+          upCards: p.upCards.map((c) => (c ? { ...c } : null)),
+          upCount: p.getUpCardCount(),
+          downCards: p.downCards.map(() => ({ value: '?', suit: '?', back: true })),
+          downCount: p.downCards.length,
+          disconnected: p.disconnected,
+          isComputer: p.isComputer,
+        };
+      }
+    );
+
+    return {
+      players: sanitizedPlayers,
+      pile: this.pile.map((c) => ({ ...c })),
+      discardCount: this.discard.length,
+      deckSize: this.deck?.length || 0,
+      currentPlayerId,
+      started: this.started,
+      isStarting: this.isStarting,
+      lastRealCard: this.lastRealCard ? { ...this.lastRealCard } : null,
+    };
   }
 }

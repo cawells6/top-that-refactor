@@ -36,6 +36,8 @@ export interface GameStateData {
   lastRealCard: Card | null;
 }
 
+export type SanitizedClientState = GameStateData;
+
 // Represents a player in the lobby. `status` shows whether the
 // player is the host, just joined, or has clicked the ready button.
 export interface LobbyPlayer {

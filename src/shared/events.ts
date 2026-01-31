@@ -1,7 +1,7 @@
 import {
   JoinGamePayload,
   JoinGameResponse,
-  GameStateData,
+  SanitizedClientState,
   InSessionLobbyState,
   RejoinData,
   // Add these imports:
@@ -77,8 +77,8 @@ export interface ServerToClientEvents {
   [LOBBY_CREATED]: (roomId: string) => void;
 
   // Game Lifecycle
-  [GAME_STARTED]: (gameState: GameStateData) => void;
-  [STATE_UPDATE]: (gameState: GameStateData) => void;
+  [GAME_STARTED]: (gameState: SanitizedClientState) => void;
+  [STATE_UPDATE]: (gameState: SanitizedClientState) => void;
   [NEXT_TURN]: (payload: NextTurnPayload) => void;
   [GAME_OVER]: (payload: GameOverPayload) => void;
 

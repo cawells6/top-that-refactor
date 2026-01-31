@@ -445,6 +445,7 @@ export default class GameController {
       }
 
       socket.join(this.roomId);
+      socket.join(player.id);
       player.socketId = socket.id;
       player.disconnected = false;
       this.socketIdToPlayerId.set(socket.id, playerId);
@@ -649,6 +650,7 @@ export default class GameController {
     this.socketIdToPlayerId.set(socket.id, id);
 
     socket.join(this.roomId);
+    socket.join(id);
     this.syncPlayersWithGameState();
     if (
       !this.ensureValidState('handleJoin', {}, () => {
@@ -1902,6 +1904,46 @@ export default class GameController {
   }
 
   private pushState(): void {
+    this.broadcastState();
+  }
+
+  private broadcastState(): void {
+    const orderedActivePlayers: Player[] = this.gameState.players
+      .map((id) => this.players.get(id))
+      .filter((p): p is Player => p !== undefined && !p.isSpectator);
+
+    for (const playerInstance of this.players.values()) {
+      if (playerInstance.isComputer) continue;
+      if (playerInstance.disconnected) continue;
+
+      const socketId = playerInstance.socketId;
+      if (!socketId) continue;
+      const socket = this.io.sockets.sockets.get(socketId);
+      if (!socket) continue;
+
+      const targetPlayerId = playerInstance.id;
+      const personalizedState = this.gameState.getSanitizedState(
+        targetPlayerId,
+        orderedActivePlayers
+      );
+
+      const violatingPlayer = personalizedState.players.find(
+        (p) => p.id !== targetPlayerId && Array.isArray(p.hand) && p.hand.length > 0
+      );
+      if (violatingPlayer) {
+        console.error(
+          `[PROTOCOL VIOLATION][Room ${this.roomId}] Refusing to emit STATE_UPDATE to ${targetPlayerId}: payload contains hand for ${violatingPlayer.id}.`
+        );
+        return;
+      }
+
+      this.io.to(targetPlayerId).emit(STATE_UPDATE, personalizedState);
+    }
+  }
+
+  // --- QUARANTINE METHOD (Roadmap ID: 5) ---
+  // Legacy state broadcasting logic retained for rollback. Do not call.
+  private pushState__quarantinedLegacy(): void {
     const currentPlayerId =
       this.gameState.started &&
       this.gameState.players.length > 0 &&
