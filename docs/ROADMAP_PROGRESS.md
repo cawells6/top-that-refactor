@@ -21,7 +21,7 @@
 | **8** | **Persistent playerId for rejoin** | ✅ **Done** | `socketService.ts` persists session. `GameController` handles `REJOIN` event successfully. |
 | **9** | **Graceful shutdown on mass disconnect** | ✅ **Done** | `GameController.handleDisconnect` now starts a 30s timer when the last human leaves. `handleRejoin` cancels it. |
 | **10** | **Room lifecycle destroy hook** | ✅ **Done** | `destroy()` methods implemented on `GameController` and `GameRoomManager` to clean up timers and socket listeners. |
-| **11** | **Extract bot logic to BotService** | 🚧 **In Progress** | Bot logic extracted to `services/bot/DefaultBotStrategy.ts` to decouple AI from `GameController`. |
+| **11** | **Extract bot logic to BotService** | ✅ **Done** | Bot logic extracted to `services/bot/DefaultBotStrategy.ts`, decoupling it from `GameController`. |
 
 ## 🛠️ Phase 3: Standardization & UX
 | # | Task | Status | Code Verification Notes |
