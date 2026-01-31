@@ -20,6 +20,7 @@ import {
 import * as state from './state.js';
 import { showToast } from './uiHelpers.js';
 import { showGameTable, showLobbyForm } from './uiManager.js';
+import { debugLog } from './debugLog.js';
 import {
   CARD_PLAYED,
   ERROR,
@@ -46,6 +47,7 @@ import { isSpecialCard } from '../../utils/cardUtils.js';
 
 // --- VISUAL & QUEUE STATE ---
 let isAnimatingSpecialEffect = false;
+let isAnimatingPilePickup = false;
 let lockedSpecialEffectState: GameStateData | null = null;
 let pendingStateUpdate: GameStateData | null = null;
 let cardsBeingAnimatedPlayerId: string | null = null;
@@ -58,6 +60,26 @@ let hasPlayedOpeningDeal = false;
 interface QueuedPlay {
   cards: Card[];
   playerId?: string;
+}
+
+function debugSnapshot(
+  tag: string,
+  extra?: Record<string, unknown>
+): Record<string, unknown> {
+  const s = state.getLastGameState();
+  return {
+    tag,
+    queueLen: playQueue.length,
+    isProcessingQueue,
+    isAnimatingSpecialEffect,
+    isAnimatingPilePickup,
+    burnHoldActive: Boolean(burnHoldTimer),
+    safetyUnlockActive: Boolean(safetyUnlockTimer),
+    pilePickupUnlockActive: Boolean(pilePickupUnlockTimer),
+    lastStatePileLen: s?.pile?.length ?? null,
+    lastStateCurrentPlayerId: (s as any)?.currentPlayerId ?? null,
+    ...extra,
+  };
 }
 
 function joinGameWithAck(payload: JoinGamePayload): Promise<JoinGameResponse> {
@@ -136,6 +158,7 @@ const BOT_THINKING_TIME = 450;
 // --- The Waiting Room for fast CPU cards (Legacy Buffer) ---
 let safetyUnlockTimer: ReturnType<typeof setTimeout> | null = null;
 let burnHoldTimer: ReturnType<typeof setTimeout> | null = null;
+let pilePickupUnlockTimer: ReturnType<typeof setTimeout> | null = null;
 const ANIMATION_DELAY_MS = 2000;
 const BURN_TURN_HOLD_MS = 1000;
 const TAKE_PILE_BLANK_MS = 1000;
@@ -148,7 +171,9 @@ const POST_FLIP_RENDER_BUFFER_MS = 50;
  */
 async function processPlayQueue() {
   // If we are already running the loop, or a special effect (explosion) is happening, do nothing.
-  if (isProcessingQueue || isAnimatingSpecialEffect) return;
+  if (isProcessingQueue || isAnimatingSpecialEffect || isAnimatingPilePickup) {
+    return;
+  }
 
   isProcessingQueue = true;
 
@@ -212,8 +237,12 @@ function finishAnimationSequence() {
   cardsBeingAnimatedPlayerId = null;
   isAnimatingSpecialEffect = false;
   lockedSpecialEffectState = null;
+  debugLog('finishAnimationSequence', debugSnapshot('finishAnimationSequence'));
 
-  if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
+  if (safetyUnlockTimer) {
+    clearTimeout(safetyUnlockTimer);
+    safetyUnlockTimer = null;
+  }
   if (burnHoldTimer) {
     clearTimeout(burnHoldTimer);
     burnHoldTimer = null;
@@ -221,6 +250,25 @@ function finishAnimationSequence() {
 
   // Important: Kick the queue again.
   // If cards arrived while we were watching the explosion, they are waiting in the queue.
+  processPlayQueue();
+}
+
+function finishPilePickupSequence(): void {
+  isAnimatingPilePickup = false;
+  cardsBeingAnimatedPlayerId = null;
+
+  if (pilePickupUnlockTimer) {
+    clearTimeout(pilePickupUnlockTimer);
+    pilePickupUnlockTimer = null;
+  }
+
+  // Apply any buffered state now that the pickup+flip animation window has ended.
+  if (pendingStateUpdate && !isAnimatingSpecialEffect && !isProcessingQueue) {
+    renderGameState(pendingStateUpdate, state.myId);
+    pendingStateUpdate = null;
+  }
+
+  debugLog('finishPilePickupSequence', debugSnapshot('finishPilePickupSequence'));
   processPlayQueue();
 }
 
@@ -270,22 +318,22 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(
     CARD_PLAYED,
     async (data: CardPlayedPayload) => {
+      debugLog(
+        'CARD_PLAYED',
+        debugSnapshot('CARD_PLAYED', {
+          playerId: data.playerId ?? null,
+          cardCount: data.cards?.length ?? 0,
+          topCard: data.cards?.length
+            ? data.cards[data.cards.length - 1]?.value
+            : null,
+        })
+      );
       console.log(
         '[CARD_PLAYED] Received:',
         data.cards,
         'from player:',
         data.playerId
       );
-
-      if (burnHoldTimer) {
-        console.log(
-          '[Socket] New card played during burn hold - cancelling hold'
-        );
-        clearTimeout(burnHoldTimer);
-        burnHoldTimer = null;
-        isAnimatingSpecialEffect = false;
-        lockedSpecialEffectState = null;
-      }
 
       if (data.cards && data.cards.length > 0) {
         // Log the card play
@@ -304,6 +352,13 @@ export async function initializeSocketHandlers(): Promise<void> {
 
   state.socket.on(STATE_UPDATE, async (s: GameStateData) => {
     state.setLastGameState(s);
+    debugLog(
+      'STATE_UPDATE',
+      debugSnapshot('STATE_UPDATE', {
+        pileLen: s?.pile?.length ?? null,
+        currentPlayerId: (s as any)?.currentPlayerId ?? null,
+      })
+    );
     if (s.started === true) {
       showGameTable();
     }
@@ -365,13 +420,32 @@ export async function initializeSocketHandlers(): Promise<void> {
 
     // Buffer the update if we are busy animating (Queue or Special Effect)
     // This prevents the turn arrow from jumping to the next player while the card is still flying.
-    if (isAnimatingSpecialEffect || isProcessingQueue || playQueue.length > 0) {
+    if (
+      isAnimatingSpecialEffect ||
+      isAnimatingPilePickup ||
+      isProcessingQueue ||
+      playQueue.length > 0
+    ) {
       console.log('[BUFFERED] STATE_UPDATE deferred due to animation.');
+      debugLog(
+        'STATE_UPDATE:BUFFERED',
+        debugSnapshot('STATE_UPDATE:BUFFERED', {
+          pileLen: s?.pile?.length ?? null,
+          currentPlayerId: (s as any)?.currentPlayerId ?? null,
+        })
+      );
       if (isAnimatingSpecialEffect && !lockedSpecialEffectState) {
         lockedSpecialEffectState = s;
       }
       pendingStateUpdate = s;
     } else {
+      debugLog(
+        'STATE_UPDATE:RENDER',
+        debugSnapshot('STATE_UPDATE:RENDER', {
+          pileLen: s?.pile?.length ?? null,
+          currentPlayerId: (s as any)?.currentPlayerId ?? null,
+        })
+      );
       renderGameState(s, state.myId);
     }
   });
@@ -388,9 +462,14 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(
     SPECIAL_CARD_EFFECT,
     async (payload: SpecialCardEffectPayload) => {
+      debugLog(
+        'SPECIAL_CARD_EFFECT',
+        debugSnapshot('SPECIAL_CARD_EFFECT', {
+          type: payload?.type ?? null,
+          value: payload?.value ?? null,
+        })
+      );
       console.log('[SPECIAL_CARD_EFFECT]', payload?.type);
-
-      if (safetyUnlockTimer) clearTimeout(safetyUnlockTimer);
 
       // Wait for any flying cards (just in case of race condition)
       await waitForFlyingCard();
@@ -398,6 +477,13 @@ export async function initializeSocketHandlers(): Promise<void> {
       // Ensure the queue finishes rendering the special card before showing the icon
       while (isProcessingQueue) {
         await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+
+      // Note: SPECIAL_CARD_EFFECT can arrive before the queue has scheduled the safety unlock.
+      // Clear it here after waiting so we don't force-unlock mid-animation.
+      if (safetyUnlockTimer) {
+        clearTimeout(safetyUnlockTimer);
+        safetyUnlockTimer = null;
       }
 
       let effectType = payload?.type ?? 'regular';
@@ -434,6 +520,12 @@ export async function initializeSocketHandlers(): Promise<void> {
 
       setTimeout(async () => {
         console.log('[ANIMATION END] Releasing buffers.');
+        debugLog(
+          'SPECIAL_CARD_EFFECT:END',
+          debugSnapshot('SPECIAL_CARD_EFFECT:END', {
+            type: effectType,
+          })
+        );
 
         if (effectType === 'ten' || effectType === 'four-of-a-kind') {
           const latestState = pendingStateUpdate ?? state.getLastGameState();
@@ -471,7 +563,21 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(
     PILE_PICKED_UP,
     (data: PilePickedUpPayload) => {
+      debugLog(
+        'PILE_PICKED_UP',
+        debugSnapshot('PILE_PICKED_UP', {
+          playerId: data.playerId ?? null,
+          pileSize: (data as any)?.pileSize ?? null,
+        })
+      );
       console.log('Pile picked up by:', data.playerId);
+
+      isAnimatingPilePickup = true;
+      cardsBeingAnimatedPlayerId = data.playerId ?? null;
+      if (pilePickupUnlockTimer) {
+        clearTimeout(pilePickupUnlockTimer);
+        pilePickupUnlockTimer = null;
+      }
 
       // Log the pile pickup
       const currentState = state.getLastGameState();
@@ -515,6 +621,7 @@ export async function initializeSocketHandlers(): Promise<void> {
         // actually exists in the latest state.
         const latestState = state.getLastGameState();
         if (!latestState?.pile?.length) {
+          finishPilePickupSequence();
           return;
         }
 
@@ -522,9 +629,13 @@ export async function initializeSocketHandlers(): Promise<void> {
         logPlayToDraw();
 
         // Ensure the drawn card becomes visible right after the flip animation ends.
-        setTimeout(() => {
+        if (pilePickupUnlockTimer) clearTimeout(pilePickupUnlockTimer);
+        pilePickupUnlockTimer = setTimeout(() => {
+          pilePickupUnlockTimer = null;
           const s = state.getLastGameState();
           if (s) renderGameState(s, state.myId);
+          pendingStateUpdate = null;
+          finishPilePickupSequence();
         }, DECK_TO_PILE_ANIMATION_MS + POST_FLIP_RENDER_BUFFER_MS);
       }, TAKE_PILE_BLANK_MS);
     }

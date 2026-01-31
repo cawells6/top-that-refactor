@@ -6,7 +6,7 @@ import type { Card, GameStateData } from '../../src/shared/types.js';
 const DEAL_INTERVAL_MS = 100;
 const FLIGHT_DURATION_MS = 600;
 const PHASE_PAUSE_MS = 400;
-const START_OVERLAY_AUTO_DISMISS_MS = 8000;
+const START_OVERLAY_AUTO_DISMISS_MS = 2500;
 const START_OVERLAY_FADE_MS = 180;
 
 export async function performOpeningDeal(
@@ -121,8 +121,8 @@ export async function performOpeningDeal(
     // FINAL COMMIT: This makes all cards "stick" and restores normal UI behavior
     renderGameState(gameState, myPlayerId, null, { skeletonMode: false });
 
-    // Wait an extra second so player sees final card land
-    await wait(1000);
+    // Small beat so the player sees the starter card land.
+    await wait(250);
 
     await showStartOverlay();
   } catch (err) {

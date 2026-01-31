@@ -82,6 +82,7 @@ import {
   GAME_STARTED,
   STATE_UPDATE,
   SPECIAL_CARD_EFFECT,
+  CARD_PLAYED,
   PILE_PICKED_UP,
   ERROR,
   SESSION_ERROR,
@@ -222,5 +223,126 @@ describe('socketService', () => {
     expect(state.setCurrentRoom).toHaveBeenCalledWith(null);
     expect(state.setMyId).toHaveBeenCalledWith(null);
     expect(state.saveSession).toHaveBeenCalled();
+  });
+
+  it('defers CARD_PLAYED processing during burn hold', async () => {
+    jest.useFakeTimers();
+
+    await initializeSocketHandlers();
+
+    const cardPlayedHandler = (state.socket.on as jest.Mock).mock.calls.find(
+      ([event]) => event === CARD_PLAYED
+    )[1] as (data: any) => void;
+    const specialEffectHandler = (state.socket.on as jest.Mock).mock.calls.find(
+      ([event]) => event === SPECIAL_CARD_EFFECT
+    )[1] as (payload: any) => Promise<void>;
+    const stateUpdateHandler = (state.socket.on as jest.Mock).mock.calls.find(
+      ([event]) => event === STATE_UPDATE
+    )[1] as (s: any) => void;
+
+    // Trigger a "10" play to enter special-effect mode.
+    cardPlayedHandler({
+      playerId: 'P1',
+      cards: [{ value: 10 }],
+    });
+    // Allow any queued processing (and bot-thinking delay if misclassified) to settle.
+    jest.advanceTimersByTime(450);
+    await Promise.resolve();
+
+    // Buffer a post-burn state so the effect end logic can detect an empty pile.
+    stateUpdateHandler({ started: true, pile: [], players: [] });
+
+    // Fire the "ten" effect and advance to the burn-hold window.
+    await specialEffectHandler({ type: 'ten', value: 'ten' });
+    jest.advanceTimersByTime(2000);
+    await Promise.resolve();
+
+    // During burn hold, new plays should queue but NOT start animating immediately.
+    const baselineAnimateCalls = (render.animateCardFromPlayer as jest.Mock).mock
+      .calls.length;
+    cardPlayedHandler({
+      playerId: 'P2',
+      cards: [{ value: 9 }],
+    });
+    await Promise.resolve();
+    expect((render.animateCardFromPlayer as jest.Mock).mock.calls.length).toBe(
+      baselineAnimateCalls
+    );
+
+    // Burn hold is 1000ms; CPU thinking delay is 450ms.
+    jest.advanceTimersByTime(999);
+    await Promise.resolve();
+    expect((render.animateCardFromPlayer as jest.Mock).mock.calls.length).toBe(
+      baselineAnimateCalls
+    );
+
+    jest.advanceTimersByTime(1 + 450);
+    await Promise.resolve();
+    expect((render.animateCardFromPlayer as jest.Mock).mock.calls.length).toBe(
+      baselineAnimateCalls + 1
+    );
+
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  it('buffers STATE_UPDATE during pile pickup blank+flip', async () => {
+    jest.useFakeTimers();
+
+    await initializeSocketHandlers();
+
+    const pilePickedUpHandler = (state.socket.on as jest.Mock).mock.calls.find(
+      ([event]) => event === PILE_PICKED_UP
+    )[1] as (data: any) => void;
+    const stateUpdateHandler = (state.socket.on as jest.Mock).mock.calls.find(
+      ([event]) => event === STATE_UPDATE
+    )[1] as (s: any) => void;
+
+    const initialState = {
+      started: true,
+      pile: [{ value: 9 }],
+      players: [],
+    } as any;
+    (state as any).lastGameState = initialState;
+
+    pilePickedUpHandler({ playerId: 'CPU', pileSize: 4 });
+    expect(render.showCardEvent).toHaveBeenCalledWith(null, 'take', 'CPU');
+
+    const callsAfterBlankRender = (render.renderGameState as jest.Mock).mock.calls
+      .length;
+    expect(callsAfterBlankRender).toBeGreaterThan(0);
+
+    const newState = {
+      started: true,
+      pile: [{ value: 3 }],
+      players: [],
+    } as any;
+    stateUpdateHandler(newState);
+
+    expect((render.renderGameState as jest.Mock).mock.calls.length).toBe(
+      callsAfterBlankRender
+    );
+
+    // Blank window is 1000ms; flip render happens after another ~550ms.
+    jest.advanceTimersByTime(999);
+    await Promise.resolve();
+    expect((render.renderGameState as jest.Mock).mock.calls.length).toBe(
+      callsAfterBlankRender
+    );
+
+    jest.advanceTimersByTime(1 + 549);
+    await Promise.resolve();
+    expect((render.renderGameState as jest.Mock).mock.calls.length).toBe(
+      callsAfterBlankRender
+    );
+
+    jest.advanceTimersByTime(1);
+    await Promise.resolve();
+    expect((render.renderGameState as jest.Mock).mock.calls.length).toBe(
+      callsAfterBlankRender + 1
+    );
+
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 });

@@ -52,6 +52,62 @@
   cursor: pointer;
 }
 
+/* --- Game start overlay (post-deal) --- */
+.game-start-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 14, 20, 0.55);
+  z-index: 1100; /* Above board + modals overlay */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.game-start-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.game-start-overlay.is-hiding {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.game-start-overlay__card {
+  background: rgba(27, 46, 60, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 18px 22px;
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+}
+
+.game-start-overlay__title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.game-start-overlay__hint {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+  color: var(--text);
+}
+
 /* Prevent page scroll when the rules modal is open to avoid dual scrollbars */
 body:has(#rules-modal:not(.modal--hidden)),
 html:has(#rules-modal:not(.modal--hidden)) {
