@@ -215,7 +215,7 @@ export default class GameState {
     return isValidPlay(cards, this.pile);
   }
 
-  public getSanitizedState(
+  public getPublicView(
     targetPlayerId: string,
     players: Player[]
   ): SanitizedClientState {
@@ -227,16 +227,17 @@ export default class GameState {
         ? this.players[this.currentPlayerIndex]
         : undefined;
 
-    const sanitizedPlayers: ClientStatePlayer[] = players.map(
+    const publicPlayers: ClientStatePlayer[] = players.map(
       (p): ClientStatePlayer => {
-        const isTarget = p.id === targetPlayerId;
+        const isSelf = p.id === targetPlayerId;
+        const canSeeHand = isSelf || p.isComputer;
 
         return {
           id: p.id,
           name: p.name,
           avatar: p.avatar,
           handCount: p.hand.length,
-          hand: isTarget ? p.hand.map((c) => ({ ...c })) : [],
+          hand: canSeeHand ? p.hand.map((c) => ({ ...c })) : [],
           upCards: p.upCards.map((c) => (c ? { ...c } : null)),
           upCount: p.getUpCardCount(),
           downCards: p.downCards.map(() => ({ value: '?', suit: '?', back: true })),
@@ -247,8 +248,8 @@ export default class GameState {
       }
     );
 
-    return {
-      players: sanitizedPlayers,
+    const publicState: SanitizedClientState = {
+      players: publicPlayers,
       pile: this.pile.map((c) => ({ ...c })),
       discardCount: this.discard.length,
       deckSize: this.deck?.length || 0,
@@ -257,5 +258,24 @@ export default class GameState {
       isStarting: this.isStarting,
       lastRealCard: this.lastRealCard ? { ...this.lastRealCard } : null,
     };
+
+    const violatingPlayer = publicState.players.find(
+      (p) =>
+        p.id !== targetPlayerId &&
+        !p.isComputer &&
+        Array.isArray(p.hand) &&
+        p.hand.length > 0
+    );
+    if (violatingPlayer) {
+      console.error(
+        `[PROTOCOL VIOLATION] getPublicView attempted to include hand for ${violatingPlayer.id} (target: ${targetPlayerId}). Scrubbing payload.`
+      );
+      publicState.players = publicState.players.map((p) => {
+        if (p.id === targetPlayerId || p.isComputer) return p;
+        return { ...p, hand: [] };
+      });
+    }
+
+    return publicState;
   }
 }

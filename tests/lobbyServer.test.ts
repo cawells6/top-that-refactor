@@ -148,7 +148,7 @@ describe('Lobby joining edge cases', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({ success: false, error: 'Invalid join payload: please provide a name.' });
+    expect(ackData).toEqual({ success: false, error: 'Name is required.' });
   });
 
   test('joining with duplicate id does not create new player', () => {
@@ -226,7 +226,7 @@ describe('Lobby joining edge cases', () => {
         ackData = res;
       }
     );
-    expect(ackData).toEqual({ success: false, error: 'Invalid join payload: please provide a name.' });
+    expect(ackData).toEqual({ success: false, error: 'Name is required.' });
   });
 
   test('player can leave and rejoin, lobby state updates', () => {

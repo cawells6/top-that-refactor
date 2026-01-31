@@ -33,6 +33,7 @@ import {
   JoinGameResponse,
   RejoinData,
 } from '../src/shared/types.js';
+import { validateJoinPayload } from '../src/shared/validation.js';
 import { handleSpecialCard } from '../utils/CardLogic.js';
 import { isSpecialCard, normalizeCardValue } from '../utils/cardUtils.js';
 
@@ -539,13 +540,13 @@ export default class GameController {
     const isHostJoining = this.players.size === 0;
     const isSpectator = playerData.spectator === true;
 
-    // --- Payload validation (always require a name) ---
-    if (
-      typeof playerData.playerName !== 'string' ||
-      !playerData.playerName.trim()
-    ) {
+    const validation = validateJoinPayload(playerData);
+    if (!validation.isValid) {
       if (typeof ack === 'function') {
-        ack({ success: false, error: 'Invalid join payload: please provide a name.' });
+        ack({
+          success: false,
+          error: validation.error || 'Invalid join payload.',
+        });
       }
       return;
     }
@@ -1969,20 +1970,10 @@ export default class GameController {
       if (!socket) continue;
 
       const targetPlayerId = playerInstance.id;
-      const personalizedState = this.gameState.getSanitizedState(
+      const personalizedState = this.gameState.getPublicView(
         targetPlayerId,
         orderedActivePlayers
       );
-
-      const violatingPlayer = personalizedState.players.find(
-        (p) => p.id !== targetPlayerId && Array.isArray(p.hand) && p.hand.length > 0
-      );
-      if (violatingPlayer) {
-        console.error(
-          `[PROTOCOL VIOLATION][Room ${this.roomId}] Refusing to emit STATE_UPDATE to ${targetPlayerId}: payload contains hand for ${violatingPlayer.id}.`
-        );
-        return;
-      }
 
       this.io.to(targetPlayerId).emit(STATE_UPDATE, personalizedState);
     }
