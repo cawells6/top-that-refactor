@@ -20,7 +20,7 @@
 | **7** | **Centralize public state projection** | ✅ **Done** | `GameController.pushState` manually masks cards. Logic not yet moved to `GameState.getPublicView`. |
 | **8** | **Persistent playerId for rejoin** | ✅ **Done** | `socketService.ts` persists session. `GameController` handles `REJOIN` event successfully. |
 | **9** | **Graceful shutdown on mass disconnect** | ✅ **Done** | `GameController.handleDisconnect` now starts a 30s timer when the last human leaves. `handleRejoin` cancels it. |
-| **10** | **Room lifecycle destroy hook** | ❌ **Pending** | `GameRoomManager` deletes rooms directly. Needs `destroy()` method for cleanup. |
+| **10** | **Room lifecycle destroy hook** | 🚧 **In Progress** | `destroy()` methods added to `GameController` and `GameRoomManager` to clean up timers and socket listeners. |
 | **11** | **Extract bot logic to BotService** | ❌ **Pending** | Bot logic is still coupled inside `GameController.ts` methods. |
 
 ## 🛠️ Phase 3: Standardization & UX

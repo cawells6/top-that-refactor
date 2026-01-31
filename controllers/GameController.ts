@@ -77,12 +77,12 @@ export class GameRoomManager {
     this.rooms = new Map();
     this.io.on('connection', (socket: Socket) => {
       const typedSocket = socket as unknown as TypedSocket;
-      serverLog(`[SERVER] Socket connected: ${socket.id}`);
+      this.log(`[SERVER] Socket connected: ${socket.id}`);
 
       typedSocket.on(
         JOIN_GAME,
         (playerData: JoinGamePayload, ack?: (response: JoinGameResponse) => void) => {
-          serverLog(
+          this.log(
             `[SERVER] Received JOIN_GAME from ${socket.id}:`,
             playerData
           );
@@ -130,8 +130,8 @@ export class GameRoomManager {
 
         if (!controller.isGameStarted() && inactiveMs > EMPTY_TIMEOUT_MS) {
           const inactiveMinutes = Math.floor(inactiveMs / MS_PER_MINUTE);
-          console.log(
-            `[GameRoomManager] Cleaning up empty room ${roomId} (Inactive for ${inactiveMinutes} min)`
+          this.log(
+            `Cleaning up empty room ${roomId} (Inactive for ${inactiveMinutes} min)`
           );
           this.rooms.delete(roomId);
           continue;
@@ -139,23 +139,30 @@ export class GameRoomManager {
 
         if (inactiveMs > STALE_TIMEOUT_MS) {
           const inactiveMinutes = Math.floor(inactiveMs / MS_PER_MINUTE);
-          console.log(
-            `[GameRoomManager] Cleaning up stale room ${roomId} (Inactive for ${inactiveMinutes} min)`
+          this.log(
+            `Cleaning up stale room ${roomId} (Inactive for ${inactiveMinutes} min)`
           );
-
-          const maybeDestroy = controller as unknown as { destroy?: () => void };
-          maybeDestroy.destroy?.();
-
+          controller.destroy();
           this.rooms.delete(roomId);
         }
       }
     }, ROOM_CLEANUP_INTERVAL_MS);
   }
 
+  private log(...args: unknown[]): void {
+    if (!SERVER_LOGS_ENABLED) return;
+    console.log('[GameRoomManager]', ...args);
+  }
+
   public destroy(): void {
+    this.log('Destroying GameRoomManager. All rooms will be destroyed.');
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
     }
+    for (const controller of this.rooms.values()) {
+      controller.destroy();
+    }
+    this.rooms.clear();
   }
 
   private handleClientJoinGame(
@@ -165,7 +172,7 @@ export class GameRoomManager {
       response: JoinGameResponse
     ) => void
   ): void {
-    serverLog(
+    this.log(
       `[SERVER] Processing JOIN_GAME for socket ${socket.id}, data:`,
       playerData
     );
@@ -179,11 +186,11 @@ export class GameRoomManager {
     if (roomId) {
       controller = this.rooms.get(roomId);
       if (!controller) {
-        serverLog(
+        this.log(
           `[SERVER] Room ${roomId} not found for JOIN_GAME from ${socket.id}`
         );
         if (typeof ack === 'function') {
-          serverLog(
+          this.log(
             `[SERVER] Sending error response to ${socket.id}: Room not found`
           );
           ack({ success: false, error: 'Room not found.' });
@@ -195,7 +202,7 @@ export class GameRoomManager {
 
     if (!controller) {
       roomId = this.generateRoomId();
-      serverLog(
+      this.log(
         `[SERVER] Creating new room ${roomId} for JOIN_GAME from ${socket.id}`
       );
       controller = new GameController(this.io, roomId);
@@ -205,7 +212,7 @@ export class GameRoomManager {
     // Pass through join payload as-is so the client can supply a persistent
     // player id for refresh/reconnect session takeover flows.
     const joinData = { ...playerData };
-    serverLog(
+    this.log(
       `[SERVER] Calling publicHandleJoin for room ${roomId}, socket ${socket.id}`
     );
     controller.publicHandleJoin(socket, joinData, ack);
@@ -1814,6 +1821,23 @@ export default class GameController {
     this.gameTimeouts.add(timeoutId);
   }
 
+  public destroy(): void {
+    this.log(`Destroying room ${this.roomId}.`);
+
+    // Notify players and clean up listeners
+    this.players.forEach(player => {
+        if (player.socketId) {
+            const socket = this.io.sockets.sockets.get(player.socketId);
+            if (socket) {
+                socket.emit(SESSION_ERROR, 'The game room was closed by the server.');
+                socket.leave(this.roomId);
+            }
+        }
+    });
+    
+    this.clearAllTimeouts();
+  }
+
   private clearAllTimeouts(): void {
     this.gameTimeouts.forEach((id) => clearTimeout(id));
     this.gameTimeouts.clear();
@@ -1827,6 +1851,11 @@ export default class GameController {
       this.transitionTimeout = null;
     }
     this.isTurnTransitioning = false;
+
+    if (this.shutdownTimer) {
+      clearTimeout(this.shutdownTimer);
+      this.shutdownTimer = null;
+    }
   }
 
   private findBestPlayForComputer(
