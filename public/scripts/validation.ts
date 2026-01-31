@@ -1,4 +1,5 @@
-export { validateJoinPayload } from '../../src/shared/validation.js';
+import { validateJoinPayload } from '../../src/shared/validation.js';
+export { validateJoinPayload };
 
 export function displayValidationErrors(error: string) {
    const errorEl = document.getElementById('lobby-error');
