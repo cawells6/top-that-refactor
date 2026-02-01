@@ -1,5 +1,7 @@
 import { performOpeningDeal } from './dealing-animation.js';
 import { waitForTestContinue } from './manualMode.js';
+import { OpeningDealCoordinator } from './coordinators/OpeningDealCoordinator.js';
+import { timing } from './diagnostics.js';
 import {
   animateCardFromPlayer,
   animateDeckToPlayPile,
@@ -70,11 +72,9 @@ let isAnimatingPilePickup = false;
 let lockedSpecialEffectState: GameStateData | null = null;
 let pendingStateUpdate: GameStateData | null = null;
 let cardsBeingAnimatedPlayerId: string | null = null;
-// Track if we've dealt the opening hand to avoid re-triggering animation
-// Reset this when switching games (dev restart)
-let hasDealtOpeningHand = false;
-// Used to skip the deck-to-play animation right after the opening deal (Phase D already animates it)
-let hasPlayedOpeningDeal = false;
+
+// Coordinator for opening deal sequence (extracted to reduce god file complexity)
+const openingDealCoordinator = new OpeningDealCoordinator();
 
 interface QueuedPlay {
   cards: Card[];
@@ -171,7 +171,7 @@ export async function initializeSocketHandlers(): Promise<void> {
 
   // Reset animation flag when disconnecting (for dev restart)
   state.socket.on('disconnect', () => {
-    hasDealtOpeningHand = false;
+    openingDealCoordinator.reset();
     // Ensure any pending animations are cleared on disconnect to avoid stuck UI.
     try {
       clearAnimationQueue();
@@ -243,59 +243,13 @@ export async function initializeSocketHandlers(): Promise<void> {
       showGameTable();
     }
 
-    // DETECT FRESH GAME START and trigger opening deal animation once
-    // We rely on hasDealtOpeningHand flag to run this only once per session
-    const players = s.players ?? [];
-    if (s.started && !hasDealtOpeningHand && players.length > 0) {
-      // Check if this looks like a fresh deal (all players have cards)
-      const looksLikeFreshDeal = players.every(
-        (p) =>
-          (p.handCount || 0) > 0 &&
-          (p.downCount || 0) === 3 &&
-          (p.upCards?.length || 0) === 3
-      );
-
-      if (looksLikeFreshDeal) {
-        hasDealtOpeningHand = true;
-
-        // 1. Clear any existing cards from the table
-        const gameTable = document.getElementById('game-table');
-        if (gameTable) {
-          // Clear all player areas
-          const playerAreas = gameTable.querySelectorAll('.player-area');
-          playerAreas.forEach((area) => {
-            const handRow = area.querySelector('.hand-row');
-            const stackRow = area.querySelector('.stack-row');
-            if (handRow) handRow.innerHTML = '';
-            if (stackRow) {
-              stackRow.querySelectorAll('.stack-col').forEach((col) => {
-                col.innerHTML = '';
-              });
-            }
-          });
-
-          // Note: Don't hide discard-pile container - it needs to show placeholder during skeleton mode
-        }
-
-        // 2. Render skeleton (shows slots/names, hides cards and icons)
-        renderGameState(s, state.myId, null, { skeletonMode: true });
-
-        // Hide special card icons in skeleton mode
-        document.querySelectorAll('.card-ability-icon').forEach((icon) => {
-          (icon as HTMLElement).style.visibility = 'hidden';
-        });
-
-        // 3. Play the dealing animation
-        await performOpeningDeal(s, state.myId || '');
-        hasPlayedOpeningDeal = true; // Mark that opening deal has been shown
-
-        // 4. Render normal (shows everything and restore icon visibility)
-        document.querySelectorAll('.card-ability-icon').forEach((icon) => {
-          (icon as HTMLElement).style.visibility = 'visible';
-        });
-        renderGameState(s, state.myId);
-        return;
-      }
+    // Delegate opening deal detection and animation to coordinator
+    const openingDealTriggered = await openingDealCoordinator.handleStateUpdate(
+      s,
+      state.myId
+    );
+    if (openingDealTriggered) {
+      return; // Coordinator already rendered the state
     }
 
     // Buffer the update if the animation subsystem reports it's busy.
@@ -333,6 +287,8 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(
     SPECIAL_CARD_EFFECT,
     async (payload: SpecialCardEffectPayload) => {
+      timing.log('SPECIAL_CARD_EFFECT received', { type: payload?.type, value: payload?.value });
+      
       debugLog(
         'SPECIAL_CARD_EFFECT',
         debugSnapshot('SPECIAL_CARD_EFFECT', {
@@ -374,6 +330,7 @@ export async function initializeSocketHandlers(): Promise<void> {
       // Log the special effect
       logSpecialEffect(effectType, payload?.value);
 
+      timing.log('Showing card event icon', { effectType });
       setTimeout(() => {
         showCardEvent(payload?.value ?? null, effectType);
       }, 50);
@@ -394,6 +351,7 @@ export async function initializeSocketHandlers(): Promise<void> {
       }
 
       setTimeout(async () => {
+        timing.log('ANIMATION_DELAY_MS expired', { effectType, delay: ANIMATION_DELAY_MS });
         console.log('[ANIMATION END] Releasing buffers.');
         debugLog(
           'SPECIAL_CARD_EFFECT:END',
@@ -419,7 +377,9 @@ export async function initializeSocketHandlers(): Promise<void> {
             );
 
             // Schedule the burn hold via animationQueue helper so timers are centralized.
+            timing.log('Scheduling burn hold', { delay: BURN_TURN_HOLD_MS });
             aqScheduleBurnHold(async () => {
+              timing.log('BURN_TURN_HOLD_MS expired, finishing sequence');
               aqFinishAnimationSequence();
               await waitForTestContinue();
             });
@@ -428,6 +388,7 @@ export async function initializeSocketHandlers(): Promise<void> {
           }
         }
 
+        timing.log('Finishing animation sequence (non-burn)');
         aqFinishAnimationSequence();
         await waitForTestContinue();
       }, ANIMATION_DELAY_MS);
@@ -437,6 +398,8 @@ export async function initializeSocketHandlers(): Promise<void> {
   state.socket.on(
     PILE_PICKED_UP,
     (data: PilePickedUpPayload) => {
+      timing.log('PILE_PICKED_UP received', { playerId: data.playerId, pileSize: data.pileSize });
+      
       debugLog(
         'PILE_PICKED_UP',
         debugSnapshot('PILE_PICKED_UP', {
@@ -464,17 +427,22 @@ export async function initializeSocketHandlers(): Promise<void> {
 
       // Skip the deck-to-play animation if we just finished the opening deal
       // (the opening deal already includes this animation in Phase D)
-      if (hasPlayedOpeningDeal) {
-        hasPlayedOpeningDeal = false; // Reset flag for future games
+      if (openingDealCoordinator.shouldSkipDeckAnimation()) {
+        timing.log('Skipping deck animation (post-opening-deal)');
         // Only log the flip if the pile actually has a new top card.
         const latestState = state.getLastGameState();
         if (latestState?.pile?.length) {
           logPlayToDraw();
         }
+        // CRITICAL: Must finish pile pickup sequence before returning
+        // or animation queue stays stuck
+        timing.log('Finishing pile pickup (skipped deck animation)');
+        aqFinishPilePickupSequence();
         return;
       }
 
       // Show the pile empty briefly before the deck flip animation.
+      timing.log('Starting blank pile animation', { duration: TAKE_PILE_BLANK_MS });
       blankDrawPileFor(
         TAKE_PILE_BLANK_MS +
           DECK_TO_PILE_ANIMATION_MS +
@@ -487,22 +455,27 @@ export async function initializeSocketHandlers(): Promise<void> {
 
       // Animate card from deck to play pile after a short "blank" beat.
       setTimeout(() => {
+        timing.log('Blank animation complete, checking for deck flip');
         // Guard: when the "Play" pile (deck) is empty, some late-game flows can
         // still emit PILE_PICKED_UP. Only animate/log the flip if a new pile top
         // actually exists in the latest state.
         const latestState = state.getLastGameState();
         if (!latestState?.pile?.length) {
+          timing.log('No pile to flip to, finishing pile pickup');
           aqFinishPilePickupSequence();
           return;
         }
 
+        timing.log('Animating deck to play pile');
         animateDeckToPlayPile();
         logPlayToDraw();
 
         setTimeout(() => {
+          timing.log('Deck flip animation complete');
           const s = state.getLastGameState();
           if (s) renderGameState(s, state.myId);
           // Let animationQueue know pickup finished
+          timing.log('Finishing pile pickup sequence (normal path)');
           aqFinishPilePickupSequence();
         }, DECK_TO_PILE_ANIMATION_MS + POST_FLIP_RENDER_BUFFER_MS);
       }, TAKE_PILE_BLANK_MS);
