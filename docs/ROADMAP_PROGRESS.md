@@ -40,3 +40,14 @@
 | **19** | **GameController unit tests** | 🚧 **Partial** | Some tests exist in `tests/`, but coverage for edge cases is incomplete. |
 | **20** | **Mid-game rejoin tests** | ❌ **Pending** | Integration tests exist but do not explicitly cover mid-game disconnect/reconnect flows. |
 | **21** | **Build output runnable server** | ❌ **Pending** | `tsconfig.build.json` exists but build output verification is needed. |
+
+## Refactor Regression List (Fix after refactor)
+Added: 2026-02-01 (regressions noticed, exact change point unknown)
+
+- Player hand cards: too close to section above; when raised they get cut off (needs more vertical space / safe area).
+- CPU hand cards: displayed separated instead of fanned like the player's hand.
+- Draw/pickup animation: when player/CPU take cards from the pile, cards should flow to the correct destination:
+  - If playing from hand, flow to the table play area from the hand.
+  - If playing from up/down cards, flow from that stack to the table play area.
+- Special cards: not working correctly (suspected timing/sequence issue; verify animations vs server state transitions).
+- Up/down play removal: when CPU plays an up/down card, it doesn't remove that card and reflect it correctly; may also affect player (needs observation/verification).
