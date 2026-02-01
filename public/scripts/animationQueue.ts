@@ -87,6 +87,15 @@ async function processPlayQueue() {
   if (isProcessingQueue || isAnimatingSpecialEffect || isAnimatingPilePickup) return;
   isProcessingQueue = true;
 
+  console.log('[AnimationQueue] processPlayQueue starting', {
+    queueLength: playQueue.length,
+    firstCardInQueue: playQueue[0] ? {
+      cardCount: playQueue[0].cards.length,
+      topCard: playQueue[0].cards[playQueue[0].cards.length - 1]?.value,
+      playerId: playQueue[0].playerId
+    } : null
+  });
+
   while (playQueue.length > 0) {
     const play = playQueue[0];
 
@@ -134,6 +143,14 @@ export function finishAnimationSequence() {
   cardsBeingAnimatedPlayerId = null;
   isAnimatingSpecialEffect = false;
   lockedSpecialEffectState = null;
+  
+  console.log('[AnimationQueue] finishAnimationSequence called', {
+    queueLength: playQueue.length,
+    hasSafetyTimer: Boolean(safetyUnlockTimer),
+    hasBurnTimer: Boolean(burnHoldTimer),
+    pendingState: Boolean(pendingStateUpdate)
+  });
+  
   debugLog('finishAnimationSequence', debugSnapshot('finishAnimationSequence'));
 
   if (safetyUnlockTimer) {

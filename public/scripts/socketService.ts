@@ -301,10 +301,10 @@ export async function initializeSocketHandlers(): Promise<void> {
       // Wait for any flying cards (just in case of race condition)
       await waitForFlyingCard();
 
-      // Ensure the animation queue finishes rendering the special card before showing the icon
-      while (aqIsBusy()) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
+      // Note: We don't wait for aqIsBusy() here because the animation queue
+      // is already handling this special card (it set isAnimatingSpecialEffect=true).
+      // Waiting would cause an 11-second timeout since the queue is busy BY DESIGN
+      // until this handler calls finishAnimationSequence().
 
       // Note: SPECIAL_CARD_EFFECT can arrive before the queue has scheduled the safety unlock.
       // Clear it here so the animation queue manages unlock timers.
