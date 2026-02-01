@@ -47,6 +47,9 @@ import {
   TAKE_PILE_BLANK_MS,
   DECK_TO_PILE_ANIMATION_MS,
   POST_FLIP_RENDER_BUFFER_MS,
+  TURN_TRANSITION_DELAY_MS,
+  CPU_TURN_DELAY_MS,
+  CPU_SPECIAL_DELAY_MS,
 } from '../src/shared/constants.ts';
 
 const SERVER_LOGS_ENABLED =
@@ -262,10 +265,10 @@ export default class GameController {
   // Transition State Management
   private isTurnTransitioning: boolean = false;
   private transitionTimeout: NodeJS.Timeout | null = null;
-  private readonly turnTransitionDelayMs = 400; // The requested 400ms delay
+  private readonly turnTransitionDelayMs = TURN_TRANSITION_DELAY_MS;
 
-  private readonly cpuTurnDelayMs = 2000;
-  private readonly cpuSpecialDelayMs = 3000;
+  private readonly cpuTurnDelayMs = CPU_TURN_DELAY_MS;
+  private readonly cpuSpecialDelayMs = CPU_SPECIAL_DELAY_MS;
 
   public hasConnectedClients(): boolean {
     return Array.from(this.players.values()).some(
