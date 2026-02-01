@@ -31,7 +31,7 @@
 | **14** | **Show server error text in-game** | ✅ **Done** | `socketService.ts` listens for `ERROR` event and displays toast/visual feedback. |
 | **15** | **Explicit burn feedback** | ❌ **Pending** | Server forces pickup on invalid play but doesn't emit specific "Burn" payload with revealed cards. |
 | **16** | **Network Bandwidth (Quick Win)** | ❌ **Pending** | `pushState` sends full pile history. Optimization to send only `topCard + count` is missing. |
-| **17** | **Break up client god files** | 🚧 **Partial** | Some UI logic extracted, but `socketService.ts` still contains render logic. |
+| **17** | **Break up client god files** | ✅ **Done** | Opening deal logic extracted to `OpeningDealCoordinator`. Render calls intentionally kept in socketService as part of animation sequences. |
 
 ## 🧪 Phase 4: Testing & Deployment
 | # | Task | Status | Code Verification Notes |
