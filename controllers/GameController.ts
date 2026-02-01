@@ -39,6 +39,18 @@ import { isSpecialCard, normalizeCardValue } from '../utils/cardUtils.js';
 import { IBotStrategy } from '../services/bot/IBotStrategy.js';
 import { DefaultBotStrategy } from '../services/bot/DefaultBotStrategy.js';
 import { BotAction } from '../services/bot/types.js';
+import {
+  ROOM_CLEANUP_INTERVAL_MS,
+  STALE_TIMEOUT_MS,
+  EMPTY_TIMEOUT_MS,
+  SHUTDOWN_GRACE_PERIOD_MS,
+  TAKE_PILE_BLANK_MS,
+  DECK_TO_PILE_ANIMATION_MS,
+  POST_FLIP_RENDER_BUFFER_MS,
+  TURN_TRANSITION_DELAY_MS,
+  CPU_TURN_DELAY_MS,
+  CPU_SPECIAL_DELAY_MS,
+} from '../src/shared/constants.ts';
 
 const SERVER_LOGS_ENABLED =
   process.env.TOPTHAT_VERBOSE === '1' ||
@@ -50,10 +62,6 @@ function serverLog(...args: unknown[]): void {
 }
 
 const MS_PER_MINUTE = 60 * 1000;
-const ROOM_CLEANUP_INTERVAL_MS = 60 * 1000;
-const STALE_TIMEOUT_MS = 30 * MS_PER_MINUTE;
-const EMPTY_TIMEOUT_MS = 5 * MS_PER_MINUTE;
-const GRACE_PERIOD_MS = 30000;
 
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -257,10 +265,10 @@ export default class GameController {
   // Transition State Management
   private isTurnTransitioning: boolean = false;
   private transitionTimeout: NodeJS.Timeout | null = null;
-  private readonly turnTransitionDelayMs = 400; // The requested 400ms delay
+  private readonly turnTransitionDelayMs = TURN_TRANSITION_DELAY_MS;
 
-  private readonly cpuTurnDelayMs = 2000;
-  private readonly cpuSpecialDelayMs = 3000;
+  private readonly cpuTurnDelayMs = CPU_TURN_DELAY_MS;
+  private readonly cpuSpecialDelayMs = CPU_SPECIAL_DELAY_MS;
 
   public hasConnectedClients(): boolean {
     return Array.from(this.players.values()).some(
@@ -1338,8 +1346,10 @@ export default class GameController {
         });
         this.log(`Invalid ${zone} play by ${player.id}. Forced pickup.`);
 
-        // Trigger turn transition
-        this.processTurnTransition(1600);
+        // Trigger turn transition (allow clients to animate pickup/flip)
+        this.processTurnTransition(
+          TAKE_PILE_BLANK_MS + DECK_TO_PILE_ANIMATION_MS + POST_FLIP_RENDER_BUFFER_MS
+        );
         return;
       }
 
@@ -1568,7 +1578,9 @@ export default class GameController {
 
     // Process transition with longer delay after pile pickup so clients can see the
     // blank beat + deck flip animation before the next player highlight.
-    this.processTurnTransition(1600);
+    this.processTurnTransition(
+      TAKE_PILE_BLANK_MS + DECK_TO_PILE_ANIMATION_MS + POST_FLIP_RENDER_BUFFER_MS
+    );
   }
 
   private hasValidPlay(player: Player, zone: 'hand' | 'upCards'): boolean {
@@ -1884,7 +1896,7 @@ export default class GameController {
             this.gameState.endGameInstance();
             this.pushState(); // Notify clients the game has ended
             this.shutdownTimer = null;
-          }, GRACE_PERIOD_MS);
+          }, SHUTDOWN_GRACE_PERIOD_MS);
         } else if (
           this.gameState.started &&
           playerId === this.gameState.players[this.gameState.currentPlayerIndex]

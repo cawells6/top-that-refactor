@@ -2,12 +2,13 @@ import { cardImg, renderGameState } from './render.js';
 import { SoundManager } from './SoundManager.js';
 import { ANIMATIONS_COMPLETE } from '../../src/shared/events.js';
 import type { Card, GameStateData } from '../../src/shared/types.js';
-
-const DEAL_INTERVAL_MS = 100;
-const FLIGHT_DURATION_MS = 600;
-const PHASE_PAUSE_MS = 400;
-const START_OVERLAY_AUTO_DISMISS_MS = 2500;
-const START_OVERLAY_FADE_MS = 180;
+import {
+  DEAL_INTERVAL_MS,
+  FLIGHT_DURATION_MS,
+  PHASE_PAUSE_MS,
+  START_OVERLAY_AUTO_DISMISS_MS,
+  START_OVERLAY_FADE_MS,
+} from '../../src/shared/constants.js';
 
 export async function performOpeningDeal(
   gameState: GameStateData,

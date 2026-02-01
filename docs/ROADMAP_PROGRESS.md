@@ -27,7 +27,7 @@
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
 | **12** | **Dedupe isValidPlay** | ✅ **Done** | Logic centralized in `utils/cardUtils.ts`. Client-side (`public/scripts/render.ts`) now correctly imports and re-exports this function, ensuring both Client and Server use the same code. |
-| **13** | **Centralize timing constants** | ❌ **Pending** | Magic numbers (`400`, `2000`) exist in `GameController.ts` and `socketService.ts`. |
+| **13** | **Centralize timing constants** | ✅ **Done** | All timing constants centralized in `src/shared/constants.ts` and imported across client/server. |
 | **14** | **Show server error text in-game** | ✅ **Done** | `socketService.ts` listens for `ERROR` event and displays toast/visual feedback. |
 | **15** | **Explicit burn feedback** | ❌ **Pending** | Server forces pickup on invalid play but doesn't emit specific "Burn" payload with revealed cards. |
 | **16** | **Network Bandwidth (Quick Win)** | ❌ **Pending** | `pushState` sends full pile history. Optimization to send only `topCard + count` is missing. |
