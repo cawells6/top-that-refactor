@@ -350,6 +350,38 @@ export async function initializeSocketHandlers(): Promise<void> {
         })();
       }
 
+      // For burn effects (10 or 4-of-a-kind), skip the animation delay and go straight to burn hold
+      // to avoid compound delays (ANIMATION_DELAY_MS + BURN_TURN_HOLD_MS)
+      if (effectType === 'ten' || effectType === 'four-of-a-kind') {
+        timing.log('Burn effect detected, skipping animation delay');
+        const latestState = (await import('./animationQueue.js')).getPendingStateUpdate() ?? state.getLastGameState();
+        const holdPlayerId = (await import('./animationQueue.js')).getCardsBeingAnimatedPlayerId();
+
+        if (
+          latestState &&
+          holdPlayerId &&
+          (latestState.pile?.length ?? 0) === 0
+        ) {
+          // Show the burned pile (empty) immediately, but hold the turn highlight briefly
+          // so the burn state reads clearly before the next player is highlighted.
+          renderGameState(
+            { ...latestState, currentPlayerId: holdPlayerId },
+            state.myId
+          );
+
+          // Schedule the burn hold via animationQueue helper so timers are centralized.
+          timing.log('Scheduling burn hold', { delay: BURN_TURN_HOLD_MS });
+          aqScheduleBurnHold(async () => {
+            timing.log('BURN_TURN_HOLD_MS expired, finishing sequence');
+            aqFinishAnimationSequence();
+            await waitForTestContinue();
+          });
+
+          return;
+        }
+      }
+
+      // For non-burn effects, use the standard animation delay for card icons
       setTimeout(async () => {
         timing.log('ANIMATION_DELAY_MS expired', { effectType, delay: ANIMATION_DELAY_MS });
         console.log('[ANIMATION END] Releasing buffers.');
@@ -359,34 +391,6 @@ export async function initializeSocketHandlers(): Promise<void> {
             type: effectType,
           })
         );
-
-        if (effectType === 'ten' || effectType === 'four-of-a-kind') {
-          const latestState = (await import('./animationQueue.js')).getPendingStateUpdate() ?? state.getLastGameState();
-          const holdPlayerId = (await import('./animationQueue.js')).getCardsBeingAnimatedPlayerId();
-
-          if (
-            latestState &&
-            holdPlayerId &&
-            (latestState.pile?.length ?? 0) === 0
-          ) {
-            // Show the burned pile (empty) immediately, but hold the turn highlight briefly
-            // so the burn state reads clearly before the next player is highlighted.
-            renderGameState(
-              { ...latestState, currentPlayerId: holdPlayerId },
-              state.myId
-            );
-
-            // Schedule the burn hold via animationQueue helper so timers are centralized.
-            timing.log('Scheduling burn hold', { delay: BURN_TURN_HOLD_MS });
-            aqScheduleBurnHold(async () => {
-              timing.log('BURN_TURN_HOLD_MS expired, finishing sequence');
-              aqFinishAnimationSequence();
-              await waitForTestContinue();
-            });
-
-            return;
-          }
-        }
 
         timing.log('Finishing animation sequence (non-burn)');
         aqFinishAnimationSequence();
