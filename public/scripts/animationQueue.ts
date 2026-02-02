@@ -59,6 +59,10 @@ export function isBusy(): boolean {
   );
 }
 
+export function isAnimatingSpecialEffectActive(): boolean {
+  return isAnimatingSpecialEffect;
+}
+
 export function getLockedSpecialEffectState() {
   return lockedSpecialEffectState;
 }

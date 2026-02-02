@@ -3,16 +3,25 @@ import { GamePage } from '../pages/GamePage';
 import { waitForAnimationsToFinish } from './e2eUtils';
 import { normalizeCardValue, rank, isValidPlay } from '../../utils/cardUtils';
 
+function cardKey(card: any): string {
+    const value = normalizeCardValue(card?.value) ?? String(card?.value ?? '');
+    const suit = String(card?.suit ?? '');
+    return `${value}:${suit}`;
+}
+
 export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix: string = '[Bot]') {
     // 1. Wait for stability before reading state
-    await waitForAnimationsToFinish(page);
+    await waitForAnimationsToFinish(page, { requireStableState: true });
 
     // 2. Get State
     const state = await gamePage.getGameState();
     if (!state) return;
 
-    // Correctly extract hand from GameStateData
-    const myPlayer = state.players.find(p => p.id === state.currentPlayerId);
+    const myId = await gamePage.getMyId();
+    if (!myId) return;
+
+    const myPlayer = state.players.find(p => p.id === myId);
+    if (!myPlayer) return;
     const hand = myPlayer?.hand || [];
     const upCards = myPlayer?.upCards || [];
     const downCards = myPlayer?.downCards || [];
@@ -115,12 +124,36 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
     if (bestCards.length > 0) {
         console.log(`${turnLogPrefix} Bot playing [${actionZone}] ${bestCards.length}x ${bestCards[0].value || '?'} (Indices: ${indicesToSelect.join(',')})`);
 
+        const strictAnimations = process.env.STRICT_ANIMATIONS !== '0';
+
+        const prevPileCount = pile.length;
+        const prevCurrentPlayerId = state.currentPlayerId;
+        const prevUpNonNullCount = upCards.filter(c => c !== null).length;
+        const prevDownNonNullCount = downCards.filter(c => c !== null).length;
+        const selectedHandKeys =
+            actionZone === 'hand'
+                ? indicesToSelect
+                    .map((idx) => hand[idx])
+                    .filter(Boolean)
+                    .map(cardKey)
+                : [];
+
         if (actionZone === 'hand') {
             await gamePage.selectCards(indicesToSelect);
-            await gamePage.playCards();
+            await Promise.all([
+                strictAnimations
+                    ? page.waitForSelector('.flying-card-ghost', { timeout: 2000 })
+                    : Promise.resolve(null),
+                gamePage.playCards(),
+            ]);
         } else if (actionZone === 'up') {
             await gamePage.selectUpCard(indicesToSelect[0]);
-            await gamePage.playCards();
+            await Promise.all([
+                strictAnimations
+                    ? page.waitForSelector('.flying-card-ghost', { timeout: 2000 })
+                    : Promise.resolve(null),
+                gamePage.playCards(),
+            ]);
         } else if (actionZone === 'down') {
             await gamePage.selectDownCard(indicesToSelect[0]);
             // For down cards, clicking it might auto-play or just reveal?
@@ -132,13 +165,47 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
             await gamePage.playCards();
         }
 
-        // Assert Animation
-        try {
-            await expect(page.locator('.flying-card, .flying-card-ghost').first()).toBeVisible({ timeout: 2000 });
-        } catch(e) {
-            // Ignore
-        }
         await waitForAnimationsToFinish(page);
+
+        // Down-card plays can succeed (pile/turn changes) or fail and force pickup.
+        // Assert a meaningful state transition rather than a single rigid outcome.
+        await expect.poll(async () => {
+            const newState = await gamePage.getGameState();
+            if (!newState) return false;
+            const newMe = newState.players.find(p => p.id === myId);
+            if (!newMe) return false;
+
+            if (actionZone === 'hand') {
+                // Hand size may stay constant due to draw-to-refill.
+                // Assert the specific selected card(s) are no longer in hand and turn/pile advanced.
+                const newHandKeys = (newMe.hand || []).map(cardKey);
+                const removed = selectedHandKeys.every((k) => !newHandKeys.includes(k));
+                return (
+                    removed &&
+                    (newState.pile || []).length !== prevPileCount &&
+                    newState.currentPlayerId !== prevCurrentPlayerId
+                );
+            }
+
+            if (actionZone === 'up') {
+                const newUpNonNullCount = (newMe.upCards || []).filter(c => c !== null).length;
+                return (
+                    newUpNonNullCount < prevUpNonNullCount &&
+                    newState.currentPlayerId !== prevCurrentPlayerId
+                );
+            }
+
+            const newDownNonNullCount = (newMe.downCards || []).filter(c => c !== null).length;
+            const newPileCount = (newState.pile || []).length;
+
+            return (
+                newDownNonNullCount < prevDownNonNullCount ||
+                // Invalid down-card plays can force pickup, increasing hand.
+                newMe.hand.length > hand.length ||
+                newPileCount !== prevPileCount ||
+                newState.currentPlayerId !== prevCurrentPlayerId
+            );
+        }, { timeout: 5000 }).toBeTruthy();
 
     } else {
         // No valid play
@@ -148,8 +215,37 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
         // But `hasDown` logic above picks a card blindly. So `bestCards` is NOT empty in Down phase.
         // So we only reach here if (hasHand or hasUp) AND no valid cards.
         console.log(`${turnLogPrefix} Bot taking pile`);
-        await gamePage.takePile();
+
+        const prevHandCount = hand.length;
+        const prevPileCount = pile.length;
+        const prevDeckSize = state.deckSize ?? 0;
+
+        if (prevPileCount > 0) {
+            await Promise.all([
+                page.waitForSelector('.flying-card', { timeout: 2000 }),
+                gamePage.takePile(),
+            ]);
+        } else {
+            await gamePage.takePile();
+        }
         await waitForAnimationsToFinish(page);
+
+        await expect.poll(async () => {
+            const newState = await gamePage.getGameState();
+            if (!newState) return false;
+            const newMe = newState.players.find(p => p.id === myId);
+            if (!newMe) return false;
+
+            const newPileCount = (newState.pile || []).length;
+            // After pickup, server may immediately flip a new starter card from the deck.
+            // Accept pile being empty (deck empty) or having a single new top card (deck had cards).
+            const pileOk =
+                newPileCount === 0 || (prevDeckSize > 0 && newPileCount === 1);
+            if (!pileOk) return false;
+            if (prevPileCount > 0 && newMe.hand.length <= prevHandCount) return false;
+
+            return true;
+        }, { timeout: 5000 }).toBeTruthy();
     }
 }
 

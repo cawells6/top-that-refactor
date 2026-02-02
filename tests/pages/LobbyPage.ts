@@ -15,7 +15,7 @@ export class LobbyPage {
     this.page = page;
     this.nameInput = page.locator('#player-name-input');
     this.hostTab = page.locator('.lobby-tab-button[data-tab="host"]');
-    this.joinTab = page.locator('.lobby-tab-button[data-tab="join"]');
+    this.joinTab = page.locator('#nav-join-friend-button');
     this.humansPlusBtn = page.locator('#humans-plus');
     this.cpuPlusBtn = page.locator('#cpus-plus');
     this.startGameBtn = page.locator('#host-play-button');

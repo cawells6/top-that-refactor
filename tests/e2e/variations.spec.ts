@@ -93,14 +93,11 @@ test.describe('Game Variations', () => {
                 await waitForAnimationsToFinish(p1.page);
                 if (p2) await waitForAnimationsToFinish(p2.page);
 
-                const currentState = await p1.game.getGameState();
-                const activeId = currentState?.currentPlayerId;
-                const p1Id = await getMyId(p1.page);
-                const p2Id = p2 ? await getMyId(p2.page) : null;
-
-                if (activeId === p1Id) {
+                // Use each page's own state to decide whose turn it is.
+                // Using p1's snapshot for everyone can be stale during buffered animation updates.
+                if (await p1.game.isMyTurn()) {
                     await playValidMove(p1.game, p1.page, '[Host]');
-                } else if (p2 && activeId === p2Id) {
+                } else if (p2 && await p2.game.isMyTurn()) {
                     await playValidMove(p2.game, p2.page, '[Joiner]');
                 } else {
                     // CPU turn

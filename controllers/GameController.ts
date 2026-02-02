@@ -1691,6 +1691,12 @@ export default class GameController {
     }
 
     this.log('[handleAnimationsComplete] Client animations finished');
+
+    // Tie client "Ready? Click anywhere to start" completion to actual gameplay readiness.
+    // This eliminates the gap where the start overlay is gone but `isStarting` still blocks input.
+    if (this.gameState.isStarting) {
+      this.clearStartingLock('animations-complete');
+    }
   }
 
   private playComputerTurn(computerPlayer: Player): void {

@@ -525,7 +525,7 @@ function updateCenterArea(
   if (!playPile) {
     playPile = document.createElement('div');
     playPile.className = 'pile pile--play';
-    playPile.id = 'discard-pile-container'; // Preserve legacy ID for external refs if any
+    playPile.id = 'discard-pile';
     playPile.innerHTML = `
       <div class="card-count"><span class="count-value">0</span></div>
       <div class="card-slot play-stack" id="play-pile">

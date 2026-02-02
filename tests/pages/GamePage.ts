@@ -8,6 +8,8 @@ export class GamePage {
   readonly takeBtn: Locator;
   readonly toast: Locator;
   readonly pileTop: Locator;
+  readonly pileContainer: Locator;
+  readonly pileCountBadge: Locator;
   readonly gameOverOverlay: Locator;
 
   constructor(page: Page) {
@@ -17,6 +19,8 @@ export class GamePage {
     this.takeBtn = page.locator('#take-button');
     this.toast = page.locator('.toast');
     this.pileTop = page.locator('#pile-top-card');
+    this.pileContainer = page.locator('.pile--play');
+    this.pileCountBadge = page.locator('.pile--play .count-value');
     this.gameOverOverlay = page.locator('.victory-overlay');
   }
 
@@ -35,6 +39,32 @@ export class GamePage {
       return await this.page.evaluate(() => {
           return (window as any).state?.getLastGameState() || null;
       });
+  }
+
+  async getMyId(): Promise<string | null> {
+      return await this.page.evaluate(() => (window as any).state?.myId ?? null);
+  }
+
+  async getPileVisualCount(): Promise<number> {
+    const text = await this.pileCountBadge.textContent();
+    return parseInt(text || '0', 10);
+  }
+
+  async waitForStablePile(options: { timeoutMs?: number } = {}) {
+    const timeoutMs = options.timeoutMs ?? 3000;
+
+    await expect
+      .poll(async () => {
+        const state = await this.getGameState();
+        if (!state) return false;
+
+        const visualText = await this.pileCountBadge.textContent();
+        const visualCount = parseInt(visualText || '0', 10);
+        const logicalCount = state.pile ? state.pile.length : 0;
+
+        return visualCount === logicalCount;
+      }, { timeout: timeoutMs })
+      .toBeTruthy();
   }
 
   async selectCards(indices: number[]) {

@@ -14,6 +14,31 @@ export async function performOpeningDeal(
   gameState: GameStateData,
   myPlayerId: string
 ): Promise<void> {
+  let emittedAnimationsComplete = false;
+
+  async function emitAnimationsCompleteOnce(): Promise<void> {
+    if (emittedAnimationsComplete) return;
+    emittedAnimationsComplete = true;
+
+    try {
+      const stateModule = await import('./state.js');
+      await stateModule.socketReady;
+      const activeSocket = stateModule.socket;
+      if (activeSocket?.connected) {
+        activeSocket.emit(ANIMATIONS_COMPLETE);
+      } else {
+        console.warn(
+          '[DealingAnimation] Socket not ready to emit animations complete'
+        );
+      }
+    } catch (emitErr) {
+      console.warn(
+        '[DealingAnimation] Failed to emit animations complete:',
+        emitErr
+      );
+    }
+  }
+
   try {
     // 1. Pause to let players see the "DRAW" / "PLAY" burnt text markings
     await wait(1800);
@@ -125,30 +150,30 @@ export async function performOpeningDeal(
     // Small beat so the player sees the starter card land.
     await wait(250);
 
-    await showStartOverlay();
+    // Make the game ready as soon as the overlay is dismissed (click or auto-dismiss).
+    // We emit ANIMATIONS_COMPLETE immediately on dismissal, then wait briefly for the
+    // server to clear `isStarting` so the player can interact as soon as the overlay is gone.
+    await showStartOverlay({
+      onDismiss: async () => {
+        await emitAnimationsCompleteOnce();
+        const stateModule = await import('./state.js');
+        const start = Date.now();
+        while (Date.now() - start < 10000) {
+          const s = stateModule.getLastGameState?.();
+          if (s && !s.isStarting) {
+            break;
+          }
+          await wait(50);
+        }
+      },
+    });
   } catch (err) {
     console.error('[DealingAnimation] Opening deal animation failed:', err);
   } finally {
     // Signal server that animations are complete so CPU can take their turn.
     // This must fire even if the animation is skipped or fails, otherwise games can
     // stall on a CPU's first turn.
-    try {
-      const stateModule = await import('./state.js');
-      await stateModule.socketReady;
-      const activeSocket = stateModule.socket;
-      if (activeSocket?.connected) {
-        activeSocket.emit(ANIMATIONS_COMPLETE);
-      } else {
-        console.warn(
-          '[DealingAnimation] Socket not ready to emit animations complete'
-        );
-      }
-    } catch (emitErr) {
-      console.warn(
-        '[DealingAnimation] Failed to emit animations complete:',
-        emitErr
-      );
-    }
+    await emitAnimationsCompleteOnce();
   }
 }
 
@@ -319,7 +344,9 @@ async function animatePlayToDraw(gameState: GameStateData) {
   target.appendChild(cardImg(topCard, false, undefined, false, false));
 }
 
-async function showStartOverlay() {
+async function showStartOverlay(
+  options: { onDismiss?: () => Promise<void> } = {}
+) {
   const existing = document.getElementById('game-start-overlay');
   existing?.remove();
 
@@ -392,6 +419,20 @@ async function showStartOverlay() {
       START_OVERLAY_AUTO_DISMISS_MS
     );
   });
+
+  if (options.onDismiss) {
+    try {
+      // Explicitly tie the overlay lifecycle to the game becoming ready:
+      // after the player dismisses (or it auto-dismisses), keep the overlay visible
+      // until the server clears `isStarting` in response to ANIMATIONS_COMPLETE.
+      title.textContent = 'Starting...';
+      hint.textContent = 'Please wait';
+      overlay.style.pointerEvents = 'none';
+      await options.onDismiss();
+    } catch {
+      // Best-effort only.
+    }
+  }
 
   overlay.classList.add('is-hiding');
   await wait(START_OVERLAY_FADE_MS);

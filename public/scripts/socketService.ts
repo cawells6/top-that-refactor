@@ -57,6 +57,7 @@ import {
   scheduleBurnHold as aqScheduleBurnHold,
   setAnimatingPilePickup as aqSetAnimatingPilePickup,
   isBusy as aqIsBusy,
+  isAnimatingSpecialEffectActive as aqIsAnimatingSpecialEffectActive,
 } from './animationQueue.js';
 import {
   TAKE_PILE_BLANK_MS,
@@ -301,20 +302,19 @@ export async function initializeSocketHandlers(): Promise<void> {
       // Wait for any flying cards (just in case of race condition)
       await waitForFlyingCard();
 
+      // The server can emit SPECIAL_CARD_EFFECT slightly before the corresponding CARD_PLAYED
+      // has been processed by the animation queue. If we "finish" the sequence before the queue
+      // enters special-effect mode, the queue can later arm its 10s safety timer with nobody
+      // left to call finishAnimationSequence(), causing a visible stall.
+      const specialEffectStartDeadlineMs = Date.now() + 1000;
+      while (!aqIsAnimatingSpecialEffectActive() && Date.now() < specialEffectStartDeadlineMs) {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+
       // Note: We don't wait for aqIsBusy() here because the animation queue
       // is already handling this special card (it set isAnimatingSpecialEffect=true).
       // Waiting would cause an 11-second timeout since the queue is busy BY DESIGN
       // until this handler calls finishAnimationSequence().
-
-      // Note: SPECIAL_CARD_EFFECT can arrive before the queue has scheduled the safety unlock.
-      // Clear it here so the animation queue manages unlock timers.
-      try {
-        // Best-effort: clear the animation queue safety unlock timer
-        // (no-op if the impl chooses not to expose it).
-        (aqForceUnlock as unknown) && aqForceUnlock();
-      } catch (e) {
-        /* ignore */
-      }
 
       let effectType = payload?.type ?? 'regular';
 
