@@ -3,6 +3,10 @@
 This document is the **Single Source of Truth** for the Top That codebase.
 If you only read one file before making changes, read this.
 
+## Process Protocol
+
+Team workflow, verification, and refactor safety rules live in `docs/DEVELOPER_PROTOCOL.md`.
+
 ## 0. HOW TO USE THIS MANIFEST
 
 - **New/modified code must follow this manifest.** If existing code violates it, fix the root cause when you are already in that area.

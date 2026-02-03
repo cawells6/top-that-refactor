@@ -1,6 +1,8 @@
 # Top That! - Agent Instructions
 
-Canonical standards live in `docs/PROJECT_MANIFEST.md`. Follow it for all new/modified code.
+Canonical standards live in `docs/PROJECT_MANIFEST.md`.
+Process + verification protocol lives in `docs/DEVELOPER_PROTOCOL.md`.
+Follow them for all new/modified code.
 
 ## Non-Negotiables
 

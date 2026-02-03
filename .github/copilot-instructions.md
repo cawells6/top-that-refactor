@@ -1,6 +1,7 @@
 # Top That! — Copilot Instructions
 
-Canonical standards live in `PROJECT_MANIFEST.md`. Follow it for all new/modified code.
+Canonical standards live in `docs/PROJECT_MANIFEST.md`. Process protocol lives in `docs/DEVELOPER_PROTOCOL.md`.
+Roadmap/priorities live in `docs/ROADMAP_PROGRESS.md`. Follow them for all new/modified code.
 
 ## 🚨 NON-NEGOTIABLES (READ FIRST)
 
@@ -10,6 +11,12 @@ Canonical standards live in `PROJECT_MANIFEST.md`. Follow it for all new/modifie
 3.  **Mobile-First.** Verify every UI change against a vertical mobile viewport.
 4.  **No `any`.** Use `unknown` + narrowing if necessary.
 5.  **Event names are constants.** Import from `src/shared/events.ts`.
+6.  **Authoritative server.** Game rules + turn order live on the server; the client only renders `STATE_UPDATE` and emits requests.
+7.  **Protocol vs game rules.**
+    - Protocol violation (out-of-turn, invalid indices, acting during start/transition, client-forced outcomes): reject immediately (ERROR/ack fail).
+    - Game rule violation (intended gameplay mistake): do not reject; trigger pickup-penalty mechanic.
+8.  **Deterministic tests.** Any server randomness must be seedable/overrideable so Playwright runs are replayable (do not introduce flaky non-determinism).
+9.  **Per-player state updates.** Preserve personalized `STATE_UPDATE` delivery (do not broadcast private state room-wide).
 
 ## 🛑 SCOPE & SAFETY RULES
 
@@ -18,6 +25,7 @@ Canonical standards live in `PROJECT_MANIFEST.md`. Follow it for all new/modifie
 3.  **Iteration Limit:** If a fix fails **3 times**, stop. Do not try a 4th "guess." Ask the user to revert to the last working commit.
 4.  **Visual Lock:** The visual theme (Green felt, Gold accents) is **FROZEN**.
     * **Protocol:** If asked to change this, **ASK FIRST**: *"This changes the established theme. Are you sure?"* If yes, proceed.
+5.  **Timing/async changes require a contract.** Document event ordering assumptions, add idempotent "once" guards where needed, and use timeouts that fail fast with actionable logs.
 
 ## UI And CSS Discipline (Prevent Long Iterations)
 
@@ -28,3 +36,9 @@ When changing UI layout or styles, assume there are existing global rules and ov
 3. **Reuse patterns:** If something should look like Join/Host, reuse the same classes and `data-tab` hooks instead of inventing new styles.
 4. **Override deliberately:** If an override is necessary, prefer higher-specificity selectors placed after the generic rule; use `!important` only as a last resort.
 5. **Verify both layouts:** Confirm desktop and mobile behavior (grid/flex placement + hover/active) in all relevant lobby panels.
+
+## Diagnostics (Use Before Guessing)
+
+- Client debug logs: `localStorage.TOPTHAT_DEBUG = '1'`
+- Timing diagnostics: `localStorage.DEBUG_TIMING = '1'` then `window.timingDiag.getReport()`
+- Server logs: `TOPTHAT_VERBOSE=1` or `TOPTHAT_SERVER_LOGS=1`
