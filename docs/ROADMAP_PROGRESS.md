@@ -83,11 +83,11 @@ Items that break core gameplay or expose security vulnerabilities. Fix first.
 
 | # | Task | Priority | Category | Details |
 |:--|:------|:---------|:---------|:--------|
-| **22** | **Fix four-of-a-kind across multiple plays** | 🔴 Critical | Game Rule Bug | `isFourOfAKindOnPile()` in `GameState.ts` L134-139 exists but is **never called**. When 4-of-a-kind accumulates across multiple plays (e.g., P1 plays two 8s, P2 plays two 8s), the pile never burns. Additionally, the method uses raw `===` instead of `normalizeCardValue()`, so mixed string/number values would miss matches. **Fix:** Call `isFourOfAKindOnPile()` in `handlePlayCardInternal` after adding cards to the pile (~L1410). Use `normalizeCardValue()` in the comparison. |
+| **22** | **Remove dead `isFourOfAKindOnPile()` method** | 🟡 Low | Dead Code | `isFourOfAKindOnPile()` in `GameState.ts` L134-139 is never called. Four-of-a-kind burns are correctly scoped to single-play only (`cardsToPlay.length >= 4` in `handlePlayCardInternal`). This dead method uses raw `===` instead of `normalizeCardValue()` which is additionally wrong, but since it's unused, the fix is to delete it entirely to avoid confusion. |
 | **23** | **Fix XSS in game log (innerHTML + player names)** | 🔴 Critical | Security | `renderGameLog()` in `render.ts` ~L170 interpolates `entry.message` into `innerHTML`. Player names are user-supplied. A name like `<img src=x onerror=alert(1)>` executes JS in all clients. **Fix:** Replace `.map().join()` innerHTML approach with `createElement` + `textContent`. |
 | **24** | **Fix XSS in victory animation** | 🔴 Critical | Security | `animateVictory()` in `render.ts` ~L2102 uses `${playerName}` in an innerHTML template literal. **Fix:** Use `createElement` + `textContent` for the winner name. |
 | **25** | **Sanitize player names server-side** | 🔴 Critical | Security | No server-side name sanitization in `validation.ts` or `GameController.ts`. Names are only trimmed. Add HTML entity escaping and dangerous character stripping on the server before storing. Also add XSS-safe rendering (via `textContent`) everywhere names appear client-side. |
-| **26** | **Fix 5-copies-2 not resetting pile** | 🔴 Critical | Game Rule Bug | In `CardLogic.ts` ~L68-98, when a 5 copies a 2, the code emits `SPECIAL_CARD_EFFECT { type: 'two' }` but does NOT call `gameState.resetPileForTwo()`. The event fires but no game state change occurs. **Fix:** Add the actual pile reset logic when the copied card is a 2. |
+| **26** | **Clarify 2-card "reset" is visual-only** | 🟡 Low | Documentation | A 2 doesn't clear or modify the pile — it's simply the lowest rank, so the next player can play anything ≥ 3. The `SPECIAL_CARD_EFFECT { type: 'two' }` event is purely cosmetic feedback. When a 5 copies a 2, this is correct behavior: a 2-value card is added to the pile and the visual event fires. No state change needed. **Fix:** Add a code comment in `CardLogic.ts` explaining the 2's "reset" is implicit (lowest rank) not a pile clear, and update `PROJECT_MANIFEST.md` rule #2 wording to clarify "resets the pile value" means "sets the bar to the lowest rank", not "clears the pile". |
 | **27** | **Lock down CORS for production** | 🔴 High | Security | `server.ts` has `cors: { origin: '*' }`. Any origin can connect. **Fix:** Restrict to known origins or same-origin. Use environment variable for allowed origins. |
 | **28** | **Add global error handlers** | 🔴 High | Security | No `process.on('unhandledRejection')` or `process.on('uncaughtException')`. A single unhandled promise rejection could crash the server. **Fix:** Add handlers with logging in `start-server.ts`. |
 | **29** | **Fix `validateJoinPayload` input validation gaps** | 🔴 High | Validation | `src/shared/validation.ts` has no upper-bound check on `numHumans`/`numCPUs` (max 4 total), no type checking (string values like `"2"` concatenate instead of add), no negative number validation. **Fix:** Add `MAX_TOTAL_PLAYERS` enforcement, `typeof === 'number'` guards, and `>= 0` checks. |
@@ -250,7 +250,7 @@ Items from the existing regression list. Verify and fix.
 
 | Phase | Focus | Items | Critical | High | Medium | Low |
 |:------|:------|:-----:|:--------:|:----:|:------:|:---:|
-| **5** | Critical Game Logic & Security | 8 | 5 | 3 | 0 | 0 |
+| **5** | Critical Game Logic & Security | 8 | 3 | 3 | 0 | 2 |
 | **6** | Server Robustness & Race Conditions | 9 | 0 | 3 | 5 | 1 |
 | **7** | Client-Side Bugs & Animations | 11 | 0 | 6 | 3 | 2 |
 | **8** | CSS & Layout Fixes | 10 | 0 | 1 | 3 | 6 |
@@ -261,4 +261,4 @@ Items from the existing regression list. Verify and fix.
 | **13** | Accessibility | 3 | 0 | 0 | 3 | 0 |
 | **14** | Code Quality & Cleanup | 12 | 0 | 0 | 0 | 12 |
 | **15** | Operational & Monitoring | 3 | 0 | 0 | 1 | 2 |
-| **Total** | | **82** | **6** | **20** | **28** | **28** |
+| **Total** | | **82** | **4** | **20** | **28** | **30** |
