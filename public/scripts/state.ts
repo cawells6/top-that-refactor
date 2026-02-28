@@ -1,8 +1,12 @@
 import { io, Socket } from 'socket.io-client';
 
 import type { GameStateData } from '../../src/shared/types.js';
+import type { ServerToClientEvents, ClientToServerEvents } from '../../src/shared/events.js';
 
-let socket: Socket;
+/** Fully-typed client socket */
+type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
+
+let socket: TypedSocket;
 let socketReady: Promise<void>;
 
 function getSocketURL(port: string): string {
@@ -11,7 +15,7 @@ function getSocketURL(port: string): string {
   return `${protocol}//${hostname}:${port}`;
 }
 
-async function initSocket(): Promise<Socket> {
+async function initSocket(): Promise<TypedSocket> {
   const socketOptions = {
     reconnection: true,
     reconnectionDelay: 1000,
@@ -25,7 +29,7 @@ async function initSocket(): Promise<Socket> {
   const isViteDevServer = window.location.port === '5173';
   if (!isViteDevServer) {
     console.log('🔌 [Client] Using same-origin socket connection.');
-    return io(socketOptions);
+    return io(socketOptions) as TypedSocket;
   }
 
   try {
@@ -36,7 +40,7 @@ async function initSocket(): Promise<Socket> {
         console.log(
           `🔌 [Client] Vite Dev Mode: Connecting directly to backend at :${port}`
         );
-        return io(getSocketURL(port), socketOptions);
+        return io(getSocketURL(port), socketOptions) as TypedSocket;
       }
     }
   } catch (error) {
@@ -48,7 +52,7 @@ async function initSocket(): Promise<Socket> {
 
   // Vite fallback: rely on the configured proxy.
   console.log('🔌 [Client] Vite detected, using proxy socket connection.');
-  return io(socketOptions);
+  return io(socketOptions) as TypedSocket;
 }
 
 socketReady = initSocket().then((s) => {
@@ -68,23 +72,53 @@ let stateIndex: number = -1;
 let lastGameState: GameStateData | null = null;
 let lastPlayedCards: any[] = [];
 
+/** localStorage key and TTL for cross-tab rejoin persistence */
+const SESSION_KEY = 'TOPTHAT_SESSION';
+const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+interface StoredSession {
+  myId: string | null;
+  currentRoom: string | null;
+  desiredCpuCount: number;
+  spectator: boolean;
+  savedAt: number;
+}
+
 function loadSession(): void {
-  setMyId(sessionStorage.getItem('myId'));
-  setCurrentRoom(sessionStorage.getItem('currentRoom'));
-  const cpuStr = sessionStorage.getItem('desiredCpuCount');
-  if (cpuStr) desiredCpuCount = parseInt(cpuStr, 10) || 0;
-  isSpectator = sessionStorage.getItem('spectator') === '1';
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return;
+    const data: StoredSession = JSON.parse(raw);
+    if (Date.now() - data.savedAt > SESSION_TTL_MS) {
+      localStorage.removeItem(SESSION_KEY);
+      return;
+    }
+    setMyId(data.myId);
+    setCurrentRoom(data.currentRoom);
+    desiredCpuCount = data.desiredCpuCount ?? 0;
+    isSpectator = data.spectator ?? false;
+  } catch {
+    localStorage.removeItem(SESSION_KEY);
+  }
 }
 
 function saveSession(): void {
-  if (myId) sessionStorage.setItem('myId', myId);
-  if (currentRoom) sessionStorage.setItem('currentRoom', currentRoom);
-  sessionStorage.setItem('desiredCpuCount', desiredCpuCount.toString());
-  if (isSpectator) {
-    sessionStorage.setItem('spectator', '1');
-  } else {
-    sessionStorage.removeItem('spectator');
-  }
+  const data: StoredSession = {
+    myId,
+    currentRoom,
+    desiredCpuCount,
+    spectator: isSpectator,
+    savedAt: Date.now(),
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+}
+
+function clearSession(): void {
+  localStorage.removeItem(SESSION_KEY);
+  setMyId(null);
+  setCurrentRoom(null);
+  desiredCpuCount = 0;
+  isSpectator = false;
 }
 
 function setMyId(id: string | null): void {
@@ -96,7 +130,7 @@ function setCurrentRoom(room: string | null): void {
 
 function setDesiredCpuCount(count: number): void {
   desiredCpuCount = count;
-  sessionStorage.setItem('desiredCpuCount', count.toString());
+  saveSession();
 }
 
 function getDesiredCpuCount(): number {
@@ -104,11 +138,7 @@ function getDesiredCpuCount(): number {
 }
 function setIsSpectator(value: boolean): void {
   isSpectator = value;
-  if (isSpectator) {
-    sessionStorage.setItem('spectator', '1');
-  } else {
-    sessionStorage.removeItem('spectator');
-  }
+  saveSession();
 }
 function getIsSpectator(): boolean {
   return isSpectator;
@@ -159,6 +189,7 @@ export {
   lastGameState,
   loadSession,
   saveSession,
+  clearSession,
   setMyId,
   setCurrentRoom,
   setDesiredCpuCount,

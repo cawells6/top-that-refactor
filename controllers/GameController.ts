@@ -44,6 +44,8 @@ import {
   STALE_TIMEOUT_MS,
   EMPTY_TIMEOUT_MS,
   SHUTDOWN_GRACE_PERIOD_MS,
+  STARTUP_LOCK_FALLBACK_MS,
+  POST_REJOIN_BOT_DELAY_MS,
   TAKE_PILE_BLANK_MS,
   DECK_TO_PILE_ANIMATION_MS,
   POST_FLIP_RENDER_BUFFER_MS,
@@ -318,7 +320,7 @@ export default class GameController {
       if (Number.isFinite(parsed) && parsed >= 0) return parsed;
     }
     if (process.env.NODE_ENV === 'test') return 0;
-    return 12000;
+    return STARTUP_LOCK_FALLBACK_MS;
   }
 
   constructor(io: TypedServer, roomId: string) {
@@ -1778,7 +1780,7 @@ export default class GameController {
         this.gameState.players[this.gameState.currentPlayerIndex];
       const currentPlayer = this.players.get(currentPlayerId);
       if (currentPlayer?.isComputer) {
-        this.scheduleComputerTurn(currentPlayer, 250);
+        this.scheduleComputerTurn(currentPlayer, POST_REJOIN_BOT_DELAY_MS);
       }
     }
   }
@@ -1812,10 +1814,14 @@ export default class GameController {
             const socket = this.io.sockets.sockets.get(player.socketId);
             if (socket) {
                 socket.emit(SESSION_ERROR, 'The game room was closed by the server.');
+                socket.removeAllListeners();
                 socket.leave(this.roomId);
             }
         }
     });
+
+    // Clear dangling references
+    this.socketIdToPlayerId.clear();
     
     this.clearAllTimeouts();
   }

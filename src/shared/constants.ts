@@ -34,6 +34,20 @@ export const EMPTY_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 export const SHUTDOWN_GRACE_PERIOD_MS = 30 * 1000; // 30 seconds
 
 /**
+ * Fallback duration for the startup lock if not overridden via env or test mode.
+ * Covers opening deal animation + overlay dismiss.
+ * Currently: 12000ms (12 seconds)
+ */
+export const STARTUP_LOCK_FALLBACK_MS = 12000;
+
+/**
+ * Short delay before scheduling a CPU turn after a player rejoins.
+ * Keeps the game moving without an instant bot play.
+ * Currently: 250ms
+ */
+export const POST_REJOIN_BOT_DELAY_MS = 250;
+
+/**
  * Delay between turns to allow for animation transitions
  * Used in GameController for turn sequencing
  * Currently: 400ms
