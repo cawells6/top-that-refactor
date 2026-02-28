@@ -25,9 +25,16 @@ export interface ClientStatePlayer {
   error?: string; // Added for server compatibility
 }
 
+/** Lightweight pile summary sent over the wire instead of the full Card[]. */
+export interface PileSummary {
+  topCard: Card | null;
+  belowTopCard: Card | null;
+  count: number;
+}
+
 export interface GameStateData {
   players: ClientStatePlayer[];
-  pile: Card[];
+  pile: PileSummary;
   discardCount: number;
   deckSize: number;
   currentPlayerId?: string;

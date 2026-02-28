@@ -48,7 +48,7 @@ describe('Hand Rendering', () => {
       isStarting: false,
       players: [player1],
       currentPlayerId: 'p1',
-      pile: [],
+      pile: { topCard: null, belowTopCard: null, count: 0 },
       deckSize: 10,
       discardCount: 0,
       lastRealCard: null

@@ -294,7 +294,11 @@ export class TutorialController {
           isComputer: true,
         },
       ],
-      pile: this.pile,
+      pile: {
+        topCard: this.pile.length > 0 ? this.pile[this.pile.length - 1] : null,
+        belowTopCard: this.pile.length > 1 ? this.pile[this.pile.length - 2] : null,
+        count: this.pile.length,
+      },
       deckSize: 20,
       discardCount: 0,
       lastRealCard:

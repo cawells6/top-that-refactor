@@ -31,7 +31,7 @@
 | **13** | **Centralize timing constants** | ✅ **Done** | All gameplay timing centralized in `src/shared/constants.ts`, including `STARTUP_LOCK_FALLBACK_MS` and `POST_REJOIN_BOT_DELAY_MS`. |
 | **14** | **Show server error text in-game** | ✅ **Done** | `socketService.ts` listens for `ERROR` event and displays toast/visual feedback. |
 | **15** | **Explicit burn feedback** | ❌ **Pending** | Server forces pickup on invalid play but doesn't emit specific "Burn" payload with revealed cards. |
-| **16** | **Network Bandwidth (Quick Win)** | ❌ **Pending** | `pushState` sends full pile history. Optimization to send only `topCard + count` is missing. |
+| **16** | **Network Bandwidth (Quick Win)** | ✅ **Done** | `getPublicView` now projects pile as `PileSummary { topCard, belowTopCard, count }` instead of full `Card[]` array. Wire payload reduced to 3 fields per update. Client files updated: `render.ts`, `socketService.ts`, `gameControls.ts`, `dealing-animation.ts`, `animationQueue.ts`. Tutorial builds summary from local `Card[]`. All 290 unit tests pass, 9/9 integration tests pass, build clean. |
 | **17** | **Break up client god files** | ✅ **Done** | Opening deal logic extracted to `OpeningDealCoordinator`. Render calls intentionally kept in socketService as part of animation sequences. |
 
 ## 🧪 Phase 4: Testing & Deployment

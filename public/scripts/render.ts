@@ -535,9 +535,9 @@ function updateCenterArea(
     pilesContainer.appendChild(playPile);
   }
 
-  const pile = gameState.pile ?? [];
+  const pile = gameState.pile ?? { topCard: null, belowTopCard: null, count: 0 };
   const forceBlank = !skeletonMode && shouldBlankDrawPile();
-  const displayCount = forceBlank ? '0' : String(pile.length);
+  const displayCount = forceBlank ? '0' : String(pile.count);
 
   const playCountEl = playPile.querySelector('.count-value');
   if (playCountEl && playCountEl.textContent !== displayCount) {
@@ -592,18 +592,18 @@ function updateCenterArea(
   // Reuse existing logic for the play stack signature/rendering
   if (playStack) {
     let newSignature = 'EMPTY';
-    const topCard = visualPileTop || (pile.length > 0 ? pile[pile.length - 1] : null);
+    const topCard = visualPileTop || (pile.count > 0 ? pile.topCard : null);
 
     if (skeletonMode || forceBlank) {
       newSignature = 'BLANK';
     } else if (topCard) {
-      const shouldShowCopyShingle = Boolean((topCard as any).copied) && pile.length >= 2;
+      const shouldShowCopyShingle = Boolean((topCard as any).copied) && pile.count >= 2;
       if (shouldShowCopyShingle) {
-        const belowCard = pile[pile.length - 2];
-        newSignature = `SHINGLE:${code(topCard)}:${code(belowCard)}`;
+        const belowCard = pile.belowTopCard;
+        newSignature = `SHINGLE:${code(topCard)}:${belowCard ? code(belowCard) : 'NONE'}`;
       } else {
         const normalizedTopValue = normalizeCardValue(topCard.value);
-        const isStarterSpecial = pile.length === 1 && (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
+        const isStarterSpecial = pile.count === 1 && (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
         newSignature = `SINGLE:${code(topCard)}${isStarterSpecial ? ':STARTER' : ''}`;
       }
     }
@@ -626,24 +626,26 @@ function updateCenterArea(
       const cards = playStack.querySelectorAll('.card-container, .pile-placeholder, .pile-shingle');
       cards.forEach(c => c.remove());
 
-      const shouldShowCopyShingle = Boolean((topCard as any).copied) && pile.length >= 2;
+      const shouldShowCopyShingle = Boolean((topCard as any).copied) && pile.count >= 2;
 
       if (shouldShowCopyShingle) {
-        const belowCard = pile[pile.length - 2];
-        const belowEl = cardImg(belowCard, false, undefined, true, false);
-        belowEl.id = 'pile-below-card';
-        belowEl.classList.add('pile-shingle', 'pile-shingle--below');
+        const belowCard = pile.belowTopCard;
+        if (belowCard) {
+          const belowEl = cardImg(belowCard, false, undefined, true, false);
+          belowEl.id = 'pile-below-card';
+          belowEl.classList.add('pile-shingle', 'pile-shingle--below');
+          playStack.appendChild(belowEl);
+          playStack.classList.add('pile-multiple');
+        }
 
         const topEl = cardImg(topCard, false, undefined, true, false);
         topEl.id = 'pile-top-card';
         topEl.classList.add('pile-shingle', 'pile-shingle--top');
 
-        playStack.classList.add('pile-multiple');
-        playStack.appendChild(belowEl);
         playStack.appendChild(topEl);
       } else {
         const normalizedTopValue = normalizeCardValue(topCard.value);
-        const isStarterSpecial = pile.length === 1 && (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
+        const isStarterSpecial = pile.count === 1 && (normalizedTopValue === 'five' || normalizedTopValue === 'ten');
         const topEl = cardImg(topCard, false, undefined, true, false);
         topEl.id = 'pile-top-card';
 
@@ -1842,15 +1844,16 @@ export function renderGameState(
       if (playButton) playButton.disabled = !isMyTurn;
       if (takeButton) {
         let hasPlayable = false;
+        const pileForCheck: CardType[] = gameState.pile?.topCard ? [gameState.pile.topCard] : [];
         if (handCount > 0)
           hasPlayable = hasValidHandPlay(
             player.hand ?? [],
-            gameState.pile ?? []
+            pileForCheck
           );
         else if (upCount > 0)
           hasPlayable = hasValidUpPlay(
             player.upCards ?? [],
-            gameState.pile ?? []
+            pileForCheck
           );
 
         const requiredZone =

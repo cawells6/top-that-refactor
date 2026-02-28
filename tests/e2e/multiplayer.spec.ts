@@ -93,9 +93,9 @@ test('2 Humans + 2 CPUs (4 Player Game)', async ({ browser }) => {
     // Verify they see the SAME top card (if pile exists)
     // Note: Pile might be empty at start if deck dealt to hands/table.
     // Or there is a starter card.
-    if (p1State?.pile && p1State.pile.length > 0) {
-        expect(p1State.pile[p1State.pile.length-1].value)
-            .toBe(p2State?.pile![p2State.pile!.length-1].value);
+    if (p1State?.pile && p1State.pile.count > 0) {
+        expect(p1State.pile.topCard?.value)
+            .toBe(p2State?.pile!.topCard?.value);
     }
 
     // --- STEP 5: PLAY A FEW TURNS ---

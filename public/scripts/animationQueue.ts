@@ -47,7 +47,7 @@ function debugSnapshot(tag: string, extra?: Record<string, unknown>) {
     burnHoldActive: Boolean(burnHoldTimer),
     safetyUnlockActive: Boolean(safetyUnlockTimer),
     pilePickupUnlockActive: Boolean(pilePickupUnlockTimer),
-    lastStatePileLen: s?.pile?.length ?? null,
+    lastStatePileLen: s?.pile?.count ?? null,
     lastStateCurrentPlayerId: (s as any)?.currentPlayerId ?? null,
     ...extra,
   };

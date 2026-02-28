@@ -334,7 +334,7 @@ async function animatePlayToDraw(gameState: GameStateData) {
   const target = document.getElementById('play-pile'); // "Draw" (the actual stack where the starter card goes)
   if (!source || !target) return;
 
-  const topCard = gameState.pile?.[gameState.pile.length - 1] || null;
+  const topCard = gameState.pile?.topCard || null;
   if (!topCard) return;
   animateFlyer(source.getBoundingClientRect(), target, topCard, true);
   await wait(FLIGHT_DURATION_MS);

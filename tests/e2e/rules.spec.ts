@@ -3,7 +3,12 @@ import { LobbyPage } from '../pages/LobbyPage';
 import { GamePage } from '../pages/GamePage';
 import { normalizeCardValue, isValidPlay } from '../../utils/cardUtils';
 import { waitForAnimationsToFinish } from './e2eUtils';
-import type { Card } from '../../src/shared/types';
+import type { Card, PileSummary } from '../../src/shared/types';
+
+/** Build a minimal Card[] from PileSummary for isValidPlay (only needs top card). */
+function pileForValidation(pile: PileSummary): Card[] {
+  return pile.topCard ? [pile.topCard] : [];
+}
 
 test.describe('Game Scenarios', () => {
     test.setTimeout(60000); // Increase timeout for RNG-based tests
@@ -34,7 +39,7 @@ test.describe('Game Scenarios', () => {
 
                 const myPlayer = state.players.find(p => p.id === state.currentPlayerId);
                 const hand = myPlayer?.hand || [];
-                const pile = state.pile || [];
+                const pile = pileForValidation(state.pile || { topCard: null, belowTopCard: null, count: 0 });
 
                 // Look for a 10
                 const tenIndices = hand
@@ -116,7 +121,7 @@ test.describe('Game Scenarios', () => {
 
                 const myPlayer = state.players.find(p => p.id === state.currentPlayerId);
                 const hand = myPlayer?.hand || [];
-                const pile = state.pile || [];
+                const pile = pileForValidation(state.pile || { topCard: null, belowTopCard: null, count: 0 });
 
                 // Look for a 2
                 const twoIndices = hand
@@ -139,7 +144,7 @@ test.describe('Game Scenarios', () => {
                     // We can check the DOM for data-value="2" or similar
                     // Or check getGameState
                     const postState = await game.getGameState();
-                    const topCard = postState?.pile[postState.pile.length - 1];
+                    const topCard = postState?.pile?.topCard;
                     expect(normalizeCardValue(topCard?.value)).toBe('two');
 
                     playedReset = true;
@@ -189,7 +194,7 @@ test.describe('Game Scenarios', () => {
 
                 const myPlayer = state.players.find(p => p.id === state.currentPlayerId);
                 const hand = myPlayer?.hand || [];
-                const pile = state.pile || [];
+                const pile = pileForValidation(state.pile || { topCard: null, belowTopCard: null, count: 0 });
                 const initialHandCount = hand.length;
 
                 // Find an INVALID card

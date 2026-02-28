@@ -2,6 +2,7 @@ import { Page, expect } from '@playwright/test';
 import { GamePage } from '../pages/GamePage';
 import { waitForAnimationsToFinish } from './e2eUtils';
 import { normalizeCardValue, rank, isValidPlay } from '../../utils/cardUtils';
+import type { Card, PileSummary } from '../../src/shared/types';
 
 function cardKey(card: any): string {
     const value = normalizeCardValue(card?.value) ?? String(card?.value ?? '');
@@ -25,8 +26,9 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
     const hand = myPlayer?.hand || [];
     const upCards = myPlayer?.upCards || [];
     const downCards = myPlayer?.downCards || [];
-    const pile = state.pile || [];
-    const topCard = pile.length > 0 ? pile[pile.length - 1] : null;
+    const pileSummary: PileSummary = state.pile || { topCard: null, belowTopCard: null, count: 0 };
+    const pileArr: Card[] = pileSummary.topCard ? [pileSummary.topCard] : [];
+    const topCard = pileSummary.topCard;
     const topCardValue = topCard ? rank(topCard) : 0;
 
     // Check phases
@@ -60,7 +62,7 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
         if (bestCards.length === 0) {
             let candidateGroups: any[][] = [];
             for (const group of groups.values()) {
-                if (isValidPlay(group, pile)) {
+                if (isValidPlay(group, pileArr)) {
                     candidateGroups.push(group);
                 }
             }
@@ -107,7 +109,7 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
 
         for (let i = 0; i < upCards.length; i++) {
             const c = upCards[i];
-            if (c && isValidPlay([c], pile)) {
+            if (c && isValidPlay([c], pileArr)) {
                 bestCards = [c];
                 indicesToSelect = [i];
                 break;
@@ -126,7 +128,7 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
 
         const strictAnimations = process.env.STRICT_ANIMATIONS !== '0';
 
-        const prevPileCount = pile.length;
+        const prevPileCount = pileSummary.count;
         const prevCurrentPlayerId = state.currentPlayerId;
         const prevUpNonNullCount = upCards.filter(c => c !== null).length;
         const prevDownNonNullCount = downCards.filter(c => c !== null).length;
@@ -182,7 +184,7 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
                 const removed = selectedHandKeys.every((k) => !newHandKeys.includes(k));
                 return (
                     removed &&
-                    (newState.pile || []).length !== prevPileCount &&
+                    (newState.pile?.count ?? 0) !== prevPileCount &&
                     newState.currentPlayerId !== prevCurrentPlayerId
                 );
             }
@@ -196,7 +198,7 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
             }
 
             const newDownNonNullCount = (newMe.downCards || []).filter(c => c !== null).length;
-            const newPileCount = (newState.pile || []).length;
+            const newPileCount = (newState.pile?.count ?? 0);
 
             return (
                 newDownNonNullCount < prevDownNonNullCount ||
@@ -217,7 +219,7 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
         console.log(`${turnLogPrefix} Bot taking pile`);
 
         const prevHandCount = hand.length;
-        const prevPileCount = pile.length;
+        const prevPileCount = pileSummary.count;
         const prevDeckSize = state.deckSize ?? 0;
 
         if (prevPileCount > 0) {
@@ -236,7 +238,7 @@ export async function playBestMove(gamePage: GamePage, page: Page, turnLogPrefix
             const newMe = newState.players.find(p => p.id === myId);
             if (!newMe) return false;
 
-            const newPileCount = (newState.pile || []).length;
+            const newPileCount = (newState.pile?.count ?? 0);
             // After pickup, server may immediately flip a new starter card from the deck.
             // Accept pile being empty (deck empty) or having a single new top card (deck had cards).
             const pileOk =

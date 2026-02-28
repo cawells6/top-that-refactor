@@ -191,7 +191,10 @@ function handlePlayClick(): void {
   const gameState = state.getLastGameState();
   if (gameState) {
     const myPlayer = gameState.players.find((p) => p.id === state.myId);
-    const pile = gameState.pile || [];
+    const pileSummary = gameState.pile || { topCard: null, belowTopCard: null, count: 0 };
+    // Build minimal array for isValidPlay (only needs top card + length)
+    const pileForValidation: import('../../src/shared/types.js').Card[] =
+      pileSummary.topCard ? [pileSummary.topCard] : [];
     const resolvedCards = resolveSelectedCards(selection, myPlayer);
 
     // Only validate if we actually resolved cards (and it's not a blind down-card play)
@@ -200,9 +203,9 @@ function handlePlayClick(): void {
       // If Up/Down, we let the server decide (because it might be a valid "pickup" move).
       console.log(
         'Client-side validation:',
-        JSON.stringify({ resolvedCards, pile }, null, 2)
+        JSON.stringify({ resolvedCards, pile: pileSummary }, null, 2)
       );
-      if (selection.zone === 'hand' && !isValidPlay(resolvedCards, pile)) {
+      if (selection.zone === 'hand' && !isValidPlay(resolvedCards, pileForValidation)) {
         showToast('Invalid Play!', 'error');
         // ABORT: Do not animate, do not hide, do not emit.
         // The cards stay visible in hand.

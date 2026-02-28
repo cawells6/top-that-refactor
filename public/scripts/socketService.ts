@@ -238,7 +238,7 @@ export async function initializeSocketHandlers(): Promise<void> {
     debugLog(
       'STATE_UPDATE',
       debugSnapshot('STATE_UPDATE', {
-        pileLen: s?.pile?.length ?? null,
+        pileLen: s?.pile?.count ?? null,
         currentPlayerId: (s as any)?.currentPlayerId ?? null,
       })
     );
@@ -261,7 +261,7 @@ export async function initializeSocketHandlers(): Promise<void> {
       debugLog(
         'STATE_UPDATE:BUFFERED',
         debugSnapshot('STATE_UPDATE:BUFFERED', {
-          pileLen: s?.pile?.length ?? null,
+          pileLen: s?.pile?.count ?? null,
           currentPlayerId: (s as any)?.currentPlayerId ?? null,
         })
       );
@@ -270,7 +270,7 @@ export async function initializeSocketHandlers(): Promise<void> {
       debugLog(
         'STATE_UPDATE:RENDER',
         debugSnapshot('STATE_UPDATE:RENDER', {
-          pileLen: s?.pile?.length ?? null,
+          pileLen: s?.pile?.count ?? null,
           currentPlayerId: (s as any)?.currentPlayerId ?? null,
         })
       );
@@ -322,7 +322,7 @@ export async function initializeSocketHandlers(): Promise<void> {
 
       if (effectType === 'five') {
         const lastState = state.getLastGameState();
-        if (!lastState || !lastState.pile || lastState.pile.length === 0) {
+        if (!lastState || !lastState.pile || lastState.pile.count === 0) {
           effectType = 'regular';
         }
       }
@@ -369,7 +369,7 @@ export async function initializeSocketHandlers(): Promise<void> {
           if (
             latestState &&
             holdPlayerId &&
-            (latestState.pile?.length ?? 0) === 0
+            (latestState.pile?.count ?? 0) === 0
           ) {
             // Show the burned pile (empty) immediately, but hold the turn highlight briefly
             // so the burn state reads clearly before the next player is highlighted.
@@ -433,7 +433,7 @@ export async function initializeSocketHandlers(): Promise<void> {
         timing.log('Skipping deck animation (post-opening-deal)');
         // Only log the flip if the pile actually has a new top card.
         const latestState = state.getLastGameState();
-        if (latestState?.pile?.length) {
+        if (latestState?.pile?.count) {
           logPlayToDraw();
         }
         // CRITICAL: Must finish pile pickup sequence before returning
@@ -462,7 +462,7 @@ export async function initializeSocketHandlers(): Promise<void> {
         // still emit PILE_PICKED_UP. Only animate/log the flip if a new pile top
         // actually exists in the latest state.
         const latestState = state.getLastGameState();
-        if (!latestState?.pile?.length) {
+        if (!latestState?.pile?.count) {
           timing.log('No pile to flip to, finishing pile pickup');
           aqFinishPilePickupSequence();
           return;

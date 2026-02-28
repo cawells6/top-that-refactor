@@ -77,9 +77,9 @@ export async function waitForAnimationsToFinish(
         const s = w.state?.getLastGameState?.();
         if (!s) return false;
 
-        const pile = s.pile || [];
-        const statePileTop = pile.length
-          ? `${String(pile[pile.length - 1]?.value ?? '')}:${String(pile[pile.length - 1]?.suit ?? '')}`
+        const pile = s.pile || { topCard: null, belowTopCard: null, count: 0 };
+        const statePileTop = pile.topCard
+          ? `${String(pile.topCard?.value ?? '')}:${String(pile.topCard?.suit ?? '')}`
           : null;
 
         const pileTopEl = document.getElementById('pile-top-card');

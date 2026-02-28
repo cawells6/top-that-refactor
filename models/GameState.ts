@@ -250,7 +250,11 @@ export default class GameState {
 
     const publicState: SanitizedClientState = {
       players: publicPlayers,
-      pile: this.pile.map((c) => ({ ...c })),
+      pile: {
+        topCard: this.pile.length > 0 ? { ...this.pile[this.pile.length - 1] } : null,
+        belowTopCard: this.pile.length > 1 ? { ...this.pile[this.pile.length - 2] } : null,
+        count: this.pile.length,
+      },
       discardCount: this.discard.length,
       deckSize: this.deck?.length || 0,
       currentPlayerId,

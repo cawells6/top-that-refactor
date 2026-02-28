@@ -60,7 +60,7 @@ export class GamePage {
 
         const visualText = await this.pileCountBadge.textContent();
         const visualCount = parseInt(visualText || '0', 10);
-        const logicalCount = state.pile ? state.pile.length : 0;
+        const logicalCount = state.pile ? state.pile.count : 0;
 
         return visualCount === logicalCount;
       }, { timeout: timeoutMs })
