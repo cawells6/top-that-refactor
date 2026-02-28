@@ -61,9 +61,9 @@ describe('Socket.IO Integration Tests', () => {
 
     client.on(JOINED, (data) => {
       try {
-        // The JOINED event sends 'id' for the player ID
-        expect(data).toHaveProperty('id');
-        expect(data).toHaveProperty('name', 'HappyTester');
+        // Server sends { success, roomId, playerId }
+        expect(data).toHaveProperty('playerId');
+        expect(data).toHaveProperty('success', true);
         expect(data.roomId).toBeDefined();
         joinedReceived = true;
       } catch (e) {
@@ -108,7 +108,7 @@ describe('Socket.IO Integration Tests', () => {
     });
 
     clientA.on(JOINED, (data) => {
-      playerId = data.id;
+      playerId = data.playerId;
       roomId = data.roomId;
     });
 
@@ -127,12 +127,12 @@ describe('Socket.IO Integration Tests', () => {
                clientAReconnected.emit(REJOIN, { playerId, roomId });
             });
 
-            clientAReconnected.on(LOBBY_STATE_UPDATE, (rejoinState) => {
+            // Verify rejoin via JOINED event (lobby state doesn't include 'disconnected')
+            clientAReconnected.on(JOINED, (rejoinData) => {
               try {
-                 const player = rejoinState.players.find((p: any) => p.id === playerId);
-                 expect(player).toBeDefined();
-                 expect(player?.name).toBe('ClientA');
-                 expect(player?.disconnected).toBe(false);
+                 expect(rejoinData.success).toBe(true);
+                 expect(rejoinData.playerId).toBe(playerId);
+                 expect(rejoinData.roomId).toBe(roomId);
                  done();
               } catch (e) {
                 done(e);

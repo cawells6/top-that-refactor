@@ -5,6 +5,7 @@
     "controllers/**/*.ts",
     "models/**/*.ts",
     "utils/**/*.ts",
+    "services/**/*.ts",
     "src/**/*.ts",
     "scripts/**/*.ts",
     "public/scripts/**/*.ts",

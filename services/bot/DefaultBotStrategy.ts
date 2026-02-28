@@ -1,9 +1,9 @@
-import { IBotStrategy } from './IBotStrategy';
-import { BotAction, BotPlayCardsAction, BotPickupAction } from './types';
-import GameState from '../../models/GameState';
-import Player from '../../models/Player';
-import { Card } from '../../src/shared/types';
-import { normalizeCardValue } from '../../utils/cardUtils';
+import { IBotStrategy } from './IBotStrategy.js';
+import { BotAction, BotPlayCardsAction, BotPickupAction } from './types.js';
+import GameState from '../../models/GameState.js';
+import Player from '../../models/Player.js';
+import { Card } from '../../src/shared/types.js';
+import { normalizeCardValue } from '../../utils/cardUtils.js';
 
 export class DefaultBotStrategy implements IBotStrategy {
   public calculateMove(gameState: GameState, botPlayer: Player): BotAction {
@@ -74,7 +74,7 @@ export class DefaultBotStrategy implements IBotStrategy {
     if (zone === 'hand') {
       hasPlayableCard = cardsInZone.length > 0;
     } else {
-      hasPlayableCard = cardsInZone.some((card) => Boolean(card));
+      hasPlayableCard = cardsInZone.some((card: Card | null) => Boolean(card));
     }
     if (!hasPlayableCard) return null;
 

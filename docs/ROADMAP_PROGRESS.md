@@ -38,9 +38,9 @@
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
 | **18** | **Room cleanup with stale-started timeout** | ✅ **Done** | `GameRoomManager` cleanup interval has two-tier logic: empty/unstarted rooms cleaned after `EMPTY_TIMEOUT_MS`; stale started games cleaned after `STALE_TIMEOUT_MS` (30 min). Both imported from `src/shared/constants.ts`. |
-| **19** | **GameController unit tests** | 🚧 **Partial** | Some tests exist in `tests/`, but coverage for edge cases is incomplete. |
-| **20** | **Mid-game rejoin tests** | ❌ **Pending** | Integration tests exist but do not explicitly cover mid-game disconnect/reconnect flows. |
-| **21** | **Build output runnable server** | 🚧 **Partial** | Build pipeline exists (`npm run build` → `tsc + vite build` → `npm start` from `dist/`). Postbuild extension fix in place. Missing: end-to-end smoke test of built output, no CI verification step. |
+| **19** | **GameController unit tests** | ✅ **Done** | 28 edge-case tests added in `tests/gameController.edgeCases.test.ts` covering: destroy() cleanup, disconnect (pre-game host reassignment, mid-game shutdown timer, active-player turn advance), turn transition lock, duplicate indices, play-card validation, pickup-pile rejections, broadcastState per-player privacy, isStarting blocks, up-card plays, validateRequest, clearAllTimeouts, handleStartGame guards, rejoin edge cases, hasConnectedClients. All 28 pass. |
+| **20** | **Mid-game rejoin tests** | ✅ **Done** | 6 integration tests in `tests/integration/rejoin.integration.test.ts` covering: mid-game disconnect+rejoin restores player, rejoin receives STATE_UPDATE, wrong playerId/roomId fails gracefully, double disconnect/reconnect cycle, JOINED event emission. Pre-existing integration tests (`socket.integration.test.ts`) also fixed (wrong field names, absent `disconnected` field). 9/9 integration tests pass. |
+| **21** | **Build output runnable server** | ✅ **Done** | `npm run build` now passes (fixed: `services/` added to `tsconfig.build.json` include, `.js` extensions added to bot imports, null narrowing in `socketService.ts`). `npm run build:smoke` runs full pipeline: type-check → Vite client bundle → start server via tsx → curl `/health`. `babel-plugin-transform-import-meta` added to support `import.meta.url` in Jest integration tests. |
 
 ## Oversight Fixes for "Done" Items
 Audit date: 2026-02-28 — items marked Done that had residual gaps.

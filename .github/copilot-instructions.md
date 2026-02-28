@@ -37,6 +37,33 @@ When changing UI layout or styles, assume there are existing global rules and ov
 4. **Override deliberately:** If an override is necessary, prefer higher-specificity selectors placed after the generic rule; use `!important` only as a last resort.
 5. **Verify both layouts:** Confirm desktop and mobile behavior (grid/flex placement + hover/active) in all relevant lobby panels.
 
+## Build & Runtime (Know Before You Code)
+
+1.  **`noEmit: true`** — `tsconfig.json` has `noEmit: true`. `tsc` only **type-checks**; it does not emit JS into `dist/`.
+2.  **Server always runs from TS source** — via `tsx start-server.ts` (dev) or `node --loader ts-node/esm ./start-server.ts`. There is no compiled `dist/start-server.js`.
+3.  **What `npm run build` does:** `tsc -p tsconfig.build.json` (type-check) + `vite build` (client bundle → `dist/client/`). The `postbuild` script fixes `.js` extensions in `dist/`.
+4.  **`tsconfig.build.json` include list** — any new top-level folder with server TS must be added (e.g. `services/**/*.ts`). Forgetting this causes `TS6307` "not listed within the file list" errors on build.
+5.  **ESM imports need `.js` extensions** — `moduleResolution: "NodeNext"` requires `.js` in relative imports (even for `.ts` source files). Missing extensions cause `TS2835`.
+6.  **Dev entrypoints:** `./run` → `run.js` → `tsx start-server.ts`. Or `npm run dev:server` via nodemon.
+7.  **Smoke test:** `npm run build:smoke` — type-checks, bundles client, starts server via tsx, curls `/health`.
+
+## Test Pre-Flight (Run Before Writing Tests)
+
+Before writing or modifying tests, always run the existing suite first to know what's already broken:
+
+```bash
+# Unit tests (expect 290+ pass; 3 known failures in socketService.test.ts)
+npx jest --no-coverage
+
+# Integration tests (requires babel-plugin-transform-import-meta for import.meta.url)
+npm run test:integration
+
+# Build check
+npm run build
+```
+
+Do not assume prior tests pass. If they fail, check the base branch first (`git stash → run → git stash pop`) before investing time fixing.
+
 ## Diagnostics (Use Before Guessing)
 
 - Client debug logs: `localStorage.TOPTHAT_DEBUG = '1'`

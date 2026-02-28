@@ -5,6 +5,7 @@ import { jest } from '@jest/globals';
 export interface MockSocket {
   id: string;
   join: any;
+  leave: any;
   emit: any;
   on: any;
   removeAllListeners: any;
@@ -29,6 +30,7 @@ export function createMockSocket(
   return {
     id,
     join: jest.fn(),
+    leave: jest.fn(),
     emit: jest.fn((event: string, payload?: any) =>
       topLevelEmitMock(event, payload)
     ),

@@ -17,4 +17,10 @@
 - Avoid flaky tests: any server randomness must be seedable/overrideable for deterministic Playwright runs.
 - Prefer surgical edits; avoid rebuilding large files from scratch.
 - New code: TypeScript only, ESM imports with `.js`, and no new `any`.
+
+## Build & runtime (required)
+- `noEmit: true` — `tsc` only type-checks. Server runs from TS source via `tsx start-server.ts`, never from `dist/`.
+- `npm run build` = type-check (`tsc -p tsconfig.build.json`) + client bundle (`vite build` → `dist/client/`).
+- New server-side folders must be added to `tsconfig.build.json` `include` or build will fail with TS6307.
+- Run `npx jest --no-coverage` and `npm run build` before writing tests or build scripts to know what's already broken.
 </INSTRUCTIONS>

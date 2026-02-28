@@ -1,4 +1,4 @@
-import { Card } from '../../src/shared/types';
+import { Card } from '../../src/shared/types.js';
 
 export type BotPlayCardsAction = {
   action: 'PLAY';

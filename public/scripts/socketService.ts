@@ -160,10 +160,12 @@ export async function initializeSocketHandlers(): Promise<void> {
   await state.socketReady;
 
   state.socket.on('connect', () => {
-    if (state.currentRoom && state.myId) {
+    const myId = state.myId;
+    const currentRoom = state.currentRoom;
+    if (currentRoom && myId) {
       state.socket.emit(REJOIN, {
-        playerId: state.myId,
-        roomId: state.currentRoom,
+        playerId: myId,
+        roomId: currentRoom,
       });
     } else {
       showLobbyForm();
