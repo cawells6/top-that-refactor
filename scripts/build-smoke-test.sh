@@ -67,8 +67,8 @@ echo "========================================"
 export NODE_ENV=production
 export PORT="$SMOKE_PORT"
 
-# Run server from TS source using tsx (how the project actually runs)
-npx tsx start-server.ts &
+# Run server from TS source (matching npm start / dev:server scripts)
+node --loader ts-node/esm ./start-server.ts &
 SERVER_PID=$!
 
 echo "[smoke] Server PID: $SERVER_PID"
