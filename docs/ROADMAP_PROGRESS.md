@@ -9,7 +9,7 @@
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
 | **1** | **Repo hygiene cleanup** | ✅ **Done** | Dead files removed, `.gitignore` present. |
-| **2** | **Typed event payload contracts** | ✅ **Done** | `src/shared/types.ts` defines payloads. `GameController.ts` & `socketService.ts` enforce them. |
+| **2** | **Typed event payload contracts** | ✅ **Done** | `src/shared/types.ts` defines payloads. Client socket generically typed as `Socket<ServerToClientEvents, ClientToServerEvents>`. |
 | **3** | **Server-side Protocol Validation** | ✅ **Done** | `GameController.validateRequest` & `isValidPlay` prevent illegal moves. |
 | **4** | **Reject duplicate cardIndices** | ✅ **Done** | `GameController.ts` explicitly checks `Set(cardIndices).size` to block dupes. |
 | **5** | **Shared JOIN validation rules** | ✅ **Done**  | `src/shared/validation.ts` exports `validateJoinPayload()`. `GameController.ts` imports & uses it. Host-specific policy (numHumans/numCPUs ranges) remains inline in the controller — acceptable. |
@@ -19,16 +19,16 @@
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
 | **7** | **Centralize public state projection** | ✅ **Done** | `GameController.broadcastState` calls `GameState.getPublicView(targetPlayerId)` per player. All card masking (hand privacy, down-card hiding, leak scrubbing) lives in `getPublicView`. |
-| **8** | **Persistent playerId for rejoin** | ✅ **Done** | `socketService.ts` persists session. `GameController` handles `REJOIN` event successfully. |
+| **8** | **Persistent playerId for rejoin** | ✅ **Done** | Session persisted to `localStorage` with `TOPTHAT_SESSION` key and 1-hour TTL. `GameController` handles `REJOIN` event. |
 | **9** | **Graceful shutdown on mass disconnect** | ✅ **Done** | `GameController.handleDisconnect` now starts a 30s timer when the last human leaves. `handleRejoin` cancels it. |
-| **10** | **Room lifecycle destroy hook** | ✅ **Done** | `destroy()` methods implemented on `GameController` and `GameRoomManager` to clean up timers and socket listeners. |
+| **10** | **Room lifecycle destroy hook** | ✅ **Done** | `destroy()` cleans up timers, calls `socket.removeAllListeners()`, and clears `socketIdToPlayerId`. |
 | **11** | **Extract bot logic to BotService** | ✅ **Done** | Bot logic extracted to `services/bot/DefaultBotStrategy.ts`, decoupling it from `GameController`. |
 
 ## 🛠️ Phase 3: Standardization & UX
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
 | **12** | **Dedupe isValidPlay** | ✅ **Done** | Logic centralized in `utils/cardUtils.ts`. Client-side (`public/scripts/render.ts`) now correctly imports and re-exports this function, ensuring both Client and Server use the same code. |
-| **13** | **Centralize timing constants** | ✅ **Done** | Core gameplay timing centralized in `src/shared/constants.ts`. Minor residual hardcoded values remain (see Oversight Fixes below). |
+| **13** | **Centralize timing constants** | ✅ **Done** | All gameplay timing centralized in `src/shared/constants.ts`, including `STARTUP_LOCK_FALLBACK_MS` and `POST_REJOIN_BOT_DELAY_MS`. |
 | **14** | **Show server error text in-game** | ✅ **Done** | `socketService.ts` listens for `ERROR` event and displays toast/visual feedback. |
 | **15** | **Explicit burn feedback** | ❌ **Pending** | Server forces pickup on invalid play but doesn't emit specific "Burn" payload with revealed cards. |
 | **16** | **Network Bandwidth (Quick Win)** | ❌ **Pending** | `pushState` sends full pile history. Optimization to send only `topCard + count` is missing. |
@@ -43,35 +43,25 @@
 | **21** | **Build output runnable server** | 🚧 **Partial** | Build pipeline exists (`npm run build` → `tsc + vite build` → `npm start` from `dist/`). Postbuild extension fix in place. Missing: end-to-end smoke test of built output, no CI verification step. |
 
 ## Oversight Fixes for "Done" Items
-Audit date: 2026-02-28 — items marked Done that have residual gaps.
+Audit date: 2026-02-28 — items marked Done that had residual gaps.
 
-### Item 2: Client socket not generically typed
-**Problem:** Server uses `TypedServer`/`TypedSocket` aliases from `ClientToServerEvents`/`ServerToClientEvents`, but the client `io()` call in `socketService.ts` does not pass these generics. Type safety relies on manual imports at call sites.
-**Fix:**
-1. In `public/scripts/socketService.ts`, change the `io()` call to `io<ServerToClientEvents, ClientToServerEvents>(...)` (Socket.IO client supports this).
-2. Remove redundant manual type assertions on `.on()` and `.emit()` calls that the generic will now cover.
-3. Verify no type errors introduced.
+### Item 2: Client socket not generically typed — ✅ Fixed
+**Problem:** Server uses `TypedServer`/`TypedSocket` aliases from `ClientToServerEvents`/`ServerToClientEvents`, but the client `io()` call did not pass these generics.
+**Resolution:** Added `TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>` alias in `public/scripts/state.ts`. All three `io()` return sites cast to `TypedSocket`; `initSocket()` returns `Promise<TypedSocket>`. Event interfaces imported from `src/shared/events.js`.
 
-### Item 8: Rejoin uses `sessionStorage` (tab-scoped)
+### Item 8: Rejoin uses `sessionStorage` (tab-scoped) — ✅ Fixed
 **Problem:** `sessionStorage` is lost when the tab/browser closes. A player who loses their tab cannot rejoin.
-**Fix:**
-1. In `public/scripts/state.ts`, change `saveSession()`/`loadSession()` to use `localStorage` with a namespaced key (e.g. `TOPTHAT_SESSION`).
-2. Add a TTL check — clear stored session if older than 1 hour (prevents stale reconnects to long-dead rooms).
-3. On successful `JOINED` or game-over, clear the stored session so it doesn't persist indefinitely.
+**Resolution:** Replaced `sessionStorage` with `localStorage` using a `TOPTHAT_SESSION` namespaced key. Session data stored as JSON with a `savedAt` timestamp; `loadSession()` checks a 1-hour TTL and discards stale data. Added `clearSession()` export for use on game-over/join flows.
 
-### Item 10: `destroy()` doesn't clean up socket listeners
-**Problem:** `GameController.destroy()` emits `SESSION_ERROR` and removes players from the room, but never calls `socket.removeAllListeners()`. Dangling listeners could leak if the server object survives.
-**Fix:**
-1. In `GameController.destroy()`, after the player notification loop, iterate `this.socketIdToPlayerId` and call `socket.removeAllListeners()` on each socket.
-2. Clear the `socketIdToPlayerId` map.
-3. Add a unit test in `gameFlow.test.ts` that calls `destroy()` and verifies listeners are removed.
+### Item 10: `destroy()` doesn't clean up socket listeners — ✅ Fixed
+**Problem:** `GameController.destroy()` emitted `SESSION_ERROR` and removed players from the room, but never called `socket.removeAllListeners()`. Dangling listeners could leak if the server object survives.
+**Resolution:** `destroy()` now calls `socket.removeAllListeners()` on each player socket before `socket.leave()`, and clears `this.socketIdToPlayerId` after the loop.
+**Remaining:** Add a unit test in `gameFlow.test.ts` that calls `destroy()` and verifies listeners are removed.
 
-### Item 13: Residual hardcoded timing values
-**Problem:** A few timing values are still magic numbers instead of importing from `src/shared/constants.ts`.
-**Fix:**
-1. `GameController.ts` `getStartupLockDurationMs()` — extract the `12000` fallback to a constant `STARTUP_LOCK_FALLBACK_MS` in `constants.ts`.
-2. `GameController.ts` `handleRejoin()` — extract the `250` ms post-rejoin bot delay to `POST_REJOIN_BOT_DELAY_MS` in `constants.ts`.
-3. Optionally: audit client files for remaining literals (`300ms` toast fade, `20000ms` socket timeout, `4000ms` victory animation) and promote any that affect gameplay feel to `constants.ts`.
+### Item 13: Residual hardcoded timing values — ✅ Fixed
+**Problem:** A few timing values were still magic numbers instead of importing from `src/shared/constants.ts`.
+**Resolution:** Added `STARTUP_LOCK_FALLBACK_MS` (12000) and `POST_REJOIN_BOT_DELAY_MS` (250) to `src/shared/constants.ts`. `GameController.ts` `getStartupLockDurationMs()` and `clearStartingLock()` now import and use these constants.
+**Remaining:** Audit client files for remaining literals (`300ms` toast fade, `20000ms` socket timeout, `4000ms` victory animation) and promote any that affect gameplay feel to `constants.ts`.
 
 ---
 
