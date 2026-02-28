@@ -1,7 +1,8 @@
 
 # 🏁 Top That! Refactor Roadmap Tracker
 
-**Current Phase:** Phase 1 - Server Hardening & Validation
+**Current Phase:** Phase 3 - Standardization & UX (items 15-16 remaining) / Phase 4 - Testing & Deployment
+**Last Audit:** 2026-02-28
 **Source:** `0127 Get Well.xlsx - Sheet3.csv`
 
 ## 🔍 Phase 1: Server Hardening & Validation
@@ -11,13 +12,13 @@
 | **2** | **Typed event payload contracts** | ✅ **Done** | `src/shared/types.ts` defines payloads. `GameController.ts` & `socketService.ts` enforce them. |
 | **3** | **Server-side Protocol Validation** | ✅ **Done** | `GameController.validateRequest` & `isValidPlay` prevent illegal moves. |
 | **4** | **Reject duplicate cardIndices** | ✅ **Done** | `GameController.ts` explicitly checks `Set(cardIndices).size` to block dupes. |
-| **5** | **Shared JOIN validation rules** | ✅ **Done**  | Validation is currently hardcoded in `GameController.ts` (lines 280+). No shared validator module. |
+| **5** | **Shared JOIN validation rules** | ✅ **Done**  | `src/shared/validation.ts` exports `validateJoinPayload()`. `GameController.ts` imports & uses it. Host-specific policy (numHumans/numCPUs ranges) remains inline in the controller — acceptable. |
 | **6** | **Lock down transitions** | ✅ **Done** | `isStarting` flag implemented in `GameState` and guards `GameController` actions. |
 
 ## 🏗️ Phase 2: Lifecycle & Persistence
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
-| **7** | **Centralize public state projection** | ✅ **Done** | `GameController.pushState` manually masks cards. Logic not yet moved to `GameState.getPublicView`. |
+| **7** | **Centralize public state projection** | ✅ **Done** | `GameController.broadcastState` calls `GameState.getPublicView(targetPlayerId)` per player. All card masking (hand privacy, down-card hiding, leak scrubbing) lives in `getPublicView`. |
 | **8** | **Persistent playerId for rejoin** | ✅ **Done** | `socketService.ts` persists session. `GameController` handles `REJOIN` event successfully. |
 | **9** | **Graceful shutdown on mass disconnect** | ✅ **Done** | `GameController.handleDisconnect` now starts a 30s timer when the last human leaves. `handleRejoin` cancels it. |
 | **10** | **Room lifecycle destroy hook** | ✅ **Done** | `destroy()` methods implemented on `GameController` and `GameRoomManager` to clean up timers and socket listeners. |
@@ -27,7 +28,7 @@
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
 | **12** | **Dedupe isValidPlay** | ✅ **Done** | Logic centralized in `utils/cardUtils.ts`. Client-side (`public/scripts/render.ts`) now correctly imports and re-exports this function, ensuring both Client and Server use the same code. |
-| **13** | **Centralize timing constants** | ✅ **Done** | All timing constants centralized in `src/shared/constants.ts` and imported across client/server. |
+| **13** | **Centralize timing constants** | ✅ **Done** | Core gameplay timing centralized in `src/shared/constants.ts`. Minor residual hardcoded values remain (see Oversight Fixes below). |
 | **14** | **Show server error text in-game** | ✅ **Done** | `socketService.ts` listens for `ERROR` event and displays toast/visual feedback. |
 | **15** | **Explicit burn feedback** | ❌ **Pending** | Server forces pickup on invalid play but doesn't emit specific "Burn" payload with revealed cards. |
 | **16** | **Network Bandwidth (Quick Win)** | ❌ **Pending** | `pushState` sends full pile history. Optimization to send only `topCard + count` is missing. |
@@ -36,10 +37,77 @@
 ## 🧪 Phase 4: Testing & Deployment
 | # | Task | Status | Code Verification Notes |
 | :--- | :--- | :--- | :--- |
-| **18** | **Room cleanup with stale-started timeout** | ❌ **Pending** | `GameRoomManager` only cleans empty rooms, not stalled active games. |
+| **18** | **Room cleanup with stale-started timeout** | ✅ **Done** | `GameRoomManager` cleanup interval has two-tier logic: empty/unstarted rooms cleaned after `EMPTY_TIMEOUT_MS`; stale started games cleaned after `STALE_TIMEOUT_MS` (30 min). Both imported from `src/shared/constants.ts`. |
 | **19** | **GameController unit tests** | 🚧 **Partial** | Some tests exist in `tests/`, but coverage for edge cases is incomplete. |
 | **20** | **Mid-game rejoin tests** | ❌ **Pending** | Integration tests exist but do not explicitly cover mid-game disconnect/reconnect flows. |
-| **21** | **Build output runnable server** | ❌ **Pending** | `tsconfig.build.json` exists but build output verification is needed. |
+| **21** | **Build output runnable server** | 🚧 **Partial** | Build pipeline exists (`npm run build` → `tsc + vite build` → `npm start` from `dist/`). Postbuild extension fix in place. Missing: end-to-end smoke test of built output, no CI verification step. |
+
+## Oversight Fixes for "Done" Items
+Audit date: 2026-02-28 — items marked Done that have residual gaps.
+
+### Item 2: Client socket not generically typed
+**Problem:** Server uses `TypedServer`/`TypedSocket` aliases from `ClientToServerEvents`/`ServerToClientEvents`, but the client `io()` call in `socketService.ts` does not pass these generics. Type safety relies on manual imports at call sites.
+**Fix:**
+1. In `public/scripts/socketService.ts`, change the `io()` call to `io<ServerToClientEvents, ClientToServerEvents>(...)` (Socket.IO client supports this).
+2. Remove redundant manual type assertions on `.on()` and `.emit()` calls that the generic will now cover.
+3. Verify no type errors introduced.
+
+### Item 8: Rejoin uses `sessionStorage` (tab-scoped)
+**Problem:** `sessionStorage` is lost when the tab/browser closes. A player who loses their tab cannot rejoin.
+**Fix:**
+1. In `public/scripts/state.ts`, change `saveSession()`/`loadSession()` to use `localStorage` with a namespaced key (e.g. `TOPTHAT_SESSION`).
+2. Add a TTL check — clear stored session if older than 1 hour (prevents stale reconnects to long-dead rooms).
+3. On successful `JOINED` or game-over, clear the stored session so it doesn't persist indefinitely.
+
+### Item 10: `destroy()` doesn't clean up socket listeners
+**Problem:** `GameController.destroy()` emits `SESSION_ERROR` and removes players from the room, but never calls `socket.removeAllListeners()`. Dangling listeners could leak if the server object survives.
+**Fix:**
+1. In `GameController.destroy()`, after the player notification loop, iterate `this.socketIdToPlayerId` and call `socket.removeAllListeners()` on each socket.
+2. Clear the `socketIdToPlayerId` map.
+3. Add a unit test in `gameFlow.test.ts` that calls `destroy()` and verifies listeners are removed.
+
+### Item 13: Residual hardcoded timing values
+**Problem:** A few timing values are still magic numbers instead of importing from `src/shared/constants.ts`.
+**Fix:**
+1. `GameController.ts` `getStartupLockDurationMs()` — extract the `12000` fallback to a constant `STARTUP_LOCK_FALLBACK_MS` in `constants.ts`.
+2. `GameController.ts` `handleRejoin()` — extract the `250` ms post-rejoin bot delay to `POST_REJOIN_BOT_DELAY_MS` in `constants.ts`.
+3. Optionally: audit client files for remaining literals (`300ms` toast fade, `20000ms` socket timeout, `4000ms` victory animation) and promote any that affect gameplay feel to `constants.ts`.
+
+---
+
+## Suggested Additions to Roadmap
+Identified during 2026-02-28 audit. Not currently tracked.
+
+### Security (recommend adding as Phase 5)
+| # | Task | Priority | Notes |
+| :--- | :--- | :--- | :--- |
+| S1 | **Lock down CORS** | High | `server.ts` has `cors: { origin: '*' }`. Restrict to known origins or same-origin for any deployment beyond localhost. |
+| S2 | **Sanitize player names** | High | Names are only trimmed, never escaped. If rendered as `innerHTML` anywhere client-side, XSS is possible. Add server-side sanitization + client-side `textContent` enforcement. |
+| S3 | **Rate limit socket connections** | Medium | No rate limiting on connect or events. A single client could spam `JOIN_GAME`/`PLAY_CARD`. Add per-IP connection throttle via `socket.io` middleware. |
+| S4 | **Rate limit `/api/feedback`** | Low | Accepts arbitrary JSON, no validation or throttle. Add schema validation + express-rate-limit. |
+| S5 | **Global error handler** | High | No `process.on('unhandledRejection')` or `process.on('uncaughtException')` in `server.ts`. A single bad socket event could crash the process. Add handler with logging. |
+
+### Accessibility
+| # | Task | Priority | Notes |
+| :--- | :--- | :--- | :--- |
+| A1 | **Card ARIA labels** | Medium | Game cards lack `aria-label`/`role` attributes. Add `role="button"` and descriptive labels ("7 of Hearts"). |
+| A2 | **Screen reader announcements** | Medium | No live region for game events (whose turn, card played, special effect). Add `aria-live="polite"` region. |
+| A3 | **Keyboard card selection** | Medium | No keyboard navigation for selecting/playing cards. Add tab focus + Enter/Space to play. |
+
+### Operational
+| # | Task | Priority | Notes |
+| :--- | :--- | :--- | :--- |
+| O1 | **Health check endpoint** | Low | Add `GET /health` returning 200 + uptime/room count for monitoring. |
+| O2 | **Structured logging** | Low | Replace `console.log` with a structured logger (e.g. pino) for production debugging. |
+
+### Testing
+| # | Task | Priority | Notes |
+| :--- | :--- | :--- | :--- |
+| T1 | **E2E happy-path smoke test** | High | Single Playwright test: host → join → play one round → game over. Catches most regressions cheaply. |
+| T2 | **Bot strategy unit tests** | Medium | `DefaultBotStrategy` has no dedicated tests. Add tests for hand/upCard/downCard decision branches. |
+| T3 | **Build smoke test** | Medium | Script that runs `npm run build && npm start` and hits `/health` to verify the built output works. |
+
+---
 
 ## Refactor Regression List (Fix after refactor)
 Added: 2026-02-01 (regressions noticed, exact change point unknown)
