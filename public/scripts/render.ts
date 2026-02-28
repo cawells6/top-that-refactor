@@ -207,10 +207,21 @@ export function logCardPlayed(
 export function logPileTaken(
   playerId: string,
   pileSize: number,
-  players: any[]
+  players: unknown[],
+  opts?: { reason?: string; invalidCard?: { value: string | number; suit: string } }
 ): void {
   const playerName = getPlayerDisplayName(playerId, players);
-  addLogEntry(`${playerName} took the Draw pile (${pileSize} cards)`, 'take');
+  if (opts?.reason === 'invalid-play') {
+    const cardLabel = opts.invalidCard
+      ? `${opts.invalidCard.value} of ${opts.invalidCard.suit}`
+      : 'a card';
+    addLogEntry(
+      `❌ ${playerName} played ${cardLabel} — invalid! Picks up ${pileSize} cards`,
+      'take'
+    );
+  } else {
+    addLogEntry(`${playerName} took the Draw pile (${pileSize} cards)`, 'take');
+  }
 }
 
 /**
@@ -220,20 +231,30 @@ export function logPlayToDraw(): void {
   addLogEntry('Card flipped from Play pile to Draw pile', 'draw');
 }
 
-export function logSpecialEffect(effectType: string, _value?: any): void {
+export function logSpecialEffect(
+  effectType: string,
+  _value?: unknown,
+  opts?: { playerName?: string; burnedCount?: number }
+): void {
   let message = '';
+  const who = opts?.playerName ?? '';
+  const count = opts?.burnedCount;
   switch (effectType) {
     case 'ten':
-      message = '🔥 Pile burned!';
+      message = who
+        ? `🔥 ${who} burned the pile!${count ? ` (${count} cards)` : ''}`
+        : '🔥 Pile burned!';
       break;
     case 'two':
-      message = '2️⃣ Pile reset!';
+      message = who ? `2️⃣ ${who} reset the pile!` : '2️⃣ Pile reset!';
       break;
     case 'five':
-      message = '5️⃣ Copies top card!';
+      message = who ? `5️⃣ ${who} copies top card!` : '5️⃣ Copies top card!';
       break;
     case 'four-of-a-kind':
-      message = '💥 Four of a kind!';
+      message = who
+        ? `💥 ${who} — Four of a kind!${count ? ` (${count} cards burned)` : ''}`
+        : '💥 Four of a kind!';
       break;
     default:
       message = `Special card effect: ${effectType}`;

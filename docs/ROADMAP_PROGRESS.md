@@ -1,7 +1,7 @@
 
 # 🏁 Top That! Refactor Roadmap Tracker
 
-**Current Phase:** Phase 3 - Standardization & UX (items 15-16 remaining) / Phase 4 - Testing & Deployment
+**Current Phase:** All phases complete (1-4). Suggested additions pending.
 **Last Audit:** 2026-02-28
 **Source:** `0127 Get Well.xlsx - Sheet3.csv`
 
@@ -30,7 +30,7 @@
 | **12** | **Dedupe isValidPlay** | ✅ **Done** | Logic centralized in `utils/cardUtils.ts`. Client-side (`public/scripts/render.ts`) now correctly imports and re-exports this function, ensuring both Client and Server use the same code. |
 | **13** | **Centralize timing constants** | ✅ **Done** | All gameplay timing centralized in `src/shared/constants.ts`, including `STARTUP_LOCK_FALLBACK_MS` and `POST_REJOIN_BOT_DELAY_MS`. |
 | **14** | **Show server error text in-game** | ✅ **Done** | `socketService.ts` listens for `ERROR` event and displays toast/visual feedback. |
-| **15** | **Explicit burn feedback** | ❌ **Pending** | Server forces pickup on invalid play but doesn't emit specific "Burn" payload with revealed cards. |
+| **15** | **Explicit burn feedback** | ✅ **Done** | `SpecialCardEffectPayload` enriched with `playerId`, `playerName`, `burnedCount`. `PilePickedUpPayload` enriched with `reason` (`'voluntary'` \| `'invalid-play'`) and `invalidCard`. Server populates all fields in `handleSpecialCard()` and both `PILE_PICKED_UP` emit sites. Client `logSpecialEffect()` and `logPileTaken()` display player name, card count, and invalid-play details in game log. Existing tests strengthened with new field assertions. Build clean, 290 unit tests pass, 9/9 integration tests pass. |
 | **16** | **Network Bandwidth (Quick Win)** | ✅ **Done** | `getPublicView` now projects pile as `PileSummary { topCard, belowTopCard, count }` instead of full `Card[]` array. Wire payload reduced to 3 fields per update. Client files updated: `render.ts`, `socketService.ts`, `gameControls.ts`, `dealing-animation.ts`, `animationQueue.ts`. Tutorial builds summary from local `Card[]`. All 290 unit tests pass, 9/9 integration tests pass, build clean. |
 | **17** | **Break up client god files** | ✅ **Done** | Opening deal logic extracted to `OpeningDealCoordinator`. Render calls intentionally kept in socketService as part of animation sequences. |
 

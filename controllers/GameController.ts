@@ -1345,6 +1345,8 @@ export default class GameController {
         this.io.to(this.roomId).emit(PILE_PICKED_UP, {
           playerId: player.id,
           pileSize: pickupCards.length,
+          reason: 'invalid-play' as const,
+          invalidCard: failedCard ?? undefined,
         });
         this.log(`Invalid ${zone} play by ${player.id}. Forced pickup.`);
 
@@ -1575,6 +1577,7 @@ export default class GameController {
       this.io.to(this.roomId).emit(PILE_PICKED_UP, {
         playerId: player.id,
         pileSize: pileCount,
+        reason: 'voluntary' as const,
       });
     }
 

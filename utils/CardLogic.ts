@@ -43,15 +43,21 @@ export function handleSpecialCard(
     io.to(roomId).emit(SPECIAL_CARD_EFFECT, {
       type: 'two',
       value: lastPlayedNormalizedValue,
+      playerId: player.id,
+      playerName: player.name,
     });
   } else if (fourOfKindPlayed || isTenCard(lastPlayedNormalizedValue)) {
     const effectType = isTenCard(lastPlayedNormalizedValue) ? 'ten' : 'four-of-a-kind';
+    const burnedCount = gameState.pile.length;
     serverLog(
-      `Special card: ${effectType} played by ${player.id}. Burning pile.`
+      `Special card: ${effectType} played by ${player.id}. Burning pile (${burnedCount} cards).`
     );
     io.to(roomId).emit(SPECIAL_CARD_EFFECT, {
       type: effectType,
       value: lastPlayedNormalizedValue,
+      playerId: player.id,
+      playerName: player.name,
+      burnedCount,
     });
     burnPileAndForgetLastCard(gameState);
     pileClearedBySpecial = true;
@@ -62,6 +68,8 @@ export function handleSpecialCard(
     io.to(roomId).emit(SPECIAL_CARD_EFFECT, {
       type: 'five',
       value: lastPlayedNormalizedValue,
+      playerId: player.id,
+      playerName: player.name,
     });
     if (gameState.lastRealCard) {
       const copiedCard: Card = {
@@ -74,11 +82,17 @@ export function handleSpecialCard(
         io.to(roomId).emit(SPECIAL_CARD_EFFECT, {
           type: 'two',
           value: copiedNormalizedValue,
+          playerId: player.id,
+          playerName: player.name,
         });
       } else if (isTenCard(copiedNormalizedValue)) {
+        const burnedCountCopy = gameState.pile.length;
         io.to(roomId).emit(SPECIAL_CARD_EFFECT, {
           type: 'ten',
           value: copiedNormalizedValue,
+          playerId: player.id,
+          playerName: player.name,
+          burnedCount: burnedCountCopy,
         });
         burnPileAndForgetLastCard(gameState);
         pileClearedBySpecial = true;

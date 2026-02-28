@@ -18,6 +18,7 @@ describe('Special Card Rules', () => {
   beforeEach(() => {
     gameState = new GameState();
     player = new Player('PLAYER_1');
+    player.name = 'Player 1';
     topLevelEmitMock = jest.fn();
     mockIo = createMockIO(topLevelEmitMock);
   });
@@ -39,7 +40,11 @@ describe('Special Card Rules', () => {
 
     expect(result.pileClearedBySpecial).toBe(false);
     expect(gameState.pile.length).toBe(1);
-    expect(effectCall?.[1]).toEqual(expect.objectContaining({ type: 'two' }));
+    expect(effectCall?.[1]).toEqual(expect.objectContaining({
+      type: 'two',
+      playerId: 'PLAYER_1',
+      playerName: 'Player 1',
+    }));
   });
 
   test('5 copies the last real card onto the pile', () => {
@@ -80,14 +85,23 @@ describe('Special Card Rules', () => {
       'room-1'
     );
 
-    const effectTypes = topLevelEmitMock.mock.calls
-      .filter((call) => call[0] === SPECIAL_CARD_EFFECT)
-      .map((call) => call[1]?.type);
+    const effectCalls = topLevelEmitMock.mock.calls
+      .filter((call) => call[0] === SPECIAL_CARD_EFFECT);
+    const effectTypes = effectCalls.map((call) => call[1]?.type);
 
     expect(result.pileClearedBySpecial).toBe(true);
     expect(gameState.pile.length).toBe(0);
     expect(gameState.discard.length).toBe(0);
     expect(effectTypes).toEqual(expect.arrayContaining(['five', 'ten']));
+
+    // The burn (ten) emission should include the pile count at burn time
+    const burnCall = effectCalls.find((call) => call[1]?.type === 'ten');
+    expect(burnCall?.[1]).toEqual(expect.objectContaining({
+      type: 'ten',
+      playerId: 'PLAYER_1',
+      playerName: 'Player 1',
+      burnedCount: 3, // original 2 + copied card added before burn
+    }));
   });
 
   test('10 burns the pile and removes it from the game', () => {
@@ -109,7 +123,12 @@ describe('Special Card Rules', () => {
     expect(result.pileClearedBySpecial).toBe(true);
     expect(gameState.pile.length).toBe(0);
     expect(gameState.discard.length).toBe(0);
-    expect(effectCall?.[1]).toEqual(expect.objectContaining({ type: 'ten' }));
+    expect(effectCall?.[1]).toEqual(expect.objectContaining({
+      type: 'ten',
+      playerId: 'PLAYER_1',
+      playerName: 'Player 1',
+      burnedCount: 2,
+    }));
     expect(gameState.lastRealCard).toBeNull();
   });
 
@@ -139,7 +158,12 @@ describe('Special Card Rules', () => {
     expect(gameState.pile.length).toBe(0);
     expect(gameState.discard.length).toBe(0);
     expect(effectCall?.[1]).toEqual(
-      expect.objectContaining({ type: 'four-of-a-kind' })
+      expect.objectContaining({
+        type: 'four-of-a-kind',
+        playerId: 'PLAYER_1',
+        playerName: 'Player 1',
+        burnedCount: 5,
+      })
     );
   });
 });

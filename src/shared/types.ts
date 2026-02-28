@@ -114,6 +114,8 @@ export interface CardPlayedPayload {
 export interface PilePickedUpPayload {
   playerId: string;
   pileSize: number;
+  reason?: 'voluntary' | 'invalid-play';
+  invalidCard?: Card;
 }
 
 export interface NextTurnPayload {
@@ -129,5 +131,7 @@ export interface SpecialCardEffectPayload {
   type: 'ten' | 'two' | 'four-of-a-kind' | 'five' | 'regular';
   value?: string | number | null;
   playerId?: string;
+  playerName?: string;
   description?: string;
+  burnedCount?: number;
 }

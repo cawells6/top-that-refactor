@@ -329,8 +329,11 @@ export async function initializeSocketHandlers(): Promise<void> {
 
       isAnimatingSpecialEffect = true;
 
-      // Log the special effect
-      logSpecialEffect(effectType, payload?.value);
+      // Log the special effect with enriched player/burn details
+      logSpecialEffect(effectType, payload?.value, {
+        playerName: payload?.playerName,
+        burnedCount: payload?.burnedCount,
+      });
 
       timing.log('Showing card event icon', { effectType });
       setTimeout(() => {
@@ -418,7 +421,10 @@ export async function initializeSocketHandlers(): Promise<void> {
       // Log the pile pickup
       const currentState = state.getLastGameState();
       if (currentState) {
-        logPileTaken(data.playerId, data.pileSize, currentState.players);
+        logPileTaken(data.playerId, data.pileSize, currentState.players, {
+          reason: data.reason,
+          invalidCard: data.invalidCard,
+        });
       }
 
       if (data.playerId === state.myId) {
